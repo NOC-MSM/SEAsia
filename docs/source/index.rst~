@@ -6,7 +6,7 @@
 Welcome to NEMO-RELOC's documentation!
 ======================================
 
-There are two README.md files is this project. There contents is loaded here and should describe the project (rather than have intro text duplicated in this index file). *It would have been better if the README.md files loaded their contents here without needing to click on a link. Like <INCLUDE=""> in HTML-speak. I don't know how to do this in Markdown)*
+There are two README.md files is this project. Their contents are loaded here and should describe the project (rather than have intro text duplicated in this index file). *It would have been better if the README.md files loaded their contents here without needing to click on a link. Like <INCLUDE=""> in HTML-speak. I don't know how to do this in Markdown)* **EDIT** I think a preprocessor command would be needed to paste in the contents of the README files.
 
 
 `Include the root README.md file <../../../README.md>`_   
