@@ -1,0 +1,264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Setting up a SE Asia NEMO configuration &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="setting-up-a-se-asia-nemo-configuration">
+<h1>Setting up a SE Asia NEMO configuration<a class="headerlink" href="#setting-up-a-se-asia-nemo-configuration" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="issues-that-arose">
+<h2>Issues that arose<a class="headerlink" href="#issues-that-arose" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Helpful to add in extra module command for first step</li>
+<li>Fix the sosie make.macro command</li>
+<li>Queue accound is now n01-NOCL in runscript</li>
+</ul>
+</div>
+<div class="section" id="following-the-recipe">
+<h2>Following the recipe<a class="headerlink" href="#following-the-recipe" title="Permalink to this headline">¶</a></h2>
+<p>Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef</span></code>
+Define working directory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">WDIR</span><span class="o">=/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">lighthousereef</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>Load modules:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">swap</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">cray</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">intel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+</pre></div>
+</div>
+<p><strong>James: You should add the above 3 lines as an e.g. in the docs</strong>. The <em>swap</em> one threw me for a while.</p>
+<p>Follow recipe. Step 1:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
+mkdir INPUTS
+cd INPUTS
+wget ftp.nerc-liv.ac.uk:/pub/general/jdha/inputs.tar.gz
+tar xvfz inputs.tar.gz
+rm inputs.tar.gz
+cd ../
+svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2014/dev_r4621_NOC4_BDY_VERT_INTERP@5709
+svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
+cd xios-1.0
+cp $WDIR/INPUTS/arch-XC30_ARCHER.* ./arch
+./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
+</pre></div>
+</div>
+<p>Step 2, as far as the <code class="docutils literal"><span class="pre">makenemo</span></code> call:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+cd $CDIR/../NEMO/OPA_SRC/SBC
+patch -b &lt; $WDIR/INPUTS/fldread.patch
+cd ../DOM
+patch -b &lt; $WDIR/INPUTS/dommsk.patch
+cd ../BDY
+patch -b &lt; $WDIR/INPUTS/bdyini.patch
+cd $CDIR
+rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
+cp $WDIR/INPUTS/arch-* ../ARCH
+./makenemo -n LH_REEF -m XC_ARCHER_INTEL -j 10
+</pre></div>
+</div>
+<p>Build fails (as described) so remove <code class="docutils literal"><span class="pre">key_lim2</span></code> (as described) and re-issue the make command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>./makenemo -n LH_REEF -m XC_ARCHER_INTEL -j 10
+
+cp $WDIR/INPUTS/cpp_LH_REEF.fcm ./LH_REEF
+cp $WDIR/INPUTS/dtatsd.F90 LH_REEF/MY_SRC/
+</pre></div>
+</div>
+<p>Step 3 (seemed to work OK):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/WEIGHTS/src
+patch -b &lt; $WDIR/INPUTS/scripinterp_mod.patch
+patch -b &lt; $WDIR/INPUTS/scripinterp.patch
+patch -b &lt; $WDIR/INPUTS/scrip.patch
+patch -b &lt; $WDIR/INPUTS/scripshape.patch
+patch -b &lt; $WDIR/INPUTS/scripgrid.patch
+cd ../../
+./maketools -n WEIGHTS -m XC_ARCHER_INTEL
+./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL
+module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+module swap PrgEnv-intel PrgEnv-cray
+module load cray-netcdf cray-hdf5
+./maketools -n GRIDGEN -m XC_ARCHER
+module swap PrgEnv-cray PrgEnv-intel
+export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+</pre></div>
+</div>
+<p>Step 4:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR/GRIDGEN
+cp $WDIR/INPUTS/namelist_R12 ./
+ln -s namelist_R12 namelist.input
+./create_coordinates.exe
+cp 1_coordinates_ORCA_R12.nc $WDIR/INPUTS/coordinates.nc
+</pre></div>
+</div>
+<p>Step 5:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/INPUTS
+module load nco/4.5.0
+ncap2 -s &#39;where(topo &gt; 0) topo=0&#39; gebco_1_cutdown.nc tmp.nc
+ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
+rm tmp.nc
+module unload nco cray-netcdf cray-hdf5
+module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+$TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
+$TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
+$TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
+</pre></div>
+</div>
+<p>Step 6 didn&#8217;t find the <code class="docutils literal"><span class="pre">make.macro</span></code> file. Copy it from <code class="docutils literal"><span class="pre">jdha</span></code> and edit the path:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jdha</span><span class="o">/</span><span class="n">sosie</span><span class="o">/</span><span class="n">make</span><span class="o">.</span><span class="n">macro</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">sosie</span><span class="o">/.</span>
+
+<span class="n">vi</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">sosie</span><span class="o">/</span><span class="n">make</span><span class="o">.</span><span class="n">macro</span>
+<span class="c1"># Directory to install binaries:</span>
+<span class="n">INSTALL_DIR</span> <span class="o">=</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">local</span>
+</pre></div>
+</div>
+<p>Proceed with Step 6:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd ~
+mkdir local
+svn co svn://svn.code.sf.net/p/sosie/code/trunk sosie
+cd sosie
+
+FIX: cp $WDIR/INPUTS/make.macro ./
+
+make
+make install
+export PATH=~/local/bin:$PATH
+cd $WDIR/INPUTS
+sosie.x -f initcd_votemper.namelist
+sosie.x -f initcd_vosaline.namelist
+$TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
+$TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
+$TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
+$TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
+</pre></div>
+</div>
+<p>Step 7, weight files for atmospheric forcing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
+$TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
+$TDIR/WEIGHTS/scripshape.exe namelist_reshape_bilin_atmos
+$TDIR/WEIGHTS/scrip.exe namelist_reshape_bicubic_atmos
+$TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
+</pre></div>
+</div>
+<p>Step 8 (mesh and mask for open boundary condition generation):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR
+cp $WDIR/INPUTS/cpp_LH_REEF.fcm LH_REEF/
+ln -s $WDIR/INPUTS/bathy_meter.nc $CDIR/LH_REEF/EXP00/bathy_meter.nc
+ln -s $WDIR/INPUTS/coordinates.nc $CDIR/LH_REEF/EXP00/coordinates.nc
+cp $WDIR/INPUTS/runscript $CDIR/LH_REEF/EXP00
+cp $WDIR/INPUTS/namelist_cfg $CDIR/LH_REEF/EXP00/namelist_cfg
+cp $WDIR/INPUTS/namelist_ref $CDIR/LH_REEF/EXP00/namelist_ref
+./makenemo clean
+./makenemo -n LH_REEF -m XC_ARCHER_INTEL -j 10
+cd LH_REEF/EXP00
+ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
+</pre></div>
+</div>
+<p><strong>Edit the queue Account name to n01-NOCL in runscript and submit</strong>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">qsub</span> <span class="o">-</span><span class="n">q</span> <span class="n">short</span> <span class="n">runscript</span>
+</pre></div>
+</div>
+<p>Didn&#8217;t work. No output:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">execve</span> <span class="n">error</span><span class="p">:</span> <span class="n">No</span> <span class="n">such</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">directory</span>
+<span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24358787</span><span class="p">:</span> <span class="n">Commands</span> <span class="n">are</span> <span class="ow">not</span> <span class="n">supported</span> <span class="ow">in</span> <span class="n">MPMD</span> <span class="n">mode</span>
+<span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24358787</span><span class="p">:</span> <span class="n">Exiting</span> <span class="n">due</span> <span class="n">to</span> <span class="n">errors</span><span class="o">.</span> <span class="n">Application</span> <span class="n">aborted</span>
+</pre></div>
+</div>
+<p>It looks, to me, like the runscript is missing some flags for something similar.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Setting up a SE Asia NEMO configuration</a><ul>
+<li><a class="reference internal" href="#issues-that-arose">Issues that arose</a></li>
+<li><a class="reference internal" href="#following-the-recipe">Following the recipe</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/SEAsia.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/SEAsia.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
