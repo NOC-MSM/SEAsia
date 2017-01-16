@@ -38,7 +38,20 @@ Follow recipe. Step 1::
   svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
   cd xios-1.0
   cp $WDIR/INPUTS/arch-XC30_ARCHER.* ./arch
+
+Implement make command::
+
   ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
+
+The comile works. But there are lots of warnings of three types::
+
+  WARNING: /fs4/n01/n01/jelt/lighthousereef/xios-1.0/bld.cfg: LINE 40:
+           ${PWD}: cyclic dependency, variable not expanded, ${PWD}: cyclic dependency, variable not expanded, ${PWD}: cyclic dependency, variable not expanded
+
+  WARNING: CFLAGS__date.flags: duplicated targets for building:
+
+  /home/n01/n01/jelt/work/lighthousereef/xios-1.0/Makefile:1418: warning: ignoring old commands for target `FPPKEYS.flags'
+
 
 Step 2, as far as the ``makenemo`` call::
 
@@ -117,7 +130,7 @@ Proceed with Step 6::
   svn co svn://svn.code.sf.net/p/sosie/code/trunk sosie
   cd sosie
 
-  FIX: cp $WDIR/INPUTS/make.macro ./
+  FIX (copied from jdha instead): cp $WDIR/INPUTS/make.macro ./
 
   make
   make install
@@ -171,7 +184,7 @@ Submit::
 
   qsub -q short runscript
 
-Didn't work. No output::
+Doesn't work. No output. I've also tried a fresh rebuild of everything::
 
   execve error: No such file or directory
   aprun: Apid 24880812: Commands are not supported in MPMD mode

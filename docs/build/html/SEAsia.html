@@ -76,7 +76,19 @@ svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2014/dev_r4621_NOC4_BDY_VE
 svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
 cd xios-1.0
 cp $WDIR/INPUTS/arch-XC30_ARCHER.* ./arch
-./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
+</pre></div>
+</div>
+<p>Implement make command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">make_xios</span> <span class="o">--</span><span class="n">full</span> <span class="o">--</span><span class="n">prod</span> <span class="o">--</span><span class="n">arch</span> <span class="n">XC30_ARCHER</span> <span class="o">--</span><span class="n">netcdf_lib</span> <span class="n">netcdf4_par</span>
+</pre></div>
+</div>
+<p>The comile works. But there are lots of warnings of three types:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>WARNING: /fs4/n01/n01/jelt/lighthousereef/xios-1.0/bld.cfg: LINE 40:
+         ${PWD}: cyclic dependency, variable not expanded, ${PWD}: cyclic dependency, variable not expanded, ${PWD}: cyclic dependency, variable not expanded
+
+WARNING: CFLAGS__date.flags: duplicated targets for building:
+
+/home/n01/n01/jelt/work/lighthousereef/xios-1.0/Makefile:1418: warning: ignoring old commands for target `FPPKEYS.flags&#39;
 </pre></div>
 </div>
 <p>Step 2, as far as the <code class="docutils literal"><span class="pre">makenemo</span></code> call:</p>
@@ -154,7 +166,7 @@ mkdir local
 svn co svn://svn.code.sf.net/p/sosie/code/trunk sosie
 cd sosie
 
-FIX: cp $WDIR/INPUTS/make.macro ./
+FIX (copied from jdha instead): cp $WDIR/INPUTS/make.macro ./
 
 make
 make install
@@ -209,7 +221,7 @@ ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">qsub</span> <span class="o">-</span><span class="n">q</span> <span class="n">short</span> <span class="n">runscript</span>
 </pre></div>
 </div>
-<p>Didn&#8217;t work. No output:</p>
+<p>Doesn&#8217;t work. No output. I&#8217;ve also tried a fresh rebuild of everything:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">execve</span> <span class="n">error</span><span class="p">:</span> <span class="n">No</span> <span class="n">such</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">directory</span>
 <span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24880812</span><span class="p">:</span> <span class="n">Commands</span> <span class="n">are</span> <span class="ow">not</span> <span class="n">supported</span> <span class="ow">in</span> <span class="n">MPMD</span> <span class="n">mode</span>
 <span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24880812</span><span class="p">:</span> <span class="n">Exiting</span> <span class="n">due</span> <span class="n">to</span> <span class="n">errors</span><span class="o">.</span> <span class="n">Application</span> <span class="n">aborted</span>
