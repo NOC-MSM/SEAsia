@@ -152,15 +152,35 @@ Step 8 (mesh and mask for open boundary condition generation)::
   cd LH_REEF/EXP00
   ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
 
-**Edit the queue Account name to n01-NOCL in runscript and submit**::
+*(16 Jan 2017)* Edit the runscript to include modules and the Account name (n01-NOCL)::
+
+  vi runscript
+
+  #!/bin/bash
+  #PBS -N LH_REEF
+  #PBS -l select=5
+  #PBS -l walltime=00:20:00
+  #PBS -A n01-NOCL
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+  ...
+
+Submit::
 
   qsub -q short runscript
-
 
 Didn't work. No output::
 
   execve error: No such file or directory
-  aprun: Apid 24358787: Commands are not supported in MPMD mode
-  aprun: Apid 24358787: Exiting due to errors. Application aborted
+  aprun: Apid 24880812: Commands are not supported in MPMD mode
+  aprun: Apid 24880812: Exiting due to errors. Application aborted
 
 It looks, to me, like the runscript is missing some flags for something similar.
+
+
+
+---
+
+`Next steps: install pyNEMO <install_pynemo.html>`_
