@@ -192,6 +192,16 @@ Doesn't work. No output. I've also tried a fresh rebuild of everything::
 
 It looks, to me, like the runscript is missing some flags for something similar.
 
+Just incase tried reloading modules and resubmitting (to standard queue after 8pm)::
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+
+  qsub runscript
+  4195460.sdb
+
+Still no joy :-(  
 
 
 ---
