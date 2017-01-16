@@ -152,7 +152,22 @@ Step 8 (mesh and mask for open boundary condition generation)::
   cd LH_REEF/EXP00
   ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
 
-**Edit the queue Account name to n01-NOCL in runscript and submit**::
+*(16 Jan 2017)* Edit the runscript to include modules and the Account name (n01-NOCL)::
+
+  vi runscript
+
+  #!/bin/bash
+  #PBS -N LH_REEF
+  #PBS -l select=5
+  #PBS -l walltime=00:20:00
+  #PBS -A n01-NOCL
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+  ...
+
+Submit::
 
   qsub -q short runscript
 
@@ -164,3 +179,70 @@ Didn't work. No output::
   aprun: Apid 24358787: Exiting due to errors. Application aborted
 
 It looks, to me, like the runscript is missing some flags for something similar.
+
+
+
+---
+
+
+Install PyNEMO
+==============
+
+*(16 Jan 2017)* From above::
+
+  export WDIR=/home/n01/n01/jelt/work/lighthousereef/
+
+Install PyNEMO (**svn checkout https://ccpforge.cse.rl.ac.uk/svn/pynemo** now  **https**)::
+
+  cd ~
+  module load anaconda
+  conda create --name pynemo_env python scipy numpy matplotlib basemap netcdf4
+  source activate pynemo_env
+  conda install -c https://conda.anaconda.org/srikanthnagella seawater
+  conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
+  conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
+  export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+  svn checkout https://ccpforge.cse.rl.ac.uk/svn/pynemo
+  cd pynemo/trunk/Python
+  python setup.py build
+
+The following then breaks::
+
+  python setup.py install --prefix ~/.conda/envs/pynemo
+  cd $WDIR/INPUTS
+
+With the following error report::
+
+  running install
+  Checking .pth file support in /home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/
+  /home/n01/n01/jelt/.conda/envs/pynemo_env/bin/python -E -c pass
+  TEST FAILED: /home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/ does NOT support .pth files
+  error: bad install directory or PYTHONPATH
+
+  You are attempting to install a package to a directory that is not
+  on PYTHONPATH and which Python does not read ".pth" files from.  The
+  installation directory you specified (via --install-dir, --prefix, or
+  the distutils default setting) was:
+
+      /home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/
+
+  and your PYTHONPATH environment variable currently contains:
+
+      '/home/y07/y07/cse/xalt/0.6.0/site:/home/y07/y07/cse/xalt/0.6.0/libexec:/usr/local/packages/cse/bolt/0.6/modules'
+
+  Here are some of your options for correcting the problem:
+
+  * You can choose a different installation directory, i.e., one that is
+    on PYTHONPATH or supports .pth files
+
+  * You can add the installation directory to the PYTHONPATH environment
+    variable.  (It must then also be on PYTHONPATH whenever you run
+    Python and want to use the package(s) you are installing.)
+
+  * You can set up the installation directory to support ".pth" files by
+    using one of the approaches described here:
+
+    https://setuptools.readthedocs.io/en/latest/easy_install.html#custom-installation-locations
+
+
+  Please make the appropriate changes for your system and try again.
