@@ -38,7 +38,20 @@ Follow recipe. Step 1::
   svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
   cd xios-1.0
   cp $WDIR/INPUTS/arch-XC30_ARCHER.* ./arch
+
+Implement make command::
+
   ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
+
+The comile works. But there are lots of warnings of three types::
+
+  WARNING: /fs4/n01/n01/jelt/lighthousereef/xios-1.0/bld.cfg: LINE 40:
+           ${PWD}: cyclic dependency, variable not expanded, ${PWD}: cyclic dependency, variable not expanded, ${PWD}: cyclic dependency, variable not expanded
+
+  WARNING: CFLAGS__date.flags: duplicated targets for building:
+
+  /home/n01/n01/jelt/work/lighthousereef/xios-1.0/Makefile:1418: warning: ignoring old commands for target `FPPKEYS.flags'
+
 
 Step 2, as far as the ``makenemo`` call::
 
@@ -117,7 +130,7 @@ Proceed with Step 6::
   svn co svn://svn.code.sf.net/p/sosie/code/trunk sosie
   cd sosie
 
-  FIX: cp $WDIR/INPUTS/make.macro ./
+  FIX (copied from jdha instead): cp $WDIR/INPUTS/make.macro ./
 
   make
   make install
@@ -152,15 +165,65 @@ Step 8 (mesh and mask for open boundary condition generation)::
   cd LH_REEF/EXP00
   ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
 
-**Edit the queue Account name to n01-NOCL in runscript and submit**::
+*(16 Jan 2017)* Edit the runscript to include modules and the Account name (n01-NOCL)::
+
+  vi runscript
+
+  #!/bin/bash
+  #PBS -N LH_REEF
+  #PBS -l select=5
+  #PBS -l walltime=00:20:00
+  #PBS -A n01-NOCL
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+  ...
+
+Submit::
 
   qsub -q short runscript
 
-
-Didn't work. No output::
+Doesn't work. No output. I've also tried a fresh rebuild of everything::
 
   execve error: No such file or directory
-  aprun: Apid 24358787: Commands are not supported in MPMD mode
-  aprun: Apid 24358787: Exiting due to errors. Application aborted
+  aprun: Apid 24880812: Commands are not supported in MPMD mode
+  aprun: Apid 24880812: Exiting due to errors. Application aborted
 
 It looks, to me, like the runscript is missing some flags for something similar.
+
+Just incase tried reloading modules and resubmitting (to standard queue after 8pm)::
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+
+  qsub runscript
+  4195460.sdb
+
+Still no joy :-(
+
+---
+
+*(17 Jan 17)*
+
+Tried moving module load to .bashrc::
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+
+Tried using James' xios executable::
+
+  cd ~/work/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/EXP00
+  ln -s /work/n01/n01/jdha/ST/xios-1.0/bin/xios_server.exe xios_server.exe
+
+Same errors::
+
+  execve error: No such file or directory
+  aprun: Apid 24889266: Commands are not supported in MPMD mode
+  aprun: Apid 24889266: Exiting due to errors. Application aborted
+
+---
+
+`Next steps: install pyNEMO <install_pynemo.html>`_

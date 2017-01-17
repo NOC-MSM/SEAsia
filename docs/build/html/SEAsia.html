@@ -24,6 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+    <link rel="prev" title="Template Note" href="template.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -75,7 +76,19 @@ svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2014/dev_r4621_NOC4_BDY_VE
 svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
 cd xios-1.0
 cp $WDIR/INPUTS/arch-XC30_ARCHER.* ./arch
-./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
+</pre></div>
+</div>
+<p>Implement make command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">make_xios</span> <span class="o">--</span><span class="n">full</span> <span class="o">--</span><span class="n">prod</span> <span class="o">--</span><span class="n">arch</span> <span class="n">XC30_ARCHER</span> <span class="o">--</span><span class="n">netcdf_lib</span> <span class="n">netcdf4_par</span>
+</pre></div>
+</div>
+<p>The comile works. But there are lots of warnings of three types:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>WARNING: /fs4/n01/n01/jelt/lighthousereef/xios-1.0/bld.cfg: LINE 40:
+         ${PWD}: cyclic dependency, variable not expanded, ${PWD}: cyclic dependency, variable not expanded, ${PWD}: cyclic dependency, variable not expanded
+
+WARNING: CFLAGS__date.flags: duplicated targets for building:
+
+/home/n01/n01/jelt/work/lighthousereef/xios-1.0/Makefile:1418: warning: ignoring old commands for target `FPPKEYS.flags&#39;
 </pre></div>
 </div>
 <p>Step 2, as far as the <code class="docutils literal"><span class="pre">makenemo</span></code> call:</p>
@@ -153,7 +166,7 @@ mkdir local
 svn co svn://svn.code.sf.net/p/sosie/code/trunk sosie
 cd sosie
 
-FIX: cp $WDIR/INPUTS/make.macro ./
+FIX (copied from jdha instead): cp $WDIR/INPUTS/make.macro ./
 
 make
 make install
@@ -189,17 +202,63 @@ cd LH_REEF/EXP00
 ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
 </pre></div>
 </div>
-<p><strong>Edit the queue Account name to n01-NOCL in runscript and submit</strong>:</p>
+<p><em>(16 Jan 2017)</em> Edit the runscript to include modules and the Account name (n01-NOCL):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">runscript</span>
+
+<span class="c1">#!/bin/bash</span>
+<span class="c1">#PBS -N LH_REEF</span>
+<span class="c1">#PBS -l select=5</span>
+<span class="c1">#PBS -l walltime=00:20:00</span>
+<span class="c1">#PBS -A n01-NOCL</span>
+
+<span class="n">module</span> <span class="n">swap</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">cray</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">intel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>Submit:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">qsub</span> <span class="o">-</span><span class="n">q</span> <span class="n">short</span> <span class="n">runscript</span>
 </pre></div>
 </div>
-<p>Didn&#8217;t work. No output:</p>
+<p>Doesn&#8217;t work. No output. I&#8217;ve also tried a fresh rebuild of everything:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">execve</span> <span class="n">error</span><span class="p">:</span> <span class="n">No</span> <span class="n">such</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">directory</span>
-<span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24358787</span><span class="p">:</span> <span class="n">Commands</span> <span class="n">are</span> <span class="ow">not</span> <span class="n">supported</span> <span class="ow">in</span> <span class="n">MPMD</span> <span class="n">mode</span>
-<span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24358787</span><span class="p">:</span> <span class="n">Exiting</span> <span class="n">due</span> <span class="n">to</span> <span class="n">errors</span><span class="o">.</span> <span class="n">Application</span> <span class="n">aborted</span>
+<span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24880812</span><span class="p">:</span> <span class="n">Commands</span> <span class="n">are</span> <span class="ow">not</span> <span class="n">supported</span> <span class="ow">in</span> <span class="n">MPMD</span> <span class="n">mode</span>
+<span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24880812</span><span class="p">:</span> <span class="n">Exiting</span> <span class="n">due</span> <span class="n">to</span> <span class="n">errors</span><span class="o">.</span> <span class="n">Application</span> <span class="n">aborted</span>
 </pre></div>
 </div>
 <p>It looks, to me, like the runscript is missing some flags for something similar.</p>
+<p>Just incase tried reloading modules and resubmitting (to standard queue after 8pm):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">swap</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">cray</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">intel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+
+<span class="n">qsub</span> <span class="n">runscript</span>
+<span class="mf">4195460.</span><span class="n">sdb</span>
+</pre></div>
+</div>
+<p>Still no joy :-(</p>
+<p>&#8212;</p>
+<p><em>(17 Jan 17)</em></p>
+<p>Tried moving module load to .bashrc:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">swap</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">cray</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">intel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+</pre></div>
+</div>
+<p>Tried using James&#8217; xios executable:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">work</span><span class="o">/</span><span class="n">lighthousereef</span><span class="o">/</span><span class="n">dev_r4621_NOC4_BDY_VERT_INTERP</span><span class="o">/</span><span class="n">NEMOGCM</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LH_REEF</span><span class="o">/</span><span class="n">EXP00</span>
+<span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jdha</span><span class="o">/</span><span class="n">ST</span><span class="o">/</span><span class="n">xios</span><span class="o">-</span><span class="mf">1.0</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">xios_server</span><span class="o">.</span><span class="n">exe</span> <span class="n">xios_server</span><span class="o">.</span><span class="n">exe</span>
+</pre></div>
+</div>
+<p>Same errors:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">execve</span> <span class="n">error</span><span class="p">:</span> <span class="n">No</span> <span class="n">such</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">directory</span>
+<span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24889266</span><span class="p">:</span> <span class="n">Commands</span> <span class="n">are</span> <span class="ow">not</span> <span class="n">supported</span> <span class="ow">in</span> <span class="n">MPMD</span> <span class="n">mode</span>
+<span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24889266</span><span class="p">:</span> <span class="n">Exiting</span> <span class="n">due</span> <span class="n">to</span> <span class="n">errors</span><span class="o">.</span> <span class="n">Application</span> <span class="n">aborted</span>
+</pre></div>
+</div>
+<p>&#8212;</p>
+<p><a class="reference external" href="install_pynemo.html">Next steps: install pyNEMO</a></p>
 </div>
 </div>
 
@@ -221,6 +280,7 @@ ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="template.html" title="previous chapter">Template Note</a></li>
   </ul></li>
 </ul>
 </div>
