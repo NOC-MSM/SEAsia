@@ -239,6 +239,25 @@ ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
 </div>
 <p>Still no joy :-(</p>
 <p>&#8212;</p>
+<p><em>(17 Jan 17)</em></p>
+<ul>
+<li><p class="first">Tried moving module load to .bashrc:</p>
+<p>module swap PrgEnv-cray PrgEnv-intel
+module load cray-netcdf-hdf5parallel
+module load cray-hdf5-parallel</p>
+</li>
+<li><p class="first">Tried using James&#8217; xios executable:</p>
+<p>cd ~/work/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/EXP00
+ln -s /work/n01/n01/jdha/ST/xios-1.0/bin/xios_server.exe xios_server.exe</p>
+</li>
+</ul>
+<p>Same errors:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">execve</span> <span class="n">error</span><span class="p">:</span> <span class="n">No</span> <span class="n">such</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">directory</span>
+<span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24889266</span><span class="p">:</span> <span class="n">Commands</span> <span class="n">are</span> <span class="ow">not</span> <span class="n">supported</span> <span class="ow">in</span> <span class="n">MPMD</span> <span class="n">mode</span>
+<span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24889266</span><span class="p">:</span> <span class="n">Exiting</span> <span class="n">due</span> <span class="n">to</span> <span class="n">errors</span><span class="o">.</span> <span class="n">Application</span> <span class="n">aborted</span>
+</pre></div>
+</div>
+<p>&#8212;</p>
 <p><a class="reference external" href="install_pynemo.html">Next steps: install pyNEMO</a></p>
 </div>
 </div>

@@ -201,8 +201,28 @@ Just incase tried reloading modules and resubmitting (to standard queue after 8p
   qsub runscript
   4195460.sdb
 
-Still no joy :-(  
+Still no joy :-(
 
+---
+
+*(17 Jan 17)*
+
+* Tried moving module load to .bashrc::
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+
+* Tried using James' xios executable::
+
+  cd ~/work/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/EXP00
+  ln -s /work/n01/n01/jdha/ST/xios-1.0/bin/xios_server.exe xios_server.exe
+
+Same errors::
+
+  execve error: No such file or directory
+  aprun: Apid 24889266: Commands are not supported in MPMD mode
+  aprun: Apid 24889266: Exiting due to errors. Application aborted
 
 ---
 
