@@ -240,17 +240,17 @@ ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
 <p>Still no joy :-(</p>
 <p>&#8212;</p>
 <p><em>(17 Jan 17)</em></p>
-<ul>
-<li><p class="first">Tried moving module load to .bashrc:</p>
-<p>module swap PrgEnv-cray PrgEnv-intel
-module load cray-netcdf-hdf5parallel
-module load cray-hdf5-parallel</p>
-</li>
-<li><p class="first">Tried using James&#8217; xios executable:</p>
-<p>cd ~/work/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/EXP00
-ln -s /work/n01/n01/jdha/ST/xios-1.0/bin/xios_server.exe xios_server.exe</p>
-</li>
-</ul>
+<p>Tried moving module load to .bashrc:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">swap</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">cray</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">intel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+</pre></div>
+</div>
+<p>Tried using James&#8217; xios executable:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">work</span><span class="o">/</span><span class="n">lighthousereef</span><span class="o">/</span><span class="n">dev_r4621_NOC4_BDY_VERT_INTERP</span><span class="o">/</span><span class="n">NEMOGCM</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LH_REEF</span><span class="o">/</span><span class="n">EXP00</span>
+<span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jdha</span><span class="o">/</span><span class="n">ST</span><span class="o">/</span><span class="n">xios</span><span class="o">-</span><span class="mf">1.0</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">xios_server</span><span class="o">.</span><span class="n">exe</span> <span class="n">xios_server</span><span class="o">.</span><span class="n">exe</span>
+</pre></div>
+</div>
 <p>Same errors:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">execve</span> <span class="n">error</span><span class="p">:</span> <span class="n">No</span> <span class="n">such</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">directory</span>
 <span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24889266</span><span class="p">:</span> <span class="n">Commands</span> <span class="n">are</span> <span class="ow">not</span> <span class="n">supported</span> <span class="ow">in</span> <span class="n">MPMD</span> <span class="n">mode</span>
