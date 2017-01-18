@@ -219,12 +219,13 @@ Tried using James' xios executable::
   ln -s /work/n01/n01/jdha/ST/xios-1.0/bin/xios_server.exe xios_server.exe
 
 
-Same errors as before::
+Same errors as before ::
 
   execve error: No such file or directory
   aprun: Apid 24889266: Commands are not supported in MPMD mode
   aprun: Apid 24889266: Exiting due to errors. Application aborted
 
+test
 ---
 
 `Next steps: install pyNEMO <install_pynemo.html>`_
