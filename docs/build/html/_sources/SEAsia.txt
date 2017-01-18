@@ -225,7 +225,7 @@ Same errors as before ::
   aprun: Apid 24889266: Commands are not supported in MPMD mode
   aprun: Apid 24889266: Exiting due to errors. Application aborted
 
-test
+
 ---
 
 `Next steps: install pyNEMO <install_pynemo.html>`_
