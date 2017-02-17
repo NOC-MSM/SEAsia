@@ -297,11 +297,33 @@ Proceed::
 Startup the PyNEMO and generate boundary conditions::
 
   ssh -Y espp1
+  module load anaconda
+  source activate pynemo_env
+  export WDIR=/work/n01/n01/jelt/lighthousereef/
+  cd $WDIR/INPUTS
 
-FORGOT THE PASSWORD!!
 
+  /home/n01/n01/jelt/.conda/envs/pynemo/bin/pynemo_ncml_generator
+
+Added path in the call to `pynemo_ncml_generator`
 
 ---
+Error::
+
+  Traceback (most recent call last):
+    File "/home/n01/n01/jelt/.conda/envs/pynemo/bin/pynemo_ncml_generator", line 11, in <module>
+      load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo_ncml_generator')()
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 565, in load_entry_point
+
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2598, in load_entry_point
+
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2258, in load
+
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2264, in resolve
+
+    File "/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_ncml_generator.py", line 10, in <module>
+      from PyQt4.QtGui import *
+  ImportError: /usr/lib64/libxcb-xlib.so.0: undefined symbol: _xcb_unlock_io
 
 
 
