@@ -371,5 +371,3 @@ Pressing on::
 Hmm things are not working as I'd hoped
 
 ---
-
-`Next steps: install pyNEMO <install_pynemo.html>`_
