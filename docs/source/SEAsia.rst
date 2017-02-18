@@ -2,6 +2,8 @@
 Setting up a SE Asia NEMO configuration
 =======================================
 
+URL:: http://nemo-reloc.readthedocs.io/en/latest/SEAsia.html
+
 Issues that arose
 =================
 
@@ -280,6 +282,11 @@ install PyNEMO (**Note need to use https://ccpforge.cse.rl.ac.uk**)::
   conda install -c https://conda.anaconda.org/srikanthnagella seawater
   conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
   conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
+
+New *(18 Feb 2017)*::
+  conda install mock nose
+::
+
   export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
   svn checkout https://ccpforge.cse.rl.ac.uk/svn/pynemo
   cd pynemo/trunk/Python
@@ -302,17 +309,39 @@ Startup the PyNEMO and generate boundary conditions::
   export WDIR=/work/n01/n01/jelt/lighthousereef/
   cd $WDIR/INPUTS
 
+Call to `pynemo_ncml_generator` doesn't work::
 
-  /home/n01/n01/jelt/.conda/envs/pynemo/bin/pynemo_ncml_generator
+  (pynemo_env) jelt@esPP001:/work/n01/n01/jelt/lighthousereef/INPUTS> pynemo_ncml_generator
 
-Added path in the call to `pynemo_ncml_generator`
-
----
 Error::
 
+ Traceback (most recent call last):
+   File "/home/n01/n01/jelt/.conda/envs/pynemo_env/bin/pynemo_ncml_generator", line 11, in <module>
+     load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo_ncml_generator')()
+   File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 565, in load_entry_point
+
+   File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2598, in load_entry_point
+
+   File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2258, in load
+
+   File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2264, in resolve
+
+   File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_ncml_generator.py", line 10, in <module>
+     from PyQt4.QtGui import *
+ ImportError: /usr/lib64/libxcb-xlib.so.0: undefined symbol: _xcb_unlock_io
+
+
+Maybe I'm not supposed to be able to execute `pynemo_ncml_generator`; the comments suggest it is not necessary
+
+Pressing on::
+
+  (pynemo_env) jelt@esPP001:/work/n01/n01/jelt/lighthousereef/INPUTS> export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+  (pynemo_env) jelt@esPP001:/work/n01/n01/jelt/lighthousereef/INPUTS> export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
+  (pynemo_env) jelt@esPP001:/work/n01/n01/jelt/lighthousereef/INPUTS> pynemo -g -s namelist.bdy
+
   Traceback (most recent call last):
-    File "/home/n01/n01/jelt/.conda/envs/pynemo/bin/pynemo_ncml_generator", line 11, in <module>
-      load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo_ncml_generator')()
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/bin/pynemo", line 11, in <module>
+      load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo')()
     File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 565, in load_entry_point
 
     File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2598, in load_entry_point
@@ -321,12 +350,25 @@ Error::
 
     File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2264, in resolve
 
-    File "/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_ncml_generator.py", line 10, in <module>
-      from PyQt4.QtGui import *
-  ImportError: /usr/lib64/libxcb-xlib.so.0: undefined symbol: _xcb_unlock_io
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_exe.py", line 8, in <module>
+      import profile
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py", line 22, in <module>
+      import numpy as np
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/__init__.py", line 170, in <module>
+      from . import add_newdocs
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/add_newdocs.py", line 13, in <module>
+      from numpy.lib import add_newdoc
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/lib/__init__.py", line 18, in <module>
+      from .polynomial import *
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/lib/polynomial.py", line 19, in <module>
+      from numpy.linalg import eigvals, lstsq, inv
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/linalg/__init__.py", line 51, in <module>
+      from .linalg import *
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/linalg/linalg.py", line 29, in <module>
+      from numpy.linalg import lapack_lite, _umath_linalg
+  ImportError: libgfortran.so.1: cannot open shared object file: No such file or directory
 
-
-
+Hmm things are not working as I'd hoped
 
 ---
 
