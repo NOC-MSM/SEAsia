@@ -10,6 +10,10 @@ Issues that arose
 * Helpful to add in extra module command for first step
 * Fix the sosie make.macro command
 * Queue accound is now n01-NOCL in runscript
+* Perhaps need *ssh -Y archer before ssh -Y espp1/2*
+* A few redefinitions of $WDIR
+* Installing PyNEMO (**Note need to use https://ccpforge.cse.rl.ac.uk**)
+
 
 Following the recipe
 ====================
@@ -301,7 +305,7 @@ Proceed::
   python setup.py install --prefix ~/.conda/envs/pynemo
   cd $WDIR/INPUTS
 
-Startup the PyNEMO and generate boundary conditions::
+Startup the PyNEMO and generate boundary conditions **(PERHAPS ALSO NEED TO DO SSH -Y ARCHER)**::
 
   ssh -Y espp1
   module load anaconda
@@ -315,20 +319,19 @@ Call to `pynemo_ncml_generator` doesn't work::
 
 Error::
 
- Traceback (most recent call last):
-   File "/home/n01/n01/jelt/.conda/envs/pynemo_env/bin/pynemo_ncml_generator", line 11, in <module>
-     load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo_ncml_generator')()
-   File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 565, in load_entry_point
+  Traceback (most recent call last):
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/bin/pynemo_ncml_generator", line 11, in <module>
+      load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo_ncml_generator')()
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 565, in load_entry_point
 
-   File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2598, in load_entry_point
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2598, in load_entry_point
 
-   File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2258, in load
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2258, in load
 
-   File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2264, in resolve
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2264, in resolve
 
-   File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_ncml_generator.py", line 10, in <module>
-     from PyQt4.QtGui import *
- ImportError: /usr/lib64/libxcb-xlib.so.0: undefined symbol: _xcb_unlock_io
+    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_ncml_generator.py", line 10, in <module>
+      from PyQt4.QtGui import *
 
 
 Maybe I'm not supposed to be able to execute `pynemo_ncml_generator`; the comments suggest it is not necessary
