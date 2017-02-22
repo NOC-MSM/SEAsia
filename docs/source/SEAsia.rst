@@ -7,18 +7,20 @@ URL:: http://nemo-reloc.readthedocs.io/en/latest/SEAsia.html
 Issues that arose
 =================
 
-* Helpful to add in extra module command for first step
 * Fix the sosie make.macro command
 * Queue accound is now n01-NOCL in runscript
-* Perhaps need *ssh -Y archer before ssh -Y espp1/2*
-* A few redefinitions of $WDIR
-* Installing PyNEMO (**Note need to use https://ccpforge.cse.rl.ac.uk**)
+* Perhaps need *ssh -Y archer before ssh -Y espp1/2* (Haven't checked if it is required)
 
-
-Following the recipe
-====================
 
 Follow PyNEMO recipe for Lighthouse Reef: ``http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef``
+
+This worked *(22 Feb 2017)*. The notes here have been rehashed many times, with edits being made to the pynemo pages, which should be the default.
+
+----
+
+Recipe Notes
+============
+
 Define working directory::
 
   export WDIR=/work/n01/n01/jelt/lighthousereef/
@@ -28,8 +30,6 @@ Load modules::
   module swap PrgEnv-cray PrgEnv-intel
   module load cray-netcdf-hdf5parallel
   module load cray-hdf5-parallel
-
-**James: You should add the above 3 lines as an e.g. in the docs**. The *swap* one threw me for a while.
 
 Follow recipe. Step 1::
 
@@ -48,16 +48,6 @@ Follow recipe. Step 1::
 Implement make command::
 
   ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
-
-The comile works. But there are lots of warnings of three types::
-
-  WARNING: /fs4/n01/n01/jelt/lighthousereef/xios-1.0/bld.cfg: LINE 40:
-           ${PWD}: cyclic dependency, variable not expanded, ${PWD}: cyclic dependency, variable not expanded, ${PWD}: cyclic dependency, variable not expanded
-
-  WARNING: CFLAGS__date.flags: duplicated targets for building:
-
-  /home/n01/n01/jelt/work/lighthousereef/xios-1.0/Makefile:1418: warning: ignoring old commands for target `FPPKEYS.flags'
-
 
 Step 2, as far as the ``makenemo`` call::
 
@@ -200,39 +190,10 @@ Moved module load to .bashrc::
   module load cray-hdf5-parallel
 
 
+Fixed symbolic links and recompiled xios and nemo.exe with same modules
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
-
-
-
-Doesn't work. No output. I've also tried a fresh rebuild of everything::
-
-  execve error: No such file or directory
-  aprun: Apid 24880812: Commands are not supported in MPMD mode
-  aprun: Apid 24880812: Exiting due to errors. Application aborted
-
-It looks, to me, like the runscript is missing some flags for something similar.
-
-Just incase tried reloading modules and resubmitting (to standard queue after 8pm)::
-
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel
-  module load cray-hdf5-parallel
-
-  qsub runscript
-  4195460.sdb
-
-Still no joy :-(
-
----
-
-
-
-Tried using James' xios executable::
-
-  cd ~/work/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/EXP00
-  ln -s /work/n01/n01/jdha/ST/xios-1.0/bin/xios_server.exe xios_server.exe
-
+These are notes rather than something to be followed
 *(16 Feb 2017)*::
 
   cd /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/EXP00
@@ -247,7 +208,7 @@ Spotted symlink issue in WDIR definition in ARCH file. Fix::
   cd /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/WORK>
   vi ../../../ARCH/arch-XC_ARCHER_INTEL.fcm
   ...
-  %XIOS_HOME           /work/n01/n01/jdha/TEST2/xios-1.0
+  %XIOS_HOME           $WDIR/xios-1.0
 
 Recomile::
 
@@ -279,98 +240,55 @@ Get the BDY stuff together::
 
 install PyNEMO (**Note need to use https://ccpforge.cse.rl.ac.uk**)::
 
+New *(22 Feb 2017)*::
+
   cd ~
   module load anaconda
-  conda create --name pynemo_env python scipy numpy matplotlib basemap netcdf4
+  conda create --name pynemo_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=1.0.0
   source activate pynemo_env
-  conda install -c https://conda.anaconda.org/srikanthnagella seawater
+  conda install -c conda-forge seawater=3.3.4
   conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
   conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
-
-New *(18 Feb 2017)*::
-  conda install mock nose
-::
-
   export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-  svn checkout https://ccpforge.cse.rl.ac.uk/svn/pynemo
+  svn checkout http://ccpforge.cse.rl.ac.uk/svn/pynemo
   cd pynemo/trunk/Python
   python setup.py build
-
-Insert change to PYTHONPATH::
-
   export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
-
-Proceed::
-
   python setup.py install --prefix ~/.conda/envs/pynemo
-  cd $WDIR/INPUTS
+  cp data/namelist.bdy $WDIR
+  cd $WDIR
 
-Startup the PyNEMO and generate boundary conditions **(PERHAPS ALSO NEED TO DO SSH -Y ARCHER)**::
+**Also added**  ``export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
+``
+(Couldn't get the path for the pynemo_ncml_generator to work!)::
 
   ssh -Y espp1
   module load anaconda
   source activate pynemo_env
-  export WDIR=/work/n01/n01/jelt/lighthousereef/
+  cd $WDIR
+  ~/.conda/envs/pynemo/bin/pynemo_ncml_generator
+
+  export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+  export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
+  ~/.conda/envs/pynemo/bin/pynemo -g -s namelist.bdy
+
+Accept stuff. Press *close*.
+Exit espp1 do some stuff and submit job::
+
+  exit
   cd $WDIR/INPUTS
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module load nco/4.5.0
+  ncrename -v deptht,gdept LH_REEF_bdyT_y1980m01.nc
+  ncrename -v depthu,gdepu LH_REEF_bdyU_y1980m01.nc
+  ncrename -v depthv,gdepv LH_REEF_bdyV_y1980m01.nc
+  module unload nco
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+  cd $CDIR/LH_REEF/EXP00
+  ln -s $WDIR/INPUTS/coordinates.bdy.nc $CDIR/LH_REEF/EXP00/coordinates.bdy.nc
+  sed -e 's/nn_msh      =    3/nn_msh      =    0/' namelist_cfg > tmp
+  sed -e 's/nn_itend    =      1/nn_itend    =       1440 /' tmp > namelist_cfg
+  cp $WDIR/INPUTS/*.xml ./
+  qsub -q short runscript
 
-Call to `pynemo_ncml_generator` doesn't work::
-
-  (pynemo_env) jelt@esPP001:/work/n01/n01/jelt/lighthousereef/INPUTS> pynemo_ncml_generator
-
-Error::
-
-  Traceback (most recent call last):
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/bin/pynemo_ncml_generator", line 11, in <module>
-      load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo_ncml_generator')()
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 565, in load_entry_point
-
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2598, in load_entry_point
-
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2258, in load
-
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2264, in resolve
-
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_ncml_generator.py", line 10, in <module>
-      from PyQt4.QtGui import *
-
-
-Maybe I'm not supposed to be able to execute `pynemo_ncml_generator`; the comments suggest it is not necessary
-
-Pressing on::
-
-  (pynemo_env) jelt@esPP001:/work/n01/n01/jelt/lighthousereef/INPUTS> export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-  (pynemo_env) jelt@esPP001:/work/n01/n01/jelt/lighthousereef/INPUTS> export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
-  (pynemo_env) jelt@esPP001:/work/n01/n01/jelt/lighthousereef/INPUTS> pynemo -g -s namelist.bdy
-
-  Traceback (most recent call last):
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/bin/pynemo", line 11, in <module>
-      load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo')()
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 565, in load_entry_point
-
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2598, in load_entry_point
-
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2258, in load
-
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py", line 2264, in resolve
-
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_exe.py", line 8, in <module>
-      import profile
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py", line 22, in <module>
-      import numpy as np
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/__init__.py", line 170, in <module>
-      from . import add_newdocs
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/add_newdocs.py", line 13, in <module>
-      from numpy.lib import add_newdoc
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/lib/__init__.py", line 18, in <module>
-      from .polynomial import *
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/lib/polynomial.py", line 19, in <module>
-      from numpy.linalg import eigvals, lstsq, inv
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/linalg/__init__.py", line 51, in <module>
-      from .linalg import *
-    File "/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/linalg/linalg.py", line 29, in <module>
-      from numpy.linalg import lapack_lite, _umath_linalg
-  ImportError: libgfortran.so.1: cannot open shared object file: No such file or directory
-
-Hmm things are not working as I'd hoped
-
----
+  4338922.sdb
