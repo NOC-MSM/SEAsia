@@ -46,15 +46,17 @@
 <div class="section" id="issues-that-arose">
 <h2>Issues that arose<a class="headerlink" href="#issues-that-arose" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>Helpful to add in extra module command for first step</li>
 <li>Fix the sosie make.macro command</li>
 <li>Queue accound is now n01-NOCL in runscript</li>
+<li>Perhaps need <em>ssh -Y archer before ssh -Y espp1/2</em> (Haven&#8217;t checked if it is required)</li>
 </ul>
+<p>Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef</span></code></p>
+<p>This worked <em>(22 Feb 2017)</em>. The notes here have been rehashed many times, with edits being made to the pynemo pages, which should be the default.</p>
 </div>
-<div class="section" id="following-the-recipe">
-<h2>Following the recipe<a class="headerlink" href="#following-the-recipe" title="Permalink to this headline">¶</a></h2>
-<p>Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef</span></code>
-Define working directory:</p>
+<hr class="docutils" />
+<div class="section" id="recipe-notes">
+<h2>Recipe Notes<a class="headerlink" href="#recipe-notes" title="Permalink to this headline">¶</a></h2>
+<p>Define working directory:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">WDIR</span><span class="o">=/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">lighthousereef</span><span class="o">/</span>
 </pre></div>
 </div>
@@ -64,7 +66,6 @@ Define working directory:</p>
 <span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
 </pre></div>
 </div>
-<p><strong>James: You should add the above 3 lines as an e.g. in the docs</strong>. The <em>swap</em> one threw me for a while.</p>
 <p>Follow recipe. Step 1:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
 mkdir INPUTS
@@ -81,15 +82,6 @@ cp $WDIR/INPUTS/arch-XC30_ARCHER.* ./arch
 </div>
 <p>Implement make command:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">make_xios</span> <span class="o">--</span><span class="n">full</span> <span class="o">--</span><span class="n">prod</span> <span class="o">--</span><span class="n">arch</span> <span class="n">XC30_ARCHER</span> <span class="o">--</span><span class="n">netcdf_lib</span> <span class="n">netcdf4_par</span>
-</pre></div>
-</div>
-<p>The comile works. But there are lots of warnings of three types:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>WARNING: /fs4/n01/n01/jelt/lighthousereef/xios-1.0/bld.cfg: LINE 40:
-         ${PWD}: cyclic dependency, variable not expanded, ${PWD}: cyclic dependency, variable not expanded, ${PWD}: cyclic dependency, variable not expanded
-
-WARNING: CFLAGS__date.flags: duplicated targets for building:
-
-/home/n01/n01/jelt/work/lighthousereef/xios-1.0/Makefile:1418: warning: ignoring old commands for target `FPPKEYS.flags&#39;
 </pre></div>
 </div>
 <p>Step 2, as far as the <code class="docutils literal"><span class="pre">makenemo</span></code> call:</p>
@@ -229,30 +221,10 @@ ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
 <span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
 </pre></div>
 </div>
-<p>Doesn&#8217;t work. No output. I&#8217;ve also tried a fresh rebuild of everything:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">execve</span> <span class="n">error</span><span class="p">:</span> <span class="n">No</span> <span class="n">such</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">directory</span>
-<span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24880812</span><span class="p">:</span> <span class="n">Commands</span> <span class="n">are</span> <span class="ow">not</span> <span class="n">supported</span> <span class="ow">in</span> <span class="n">MPMD</span> <span class="n">mode</span>
-<span class="n">aprun</span><span class="p">:</span> <span class="n">Apid</span> <span class="mi">24880812</span><span class="p">:</span> <span class="n">Exiting</span> <span class="n">due</span> <span class="n">to</span> <span class="n">errors</span><span class="o">.</span> <span class="n">Application</span> <span class="n">aborted</span>
-</pre></div>
-</div>
-<p>It looks, to me, like the runscript is missing some flags for something similar.</p>
-<p>Just incase tried reloading modules and resubmitting (to standard queue after 8pm):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">swap</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">cray</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">intel</span>
-<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span>
-<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
-
-<span class="n">qsub</span> <span class="n">runscript</span>
-<span class="mf">4195460.</span><span class="n">sdb</span>
-</pre></div>
-</div>
-<p>Still no joy :-(</p>
-<p>&#8212;</p>
-<p>Tried using James&#8217; xios executable:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">work</span><span class="o">/</span><span class="n">lighthousereef</span><span class="o">/</span><span class="n">dev_r4621_NOC4_BDY_VERT_INTERP</span><span class="o">/</span><span class="n">NEMOGCM</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LH_REEF</span><span class="o">/</span><span class="n">EXP00</span>
-<span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jdha</span><span class="o">/</span><span class="n">ST</span><span class="o">/</span><span class="n">xios</span><span class="o">-</span><span class="mf">1.0</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">xios_server</span><span class="o">.</span><span class="n">exe</span> <span class="n">xios_server</span><span class="o">.</span><span class="n">exe</span>
-</pre></div>
-</div>
-<p><em>(16 Feb 2017)</em>:</p>
+<div class="section" id="fixed-symbolic-links-and-recompiled-xios-and-nemo-exe-with-same-modules">
+<h3>Fixed symbolic links and recompiled xios and nemo.exe with same modules<a class="headerlink" href="#fixed-symbolic-links-and-recompiled-xios-and-nemo-exe-with-same-modules" title="Permalink to this headline">¶</a></h3>
+<p>These are notes rather than something to be followed
+<em>(16 Feb 2017)</em>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">lighthousereef</span><span class="o">/</span><span class="n">dev_r4621_NOC4_BDY_VERT_INTERP</span><span class="o">/</span><span class="n">NEMOGCM</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LH_REEF</span><span class="o">/</span><span class="n">EXP00</span>
 <span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jdha</span><span class="o">/</span><span class="n">TEST2</span><span class="o">/</span><span class="n">xios</span><span class="o">-</span><span class="mf">1.0</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">xios_server</span><span class="o">.</span><span class="n">exe</span> <span class="n">xios_server</span><span class="o">.</span><span class="n">exe</span>
 <span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">lighthousereef</span><span class="o">/</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">bathy_meter</span><span class="o">.</span><span class="n">nc</span> <span class="n">bathy_meter</span><span class="o">.</span><span class="n">nc</span>
@@ -262,10 +234,10 @@ ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
 </pre></div>
 </div>
 <p>Spotted symlink issue in WDIR definition in ARCH file. Fix:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">lighthousereef</span><span class="o">/</span><span class="n">dev_r4621_NOC4_BDY_VERT_INTERP</span><span class="o">/</span><span class="n">NEMOGCM</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LH_REEF</span><span class="o">/</span><span class="n">WORK</span><span class="o">&gt;</span>
-<span class="n">vi</span> <span class="o">../../../</span><span class="n">ARCH</span><span class="o">/</span><span class="n">arch</span><span class="o">-</span><span class="n">XC_ARCHER_INTEL</span><span class="o">.</span><span class="n">fcm</span>
-<span class="o">...</span>
-<span class="o">%</span><span class="n">XIOS_HOME</span>           <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jdha</span><span class="o">/</span><span class="n">TEST2</span><span class="o">/</span><span class="n">xios</span><span class="o">-</span><span class="mf">1.0</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/WORK&gt;
+vi ../../../ARCH/arch-XC_ARCHER_INTEL.fcm
+...
+%XIOS_HOME           $WDIR/xios-1.0
 </pre></div>
 </div>
 <p>Recomile:</p>
@@ -294,101 +266,60 @@ cd $WDIR/INPUTS
 </pre></div>
 </div>
 <p>install PyNEMO (<strong>Note need to use https://ccpforge.cse.rl.ac.uk</strong>):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~</span>
-<span class="n">module</span> <span class="n">load</span> <span class="n">anaconda</span>
-<span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">pynemo_env</span> <span class="n">python</span> <span class="n">scipy</span> <span class="n">numpy</span> <span class="n">matplotlib</span> <span class="n">basemap</span> <span class="n">netcdf4</span>
-<span class="n">source</span> <span class="n">activate</span> <span class="n">pynemo_env</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">srikanthnagella</span> <span class="n">seawater</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">srikanthnagella</span> <span class="n">thredds_crawler</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">srikanthnagella</span> <span class="n">pyjnius</span>
-</pre></div>
-</div>
-<dl class="docutils">
-<dt>New <em>(18 Feb 2017)</em>::</dt>
-<dd>conda install mock nose</dd>
-</dl>
-<div class="highlight-default"><div class="highlight"><pre><span></span>export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-svn checkout https://ccpforge.cse.rl.ac.uk/svn/pynemo
+<p>New <em>(22 Feb 2017)</em>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd ~
+module load anaconda
+conda create --name pynemo_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=1.0.0
+source activate pynemo_env
+conda install -c conda-forge seawater=3.3.4
+conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
+conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
+export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+svn checkout http://ccpforge.cse.rl.ac.uk/svn/pynemo
 cd pynemo/trunk/Python
 python setup.py build
+export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
+python setup.py install --prefix ~/.conda/envs/pynemo
+cp data/namelist.bdy $WDIR
+cd $WDIR
 </pre></div>
 </div>
-<p>Insert change to PYTHONPATH:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
-</pre></div>
-</div>
-<p>Proceed:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>python setup.py install --prefix ~/.conda/envs/pynemo
-cd $WDIR/INPUTS
-</pre></div>
-</div>
-<p>Startup the PyNEMO and generate boundary conditions:</p>
+<p><strong>Also added</strong>  <a href="#id1"><span class="problematic" id="id2">``</span></a>export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
+``
+(Couldn&#8217;t get the path for the pynemo_ncml_generator to work!):</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>ssh -Y espp1
 module load anaconda
 source activate pynemo_env
-export WDIR=/work/n01/n01/jelt/lighthousereef/
+cd $WDIR
+~/.conda/envs/pynemo/bin/pynemo_ncml_generator
+
+export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
+~/.conda/envs/pynemo/bin/pynemo -g -s namelist.bdy
+</pre></div>
+</div>
+<p>Accept stuff. Press <em>close</em>.
+Exit espp1 do some stuff and submit job:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>exit
 cd $WDIR/INPUTS
+module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+module load nco/4.5.0
+ncrename -v deptht,gdept LH_REEF_bdyT_y1980m01.nc
+ncrename -v depthu,gdepu LH_REEF_bdyU_y1980m01.nc
+ncrename -v depthv,gdepv LH_REEF_bdyV_y1980m01.nc
+module unload nco
+module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+cd $CDIR/LH_REEF/EXP00
+ln -s $WDIR/INPUTS/coordinates.bdy.nc $CDIR/LH_REEF/EXP00/coordinates.bdy.nc
+sed -e &#39;s/nn_msh      =    3/nn_msh      =    0/&#39; namelist_cfg &gt; tmp
+sed -e &#39;s/nn_itend    =      1/nn_itend    =       1440 /&#39; tmp &gt; namelist_cfg
+cp $WDIR/INPUTS/*.xml ./
+qsub -q short runscript
+
+4338922.sdb
 </pre></div>
 </div>
-<p>Call to <cite>pynemo_ncml_generator</cite> doesn&#8217;t work:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">pynemo_env</span><span class="p">)</span> <span class="n">jelt</span><span class="nd">@esPP001</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">lighthousereef</span><span class="o">/</span><span class="n">INPUTS</span><span class="o">&gt;</span> <span class="n">pynemo_ncml_generator</span>
-</pre></div>
 </div>
-<p>Error:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
-  <span class="n">File</span> <span class="s2">&quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/bin/pynemo_ncml_generator&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">11</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
-    <span class="n">load_entry_point</span><span class="p">(</span><span class="s1">&#39;pynemo==0.2&#39;</span><span class="p">,</span> <span class="s1">&#39;console_scripts&#39;</span><span class="p">,</span> <span class="s1">&#39;pynemo_ncml_generator&#39;</span><span class="p">)()</span>
-  <span class="n">File</span> <span class="s2">&quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">565</span><span class="p">,</span> <span class="ow">in</span> <span class="n">load_entry_point</span>
-
-  <span class="n">File</span> <span class="s2">&quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">2598</span><span class="p">,</span> <span class="ow">in</span> <span class="n">load_entry_point</span>
-
-  <span class="n">File</span> <span class="s2">&quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">2258</span><span class="p">,</span> <span class="ow">in</span> <span class="n">load</span>
-
-  <span class="n">File</span> <span class="s2">&quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">2264</span><span class="p">,</span> <span class="ow">in</span> <span class="n">resolve</span>
-
-  <span class="n">File</span> <span class="s2">&quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_ncml_generator.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">10</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
-    <span class="kn">from</span> <span class="nn">PyQt4.QtGui</span> <span class="k">import</span> <span class="o">*</span>
-<span class="ne">ImportError</span><span class="p">:</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib64</span><span class="o">/</span><span class="n">libxcb</span><span class="o">-</span><span class="n">xlib</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">0</span><span class="p">:</span> <span class="n">undefined</span> <span class="n">symbol</span><span class="p">:</span> <span class="n">_xcb_unlock_io</span>
-</pre></div>
-</div>
-<p>Maybe I&#8217;m not supposed to be able to execute <cite>pynemo_ncml_generator</cite>; the comments suggest it is not necessary</p>
-<p>Pressing on:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>(pynemo_env) jelt@esPP001:/work/n01/n01/jelt/lighthousereef/INPUTS&gt; export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-(pynemo_env) jelt@esPP001:/work/n01/n01/jelt/lighthousereef/INPUTS&gt; export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
-(pynemo_env) jelt@esPP001:/work/n01/n01/jelt/lighthousereef/INPUTS&gt; pynemo -g -s namelist.bdy
-
-Traceback (most recent call last):
-  File &quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/bin/pynemo&quot;, line 11, in &lt;module&gt;
-    load_entry_point(&#39;pynemo==0.2&#39;, &#39;console_scripts&#39;, &#39;pynemo&#39;)()
-  File &quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py&quot;, line 565, in load_entry_point
-
-  File &quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py&quot;, line 2598, in load_entry_point
-
-  File &quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py&quot;, line 2258, in load
-
-  File &quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/setuptools-27.2.0-py2.7.egg/pkg_resources/__init__.py&quot;, line 2264, in resolve
-
-  File &quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_exe.py&quot;, line 8, in &lt;module&gt;
-    import profile
-  File &quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py&quot;, line 22, in &lt;module&gt;
-    import numpy as np
-  File &quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/__init__.py&quot;, line 170, in &lt;module&gt;
-    from . import add_newdocs
-  File &quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/add_newdocs.py&quot;, line 13, in &lt;module&gt;
-    from numpy.lib import add_newdoc
-  File &quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/lib/__init__.py&quot;, line 18, in &lt;module&gt;
-    from .polynomial import *
-  File &quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/lib/polynomial.py&quot;, line 19, in &lt;module&gt;
-    from numpy.linalg import eigvals, lstsq, inv
-  File &quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/linalg/__init__.py&quot;, line 51, in &lt;module&gt;
-    from .linalg import *
-  File &quot;/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/numpy/linalg/linalg.py&quot;, line 29, in &lt;module&gt;
-    from numpy.linalg import lapack_lite, _umath_linalg
-ImportError: libgfortran.so.1: cannot open shared object file: No such file or directory
-</pre></div>
-</div>
-<p>Hmm things are not working as I&#8217;d hoped</p>
-<p>&#8212;</p>
 </div>
 </div>
 
@@ -402,7 +333,10 @@ ImportError: libgfortran.so.1: cannot open shared object file: No such file or d
   <ul>
 <li><a class="reference internal" href="#">Setting up a SE Asia NEMO configuration</a><ul>
 <li><a class="reference internal" href="#issues-that-arose">Issues that arose</a></li>
-<li><a class="reference internal" href="#following-the-recipe">Following the recipe</a></li>
+<li><a class="reference internal" href="#recipe-notes">Recipe Notes</a><ul>
+<li><a class="reference internal" href="#fixed-symbolic-links-and-recompiled-xios-and-nemo-exe-with-same-modules">Fixed symbolic links and recompiled xios and nemo.exe with same modules</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
