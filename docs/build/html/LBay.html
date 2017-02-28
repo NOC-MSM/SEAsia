@@ -1,0 +1,338 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Setting up a Liverpool Bay NEMO configuration &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+    <link rel="prev" title="Setting up a SE Asia NEMO configuration" href="SEAsia.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="setting-up-a-liverpool-bay-nemo-configuration">
+<h1>Setting up a Liverpool Bay NEMO configuration<a class="headerlink" href="#setting-up-a-liverpool-bay-nemo-configuration" title="Permalink to this headline">¶</a></h1>
+<p>URL:: <a class="reference external" href="http://nemo-reloc.readthedocs.io/en/latest/LBay.html">http://nemo-reloc.readthedocs.io/en/latest/LBay.html</a></p>
+<div class="section" id="issues-that-arose">
+<h2>Issues that arose<a class="headerlink" href="#issues-that-arose" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li></li>
+</ul>
+<p>Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef</span></code>
+Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://nemo-reloc.readthedocs.io/en/latest/SEAsia.html</span></code></p>
+</div>
+<hr class="docutils" />
+<div class="section" id="recipe-notes">
+<h2>Recipe Notes<a class="headerlink" href="#recipe-notes" title="Permalink to this headline">¶</a></h2>
+<p>Define working directory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">WDIR</span><span class="o">=/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span>
+<span class="n">export</span> <span class="n">INPUTS</span><span class="o">=/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">lighthousereef</span><span class="o">/</span><span class="n">INPUTS</span>
+</pre></div>
+</div>
+<p>Load modules:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">swap</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">cray</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">intel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+</pre></div>
+</div>
+<p>Follow recipe. Step 1 inlcuded getting INPUT files. For LHReef these were all
+prepared. Now they are not so make them as and when they are required:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
+mkdir INPUTS
+</pre></div>
+</div>
+<p>Old code:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">INPUTS</span>
+<span class="n">wget</span> <span class="n">ftp</span><span class="o">.</span><span class="n">nerc</span><span class="o">-</span><span class="n">liv</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">uk</span><span class="p">:</span><span class="o">/</span><span class="n">pub</span><span class="o">/</span><span class="n">general</span><span class="o">/</span><span class="n">jdha</span><span class="o">/</span><span class="n">inputs</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+<span class="n">tar</span> <span class="n">xvfz</span> <span class="n">inputs</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+<span class="n">rm</span> <span class="n">inputs</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+<p><em>Now</em> code:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
+svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2014/dev_r4621_NOC4_BDY_VERT_INTERP@5709
+svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
+export INPUTS=/work/n01/n01/jelt/lighthousereef/INPUTS
+</pre></div>
+</div>
+<p>Need to get arch files from INPUTS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/xios-1.0
+cp $INPUTS/arch-XC30_ARCHER.* ./arch
+</pre></div>
+</div>
+<p>Implement make command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">make_xios</span> <span class="o">--</span><span class="n">full</span> <span class="o">--</span><span class="n">prod</span> <span class="o">--</span><span class="n">arch</span> <span class="n">XC30_ARCHER</span> <span class="o">--</span><span class="n">netcdf_lib</span> <span class="n">netcdf4_par</span>
+</pre></div>
+</div>
+<p>Step 2. Obtain and apply patches:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+cd $CDIR/../NEMO/OPA_SRC/SBC
+patch -b &lt; $INPUTS/fldread.patch
+cd ../DOM
+patch -b &lt; $INPUTS/dommsk.patch
+cd ../BDY
+patch -b &lt; $INPUTS/bdyini.patch
+cd $CDIR
+rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
+cp $INPUTS/arch-* ../ARCH
+</pre></div>
+</div>
+<p>On first make only choose OPA_SRC:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">makenemo</span> <span class="o">-</span><span class="n">n</span> <span class="n">LBay</span> <span class="o">-</span><span class="n">m</span> <span class="n">XC_ARCHER_INTEL</span> <span class="o">-</span><span class="n">j</span> <span class="mi">10</span>
+</pre></div>
+</div>
+<p>It breaks. Remove key_lim2 from cpp*fcm file and remake:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">LBay</span><span class="o">/</span><span class="n">cpp_LBay</span><span class="o">.</span><span class="n">fcm</span>
+<span class="o">...</span>
+
+<span class="o">./</span><span class="n">makenemo</span> <span class="o">-</span><span class="n">n</span> <span class="n">LBay</span> <span class="o">-</span><span class="n">m</span> <span class="n">XC_ARCHER_INTEL</span> <span class="o">-</span><span class="n">j</span> <span class="mi">10</span>
+</pre></div>
+</div>
+<p>Copy some input files to new configuration path:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/cpp_LH_REEF.fcm ./LBay
+cp $INPUTS/dtatsd.F90 LBay/MY_SRC/
+</pre></div>
+</div>
+<p>To generate bathymetry, initial conditions and grid information we first need
+to compile some of the NEMO TOOLS (after a small bugfix - and to allow direct
+passing of arguments). For some reason GRIDGEN doesn’t like INTEL:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/WEIGHTS/src
+patch -b &lt; $INPUTS/scripinterp_mod.patch
+patch -b &lt; $INPUTS/scripinterp.patch
+patch -b &lt; $INPUTS/scrip.patch
+patch -b &lt; $INPUTS/scripshape.patch
+patch -b &lt; $INPUTS/scripgrid.patch
+
+cd ../../
+./maketools -n WEIGHTS -m XC_ARCHER_INTEL
+./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL
+
+module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+module swap PrgEnv-intel PrgEnv-cray
+module load cray-netcdf cray-hdf5
+./maketools -n GRIDGEN -m XC_ARCHER
+
+module swap PrgEnv-cray PrgEnv-intel
+export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+</pre></div>
+</div>
+<p>Back in $INPUTS, create a new coordinates file from the existing global
+1/12 mesh and refine to 1/84 degree resolution. First need to get a copy of
+ORCA12 bathymetry:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/coordinates_ORCA_R12.nc $WDIR/INPUTS/.
+
+$livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
+</pre></div>
+</div>
+<div class="section" id="attempt-to-define-the-domain-with-prescribed-lat-and-long">
+<h3>Attempt to define the domain with prescribed lat and long<a class="headerlink" href="#attempt-to-define-the-domain-with-prescribed-lat-and-long" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>Then need to define the boundaries for the new config::</dt>
+<dd>ferret etc
+shade/i=3369:3392/j=2251:2266 NAV_LAT
+shade/i=3369:3392/j=2251:2266 NAV_LON</dd>
+</dl>
+<p>Need to make a new cutdown GEBCO file. Should try and make it match James&#8217; variables names:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">jelt</span><span class="nd">@eslogin007</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">INPUTS</span><span class="o">&gt;</span> <span class="n">ncdump</span> <span class="o">-</span><span class="n">h</span> <span class="n">gebco_1_cutdown</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">netcdf</span> <span class="n">gebco_1_cutdown</span> <span class="p">{</span>
+<span class="n">dimensions</span><span class="p">:</span>
+      <span class="n">latitude</span> <span class="o">=</span> <span class="mi">361</span> <span class="p">;</span>
+      <span class="n">longitude</span> <span class="o">=</span> <span class="mi">601</span> <span class="p">;</span>
+<span class="n">variables</span><span class="p">:</span>
+      <span class="nb">float</span> <span class="n">latitude</span><span class="p">(</span><span class="n">latitude</span><span class="p">)</span> <span class="p">;</span>
+              <span class="n">latitude</span><span class="p">:</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;degrees N&quot;</span> <span class="p">;</span>
+              <span class="n">latitude</span><span class="p">:</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s2">&quot;Latitude&quot;</span> <span class="p">;</span>
+              <span class="n">latitude</span><span class="p">:</span><span class="n">long_name</span> <span class="o">=</span> <span class="s2">&quot;Latitude degrees N&quot;</span> <span class="p">;</span>
+      <span class="nb">float</span> <span class="n">longitude</span><span class="p">(</span><span class="n">longitude</span><span class="p">)</span> <span class="p">;</span>
+              <span class="n">longitude</span><span class="p">:</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;degrees E&quot;</span> <span class="p">;</span>
+              <span class="n">longitude</span><span class="p">:</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s2">&quot;Longitude&quot;</span> <span class="p">;</span>
+              <span class="n">longitude</span><span class="p">:</span><span class="n">long_name</span> <span class="o">=</span> <span class="s2">&quot;Longitude degrees E&quot;</span> <span class="p">;</span>
+      <span class="nb">float</span> <span class="n">topo</span><span class="p">(</span><span class="n">latitude</span><span class="p">,</span> <span class="n">longitude</span><span class="p">)</span> <span class="p">;</span>
+              <span class="n">topo</span><span class="p">:</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;metres&quot;</span> <span class="p">;</span>
+              <span class="n">topo</span><span class="p">:</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s2">&quot;topography&quot;</span> <span class="p">;</span>
+              <span class="n">topo</span><span class="p">:</span><span class="n">long_name</span> <span class="o">=</span> <span class="s2">&quot;topography&quot;</span> <span class="p">;</span>
+              <span class="n">topo</span><span class="p">:</span><span class="n">_FillValue</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.e+34</span><span class="n">f</span> <span class="p">;</span>
+
+<span class="o">//</span> <span class="k">global</span> <span class="n">attributes</span><span class="p">:</span>
+              <span class="p">:</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Gebco 1 minute topography from Gebco Atlas CD.&quot;</span> <span class="p">;</span>
+              <span class="p">:</span><span class="n">author</span> <span class="o">=</span> <span class="s2">&quot;James Harle&quot;</span> <span class="p">;</span>
+              <span class="p">:</span><span class="n">date</span> <span class="o">=</span> <span class="s2">&quot;24/05/2005&quot;</span> <span class="p">;</span>
+              <span class="p">:</span><span class="n">history</span> <span class="o">=</span> <span class="s2">&quot;Thu Oct 22 08:13:23 2015: ncks -d longitude,-90.,-80. -d latitude,15.,21. gebco_1.nc gebco_1_cd_v2.nc&quot;</span> <span class="p">;</span>
+              <span class="p">:</span><span class="n">NCO</span> <span class="o">=</span> <span class="s2">&quot;4.4.2&quot;</span> <span class="p">;</span>
+</pre></div>
+</div>
+<p>E.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ncea</span> <span class="o">-</span><span class="n">d</span> <span class="n">lat</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">54</span> <span class="o">-</span><span class="n">d</span> <span class="n">lon</span><span class="p">,</span><span class="mi">350</span><span class="p">,</span><span class="mi">360</span> <span class="o">/</span><span class="n">projectsa</span><span class="o">/</span><span class="n">FASTNEt</span><span class="o">/</span><span class="n">kariho40</span><span class="o">/</span><span class="n">AMM60</span><span class="o">/</span><span class="n">BATHY</span><span class="o">/</span><span class="n">bathy_AMM60</span><span class="o">.</span><span class="n">nc</span>  <span class="o">/</span><span class="n">scratch</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">GEBCO_cutdown</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>Hmm got this far. Downloaded some GEBCO data from BODC. Have not made a cutdown
+bathymetry file yet.</p>
+<p>When it is ready proceed with the following</p>
+</div>
+<div class="section" id="to-do">
+<h3>To do:<a class="headerlink" href="#to-do" title="Permalink to this headline">¶</a></h3>
+<p>Copy control file for LH_reef and edit:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR/GRIDGEN
+cp $INPUTS/namelist_R12 ./
+vi namelist_R12
+...
+nn_imin = 3369
+nn_imax = 3392
+nn_jmin = 2251
+nn_jmax = 2266
+nn_rhox  = 7
+nn_rhoy = 7
+
+ln -s namelist_R12 namelist.input
+./create_coordinates.exe
+cp 1_coordinates_ORCA_R12.nc $WDIR/INPUTS/coordinates.nc
+</pre></div>
+</div>
+<p>To do: &#8220;To create the bathymetry we use the gebco dataset. On ARCHER I had to use a
+non-default nco module for netcdf operations to work. I also had to cut down
+the gebco data as the SCRIP routines failed for some unknown reason&#8221;:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/gebco_1_cutdown.nc $WDIR/INPUTS/.
+cp $INPUTS/namelist_reshape_bilin_gebco $WDIR/INPUTS/.
+cd $WDIR/INPUTS
+module load nco/4.5.0
+ncap2 -s &#39;where(topo &gt; 0) topo=0&#39; gebco_1_cutdown.nc tmp.nc
+ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
+rm tmp.nc
+module unload nco cray-netcdf cray-hdf5
+module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+$TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
+</pre></div>
+</div>
+<p>Hang on. Isn&#8217;t PyNEMO supposed to do all this hard work in defining the domain?</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="try-again-from-the-start">
+<h3>Try again from the start<a class="headerlink" href="#try-again-from-the-start" title="Permalink to this headline">¶</a></h3>
+<p>Following <code class="docutils literal"><span class="pre">http://pynemo.readthedocs.io/en/latest/examples.html</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/LBay/
+
+cd pynemo/trunk/Python
+cp data/namelist.bdy $WDIR
+cd $WDIR
+vi namelist.bdy
+...
+sn_src_dir = ‘/work/n01/n01/jelt/LBay/test.ncml’
+sn_dst_dir = ‘/work/n01/n01/jelt/LBay/OUTPUT’
+cn_mask_file = ‘/work/n01/n01/jelt/LBay/mask.nc’)
+
+
+
+ssh -Y espp1
+module load anaconda
+source activate pynemo_env
+export WDIR=/work/n01/n01/jelt/LBay/
+
+cd $WDIR
+export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
+
+~/.conda/envs/pynemo/bin/pynemo_ncml_generator
+</pre></div>
+</div>
+<p>On generation got an error saying <strong>Not all the variables have been defined</strong>
+Perhaps I could get a look at a proper ncml file so I can see what all these variables are?
+Had a look in lighthousereef/INPUTS. There are two different files there.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Setting up a Liverpool Bay NEMO configuration</a><ul>
+<li><a class="reference internal" href="#issues-that-arose">Issues that arose</a></li>
+<li><a class="reference internal" href="#recipe-notes">Recipe Notes</a><ul>
+<li><a class="reference internal" href="#attempt-to-define-the-domain-with-prescribed-lat-and-long">Attempt to define the domain with prescribed lat and long</a></li>
+<li><a class="reference internal" href="#to-do">To do:</a></li>
+<li><a class="reference internal" href="#try-again-from-the-start">Try again from the start</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="SEAsia.html" title="previous chapter">Setting up a SE Asia NEMO configuration</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/LBay.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/LBay.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
