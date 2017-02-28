@@ -29,7 +29,8 @@ When a new note file is created manually add it to this list to aid finding it.
    template
 
    SEAsia
-
+   
+   LBay
 
 Indices and tables
 ==================
