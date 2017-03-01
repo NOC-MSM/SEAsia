@@ -291,36 +291,11 @@ beyond where I got GEBCO data so there is some strange extrapolation between Ang
 
 ----
 
-
+The following are notes / scratch space
++++++++++++++++++++++++++++++++++++++++
 
 Need to make a new cutdown GEBCO file. Should try and make it match James' variables names::
 
-  jelt@eslogin007:/work/n01/n01/jelt/LBay/INPUTS> ncdump -h gebco_1_cutdown.nc
-  netcdf gebco_1_cutdown {
-  dimensions:
-  	latitude = 361 ;
-  	longitude = 601 ;
-  variables:
-  	float latitude(latitude) ;
-  		latitude:units = "degrees N" ;
-  		latitude:standard_name = "Latitude" ;
-  		latitude:long_name = "Latitude degrees N" ;
-  	float longitude(longitude) ;
-  		longitude:units = "degrees E" ;
-  		longitude:standard_name = "Longitude" ;
-  		longitude:long_name = "Longitude degrees E" ;
-  	float topo(latitude, longitude) ;
-  		topo:units = "metres" ;
-  		topo:standard_name = "topography" ;
-  		topo:long_name = "topography" ;
-  		topo:_FillValue = -1.e+34f ;
-
-  // global attributes:
-  		:description = "Gebco 1 minute topography from Gebco Atlas CD." ;
-  		:author = "James Harle" ;
-  		:date = "24/05/2005" ;
-  		:history = "Thu Oct 22 08:13:23 2015: ncks -d longitude,-90.,-80. -d latitude,15.,21. gebco_1.nc gebco_1_cd_v2.nc" ;
-  		:NCO = "4.4.2" ;
 
 E.g.::
 
