@@ -46,7 +46,7 @@
 <div class="section" id="issues-that-arose">
 <h2>Issues that arose<a class="headerlink" href="#issues-that-arose" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li></li>
+<li>...</li>
 </ul>
 <p>Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef</span></code>
 Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://nemo-reloc.readthedocs.io/en/latest/SEAsia.html</span></code></p>
@@ -54,9 +54,11 @@ Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span c
 <hr class="docutils" />
 <div class="section" id="recipe-notes">
 <h2>Recipe Notes<a class="headerlink" href="#recipe-notes" title="Permalink to this headline">¶</a></h2>
-<p>Define working directory:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">WDIR</span><span class="o">=/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span>
-<span class="n">export</span> <span class="n">INPUTS</span><span class="o">=/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">lighthousereef</span><span class="o">/</span><span class="n">INPUTS</span>
+<p>Define working directory and other useful shortcuts:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/LBay/
+export INPUTS=/work/n01/n01/jelt/lighthousereef/INPUTS
+export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 </pre></div>
 </div>
 <p>Load modules:</p>
@@ -82,7 +84,6 @@ mkdir INPUTS
 <div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
 svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2014/dev_r4621_NOC4_BDY_VERT_INTERP@5709
 svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
-export INPUTS=/work/n01/n01/jelt/lighthousereef/INPUTS
 </pre></div>
 </div>
 <p>Need to get arch files from INPUTS:</p>
@@ -144,70 +145,39 @@ module load cray-netcdf cray-hdf5
 ./maketools -n GRIDGEN -m XC_ARCHER
 
 module swap PrgEnv-cray PrgEnv-intel
-export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 </pre></div>
 </div>
-<p>Back in $INPUTS, create a new coordinates file from the existing global
-1/12 mesh and refine to 1/84 degree resolution. First need to get a copy of
-ORCA12 bathymetry:</p>
+<p><em>(1 March 2017)</em></p>
+<p>Need to take a more structured approach to setting up this new configuration</p>
+<div class="section" id="generate-new-coordinates-file">
+<h3>1. Generate new coordinates file<a class="headerlink" href="#generate-new-coordinates-file" title="Permalink to this headline">¶</a></h3>
+<p>Generate a <code class="docutils literal"><span class="pre">coordinates.nc</span></code> file from a parent NEMO grid at some resolution.
+<strong>Plan:</strong> Use tool <code class="docutils literal"><span class="pre">create_coordinates.exe</span></code> which reads cutting indices and
+parent grid location from <code class="docutils literal"><span class="pre">namelist.input</span></code> and outputs a new files with new
+resolution grid elements.</p>
+<p>First we need to figure out the indices for the new domain, from the parent grid.
+Move parent grid into INPUTS:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/coordinates_ORCA_R12.nc $WDIR/INPUTS/.
-
-$livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
 </pre></div>
 </div>
-<div class="section" id="attempt-to-define-the-domain-with-prescribed-lat-and-long">
-<h3>Attempt to define the domain with prescribed lat and long<a class="headerlink" href="#attempt-to-define-the-domain-with-prescribed-lat-and-long" title="Permalink to this headline">¶</a></h3>
-<dl class="docutils">
-<dt>Then need to define the boundaries for the new config::</dt>
-<dd>ferret etc
-shade/i=3369:3392/j=2251:2266 NAV_LAT
-shade/i=3369:3392/j=2251:2266 NAV_LON</dd>
-</dl>
-<p>Need to make a new cutdown GEBCO file. Should try and make it match James&#8217; variables names:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">jelt</span><span class="nd">@eslogin007</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">INPUTS</span><span class="o">&gt;</span> <span class="n">ncdump</span> <span class="o">-</span><span class="n">h</span> <span class="n">gebco_1_cutdown</span><span class="o">.</span><span class="n">nc</span>
-<span class="n">netcdf</span> <span class="n">gebco_1_cutdown</span> <span class="p">{</span>
-<span class="n">dimensions</span><span class="p">:</span>
-      <span class="n">latitude</span> <span class="o">=</span> <span class="mi">361</span> <span class="p">;</span>
-      <span class="n">longitude</span> <span class="o">=</span> <span class="mi">601</span> <span class="p">;</span>
-<span class="n">variables</span><span class="p">:</span>
-      <span class="nb">float</span> <span class="n">latitude</span><span class="p">(</span><span class="n">latitude</span><span class="p">)</span> <span class="p">;</span>
-              <span class="n">latitude</span><span class="p">:</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;degrees N&quot;</span> <span class="p">;</span>
-              <span class="n">latitude</span><span class="p">:</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s2">&quot;Latitude&quot;</span> <span class="p">;</span>
-              <span class="n">latitude</span><span class="p">:</span><span class="n">long_name</span> <span class="o">=</span> <span class="s2">&quot;Latitude degrees N&quot;</span> <span class="p">;</span>
-      <span class="nb">float</span> <span class="n">longitude</span><span class="p">(</span><span class="n">longitude</span><span class="p">)</span> <span class="p">;</span>
-              <span class="n">longitude</span><span class="p">:</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;degrees E&quot;</span> <span class="p">;</span>
-              <span class="n">longitude</span><span class="p">:</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s2">&quot;Longitude&quot;</span> <span class="p">;</span>
-              <span class="n">longitude</span><span class="p">:</span><span class="n">long_name</span> <span class="o">=</span> <span class="s2">&quot;Longitude degrees E&quot;</span> <span class="p">;</span>
-      <span class="nb">float</span> <span class="n">topo</span><span class="p">(</span><span class="n">latitude</span><span class="p">,</span> <span class="n">longitude</span><span class="p">)</span> <span class="p">;</span>
-              <span class="n">topo</span><span class="p">:</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;metres&quot;</span> <span class="p">;</span>
-              <span class="n">topo</span><span class="p">:</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s2">&quot;topography&quot;</span> <span class="p">;</span>
-              <span class="n">topo</span><span class="p">:</span><span class="n">long_name</span> <span class="o">=</span> <span class="s2">&quot;topography&quot;</span> <span class="p">;</span>
-              <span class="n">topo</span><span class="p">:</span><span class="n">_FillValue</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.e+34</span><span class="n">f</span> <span class="p">;</span>
-
-<span class="o">//</span> <span class="k">global</span> <span class="n">attributes</span><span class="p">:</span>
-              <span class="p">:</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Gebco 1 minute topography from Gebco Atlas CD.&quot;</span> <span class="p">;</span>
-              <span class="p">:</span><span class="n">author</span> <span class="o">=</span> <span class="s2">&quot;James Harle&quot;</span> <span class="p">;</span>
-              <span class="p">:</span><span class="n">date</span> <span class="o">=</span> <span class="s2">&quot;24/05/2005&quot;</span> <span class="p">;</span>
-              <span class="p">:</span><span class="n">history</span> <span class="o">=</span> <span class="s2">&quot;Thu Oct 22 08:13:23 2015: ncks -d longitude,-90.,-80. -d latitude,15.,21. gebco_1.nc gebco_1_cd_v2.nc&quot;</span> <span class="p">;</span>
-              <span class="p">:</span><span class="n">NCO</span> <span class="o">=</span> <span class="s2">&quot;4.4.2&quot;</span> <span class="p">;</span>
+<p>Inspect this parent coordinates file to define the boundary indices for the new config.</p>
+<p>Note, I used FERRET locally:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
+ferret etc
+shade/i=3385:3392/j=2251:2266 NAV_LAT
+shade/i=3385:3392/j=2251:2266 NAV_LON
 </pre></div>
 </div>
-<p>E.g.:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ncea</span> <span class="o">-</span><span class="n">d</span> <span class="n">lat</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">54</span> <span class="o">-</span><span class="n">d</span> <span class="n">lon</span><span class="p">,</span><span class="mi">350</span><span class="p">,</span><span class="mi">360</span> <span class="o">/</span><span class="n">projectsa</span><span class="o">/</span><span class="n">FASTNEt</span><span class="o">/</span><span class="n">kariho40</span><span class="o">/</span><span class="n">AMM60</span><span class="o">/</span><span class="n">BATHY</span><span class="o">/</span><span class="n">bathy_AMM60</span><span class="o">.</span><span class="n">nc</span>  <span class="o">/</span><span class="n">scratch</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">GEBCO_cutdown</span><span class="o">.</span><span class="n">nc</span>
-</pre></div>
-</div>
-<p>Hmm got this far. Downloaded some GEBCO data from BODC. Have not made a cutdown
-bathymetry file yet.</p>
-<p>When it is ready proceed with the following</p>
-</div>
-<div class="section" id="to-do">
-<h3>To do:<a class="headerlink" href="#to-do" title="Permalink to this headline">¶</a></h3>
-<p>Copy control file for LH_reef and edit:</p>
+<p>Copy namelist file from LH_reef and edit with new indices, retaining use of
+ORCA_R12 as course
+parent grid:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR/GRIDGEN
 cp $INPUTS/namelist_R12 ./
 vi namelist_R12
 ...
-nn_imin = 3369
+cn_parent_coordinate_file = &#39;../../../../INPUTS/coordinates_ORCA_R12.nc&#39;
+...
+nn_imin = 3385
 nn_imax = 3392
 nn_jmin = 2251
 nn_jmax = 2266
@@ -219,54 +189,245 @@ ln -s namelist_R12 namelist.input
 cp 1_coordinates_ORCA_R12.nc $WDIR/INPUTS/coordinates.nc
 </pre></div>
 </div>
-<p>To do: &#8220;To create the bathymetry we use the gebco dataset. On ARCHER I had to use a
-non-default nco module for netcdf operations to work. I also had to cut down
-the gebco data as the SCRIP routines failed for some unknown reason&#8221;:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/gebco_1_cutdown.nc $WDIR/INPUTS/.
-cp $INPUTS/namelist_reshape_bilin_gebco $WDIR/INPUTS/.
-cd $WDIR/INPUTS
+<p>This creates a coordinates.nc file with contents, which are now copied to
+INPUTS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dimensions</span><span class="p">:</span>
+      <span class="n">x</span> <span class="o">=</span> <span class="mi">57</span> <span class="p">;</span>
+      <span class="n">y</span> <span class="o">=</span> <span class="mi">113</span> <span class="p">;</span>
+      <span class="n">z</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">;</span>
+      <span class="n">time</span> <span class="o">=</span> <span class="n">UNLIMITED</span> <span class="p">;</span> <span class="o">//</span> <span class="p">(</span><span class="mi">1</span> <span class="n">currently</span><span class="p">)</span>
+<span class="n">variables</span><span class="p">:</span>
+  <span class="nb">float</span> <span class="n">nav_lon</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="nb">float</span> <span class="n">nav_lat</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="nb">float</span> <span class="n">nav_lev</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="p">;</span>
+  <span class="nb">float</span> <span class="n">time</span><span class="p">(</span><span class="n">time</span><span class="p">)</span> <span class="p">;</span>
+  <span class="nb">int</span> <span class="n">time_steps</span><span class="p">(</span><span class="n">time</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">glamt</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">glamu</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">glamv</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">glamf</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">gphit</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">gphiu</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">gphiv</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">gphif</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">e1t</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">e1u</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">e1v</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">e1f</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">e2t</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">e2u</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">e2v</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">e2f</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
+</pre></div>
+</div>
+<p>Now we need to generate a bathymetry on this new grid.</p>
+</div>
+<div class="section" id="generate-bathymetry-file">
+<h3>2. Generate bathymetry file<a class="headerlink" href="#generate-bathymetry-file" title="Permalink to this headline">¶</a></h3>
+<p>Download some GEBCO data and copy to ARCHER:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scp</span> <span class="o">~/</span><span class="n">Downloads</span><span class="o">/</span><span class="n">RN</span><span class="o">-</span><span class="mi">5922</span><span class="n">_1488296787410</span><span class="o">/</span><span class="n">GEBCO_2014_2D_</span><span class="o">-</span><span class="mf">4.7361</span><span class="n">_53</span><span class="o">.</span><span class="mi">0299</span><span class="n">_</span><span class="o">-</span><span class="mf">2.5941</span><span class="n">_54</span><span class="o">.</span><span class="mf">4256.</span><span class="n">nc</span> <span class="n">jelt</span><span class="nd">@login</span><span class="o">.</span><span class="n">archer</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">uk</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">INPUTS</span><span class="o">/.</span>
+</pre></div>
+</div>
+<p>Copy namelist for reshaping GEBCO data:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/namelist_reshape_bilin_gebco $WDIR/INPUTS/.
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Edit namelist to point to correct input file. Edit lat and lon variable names to</dt>
+<dd>make sure they match the nc file content (used e.g.</dd>
+</dl>
+<p><code class="docutils literal"><span class="pre">ncdump</span> <span class="pre">-h</span> <span class="pre">GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc</span></code> to get input
+variable names):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $WDIR/INPUTS/namelist_reshape_bilin_gebco
+...
+&amp;grid_inputs
+  input_file = &#39;gebco_in.nc&#39;
+  nemo_file = &#39;coordinates.nc&#39;
+  ...
+  input_lon = &#39;lon&#39;
+  input_lat = &#39;lat&#39;
+  nemo_lon = &#39;glamt&#39;
+  nemo_lat = &#39;gphit&#39;
+  ...
+
+  &amp;interp_inputs
+  input_file = &quot;gebco_in.nc&quot;
+  ...
+  input_name = &quot;elevation&quot;
+</pre></div>
+</div>
+<p>Do some things to 1) flatten out land elevations, 2) make depths positive. <em>(James
+noted a problem with the default nco module)</em>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/INPUTS
 module load nco/4.5.0
-ncap2 -s &#39;where(topo &gt; 0) topo=0&#39; gebco_1_cutdown.nc tmp.nc
+ncap2 -s &#39;where(elevation &gt; 0) elevation=0&#39; GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc tmp.nc
 ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
 rm tmp.nc
-module unload nco cray-netcdf cray-hdf5
-module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-$TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
 </pre></div>
 </div>
-<p>Hang on. Isn&#8217;t PyNEMO supposed to do all this hard work in defining the domain?</p>
+<p>Restore the original parallel modules, which were removed to fix tool building issue:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">unload</span> <span class="n">nco</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+</pre></div>
+</div>
+<p>Execute first scrip thing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
+</pre></div>
+</div>
+<p>Output files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">remap_nemo_grid_gebco</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">remap_data_grid_gebco</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>Execute second scip thing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
+</pre></div>
+</div>
+<p>Output files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">data_nemo_bilin_gebco</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>Execute third scip thing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
+</pre></div>
+</div>
+<p>Output files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bathy_meter</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="generate-initial-conditions">
+<h3>3. Generate initial conditions<a class="headerlink" href="#generate-initial-conditions" title="Permalink to this headline">¶</a></h3>
+<p>Copy <code class="docutils literal"><span class="pre">make.macro</span></code> file and edit the path if necessary::
+<strong>FIX</strong> to the notes (copied from jdha instead): <code class="docutils literal"><span class="pre">cp</span> <span class="pre">$WDIR/INPUTS/make.macro</span> <span class="pre">./</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jdha</span><span class="o">/</span><span class="n">sosie</span><span class="o">/</span><span class="n">make</span><span class="o">.</span><span class="n">macro</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">sosie</span><span class="o">/.</span>
+
+<span class="n">vi</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">sosie</span><span class="o">/</span><span class="n">make</span><span class="o">.</span><span class="n">macro</span>
+<span class="c1"># Directory to install binaries:</span>
+<span class="n">INSTALL_DIR</span> <span class="o">=</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">local</span>
+</pre></div>
+</div>
+<p>Proceed with Step 6:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd ~
+mkdir local
+svn co svn://svn.code.sf.net/p/sosie/code/trunk sosie
+cd sosie
+
+make
+make install
+export PATH=~/local/bin:$PATH
+cd $WDIR/INPUTS
+</pre></div>
+</div>
+<p>Obtain the fields to interpolate. It would be much better to interpolate AMM60
+data. Maybe next time...:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/initcd_votemper.namelist .
+cp $INPUTS/initcd_vosaline.namelist .
+cp $INPUTS/N01_19791231d05T.nc .
+cp $INPUTS/N01_19800105d05T.nc .
+</pre></div>
+</div>
+<p>Edit namelists:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">initcd_votemper</span><span class="o">.</span><span class="n">namelist</span>
+<span class="o">...</span>
+<span class="n">ctarget</span>  <span class="o">=</span> <span class="s1">&#39;LBay&#39;</span>
+
+<span class="n">vi</span> <span class="n">initcd_vosaline</span><span class="o">.</span><span class="n">namelist</span>
+<span class="o">...</span>
+<span class="n">ctarget</span>  <span class="o">=</span> <span class="s1">&#39;LBay&#39;</span>
+</pre></div>
+</div>
+<p>Do stuff. I think the intention was for SOSIE to flood fill the land:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sosie</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span><span class="n">f</span> <span class="n">initcd_votemper</span><span class="o">.</span><span class="n">namelist</span>
+</pre></div>
+</div>
+<p>Creates:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">votemper_ORCA0083</span><span class="o">-</span><span class="n">LBay_1980</span><span class="o">.</span><span class="n">nc4</span>
+<span class="n">sosie_mapping_ORCA0083</span><span class="o">-</span><span class="n">LBay</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>Repeat for salinity:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sosie</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span><span class="n">f</span> <span class="n">initcd_vosaline</span><span class="o">.</span><span class="n">namelist</span>
+</pre></div>
+</div>
+<p>Creates:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vosaline_ORCA0083</span><span class="o">-</span><span class="n">LBay_1980</span><span class="o">.</span><span class="n">nc4</span>
+</pre></div>
+</div>
+<p>Now do interpolation as before. First copy the namelists:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/namelist_reshape_bilin_initcd_votemper $WDIR/INPUTS/.
+cp $INPUTS/namelist_reshape_bilin_initcd_vosaline $WDIR/INPUTS/.
+</pre></div>
+</div>
+<p>Edit the input files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $WDIR/INPUTS/namelist_reshape_bilin_initcd_votemper
+&amp;grid_inputs
+  input_file = &#39;votemper_ORCA0083-LBay_1980.nc4&#39;
+...
+
+&amp;interp_inputs
+  input_file = &quot;votemper_ORCA0083-LBay_1980.nc4&quot;
+...
+</pre></div>
+</div>
+<p>Simiarly for the <a href="#id1"><span class="problematic" id="id2">*</span></a>vosaline.nc file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $WDIR/INPUTS/namelist_reshape_bilin_initcd_vosaline
+&amp;grid_inputs
+  input_file = &#39;votemper_ORCA0083-LBay_1980.nc4&#39;
+...
+
+&amp;interp_inputs
+  input_file = &quot;votemper_ORCA0083-LBay_1980.nc4&quot;
+...
+</pre></div>
+</div>
+<p>Produce the remap files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
+</pre></div>
+</div>
+<p>Creates <code class="docutils literal"><span class="pre">remap_nemo_grid_R12.nc</span></code> and <code class="docutils literal"><span class="pre">remap_data_grid_R12.nc</span></code>.</p>
+<p><strong>The following breaks with a Seg Fault</strong>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
+</pre></div>
+</div>
+<p>To do:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
+$TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
+</pre></div>
+</div>
+</div>
+<div class="section" id="generate-weights-for-atm-forcing">
+<h3>4. Generate weights for atm forcing<a class="headerlink" href="#generate-weights-for-atm-forcing" title="Permalink to this headline">¶</a></h3>
+<p>Obtain namelist files and data file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/namelist_reshape_bilin_atmos $WDIR/INPUTS/.
+cp $INPUTS/namelist_reshape_bicubic_atmos $WDIR/INPUTS/.
+
+cp $INPUTS/cutdown_drowned_precip_DFS5.1.1_y1979.nc $WDIR/INPUTS/.
+</pre></div>
+</div>
+<p>Setup weights files for the atmospheric forcing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
+</pre></div>
+</div>
+<p>Generate  remap files <code class="docutils literal"><span class="pre">remap_nemo_grid_atmos.nc</span></code> and <code class="docutils literal"><span class="pre">remap_data_grid_atmos.nc</span></code>. Then:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
+</pre></div>
+</div>
+<p><strong>Breaks with the seg fault</strong></p>
+</div>
+<div class="section" id="generate-mesh-and-mask-files-for-open-boundary-conditions">
+<h3>5. Generate mesh and mask files for open boundary conditions<a class="headerlink" href="#generate-mesh-and-mask-files-for-open-boundary-conditions" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="generate-boundary-conditions-with-pynemo">
+<h3>6. Generate boundary conditions with PyNEMO<a class="headerlink" href="#generate-boundary-conditions-with-pynemo" title="Permalink to this headline">¶</a></h3>
 </div>
 <hr class="docutils" />
-<div class="section" id="try-again-from-the-start">
-<h3>Try again from the start<a class="headerlink" href="#try-again-from-the-start" title="Permalink to this headline">¶</a></h3>
-<p>Following <code class="docutils literal"><span class="pre">http://pynemo.readthedocs.io/en/latest/examples.html</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/LBay/
-
-cd pynemo/trunk/Python
-cp data/namelist.bdy $WDIR
-cd $WDIR
-vi namelist.bdy
-...
-sn_src_dir = ‘/work/n01/n01/jelt/LBay/test.ncml’
-sn_dst_dir = ‘/work/n01/n01/jelt/LBay/OUTPUT’
-cn_mask_file = ‘/work/n01/n01/jelt/LBay/mask.nc’)
-
-
-
-ssh -Y espp1
-module load anaconda
-source activate pynemo_env
-export WDIR=/work/n01/n01/jelt/LBay/
-
-cd $WDIR
-export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
-
-~/.conda/envs/pynemo/bin/pynemo_ncml_generator
+<div class="section" id="the-following-are-notes-scratch-space">
+<h3>The following are notes / scratch space<a class="headerlink" href="#the-following-are-notes-scratch-space" title="Permalink to this headline">¶</a></h3>
+<p>NCO tool cut down E.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ncea</span> <span class="o">-</span><span class="n">d</span> <span class="n">lat</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">54</span> <span class="o">-</span><span class="n">d</span> <span class="n">lon</span><span class="p">,</span><span class="mi">350</span><span class="p">,</span><span class="mi">360</span> <span class="o">/</span><span class="n">projectsa</span><span class="o">/</span><span class="n">FASTNEt</span><span class="o">/</span><span class="n">kariho40</span><span class="o">/</span><span class="n">AMM60</span><span class="o">/</span><span class="n">BATHY</span><span class="o">/</span><span class="n">bathy_AMM60</span><span class="o">.</span><span class="n">nc</span>  <span class="o">/</span><span class="n">scratch</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">GEBCO_cutdown</span><span class="o">.</span><span class="n">nc</span>
 </pre></div>
 </div>
-<p>On generation got an error saying <strong>Not all the variables have been defined</strong>
-Perhaps I could get a look at a proper ncml file so I can see what all these variables are?
-Had a look in lighthousereef/INPUTS. There are two different files there.</p>
 </div>
 </div>
 </div>
@@ -282,9 +443,13 @@ Had a look in lighthousereef/INPUTS. There are two different files there.</p>
 <li><a class="reference internal" href="#">Setting up a Liverpool Bay NEMO configuration</a><ul>
 <li><a class="reference internal" href="#issues-that-arose">Issues that arose</a></li>
 <li><a class="reference internal" href="#recipe-notes">Recipe Notes</a><ul>
-<li><a class="reference internal" href="#attempt-to-define-the-domain-with-prescribed-lat-and-long">Attempt to define the domain with prescribed lat and long</a></li>
-<li><a class="reference internal" href="#to-do">To do:</a></li>
-<li><a class="reference internal" href="#try-again-from-the-start">Try again from the start</a></li>
+<li><a class="reference internal" href="#generate-new-coordinates-file">1. Generate new coordinates file</a></li>
+<li><a class="reference internal" href="#generate-bathymetry-file">2. Generate bathymetry file</a></li>
+<li><a class="reference internal" href="#generate-initial-conditions">3. Generate initial conditions</a></li>
+<li><a class="reference internal" href="#generate-weights-for-atm-forcing">4. Generate weights for atm forcing</a></li>
+<li><a class="reference internal" href="#generate-mesh-and-mask-files-for-open-boundary-conditions">5. Generate mesh and mask files for open boundary conditions</a></li>
+<li><a class="reference internal" href="#generate-boundary-conditions-with-pynemo">6. Generate boundary conditions with PyNEMO</a></li>
+<li><a class="reference internal" href="#the-following-are-notes-scratch-space">The following are notes / scratch space</a></li>
 </ul>
 </li>
 </ul>

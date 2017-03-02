@@ -7,7 +7,7 @@ URL:: http://nemo-reloc.readthedocs.io/en/latest/LBay.html
 Issues that arose
 =================
 
-*
+* ...
 
 
 Follow PyNEMO recipe for Lighthouse Reef: ``http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef``
@@ -408,55 +408,6 @@ Generate  remap files ``remap_nemo_grid_atmos.nc`` and ``remap_data_grid_atmos.n
 The following are notes / scratch space
 +++++++++++++++++++++++++++++++++++++++
 
-Need to make a new cutdown GEBCO file. Should try and make it match James' variables names::
-
-
-E.g.::
+NCO tool cut down E.g.::
 
   ncea -d lat,50,54 -d lon,350,360 /projectsa/FASTNEt/kariho40/AMM60/BATHY/bathy_AMM60.nc  /scratch/jelt/tmp/GEBCO_cutdown.nc
-
-Hmm got this far. Downloaded some GEBCO data from BODC. Have not made a cutdown
-bathymetry file yet.
-
-
-When it is ready proceed with the following
-
-To do:
-++++++
-
-
-
-
-----
-
-Try again from the start
-++++++++++++++++++++++++
-
-Following ``http://pynemo.readthedocs.io/en/latest/examples.html``::
-
-  export WDIR=/work/n01/n01/jelt/LBay/
-
-  cd pynemo/trunk/Python
-  cp data/namelist.bdy $WDIR
-  cd $WDIR
-  vi namelist.bdy
-  ...
-  sn_src_dir = ‘/work/n01/n01/jelt/LBay/test.ncml’
-  sn_dst_dir = ‘/work/n01/n01/jelt/LBay/OUTPUT’
-  cn_mask_file = ‘/work/n01/n01/jelt/LBay/mask.nc’)
-
-
-
-  ssh -Y espp1
-  module load anaconda
-  source activate pynemo_env
-  export WDIR=/work/n01/n01/jelt/LBay/
-
-  cd $WDIR
-  export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
-
-  ~/.conda/envs/pynemo/bin/pynemo_ncml_generator
-
-On generation got an error saying **Not all the variables have been defined**
-Perhaps I could get a look at a proper ncml file so I can see what all these variables are?
-Had a look in lighthousereef/INPUTS. There are two different files there.
