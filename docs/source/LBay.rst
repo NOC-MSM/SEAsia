@@ -135,8 +135,8 @@ Note, I used FERRET locally::
 
   $livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
   ferret etc
-  shade/i=3369:3392/j=2251:2266 NAV_LAT
-  shade/i=3369:3392/j=2251:2266 NAV_LON
+  shade/i=3385:3392/j=2251:2266 NAV_LAT
+  shade/i=3385:3392/j=2251:2266 NAV_LON
 
 
 Copy namelist file from LH_reef and edit with new indices, retaining use of
@@ -149,7 +149,7 @@ parent grid::
   ...
   cn_parent_coordinate_file = '../../../../INPUTS/coordinates_ORCA_R12.nc'
   ...
-  nn_imin = 3369
+  nn_imin = 3385
   nn_imax = 3392
   nn_jmin = 2251
   nn_jmax = 2266
@@ -164,7 +164,7 @@ This creates a coordinates.nc file with contents, which are now copied to
 INPUTS::
 
   dimensions:
-  	x = 176 ;
+  	x = 57 ;
   	y = 113 ;
   	z = 1 ;
   	time = UNLIMITED ; // (1 currently)
@@ -270,18 +270,132 @@ Output files::
   bathy_meter.nc
 
 
-Peeking at this output using FERRET suggests that something went a bit wrong at
-the outer western limits of the region. I think that perhaps the domain extends
-beyond where I got GEBCO data so there is some strange extrapolation between Angelsey. However, it works!
-
-**ACTION:** Need to fix this. Make the coordinates.nc have reduced westward extent.
-
 
 3. Generate initial conditions
 ++++++++++++++++++++++++++++++
 
+
+Copy ``make.macro`` file and edit the path if necessary::
+**FIX** to the notes (copied from jdha instead): ``cp $WDIR/INPUTS/make.macro ./``::
+
+  cp /home/n01/n01/jdha/sosie/make.macro /home/n01/n01/jelt/sosie/.
+
+  vi /home/n01/n01/jelt/sosie/make.macro
+  # Directory to install binaries:
+  INSTALL_DIR = /home/n01/n01/jelt/local
+
+Proceed with Step 6::
+
+  cd ~
+  mkdir local
+  svn co svn://svn.code.sf.net/p/sosie/code/trunk sosie
+  cd sosie
+
+  make
+  make install
+  export PATH=~/local/bin:$PATH
+  cd $WDIR/INPUTS
+
+
+Obtain the fields to interpolate. It would be much better to interpolate AMM60
+data. Maybe next time...::
+
+  cp $INPUTS/initcd_votemper.namelist .
+  cp $INPUTS/initcd_vosaline.namelist .
+  cp $INPUTS/N01_19791231d05T.nc .
+  cp $INPUTS/N01_19800105d05T.nc .
+
+Edit namelists::
+
+  vi initcd_votemper.namelist
+  ...
+  ctarget  = 'LBay'
+
+  vi initcd_vosaline.namelist
+  ...
+  ctarget  = 'LBay'
+
+
+Do stuff. I think the intention was for SOSIE to flood fill the land::
+
+  sosie.x -f initcd_votemper.namelist
+
+Creates::
+
+  votemper_ORCA0083-LBay_1980.nc4
+  sosie_mapping_ORCA0083-LBay.nc
+
+Repeat for salinity::
+
+  sosie.x -f initcd_vosaline.namelist
+
+Creates::
+
+  vosaline_ORCA0083-LBay_1980.nc4
+
+
+Now do interpolation as before. First copy the namelists::
+
+  cp $INPUTS/namelist_reshape_bilin_initcd_votemper $WDIR/INPUTS/.
+  cp $INPUTS/namelist_reshape_bilin_initcd_vosaline $WDIR/INPUTS/.
+
+Edit the input files::
+
+  vi $WDIR/INPUTS/namelist_reshape_bilin_initcd_votemper
+  &grid_inputs
+    input_file = 'votemper_ORCA0083-LBay_1980.nc4'
+  ...
+
+  &interp_inputs
+    input_file = "votemper_ORCA0083-LBay_1980.nc4"
+  ...
+
+Simiarly for the *vosaline.nc file::
+
+  vi $WDIR/INPUTS/namelist_reshape_bilin_initcd_vosaline
+  &grid_inputs
+    input_file = 'votemper_ORCA0083-LBay_1980.nc4'
+  ...
+
+  &interp_inputs
+    input_file = "votemper_ORCA0083-LBay_1980.nc4"
+  ...
+
+
+Produce the remap files::
+
+  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
+
+Creates ``remap_nemo_grid_R12.nc`` and ``remap_data_grid_R12.nc``.
+
+**The following breaks with a Seg Fault**::
+
+  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
+
+To do::
+
+  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
+  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
+
 4. Generate weights for atm forcing
 +++++++++++++++++++++++++++++++++++
+
+Obtain namelist files and data file::
+
+  cp $INPUTS/namelist_reshape_bilin_atmos $WDIR/INPUTS/.
+  cp $INPUTS/namelist_reshape_bicubic_atmos $WDIR/INPUTS/.
+
+  cp $INPUTS/cutdown_drowned_precip_DFS5.1.1_y1979.nc $WDIR/INPUTS/.
+
+Setup weights files for the atmospheric forcing::
+
+  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
+
+Generate  remap files ``remap_nemo_grid_atmos.nc`` and ``remap_data_grid_atmos.nc``. Then::
+
+  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
+
+**Breaks with the seg fault**
 
 5. Generate mesh and mask files for open boundary conditions
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -311,23 +425,7 @@ To do:
 ++++++
 
 
-To do: "To create the bathymetry we use the gebco dataset. On ARCHER I had to use a
-non-default nco module for netcdf operations to work. I also had to cut down
-the gebco data as the SCRIP routines failed for some unknown reason"::
 
-  cp $INPUTS/gebco_1_cutdown.nc $WDIR/INPUTS/.
-  cp $INPUTS/namelist_reshape_bilin_gebco $WDIR/INPUTS/.
-  cd $WDIR/INPUTS
-  module load nco/4.5.0
-  ncap2 -s 'where(topo > 0) topo=0' gebco_1_cutdown.nc tmp.nc
-  ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
-  rm tmp.nc
-  module unload nco cray-netcdf cray-hdf5
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
-
-
-Hang on. Isn't PyNEMO supposed to do all this hard work in defining the domain?
 
 ----
 
