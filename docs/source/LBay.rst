@@ -533,17 +533,18 @@ Submit::
 
   qsub -q short runscript
 
-Check ``ocean.output``. This works but the initial conditions exceed the dimension
-bounds (too many timesteps).
-Average over time dimension (notes edited above). Resubmit.::
 
-  Job ID          Username Queue    Jobname    SessID NDS TSK Memory Time  S Time
-  --------------- -------- -------- ---------- ------ --- --- ------ ----- - -----
-  4361708.sdb     jelt     standard LBay          --    5 120    --  00:20 Q   --
 
-**PENDING** 3 March 2017::
+*(6 March 2017*
 
-  cd /work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00
+If that works, we then need to rebuild the mesh and mask files in to single files for the next step::
+
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_zgr 96
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_hgr 96
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mask 96
+  mv mesh_zgr.nc mesh_hgr.nc mask.nc $WDIR/INPUTS
+  rm mesh_* mask_* LBay_0000*
+  cd $WDIR/INPUTS
 
 6. Generate boundary conditions with PyNEMO
 +++++++++++++++++++++++++++++++++++++++++++
