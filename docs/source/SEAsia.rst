@@ -21,9 +21,11 @@ This worked *(22 Feb 2017)*. The notes here have been rehashed many times, with 
 Recipe Notes
 ============
 
-Define working directory::
+Define working directory, and other useful shortcuts::
 
   export WDIR=/work/n01/n01/jelt/lighthousereef/
+  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
 Load modules::
 

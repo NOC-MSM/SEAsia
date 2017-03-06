@@ -7,7 +7,18 @@ URL:: http://nemo-reloc.readthedocs.io/en/latest/LBay.html
 Issues that arose
 =================
 
-* ...
+* Notes the ``cpp_*.fcm`` files are different::
+
+  diff /work/n01/n01/jelt/Solent/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/Solent/cpp_Solent.fcm /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/cpp_LH_REEF.fcm
+  1c1
+  <  bld::tool::fppkeys key_trabbl key_dynspg_flt key_diaeiv key_ldfslp key_traldf_c2d key_traldf_eiv key_dynldf_c3d key_zdftke key_zdfddm key_zdftmx key_iomput key_mpp_mpi
+  ---
+  > bld::tool::fppkeys   key_dynspg_ts key_ldfslp  key_zdfgls  key_vvl key_mpp_mpi key_netcdf4 key_nosignedzero  key_iomput key_gen_IC key_bdy
+
+* I didn't copy some stuff into the NEMO compilation. This may be a problem later::
+
+  cp $WDIR/INPUTS/cpp_LH_REEF.fcm ./LH_REEF
+  cp $WDIR/INPUTS/dtatsd.F90 LH_REEF/MY_SRC/
 
 
 Follow PyNEMO recipe for Lighthouse Reef: ``http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef``
@@ -297,23 +308,60 @@ Proceed with Step 6::
   cd $WDIR/INPUTS
 
 
-Obtain the fields to interpolate. It would be much better to interpolate AMM60
-data. Maybe next time...::
+Obtain the fields to interpolate. Interpolate AMM60
+data. Get the namelists::
 
   cp $INPUTS/initcd_votemper.namelist .
   cp $INPUTS/initcd_vosaline.namelist .
-  cp $INPUTS/N01_19791231d05T.nc .
-  cp $INPUTS/N01_19800105d05T.nc .
+
+Generate the actual files. Cut them out of something bigger. Use the same indices
+as used in coordinates.nc (note that the nco tools don't like the
+parallel modules)::
+
+----
+
+*(3 March )*
+Insert new method to use AMM60 data for initial conditions.
+/work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT
+AMM60_5d_20131013_20131129_grid_T.nc
+
+Find the AMM60 indices using FERRET on the bathy_meter.nc file: ``shade log(Bathymetry[I=540:750, J=520:820])``
+
+Note that the temperature and salinity variables are ``thetao`` and ``so``
+
+::
+
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module load cray-netcdf cray-hdf5
+  module load nco/4.5.0
+  cd $WDIR/INPUTS
+
+  ncks -d x,560,620 -d y,720,800 /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT/AMM60_5d_20131013_20131129_grid_T.nc $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc
+
+Average over time and restore the parallel modules::
+
+  ncwa -a time_counter $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc  $WDIR/INPUTS/cut_down_201310_LBay_grid_T.nc
+
+  module unload nco cray-netcdf cray-hdf5
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+
 
 Edit namelists::
 
   vi initcd_votemper.namelist
-  ...
+  cf_in     = 'cut_down_201310_LBay_grid_T.nc'
+  cv_in     = 'thetao'
+  cf_x_in   = 'cut_down_201310_LBay_grid_T.nc'
+  cv_out   = 'thetao'
+  csource  = 'AMM60'
   ctarget  = 'LBay'
 
   vi initcd_vosaline.namelist
   ...
-  ctarget  = 'LBay'
+  cv_out   = 'so'
+  ...
+
 
 
 Do stuff. I think the intention was for SOSIE to flood fill the land::
@@ -322,8 +370,8 @@ Do stuff. I think the intention was for SOSIE to flood fill the land::
 
 Creates::
 
-  votemper_ORCA0083-LBay_1980.nc4
-  sosie_mapping_ORCA0083-LBay.nc
+  thetao_AMM60-LBay_2013.nc4
+  sosie_mapping_AMM60-LBay.nc
 
 Repeat for salinity::
 
@@ -331,7 +379,7 @@ Repeat for salinity::
 
 Creates::
 
-  vosaline_ORCA0083-LBay_1980.nc4
+  so_AMM60-LBay_2013.nc4
 
 
 Now do interpolation as before. First copy the namelists::
@@ -343,22 +391,22 @@ Edit the input files::
 
   vi $WDIR/INPUTS/namelist_reshape_bilin_initcd_votemper
   &grid_inputs
-    input_file = 'votemper_ORCA0083-LBay_1980.nc4'
+    input_file = 'thetao_AMM60-LBay_2013.nc4'
   ...
 
   &interp_inputs
-    input_file = "votemper_ORCA0083-LBay_1980.nc4"
+    input_file = "thetao_AMM60-LBay_2013.nc4"
   ...
 
 Simiarly for the *vosaline.nc file::
 
   vi $WDIR/INPUTS/namelist_reshape_bilin_initcd_vosaline
   &grid_inputs
-    input_file = 'votemper_ORCA0083-LBay_1980.nc4'
+    input_file = 'so_AMM60-LBay_2013.nc4'
   ...
 
   &interp_inputs
-    input_file = "votemper_ORCA0083-LBay_1980.nc4"
+    input_file = "so_AMM60-LBay_2013.nc4"
   ...
 
 
@@ -366,16 +414,20 @@ Produce the remap files::
 
   $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
 
-Creates ``remap_nemo_grid_R12.nc`` and ``remap_data_grid_R12.nc``.
-
-**The following breaks with a Seg Fault**::
+Creates ``remap_nemo_grid_R12.nc`` and ``remap_data_grid_R12.nc``. Then::
 
   $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
 
-To do::
+Creates ``data_nemo_bilin_R12.nc``. Then::
 
   $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
+
+Creates ``initcd_votemper.nc``. Then::
+
   $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
+
+Creates ``initcd_vosaline.nc``.
+
 
 4. Generate weights for atm forcing
 +++++++++++++++++++++++++++++++++++
@@ -385,7 +437,12 @@ Obtain namelist files and data file::
   cp $INPUTS/namelist_reshape_bilin_atmos $WDIR/INPUTS/.
   cp $INPUTS/namelist_reshape_bicubic_atmos $WDIR/INPUTS/.
 
-  cp $INPUTS/cutdown_drowned_precip_DFS5.1.1_y1979.nc $WDIR/INPUTS/.
+Generate cut down drowned precip file (note that the nco tools don't like the
+parallel modules)::
+
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module load cray-netcdf cray-hdf5
+  ncks -d lon,355.,358. -d lat,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_precip_DFS5.1.1_y1979.nc $WDIR/INPUTS/cutdown_drowned_precip_DFS5.1.1_y1979.nc
 
 Setup weights files for the atmospheric forcing::
 
@@ -395,10 +452,98 @@ Generate  remap files ``remap_nemo_grid_atmos.nc`` and ``remap_data_grid_atmos.n
 
   $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
 
-**Breaks with the seg fault**
+Generates ``data_nemo_bilin_atmos.nc``. Then::
+
+  $TDIR/WEIGHTS/scripshape.exe namelist_reshape_bilin_atmos
+
+Generates ``weights_bilinear_atmos.nc``. Then::
+
+  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bicubic_atmos
+
+Generates ``data_nemo_bicubic_atmos.nc``. Then::
+
+  $TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
+
+Generates ``weights_bicubic_atmos.nc``.
+
 
 5. Generate mesh and mask files for open boundary conditions
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Run the model to generate the mesh and mask files::
+
+  cd $CDIR
+  cp $INPUTS/cpp_LH_REEF.fcm LBay/cpp_LBay.fcm
+  ln -s $WDIR/INPUTS/bathy_meter.nc $CDIR/LBay/EXP00/bathy_meter.nc
+  ln -s $WDIR/INPUTS/coordinates.nc $CDIR/LBay/EXP00/coordinates.nc
+  cp $INPUTS/runscript $CDIR/LBay/EXP00
+  cp $INPUTS/namelist_cfg $CDIR/LBay/EXP00/namelist_cfg
+  cp $INPUTS/namelist_ref $CDIR/LBay/EXP00/namelist_ref
+  ./makenemo clean
+  ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
+  cd LBay/EXP00
+  ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
+
+Edit the namelist files for this configuration::
+
+  ncdump -h coordinates.nc
+  x = 57 ;
+  y = 113 ;
+
+  vi namelist.cfg
+  ...
+  cn_exp      =   "LBay"  !  experience name
+  ...
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+     cp_cfg      =  "lbay"                !  name of the configuration
+     jp_cfg      =     084               !  resolution of the configuration
+     jpidta      =      57               !  1st lateral dimension ( >= jpi )
+     jpjdta      =     113               !  2nd    "         "    ( >= jpj )
+     jpkdta      =      51               !  number of levels      ( >= jpk )
+     jpiglo      =      57               !  1st dimension of global domain --> i =jpidta
+     jpjglo      =     113               !  2nd    -                  -    --> j  =jpjdta
+
+
+LH_REEF
+jpidta      =     358               !  1st lateral dimension ( >= jpi )
+jpjdta      =     428               !  2nd    "         "    ( >= jpj )
+
+ncdump -h coordinates.nc
+x = 358 ;
+y = 428 ;
+
+Edit the runscript to include modules and the Account name (n01-NOCL)::
+
+  vi runscript
+
+  #!/bin/bash
+  #PBS -N LBay
+  #PBS -l select=5
+  #PBS -l walltime=00:20:00
+  #PBS -A n01-NOCL
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+  ...
+
+Submit::
+
+  qsub -q short runscript
+
+Check ``ocean.output``. This works but the initial conditions exceed the dimension
+bounds (too many timesteps).
+Average over time dimension (notes edited above). Resubmit.::
+
+  Job ID          Username Queue    Jobname    SessID NDS TSK Memory Time  S Time
+  --------------- -------- -------- ---------- ------ --- --- ------ ----- - -----
+  4361708.sdb     jelt     standard LBay          --    5 120    --  00:20 Q   --
+
+**PENDING** 3 March 2017::
+
+  cd /work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00
 
 6. Generate boundary conditions with PyNEMO
 +++++++++++++++++++++++++++++++++++++++++++
