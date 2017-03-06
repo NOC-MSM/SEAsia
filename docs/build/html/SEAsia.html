@@ -24,6 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+    <link rel="next" title="Setting up a Liverpool Bay NEMO configuration" href="LBay.html" />
     <link rel="prev" title="Template Note" href="template.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -56,8 +57,10 @@
 <hr class="docutils" />
 <div class="section" id="recipe-notes">
 <h2>Recipe Notes<a class="headerlink" href="#recipe-notes" title="Permalink to this headline">¶</a></h2>
-<p>Define working directory:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">WDIR</span><span class="o">=/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">lighthousereef</span><span class="o">/</span>
+<p>Define working directory, and other useful shortcuts:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/lighthousereef/
+export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 </pre></div>
 </div>
 <p>Load modules:</p>
@@ -275,7 +278,7 @@ conda install -c conda-forge seawater=3.3.4
 conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
 conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
 export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-svn checkout http://ccpforge.cse.rl.ac.uk/svn/pynemo
+svn checkout https://ccpforge.cse.rl.ac.uk/svn/pynemo
 cd pynemo/trunk/Python
 python setup.py build
 export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
@@ -345,6 +348,7 @@ qsub -q short runscript
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="template.html" title="previous chapter">Template Note</a></li>
+      <li>Next: <a href="LBay.html" title="next chapter">Setting up a Liverpool Bay NEMO configuration</a></li>
   </ul></li>
 </ul>
 </div>

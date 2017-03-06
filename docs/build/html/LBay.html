@@ -45,8 +45,18 @@
 <p>URL:: <a class="reference external" href="http://nemo-reloc.readthedocs.io/en/latest/LBay.html">http://nemo-reloc.readthedocs.io/en/latest/LBay.html</a></p>
 <div class="section" id="issues-that-arose">
 <h2>Issues that arose<a class="headerlink" href="#issues-that-arose" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>...</li>
+<ul>
+<li><p class="first">Notes the <code class="docutils literal"><span class="pre">cpp_*.fcm</span></code> files are different:</p>
+<p>diff /work/n01/n01/jelt/Solent/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/Solent/cpp_Solent.fcm /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/cpp_LH_REEF.fcm
+1c1
+&lt;  bld::tool::fppkeys key_trabbl key_dynspg_flt key_diaeiv key_ldfslp key_traldf_c2d key_traldf_eiv key_dynldf_c3d key_zdftke key_zdfddm key_zdftmx key_iomput key_mpp_mpi
+&#8212;
+&gt; bld::tool::fppkeys   key_dynspg_ts key_ldfslp  key_zdfgls  key_vvl key_mpp_mpi key_netcdf4 key_nosignedzero  key_iomput key_gen_IC key_bdy</p>
+</li>
+<li><p class="first">I didn&#8217;t copy some stuff into the NEMO compilation. This may be a problem later:</p>
+<p>cp $WDIR/INPUTS/cpp_LH_REEF.fcm ./LH_REEF
+cp $WDIR/INPUTS/dtatsd.F90 LH_REEF/MY_SRC/</p>
+</li>
 </ul>
 <p>Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef</span></code>
 Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://nemo-reloc.readthedocs.io/en/latest/SEAsia.html</span></code></p>
@@ -319,22 +329,52 @@ export PATH=~/local/bin:$PATH
 cd $WDIR/INPUTS
 </pre></div>
 </div>
-<p>Obtain the fields to interpolate. It would be much better to interpolate AMM60
-data. Maybe next time...:</p>
+<p>Obtain the fields to interpolate. Interpolate AMM60
+data. Get the namelists:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/initcd_votemper.namelist .
 cp $INPUTS/initcd_vosaline.namelist .
-cp $INPUTS/N01_19791231d05T.nc .
-cp $INPUTS/N01_19800105d05T.nc .
+</pre></div>
+</div>
+<p>Generate the actual files. Cut them out of something bigger. Use the same indices
+as used in coordinates.nc (note that the nco tools don&#8217;t like the
+parallel modules):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">----</span>
+</pre></div>
+</div>
+<p><em>(3 March )</em>
+Insert new method to use AMM60 data for initial conditions.
+/work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT
+AMM60_5d_20131013_20131129_grid_T.nc</p>
+<p>Find the AMM60 indices using FERRET on the bathy_meter.nc file: <code class="docutils literal"><span class="pre">shade</span> <span class="pre">log(Bathymetry[I=540:750,</span> <span class="pre">J=520:820])</span></code></p>
+<p>Note that the temperature and salinity variables are <code class="docutils literal"><span class="pre">thetao</span></code> and <code class="docutils literal"><span class="pre">so</span></code></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+module load cray-netcdf cray-hdf5
+module load nco/4.5.0
+cd $WDIR/INPUTS
+
+ncks -d x,560,620 -d y,720,800 /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT/AMM60_5d_20131013_20131129_grid_T.nc $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc
+</pre></div>
+</div>
+<p>Average over time and restore the parallel modules:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ncwa -a time_counter $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc  $WDIR/INPUTS/cut_down_201310_LBay_grid_T.nc
+
+module unload nco cray-netcdf cray-hdf5
+module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 </pre></div>
 </div>
 <p>Edit namelists:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">initcd_votemper</span><span class="o">.</span><span class="n">namelist</span>
-<span class="o">...</span>
+<span class="n">cf_in</span>     <span class="o">=</span> <span class="s1">&#39;cut_down_201310_LBay_grid_T.nc&#39;</span>
+<span class="n">cv_in</span>     <span class="o">=</span> <span class="s1">&#39;thetao&#39;</span>
+<span class="n">cf_x_in</span>   <span class="o">=</span> <span class="s1">&#39;cut_down_201310_LBay_grid_T.nc&#39;</span>
+<span class="n">cv_out</span>   <span class="o">=</span> <span class="s1">&#39;thetao&#39;</span>
+<span class="n">csource</span>  <span class="o">=</span> <span class="s1">&#39;AMM60&#39;</span>
 <span class="n">ctarget</span>  <span class="o">=</span> <span class="s1">&#39;LBay&#39;</span>
 
 <span class="n">vi</span> <span class="n">initcd_vosaline</span><span class="o">.</span><span class="n">namelist</span>
 <span class="o">...</span>
-<span class="n">ctarget</span>  <span class="o">=</span> <span class="s1">&#39;LBay&#39;</span>
+<span class="n">cv_out</span>   <span class="o">=</span> <span class="s1">&#39;so&#39;</span>
+<span class="o">...</span>
 </pre></div>
 </div>
 <p>Do stuff. I think the intention was for SOSIE to flood fill the land:</p>
@@ -342,8 +382,8 @@ cp $INPUTS/N01_19800105d05T.nc .
 </pre></div>
 </div>
 <p>Creates:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">votemper_ORCA0083</span><span class="o">-</span><span class="n">LBay_1980</span><span class="o">.</span><span class="n">nc4</span>
-<span class="n">sosie_mapping_ORCA0083</span><span class="o">-</span><span class="n">LBay</span><span class="o">.</span><span class="n">nc</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">thetao_AMM60</span><span class="o">-</span><span class="n">LBay_2013</span><span class="o">.</span><span class="n">nc4</span>
+<span class="n">sosie_mapping_AMM60</span><span class="o">-</span><span class="n">LBay</span><span class="o">.</span><span class="n">nc</span>
 </pre></div>
 </div>
 <p>Repeat for salinity:</p>
@@ -351,7 +391,7 @@ cp $INPUTS/N01_19800105d05T.nc .
 </pre></div>
 </div>
 <p>Creates:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vosaline_ORCA0083</span><span class="o">-</span><span class="n">LBay_1980</span><span class="o">.</span><span class="n">nc4</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">so_AMM60</span><span class="o">-</span><span class="n">LBay_2013</span><span class="o">.</span><span class="n">nc4</span>
 </pre></div>
 </div>
 <p>Now do interpolation as before. First copy the namelists:</p>
@@ -362,22 +402,22 @@ cp $INPUTS/namelist_reshape_bilin_initcd_vosaline $WDIR/INPUTS/.
 <p>Edit the input files:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>vi $WDIR/INPUTS/namelist_reshape_bilin_initcd_votemper
 &amp;grid_inputs
-  input_file = &#39;votemper_ORCA0083-LBay_1980.nc4&#39;
+  input_file = &#39;thetao_AMM60-LBay_2013.nc4&#39;
 ...
 
 &amp;interp_inputs
-  input_file = &quot;votemper_ORCA0083-LBay_1980.nc4&quot;
+  input_file = &quot;thetao_AMM60-LBay_2013.nc4&quot;
 ...
 </pre></div>
 </div>
 <p>Simiarly for the <a href="#id1"><span class="problematic" id="id2">*</span></a>vosaline.nc file:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>vi $WDIR/INPUTS/namelist_reshape_bilin_initcd_vosaline
 &amp;grid_inputs
-  input_file = &#39;votemper_ORCA0083-LBay_1980.nc4&#39;
+  input_file = &#39;so_AMM60-LBay_2013.nc4&#39;
 ...
 
 &amp;interp_inputs
-  input_file = &quot;votemper_ORCA0083-LBay_1980.nc4&quot;
+  input_file = &quot;so_AMM60-LBay_2013.nc4&quot;
 ...
 </pre></div>
 </div>
@@ -385,24 +425,32 @@ cp $INPUTS/namelist_reshape_bilin_initcd_vosaline $WDIR/INPUTS/.
 <div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
 </pre></div>
 </div>
-<p>Creates <code class="docutils literal"><span class="pre">remap_nemo_grid_R12.nc</span></code> and <code class="docutils literal"><span class="pre">remap_data_grid_R12.nc</span></code>.</p>
-<p><strong>The following breaks with a Seg Fault</strong>:</p>
+<p>Creates <code class="docutils literal"><span class="pre">remap_nemo_grid_R12.nc</span></code> and <code class="docutils literal"><span class="pre">remap_data_grid_R12.nc</span></code>. Then:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
 </pre></div>
 </div>
-<p>To do:</p>
+<p>Creates <code class="docutils literal"><span class="pre">data_nemo_bilin_R12.nc</span></code>. Then:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
-$TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
 </pre></div>
 </div>
+<p>Creates <code class="docutils literal"><span class="pre">initcd_votemper.nc</span></code>. Then:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
+</pre></div>
+</div>
+<p>Creates <code class="docutils literal"><span class="pre">initcd_vosaline.nc</span></code>.</p>
 </div>
 <div class="section" id="generate-weights-for-atm-forcing">
 <h3>4. Generate weights for atm forcing<a class="headerlink" href="#generate-weights-for-atm-forcing" title="Permalink to this headline">¶</a></h3>
 <p>Obtain namelist files and data file:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/namelist_reshape_bilin_atmos $WDIR/INPUTS/.
 cp $INPUTS/namelist_reshape_bicubic_atmos $WDIR/INPUTS/.
-
-cp $INPUTS/cutdown_drowned_precip_DFS5.1.1_y1979.nc $WDIR/INPUTS/.
+</pre></div>
+</div>
+<p>Generate cut down drowned precip file (note that the nco tools don&#8217;t like the
+parallel modules):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+module load cray-netcdf cray-hdf5
+ncks -d lon,355.,358. -d lat,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_precip_DFS5.1.1_y1979.nc $WDIR/INPUTS/cutdown_drowned_precip_DFS5.1.1_y1979.nc
 </pre></div>
 </div>
 <p>Setup weights files for the atmospheric forcing:</p>
@@ -413,21 +461,173 @@ cp $INPUTS/cutdown_drowned_precip_DFS5.1.1_y1979.nc $WDIR/INPUTS/.
 <div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
 </pre></div>
 </div>
-<p><strong>Breaks with the seg fault</strong></p>
+<p>Generates <code class="docutils literal"><span class="pre">data_nemo_bilin_atmos.nc</span></code>. Then:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scripshape.exe namelist_reshape_bilin_atmos
+</pre></div>
+</div>
+<p>Generates <code class="docutils literal"><span class="pre">weights_bilinear_atmos.nc</span></code>. Then:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scrip.exe namelist_reshape_bicubic_atmos
+</pre></div>
+</div>
+<p>Generates <code class="docutils literal"><span class="pre">data_nemo_bicubic_atmos.nc</span></code>. Then:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
+</pre></div>
+</div>
+<p>Generates <code class="docutils literal"><span class="pre">weights_bicubic_atmos.nc</span></code>.</p>
 </div>
 <div class="section" id="generate-mesh-and-mask-files-for-open-boundary-conditions">
 <h3>5. Generate mesh and mask files for open boundary conditions<a class="headerlink" href="#generate-mesh-and-mask-files-for-open-boundary-conditions" title="Permalink to this headline">¶</a></h3>
-</div>
-<div class="section" id="generate-boundary-conditions-with-pynemo">
-<h3>6. Generate boundary conditions with PyNEMO<a class="headerlink" href="#generate-boundary-conditions-with-pynemo" title="Permalink to this headline">¶</a></h3>
-</div>
-<hr class="docutils" />
-<div class="section" id="the-following-are-notes-scratch-space">
-<h3>The following are notes / scratch space<a class="headerlink" href="#the-following-are-notes-scratch-space" title="Permalink to this headline">¶</a></h3>
-<p>NCO tool cut down E.g.:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ncea</span> <span class="o">-</span><span class="n">d</span> <span class="n">lat</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">54</span> <span class="o">-</span><span class="n">d</span> <span class="n">lon</span><span class="p">,</span><span class="mi">350</span><span class="p">,</span><span class="mi">360</span> <span class="o">/</span><span class="n">projectsa</span><span class="o">/</span><span class="n">FASTNEt</span><span class="o">/</span><span class="n">kariho40</span><span class="o">/</span><span class="n">AMM60</span><span class="o">/</span><span class="n">BATHY</span><span class="o">/</span><span class="n">bathy_AMM60</span><span class="o">.</span><span class="n">nc</span>  <span class="o">/</span><span class="n">scratch</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">GEBCO_cutdown</span><span class="o">.</span><span class="n">nc</span>
+<p>Run the model to generate the mesh and mask files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR
+cp $INPUTS/cpp_LH_REEF.fcm LBay/cpp_LBay.fcm
+ln -s $WDIR/INPUTS/bathy_meter.nc $CDIR/LBay/EXP00/bathy_meter.nc
+ln -s $WDIR/INPUTS/coordinates.nc $CDIR/LBay/EXP00/coordinates.nc
+cp $INPUTS/runscript $CDIR/LBay/EXP00
+cp $INPUTS/namelist_cfg $CDIR/LBay/EXP00/namelist_cfg
+cp $INPUTS/namelist_ref $CDIR/LBay/EXP00/namelist_ref
+./makenemo clean
+./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
+cd LBay/EXP00
+ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
 </pre></div>
 </div>
+<p>Edit the namelist files for this configuration:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ncdump -h coordinates.nc
+x = 57 ;
+y = 113 ;
+
+vi namelist.cfg
+...
+cn_exp      =   &quot;LBay&quot;  !  experience name
+...
+!-----------------------------------------------------------------------
+&amp;namcfg        !   parameters of the configuration
+!-----------------------------------------------------------------------
+   cp_cfg      =  &quot;lbay&quot;                !  name of the configuration
+   jp_cfg      =     084               !  resolution of the configuration
+   jpidta      =      57               !  1st lateral dimension ( &gt;= jpi )
+   jpjdta      =     113               !  2nd    &quot;         &quot;    ( &gt;= jpj )
+   jpkdta      =      51               !  number of levels      ( &gt;= jpk )
+   jpiglo      =      57               !  1st dimension of global domain --&gt; i =jpidta
+   jpjglo      =     113               !  2nd    -                  -    --&gt; j  =jpjdta
+</pre></div>
+</div>
+<p>LH_REEF
+jpidta      =     358               !  1st lateral dimension ( &gt;= jpi )
+jpjdta      =     428               !  2nd    &#8221;         &#8221;    ( &gt;= jpj )</p>
+<p>ncdump -h coordinates.nc
+x = 358 ;
+y = 428 ;</p>
+<p>Edit the runscript to include modules and the Account name (n01-NOCL):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">runscript</span>
+
+<span class="c1">#!/bin/bash</span>
+<span class="c1">#PBS -N LBay</span>
+<span class="c1">#PBS -l select=5</span>
+<span class="c1">#PBS -l walltime=00:20:00</span>
+<span class="c1">#PBS -A n01-NOCL</span>
+
+<span class="n">module</span> <span class="n">swap</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">cray</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">intel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>Submit:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">qsub</span> <span class="o">-</span><span class="n">q</span> <span class="n">short</span> <span class="n">runscript</span>
+</pre></div>
+</div>
+<p><em>(6 March 2017)</em></p>
+<p>If that works, we then need to rebuild the mesh and mask files in to single files for the next step:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_zgr 96
+$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_hgr 96
+$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mask 96
+mv mesh_zgr.nc mesh_hgr.nc mask.nc $WDIR/INPUTS
+rm mesh_* mask_* LBay_0000*
+cd $WDIR/INPUTS
+</pre></div>
+</div>
+</div>
+<div class="section" id="generate-boundary-conditions-with-pynemo-create-netcdf-abstraction-wrapper">
+<h3>6. Generate boundary conditions with PyNEMO: Create netcdf abstraction wrapper<a class="headerlink" href="#generate-boundary-conditions-with-pynemo-create-netcdf-abstraction-wrapper" title="Permalink to this headline">¶</a></h3>
+<p>Install: Full description:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd ~
+module load anaconda
+conda create --name pynemo_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=1.0.0
+source activate pynemo_env
+conda install -c conda-forge seawater=3.3.4
+conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
+conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
+export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+svn checkout https://ccpforge.cse.rl.ac.uk/svn/pynemo
+cd pynemo/trunk/Python
+python setup.py build
+export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
+python setup.py install --prefix ~/.conda/envs/pynemo
+cp data/namelist.bdy $WDIR
+cd $WDIR
+</pre></div>
+</div>
+<p>But since I have done the installation I will copy the template namelist.bdy
+from the lighthouse project. (There are less things to edit this way):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/INPUTS
+cp $INPUTS/namelist.bdy $WDIR/INPUTS/.
+</pre></div>
+</div>
+<p>Edit namelist.bdy:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist.bdy
+sn_src_dir = &#39;./inputs_src.ncml&#39;       ! src_files/&#39;
+sn_dst_dir = &#39;/work/n01/n01/jelt/LBay/OUTPUT&#39;
+sn_fn      = &#39;LBay&#39;                 ! prefix for output files
+...
+cn_mask_file   = &#39;./mask.nc&#39;                   !  name of mask file (if ln_mask_file=.TRUE.)
+</pre></div>
+</div>
+<p>Activate generator:</p>
+<p>Start up pynemo and generate boundary conditions. First we need to create a
+few ncml files to gather input data and map variable names. Then using pynemo
+we define the area we want to mode.
+Redefine <code class="docutils literal"><span class="pre">WDIR</span></code>. Launch from WDIR:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ssh -Y espp1
+module load anaconda
+source activate pynemo_env
+export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
+cd $WDIR/INPUTS
+~/.conda/envs/pynemo/bin/pynemo_ncml_generator
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line">Note the file path for output filename is
+<code class="docutils literal"><span class="pre">/work/n01/n01/jelt/LBay/INPUTS/inputs_src.ncml</span></code> for the work dir. Has to
+ match the <code class="docutils literal"><span class="pre">sn_src_dir</span></code></div>
+<div class="line">Source directory: <code class="docutils literal"><span class="pre">http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data</span></code></div>
+<div class="line">For the Grid tab, added source directory only - no Reg expressions</div>
+</div>
+<p><a href="#id3"><span class="problematic" id="id4">|</span></a>For the Ice tab, added source directory and a duff reg exp (latter prob not
+required)
+| Filled in the Tracer and Dynamics tabs: using T,S &amp; U,V,Z in the reg
+expressions e.g. .*Z.nc$
+| Click to generate <code class="docutils literal"><span class="pre">inputs_src.ncml</span></code> file.</p>
+</div>
+<div class="section" id="generate-boundary-conditions-with-pynemo-run-pynmeo">
+<h3>7. Generate boundary conditions with PyNEMO: Run PyNMEO<a class="headerlink" href="#generate-boundary-conditions-with-pynemo-run-pynmeo" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ssh -Y espp1
+module load anaconda
+source activate pynemo_env
+
+export PYTHONPATH=~/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
+export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
+cd $WDIR/INPUTS
+~/.conda/envs/pynemo/bin/pynemo -g -s namelist.bdy
+</pre></div>
+</div>
+<p>Once the area of interest is selected and the close button is clicked, open
+boundary data should be generated in $WDIR/OUTPUT</p>
+</div>
+<div class="section" id="run-the-configuration">
+<h3>8. Run the configuration<a class="headerlink" href="#run-the-configuration" title="Permalink to this headline">¶</a></h3>
 </div>
 </div>
 </div>
@@ -448,8 +648,9 @@ cp $INPUTS/cutdown_drowned_precip_DFS5.1.1_y1979.nc $WDIR/INPUTS/.
 <li><a class="reference internal" href="#generate-initial-conditions">3. Generate initial conditions</a></li>
 <li><a class="reference internal" href="#generate-weights-for-atm-forcing">4. Generate weights for atm forcing</a></li>
 <li><a class="reference internal" href="#generate-mesh-and-mask-files-for-open-boundary-conditions">5. Generate mesh and mask files for open boundary conditions</a></li>
-<li><a class="reference internal" href="#generate-boundary-conditions-with-pynemo">6. Generate boundary conditions with PyNEMO</a></li>
-<li><a class="reference internal" href="#the-following-are-notes-scratch-space">The following are notes / scratch space</a></li>
+<li><a class="reference internal" href="#generate-boundary-conditions-with-pynemo-create-netcdf-abstraction-wrapper">6. Generate boundary conditions with PyNEMO: Create netcdf abstraction wrapper</a></li>
+<li><a class="reference internal" href="#generate-boundary-conditions-with-pynemo-run-pynmeo">7. Generate boundary conditions with PyNEMO: Run PyNMEO</a></li>
+<li><a class="reference internal" href="#run-the-configuration">8. Run the configuration</a></li>
 </ul>
 </li>
 </ul>
