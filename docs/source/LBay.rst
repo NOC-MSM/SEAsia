@@ -534,8 +534,7 @@ Submit::
   qsub -q short runscript
 
 
-
-*(6 March 2017*
+*(6 March 2017)*
 
 If that works, we then need to rebuild the mesh and mask files in to single files for the next step::
 
@@ -546,14 +545,89 @@ If that works, we then need to rebuild the mesh and mask files in to single file
   rm mesh_* mask_* LBay_0000*
   cd $WDIR/INPUTS
 
-6. Generate boundary conditions with PyNEMO
-+++++++++++++++++++++++++++++++++++++++++++
+6. Generate boundary conditions with PyNEMO: Create netcdf abstraction wrapper
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-----
+Install: Full description::
 
-The following are notes / scratch space
-+++++++++++++++++++++++++++++++++++++++
+  cd ~
+  module load anaconda
+  conda create --name pynemo_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=1.0.0
+  source activate pynemo_env
+  conda install -c conda-forge seawater=3.3.4
+  conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
+  conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
+  export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+  svn checkout https://ccpforge.cse.rl.ac.uk/svn/pynemo
+  cd pynemo/trunk/Python
+  python setup.py build
+  export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
+  python setup.py install --prefix ~/.conda/envs/pynemo
+  cp data/namelist.bdy $WDIR
+  cd $WDIR
 
-NCO tool cut down E.g.::
+But since I have done the installation I will copy the template namelist.bdy
+from the lighthouse project. (There are less things to edit this way)::
 
-  ncea -d lat,50,54 -d lon,350,360 /projectsa/FASTNEt/kariho40/AMM60/BATHY/bathy_AMM60.nc  /scratch/jelt/tmp/GEBCO_cutdown.nc
+  cd $WDIR/INPUTS
+  cp $INPUTS/namelist.bdy $WDIR/INPUTS/.
+
+
+Edit namelist.bdy::
+
+  vi namelist.bdy
+  sn_src_dir = './inputs_src.ncml'       ! src_files/'
+  sn_dst_dir = '/work/n01/n01/jelt/LBay/OUTPUT'
+  sn_fn      = 'LBay'                 ! prefix for output files
+  ...
+  cn_mask_file   = './mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+
+
+Activate generator:
+
+Start up pynemo and generate boundary conditions. First we need to create a
+few ncml files to gather input data and map variable names. Then using pynemo
+we define the area we want to mode.
+Redefine ``WDIR``. Launch from WDIR::
+
+  ssh -Y espp1
+  module load anaconda
+  source activate pynemo_env
+  export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+  export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
+  cd $WDIR/INPUTS
+  ~/.conda/envs/pynemo/bin/pynemo_ncml_generator
+
+| Note the file path for output filename is
+ ``/work/n01/n01/jelt/LBay/INPUTS/inputs_src.ncml`` for the work dir. Has to
+  match the ``sn_src_dir``
+| Source directory: ``http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data``
+| For the Grid tab, added source directory only - no Reg expressions
+|For the Ice tab, added source directory and a duff reg exp (latter prob not
+required)
+| Filled in the Tracer and Dynamics tabs: using T,S & U,V,Z in the reg
+expressions e.g. .*Z\.nc$
+| Click to generate ``inputs_src.ncml`` file.
+
+
+7. Generate boundary conditions with PyNEMO: Run PyNMEO
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+::
+
+  ssh -Y espp1
+  module load anaconda
+  source activate pynemo_env
+
+  export PYTHONPATH=~/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
+  export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+  export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
+  cd $WDIR/INPUTS
+  ~/.conda/envs/pynemo/bin/pynemo -g -s namelist.bdy
+
+Once the area of interest is selected and the close button is clicked, open
+boundary data should be generated in $WDIR/OUTPUT
+
+
+8. Run the configuration
+++++++++++++++++++++++++
