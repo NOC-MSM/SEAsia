@@ -598,6 +598,8 @@ Redefine ``WDIR``. Launch from WDIR::
   cd $WDIR/INPUTS
   ~/.conda/envs/pynemo/bin/pynemo_ncml_generator
 
+*Old*
+
 | Note the file path for output filename is
  ``/work/n01/n01/jelt/LBay/INPUTS/inputs_src.ncml`` for the work dir. Has to
   match the ``sn_src_dir``
@@ -605,9 +607,158 @@ Redefine ``WDIR``. Launch from WDIR::
 | For the Grid tab, added source directory only - no Reg expressions
 |For the Ice tab, added source directory and a duff reg exp (latter prob not
 required)
-| Filled in the Tracer and Dynamics tabs: using T,S & U,V,Z in the reg
-expressions e.g. .*Z\.nc$
+| Filled in the Tracer and Dynamics for T,S,U,V,Z tabs: using T,T & U,V,T in the reg
+expressions e.g. .*T\.nc$
 | Click to generate ``inputs_src.ncml`` file.
+
+Manually editted input_src.ncml. Copied it to inputs_src.ncml_SAFE.
+
+*New*
+
+Decided to manually edit and create a *ncml file for local AMM60 data::
+
+  cd $WDIR/INPUTS
+  cp inputs_src.ncml AMM60_inputs_src.ncml
+
+Manually edit to remove all the bits I don't want. Use a specific AMM60_1d*
+file set::
+
+  vi AMM60_inputs_src.ncml
+
+  <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+    <ns0:aggregation type="union">
+      <ns0:netcdf>
+        <ns0:aggregation dimName="time_counter" name="temperature" type="joinExisting">
+          <ns0:scan location="file://fs4/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT" regExp="AMM60_1d_20120221_20120420_grid_T\.nc$" />
+        </ns0:aggregation>
+      </ns0:netcdf>
+      <ns0:netcdf>
+        <ns0:aggregation dimName="time_counter" name="zonal_velocity" type="joinExisting">
+          <ns0:scan location="file://fs4/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT" regExp="AMM60_1d_20120221_20120420_grid_U\.nc$" />
+        </ns0:aggregation>
+      </ns0:netcdf>
+      <ns0:netcdf>
+        <ns0:aggregation dimName="time_counter" name="meridian_velocity" type="joinExisting">
+          <ns0:scan location="file://fs4/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT" regExp="AMM60_1d_20120221_20120420_grid_V\.nc$" />
+        </ns0:aggregation>
+      </ns0:netcdf>
+      <ns0:netcdf>
+        <ns0:aggregation dimName="time_counter" name="sea_surface_height" type="joinExisting">
+          <ns0:scan location="file://fs4/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT" regExp="AMM60_1d_20120221_20120420_grid_T\.nc$" />
+        </ns0:aggregation>
+      </ns0:netcdf>
+    </ns0:aggregation>
+  </ns0:netcdf>
+
+
+
+Now edit the pynemo namelist file. Add location of grid information. Note had to
+ hunt for a mesh.nc file. Incase this doesn't work, there were a couple of
+ options. (Tried both) Note also that mesh_zgr includes gdept_0, gdepw_0, e3t_0, e3u_0,
+ e3v_0, e3w_0, so use ncml to convert to variables without *_0. (Also didn't convert e3w_0).
+
+ Make sure the timestamps correspond to the input data.
+Turn off as many things as possible to help it along.
+Turned off ``ln_mask_file``. James said it was for outputting a new mask file
+but it might have given me trouble.
+
+ ::
+
+   vi namelist.bdy
+
+   !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+   !-----------------------------------------------------------------------
+   !   vertical coordinate
+   !-----------------------------------------------------------------------
+      ln_zco      = .false.   !  z-coordinate - full    steps   (T/F)
+      ln_zps      = .true.    !  z-coordinate - partial steps   (T/F)
+      ln_sco      = .false.   !  s- or hybrid z-s-coordinate    (T/F)
+      rn_hmin     =   -10     !  min depth of the ocean (>0) or
+                              !  min number of ocean level (<0)
+
+   !-----------------------------------------------------------------------
+   !   s-coordinate or hybrid z-s-coordinate
+   !-----------------------------------------------------------------------
+      rn_sbot_min =   10.     !  minimum depth of s-bottom surface (>0) (m)
+      rn_sbot_max = 7000.     !  maximum depth of s-bottom surface
+                              !  (= ocean depth) (>0) (m)
+      ln_s_sigma  = .true.   !  hybrid s-sigma coordinates
+      rn_hc       =  150.0    !  critical depth with s-sigma
+
+   !-----------------------------------------------------------------------
+   !  grid information
+   !-----------------------------------------------------------------------
+      sn_src_hgr = '/work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/mesh_hgr.nc'   !  /grid/
+      sn_src_zgr = '/work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/mesh_zgr.nc'
+      sn_dst_hgr = './mesh_hgr.nc'
+      sn_dst_zgr = './inputs_dst.ncml' ! rename output variables
+      sn_src_msk = '/work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP00/OUTPUT/00007200/mask.nc'
+      sn_bathy   = './bathy_meter.nc'
+
+   !-----------------------------------------------------------------------
+   !  I/O
+   !-----------------------------------------------------------------------
+      sn_src_dir = './AMM60_inputs_src.ncml'       ! src_files/'
+      sn_dst_dir = '/work/n01/n01/jelt/LBay/OUTPUT'
+      sn_fn      = 'LBay'                 ! prefix for output files
+      nn_fv      = -1e20                     !  set fill value for output files
+      nn_src_time_adj = 0                                    ! src time adjustment
+      sn_dst_metainfo = 'metadata info: jelt'
+
+   !-----------------------------------------------------------------------
+   !  unstructured open boundaries
+   !-----------------------------------------------------------------------
+       ln_coords_file = .true.               !  =T : produce bdy coordinates files
+       cn_coords_file = 'coordinates.bdy.nc' !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
+       ln_mask_file   = .false.              !  =T : read mask from file
+       cn_mask_file   = './mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+       ln_dyn2d       = .false.               !  boundary conditions for barotropic fields
+       ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
+       ln_tra         = .true.               !  boundary conditions for T and S
+       ln_ice         = .false.               !  ice boundary condition
+       nn_rimwidth    = 9                    !  width of the relaxation zone
+
+   !-----------------------------------------------------------------------
+   !  unstructured open boundaries tidal parameters
+   !-----------------------------------------------------------------------
+       ln_tide        = .false.               !  =T : produce bdy tidal conditions
+       clname(1)      = 'M2'                 ! constituent name
+       clname(2)      = 'S2'
+       clname(3)      = 'K2'
+       ln_trans       = .false.
+       sn_tide_h     = '/Users/jdha/Projects/pynemo_data/DATA/h_tpxo7.2.nc'
+       sn_tide_u     = '/Users/jdha/Projects/pynemo_data/DATA/u_tpxo7.2.nc'
+
+   !-----------------------------------------------------------------------
+   !  Time information
+   !-----------------------------------------------------------------------
+       nn_year_000     = 2012        !  year start
+       nn_year_end     = 2012        !  year end
+       nn_month_000    = 3           !  month start (default = 1 is years>1)
+       nn_month_end    = 3           !  month end (default = 12 is years>1)
+       sn_dst_calendar = 'gregorian' !  output calendar format
+       nn_base_year    = 1950        !  base year for time counter
+       sn_tide_grid    = '/Users/jdha/Projects/pynemo_data/DATA/grid_tpxo7.2.nc'
+
+   !-----------------------------------------------------------------------
+   !  Additional parameters
+   !-----------------------------------------------------------------------
+       nn_wei  = 1                   !  smoothing filter weights
+       rn_r0   = 0.041666666         !  decorrelation distance use in gauss
+                                     !  smoothing onto dst points. Need to
+                                     !  make this a funct. of dlon
+       sn_history  = 'bdy files produced by jelt from AMM60 for testing'
+                                     !  history for netcdf file
+       ln_nemo3p4  = .true.          !  else presume v3.2 or v3.3
+       nn_alpha    = 0               !  Euler rotation angle
+       nn_beta     = 0               !  Euler rotation angle
+       nn_gamma    = 0               !  Euler rotation angle
+       rn_mask_max_depth = 300.0     !  Maximum depth to be ignored for the mask
+       rn_mask_shelfbreak_dist = 60    !  Distance from the shelf break
+
+
+
 
 
 7. Generate boundary conditions with PyNEMO: Run PyNMEO
@@ -628,6 +779,7 @@ expressions e.g. .*Z\.nc$
 Once the area of interest is selected and the close button is clicked, open
 boundary data should be generated in $WDIR/OUTPUT
 
+The SAVE button only updates the ``namelist.bdy`` file. The CLOSE button activates the process.
 
 8. Run the configuration
 ++++++++++++++++++++++++
