@@ -548,6 +548,8 @@ If that works, we then need to rebuild the mesh and mask files in to single file
 6. Generate boundary conditions with PyNEMO: Create netcdf abstraction wrapper
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+*(Reinstall pyNEMO, with updates, 10 March 2017)*
+
 Install: Full description::
 
   cd ~
@@ -562,8 +564,8 @@ Install: Full description::
   cd pynemo/trunk/Python
   python setup.py build
   export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
-  python setup.py install --prefix ~/.conda/envs/pynemo
-  cp data/namelist.bdy $WDIR
+  python setup.py install --prefix ~/.conda/envs/pynemo_env
+  #cp data/namelist.bdy $WDIR
   cd $WDIR
 
 But since I have done the installation I will copy the template namelist.bdy
@@ -594,9 +596,9 @@ Redefine ``WDIR``. Launch from WDIR::
   module load anaconda
   source activate pynemo_env
   export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-  export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
+  export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/:$PYTHONPATH
   cd $WDIR/INPUTS
-  ~/.conda/envs/pynemo/bin/pynemo_ncml_generator
+  pynemo_ncml_generator
 
 *Old*
 
@@ -629,22 +631,27 @@ file set::
     <ns0:aggregation type="union">
       <ns0:netcdf>
         <ns0:aggregation dimName="time_counter" name="temperature" type="joinExisting">
-          <ns0:scan location="file://fs4/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT" regExp="AMM60_1d_20120221_20120420_grid_T\.nc$" />
+          <ns0:scan location="file://work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT" regExp="AMM60_1d_20120221_20120420_grid_T\.nc$" />
+        </ns0:aggregation>
+      </ns0:netcdf>
+      <ns0:netcdf>
+        <ns0:aggregation dimName="time_counter" name="salinity" type="joinExisting">
+          <ns0:scan location="file://work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT" regExp="AMM60_1d_20120221_20120420_grid_T\.nc$" />
         </ns0:aggregation>
       </ns0:netcdf>
       <ns0:netcdf>
         <ns0:aggregation dimName="time_counter" name="zonal_velocity" type="joinExisting">
-          <ns0:scan location="file://fs4/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT" regExp="AMM60_1d_20120221_20120420_grid_U\.nc$" />
+          <ns0:scan location="file://work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT" regExp="AMM60_1d_20120221_20120420_grid_U\.nc$" />
         </ns0:aggregation>
       </ns0:netcdf>
       <ns0:netcdf>
         <ns0:aggregation dimName="time_counter" name="meridian_velocity" type="joinExisting">
-          <ns0:scan location="file://fs4/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT" regExp="AMM60_1d_20120221_20120420_grid_V\.nc$" />
+          <ns0:scan location="file://work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT" regExp="AMM60_1d_20120221_20120420_grid_V\.nc$" />
         </ns0:aggregation>
       </ns0:netcdf>
       <ns0:netcdf>
         <ns0:aggregation dimName="time_counter" name="sea_surface_height" type="joinExisting">
-          <ns0:scan location="file://fs4/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT" regExp="AMM60_1d_20120221_20120420_grid_T\.nc$" />
+          <ns0:scan location="file://work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT" regExp="AMM60_1d_20120221_20120420_grid_T\.nc$" />
         </ns0:aggregation>
       </ns0:netcdf>
     </ns0:aggregation>
@@ -770,11 +777,10 @@ but it might have given me trouble.
   module load anaconda
   source activate pynemo_env
 
-  export PYTHONPATH=~/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
   export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
   export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
   cd $WDIR/INPUTS
-  ~/.conda/envs/pynemo/bin/pynemo -g -s namelist.bdy
+  pynemo -g -s namelist.bdy
 
 Once the area of interest is selected and the close button is clicked, open
 boundary data should be generated in $WDIR/OUTPUT
