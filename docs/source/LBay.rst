@@ -20,6 +20,7 @@ Issues that arose
   cp $WDIR/INPUTS/cpp_LH_REEF.fcm ./LH_REEF
   cp $WDIR/INPUTS/dtatsd.F90 LH_REEF/MY_SRC/
 
+* PyNEMO doesn't yet deal with sigma parent grids.
 
 Follow PyNEMO recipe for Lighthouse Reef: ``http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef``
 Follow PyNEMO recipe for Lighthouse Reef: ``http://nemo-reloc.readthedocs.io/en/latest/SEAsia.html``
@@ -595,36 +596,34 @@ Redefine ``WDIR``. Launch from WDIR::
   ssh -Y espp1
   module load anaconda
   source activate pynemo_env
-  export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-  export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/:$PYTHONPATH
+  #  export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+  #  export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/:$PYTHONPATH
   cd $WDIR/INPUTS
   pynemo_ncml_generator
 
-*Old*
 
-| Note the file path for output filename is
- ``/work/n01/n01/jelt/LBay/INPUTS/inputs_src.ncml`` for the work dir. Has to
-  match the ``sn_src_dir``
-| Source directory: ``http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data``
-| For the Grid tab, added source directory only - no Reg expressions
-|For the Ice tab, added source directory and a duff reg exp (latter prob not
-required)
-| Filled in the Tracer and Dynamics for T,S,U,V,Z tabs: using T,T & U,V,T in the reg
+Want to generate a ncml file that is read in by PyNEMO as the ``sn_src_dir``
+(in the ``namelist.bdy`` file)
+
+In the pynemo_ncml_generator if using the thredds server use:
+Source directory: ``http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data``
+Fill in the Tracer and Dynamics for T,S,U,V,Z tabs: using T,T & U,V,T in the reg
 expressions e.g. .*T\.nc$
-| Click to generate ``inputs_src.ncml`` file.
+To generate a e.g. ``inputs_src.ncml`` file click  **generate**.
 
-Manually editted input_src.ncml. Copied it to inputs_src.ncml_SAFE.
+In the following I have two ncml files.
+One for using the thredds server to get remote ORCA12 data.
+One for using local AMM60 data.
 
-*New*
 
-Decided to manually edit and create a *ncml file for local AMM60 data::
+AMM60_inputs_src.ncml
++++++++++++++++++++++
+
+This is untested in pynemo because pynemo can't handle interpolation of sigma
+coordinate parent data. It currently assumes all the points are on the same geopotential.
+::
 
   cd $WDIR/INPUTS
-  cp inputs_src.ncml AMM60_inputs_src.ncml
-
-Manually edit to remove all the bits I don't want. Use a specific AMM60_1d*
-file set::
-
   vi AMM60_inputs_src.ncml
 
   <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
@@ -657,7 +656,82 @@ file set::
     </ns0:aggregation>
   </ns0:netcdf>
 
+thredds_inputs_src.ncml
++++++++++++++++++++++++
 
+*(16 March 2017)*
+Also created a thredds_inputs_src.ncml file to access ORCA12 data from the
+thredds server. Note that the pynemo_ncml_generator populates this file with available
+files according to the input regular expressions **actually I have now changed
+the path, file and varaiable names to try and use NNAtl data**::
+
+  cd $WDIR/INPUTS
+  vi thredds_inputs_src.ncml
+
+  <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+  <ns0:aggregation type="union">
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="temperature" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="salinity" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="zonal_velocity" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05U.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="meridian_velocity" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05V.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="sea_surface_height" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+  </ns0:aggregation>
+  </ns0:netcdf>
 
 Now edit the pynemo namelist file. Add location of grid information. Note had to
  hunt for a mesh.nc file. Incase this doesn't work, there were a couple of
@@ -669,6 +743,37 @@ Turn off as many things as possible to help it along.
 Turned off ``ln_mask_file``. James said it was for outputting a new mask file
 but it might have given me trouble.
 
+Copy the AMM60 version to something safe for later::
+
+  cp namelist.bdy namelist.bdy_AMM60
+
+Edit the namelist for thredds server data access of global 1/12 degree data
+
+I don't know how to call the mesh.nc
+mesh_zgr.nc, mesh_hgr.nc, mask.nc files from the thredds server so I pull them off
+manually
+
+This will overwrite the destination mesh and mask files. There is probably a wget
+option to specify the write filename...::
+
+NB try these locations. Previous locations are not European
+| * /thredds/fileServer/PyNEMO/extra_data/NN_ORCA025-N206_19791106d05T.nc* includes UK
+| */thredds/fileServer/PyNEMO/grid_low_res_C/mask.nc*
+
+  mkdir tmp
+  cd tmp
+  wget http://esurgeod.noc.soton.ac.uk:8080/thredds/fileServer/PyNEMO/grid_low_res_C/mesh_zgr.nc
+  mv mesh_zgr.nc ../mesh_zgr_src.nc
+  wget http://esurgeod.noc.soton.ac.uk:8080/thredds/fileServer/PyNEMO/grid_low_res_C/mesh_hgr.nc
+  mv mesh_hgr.nc ../mesh_hgr_src.nc
+  wget http://esurgeod.noc.soton.ac.uk:8080/thredds/fileServer/PyNEMO/grid_low_res_C/mask.nc
+  mv mask.nc ../mask_src.nc
+
+I had to regenerate the mesh_zgr.nc, mesh_hgr.nc and mask.nc files (I.e.e run
+nemo again. See above.)... Moving on, assuming that is done
+
+Edit namelist.bdy to reflect locally stored mesh and mask files. Also
+thredds_inputs_src.ncml. Set the date info back to Nov 1979
  ::
 
    vi namelist.bdy
@@ -696,17 +801,17 @@ but it might have given me trouble.
    !-----------------------------------------------------------------------
    !  grid information
    !-----------------------------------------------------------------------
-      sn_src_hgr = '/work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/mesh_hgr.nc'   !  /grid/
-      sn_src_zgr = '/work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/mesh_zgr.nc'
+      sn_src_hgr = './mesh_hgr_src.nc'   !  /grid/
+      sn_src_zgr = './mesh_zgr_src.nc'
       sn_dst_hgr = './mesh_hgr.nc'
       sn_dst_zgr = './inputs_dst.ncml' ! rename output variables
-      sn_src_msk = '/work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP00/OUTPUT/00007200/mask.nc'
+      sn_src_msk = './mask_src.nc'
       sn_bathy   = './bathy_meter.nc'
 
    !-----------------------------------------------------------------------
    !  I/O
    !-----------------------------------------------------------------------
-      sn_src_dir = './AMM60_inputs_src.ncml'       ! src_files/'
+      sn_src_dir = './thredds_inputs_src.ncml'       ! src_files/'
       sn_dst_dir = '/work/n01/n01/jelt/LBay/OUTPUT'
       sn_fn      = 'LBay'                 ! prefix for output files
       nn_fv      = -1e20                     !  set fill value for output files
@@ -740,12 +845,12 @@ but it might have given me trouble.
    !-----------------------------------------------------------------------
    !  Time information
    !-----------------------------------------------------------------------
-       nn_year_000     = 2012        !  year start
-       nn_year_end     = 2012        !  year end
-       nn_month_000    = 3           !  month start (default = 1 is years>1)
-       nn_month_end    = 3           !  month end (default = 12 is years>1)
+       nn_year_000     = 1979        !  year start
+       nn_year_end     = 1979        !  year end
+       nn_month_000    = 11          !  month start (default = 1 is years>1)
+       nn_month_end    = 11          !  month end (default = 12 is years>1)
        sn_dst_calendar = 'gregorian' !  output calendar format
-       nn_base_year    = 1950        !  base year for time counter
+       nn_base_year    = 1960        !  base year for time counter
        sn_tide_grid    = '/Users/jdha/Projects/pynemo_data/DATA/grid_tpxo7.2.nc'
 
    !-----------------------------------------------------------------------
@@ -778,7 +883,7 @@ but it might have given me trouble.
   source activate pynemo_env
 
   export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-  export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
+  #export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
   cd $WDIR/INPUTS
   pynemo -g -s namelist.bdy
 
