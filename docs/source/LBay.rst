@@ -30,14 +30,12 @@ Follow PyNEMO recipe for Lighthouse Reef: ``http://nemo-reloc.readthedocs.io/en/
 Recipe Notes
 ============
 
-Define working directory and other useful shortcuts::
+Define working directory and other useful shortcuts. Load modules::
 
   export WDIR=/work/n01/n01/jelt/LBay/
   export INPUTS=/work/n01/n01/jelt/lighthousereef/INPUTS
   export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
   export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-
-Load modules::
 
   module swap PrgEnv-cray PrgEnv-intel
   module load cray-netcdf-hdf5parallel
@@ -611,9 +609,57 @@ Fill in the Tracer and Dynamics for T,S,U,V,Z tabs: using T,T & U,V,T in the reg
 expressions e.g. .*T\.nc$
 To generate a e.g. ``inputs_src.ncml`` file click  **generate**.
 
-In the following I have two ncml files.
+In the following I have three ncml files.
 One for using the thredds server to get remote ORCA12 data.
-One for using local AMM60 data.
+One for using local AMM60 data, with ackward s-sigma levels
+One for using local NNA data
+
+NNA_inputs_src.ncml
++++++++++++++++++++
+
+Note need to set the time variables and new ``sn_src_dir`` in namelist.bdy
+.ACtually upated the following with all the Jan 2000 files::
+
+  cd $WDIR/INPUTS
+  vi NNA_inputs_src.ncml
+
+  <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+    <ns0:aggregation type="union">
+      <ns0:netcdf>
+        <ns0:aggregation dimName="time_counter" name="votemper" type="joinExisting">
+          <ns0:scan location="file://work/n01/n01/jdha/LBay/INPUTS/NNA" regExp=".*T\.nc$" />
+        </ns0:aggregation>
+      </ns0:netcdf>
+      <ns0:netcdf>
+        <ns0:aggregation dimName="time_counter" name="vosaline" type="joinExisting">
+          <ns0:scan location="file://work/n01/n01/jdha/LBay/INPUTS/NNA" regExp=".*T\.nc$" />
+        </ns0:aggregation>
+      </ns0:netcdf>
+      <ns0:netcdf>
+        <ns0:aggregation dimName="time_counter" name="vozocrtx" type="joinExisting">
+          <ns0:scan location="file://work/n01/n01/jdha/LBay/INPUTS/NNA" regExp=".*U\.nc$" />
+        </ns0:aggregation>
+      </ns0:netcdf>
+      <ns0:netcdf>
+        <ns0:aggregation dimName="time_counter" name="vomecrty" type="joinExisting">
+          <ns0:scan location="file://work/n01/n01/jdha/LBay/INPUTS/NNA" regExp=".*V\.nc$" />
+        </ns0:aggregation>
+      </ns0:netcdf>
+      <ns0:netcdf>
+        <ns0:aggregation dimName="time_counter" name="sossheig" type="joinExisting">
+          <ns0:scan location="file://work/n01/n01/jdha/LBay/INPUTS/NNA" regExp=".*T\.nc$" />
+        </ns0:aggregation>
+      </ns0:netcdf>
+    </ns0:aggregation>
+  </ns0:netcdf>
+
+Edit the namelist.bdy_NNA to read in the data::
+
+  vi namelist.bdy_NNA
+  ...
+
+  cp namelist.bdy_NNA namelist.bdy
+
 
 
 AMM60_inputs_src.ncml
