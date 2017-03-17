@@ -819,7 +819,10 @@ I had to regenerate the mesh_zgr.nc, mesh_hgr.nc and mask.nc files (I.e.e run
 nemo again. See above.)... Moving on, assuming that is done
 
 Edit namelist.bdy to reflect locally stored mesh and mask files. Also
-thredds_inputs_src.ncml. Set the date info back to Nov 1979
+thredds_inputs_src.ncml. Set the date info back to Nov 1979.
+
+Need final slash on ``sn_dst_dir = '/work/n01/n01/jelt/LBay/OUTPUT/' ``
+
  ::
 
    vi namelist.bdy
@@ -858,7 +861,7 @@ thredds_inputs_src.ncml. Set the date info back to Nov 1979
    !  I/O
    !-----------------------------------------------------------------------
       sn_src_dir = './thredds_inputs_src.ncml'       ! src_files/'
-      sn_dst_dir = '/work/n01/n01/jelt/LBay/OUTPUT'
+      sn_dst_dir = '/work/n01/n01/jelt/LBay/OUTPUT/'
       sn_fn      = 'LBay'                 ! prefix for output files
       nn_fv      = -1e20                     !  set fill value for output files
       nn_src_time_adj = 0                                    ! src time adjustment
@@ -919,7 +922,7 @@ thredds_inputs_src.ncml. Set the date info back to Nov 1979
 
 
 
-7. Generate boundary conditions with PyNEMO: Run PyNMEO
+7. Generate boundary conditions with PyNEMO: Run PyNEMO
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ::
@@ -938,5 +941,34 @@ boundary data should be generated in $WDIR/OUTPUT
 
 The SAVE button only updates the ``namelist.bdy`` file. The CLOSE button activates the process.
 
+This generates::
+  ls -1 /work/n01/n01/jelt/LBay/OUTPUT
+
+  coordinates.bdy.nc
+  LBay_bdyT_y2000m01.nc
+  LBay_bt_bdyT_y2000m01.nc
+
+**ACTION**. Need to figure out why ``bdy[UV]`` is not there yet.
+
 8. Run the configuration
 ++++++++++++++++++++++++
+
+When I've got all the bdy files...
+
+exit
+cd $WDIR/INPUTS
+#module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+#module load nco/4.5.0
+#ncrename -v deptht,gdept LH_REEF_bdyT_y1980m01.nc
+#ncrename -v depthu,gdepu LH_REEF_bdyU_y1980m01.nc
+#ncrename -v depthv,gdepv LH_REEF_bdyV_y1980m01.nc
+#module unload nco
+#module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+cd $CDIR/LBay/EXP00
+ln -s $WDIR/OUTPUT/coordinates.bdy.nc $CDIR/LBay/EXP00/coordinates.bdy.nc
+sed -e 's/nn_msh      =    3/nn_msh      =    0/' namelist_cfg > tmp
+sed -e 's/nn_itend    =      1/nn_itend    =       1440 /' tmp > namelist_cfg
+cp $WDIR/INPUTS/*.xml ./
+qsub -q short runscript
+
+4338922.sdb
