@@ -504,14 +504,17 @@ Edit the namelist files for this configuration::
      jpiglo      =      57               !  1st dimension of global domain --> i =jpidta
      jpjglo      =     113               !  2nd    -                  -    --> j  =jpjdta
 
+**ACTION: There are further edits to be made for when the model is actually run**
+**E.g. other filename instances of Lbay**
 
-LH_REEF
-jpidta      =     358               !  1st lateral dimension ( >= jpi )
-jpjdta      =     428               !  2nd    "         "    ( >= jpj )
+Note that the old LH_REEF has the following
+| jpidta      =     358               !  1st lateral dimension ( >= jpi )
+| jpjdta      =     428               !  2nd    "         "    ( >= jpj )
 
-ncdump -h coordinates.nc
-x = 358 ;
-y = 428 ;
+with the dimensions in the LH_REFF coordinates file as
+| ncdump -h coordinates.nc
+| x = 358 ;
+| y = 428 ;
 
 Edit the runscript to include modules and the Account name (n01-NOCL)::
 
@@ -548,8 +551,17 @@ If that works, we then need to rebuild the mesh and mask files in to single file
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 *(Reinstall pyNEMO, with updates, 10 March 2017)*
+In this section there are two stages.
+* generate a ncml file which describes the files needed to create boundary conditions
+* generate a namelist.bdy file which controls the actual boundary condition generation.
 
-Install: Full description::
+For each parent data set a new pair of (``*.ncml``, ``namelist.bdy``) are needed.
+Here I attempt to use parent data from:
+* AMM60 local data (doesn't yet work because of the sigma levels)
+* thredds server (as in the LH_REEF example)
+* NNA local data (easiest ?)
+
+First install PyNEMO if not already done so. Full description::
 
   cd ~
   module load anaconda
@@ -567,28 +579,22 @@ Install: Full description::
   #cp data/namelist.bdy $WDIR
   cd $WDIR
 
-But since I have done the installation I will copy the template namelist.bdy
-from the lighthouse project. (There are less things to edit this way)::
+The first time I did this I copied the PyNEMO namelist.bdy file into $WDIR.
+``#cp data/namelist.bdy $WDIR``. Subsequently I generalised this (and moved to INPUTS)
+``cd $WDIR/INPUTS; cp $INPUTS/namelist.bdy $WDIR/INPUTS/.``. However, now I
+suggest managing the namelist.bdy file
+after the ``ncml`` file is generated. Hopefully edits here to this effect will
+not break the workflow.
 
-  cd $WDIR/INPUTS
-  cp $INPUTS/namelist.bdy $WDIR/INPUTS/.
 
-
-Edit namelist.bdy::
-
-  vi namelist.bdy
-  sn_src_dir = './inputs_src.ncml'       ! src_files/'
-  sn_dst_dir = '/work/n01/n01/jelt/LBay/OUTPUT'
-  sn_fn      = 'LBay'                 ! prefix for output files
-  ...
-  cn_mask_file   = './mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-
+6a. Generate ncml files
++++++++++++++++++++++++
 
 Activate generator:
 
 Start up pynemo and generate boundary conditions. First we need to create a
 few ncml files to gather input data and map variable names. Then using pynemo
-we define the area we want to mode.
+we define the area we want to model.
 Redefine ``WDIR``. Launch from WDIR::
 
   ssh -Y espp1
@@ -600,25 +606,24 @@ Redefine ``WDIR``. Launch from WDIR::
   pynemo_ncml_generator
 
 
-Want to generate a ncml file that is read in by PyNEMO as the ``sn_src_dir``
+Here the object is to generate a ncml file that is read in by PyNEMO as the ``sn_src_dir``
 (in the ``namelist.bdy`` file)
 
-In the pynemo_ncml_generator if using the thredds server use:
-Source directory: ``http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data``
 Fill in the Tracer and Dynamics for T,S,U,V,Z tabs: using T,T & U,V,T in the reg
 expressions e.g. .*T\.nc$
-To generate a e.g. ``inputs_src.ncml`` file click  **generate**.
+To generate a e.g. ``inputs_src.ncml`` file click  **generate**. Defining the
+filename seems to work better with the file selector rather than direct typing.
 
 In the following I have three ncml files.
-One for using the thredds server to get remote ORCA12 data.
-One for using local AMM60 data, with ackward s-sigma levels
-One for using local NNA data
+* One for using the thredds server to get remote ORCA12 data.
+* One for using local AMM60 data, with ackward s-sigma levels
+* One for using local NNA data
 
 NNA_inputs_src.ncml
-+++++++++++++++++++
+++++++++++++++++++
 
-Note need to set the time variables and new ``sn_src_dir`` in namelist.bdy
-.ACtually upated the following with all the Jan 2000 files::
+Note need to set the time variables and new ``sn_src_dir`` in namelist.bdy.
+Actually upated the following with all the Jan 2000 files::
 
   cd $WDIR/INPUTS
   vi NNA_inputs_src.ncml
@@ -653,19 +658,12 @@ Note need to set the time variables and new ``sn_src_dir`` in namelist.bdy
     </ns0:aggregation>
   </ns0:netcdf>
 
-Edit the namelist.bdy_NNA to read in the data::
-
-  vi namelist.bdy_NNA
-  ...
-
-  cp namelist.bdy_NNA namelist.bdy
-
 
 
 AMM60_inputs_src.ncml
 +++++++++++++++++++++
 
-This is untested in pynemo because pynemo can't handle interpolation of sigma
+This is **untested** in pynemo because pynemo can't handle interpolation of sigma
 coordinate parent data. It currently assumes all the points are on the same geopotential.
 ::
 
@@ -705,11 +703,14 @@ coordinate parent data. It currently assumes all the points are on the same geop
 thredds_inputs_src.ncml
 +++++++++++++++++++++++
 
+**Untested**
+In the pynemo_ncml_generator if using the thredds server use:
+Source directory: ``http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data``
+
 *(16 March 2017)*
-Also created a thredds_inputs_src.ncml file to access ORCA12 data from the
+Created a thredds_inputs_src.ncml file to access ORCA12 data from the
 thredds server. Note that the pynemo_ncml_generator populates this file with available
-files according to the input regular expressions **actually I have now changed
-the path, file and varaiable names to try and use NNAtl data**::
+files according to the input regular expressions::
 
   cd $WDIR/INPUTS
   vi thredds_inputs_src.ncml
@@ -779,6 +780,26 @@ the path, file and varaiable names to try and use NNAtl data**::
   </ns0:aggregation>
   </ns0:netcdf>
 
+
+6b. Generate the namelist.bdy file for PyNEMO
++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Copy the PyNEMO template namelist.bdy from the lighthouse project::
+
+  cd $WDIR/INPUTS
+  cp $INPUTS/namelist.bdy $WDIR/INPUTS/.
+
+Edit namelist.bdy to for the configuration name and ``ncml`` file name. **Note
+need the slash following OUTPUT**::
+
+  vi namelist.bdy
+  sn_src_dir = './inputs_src.ncml'       ! src_files/'
+  sn_dst_dir = '/work/n01/n01/jelt/LBay/OUTPUT/'
+  sn_fn      = 'LBay'                 ! prefix for output files
+  ...
+  cn_mask_file   = './mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+
 Now edit the pynemo namelist file. Add location of grid information. Note had to
  hunt for a mesh.nc file. Incase this doesn't work, there were a couple of
  options. (Tried both) Note also that mesh_zgr includes gdept_0, gdepw_0, e3t_0, e3u_0,
@@ -789,11 +810,19 @@ Turn off as many things as possible to help it along.
 Turned off ``ln_mask_file``. James said it was for outputting a new mask file
 but it might have given me trouble.
 
-Copy the AMM60 version to something safe for later::
+I have a namelist.bdy file for each ncml configuration
+* namelist.bdy_AMM60
+* namelist.bdy_thredds (uses global 1/12 degree data)
+* namelist.bdy_NNA
 
-  cp namelist.bdy namelist.bdy_AMM60
+To use one copy e.g.::
 
-Edit the namelist for thredds server data access of global 1/12 degree data
+  cp namelist.bdy_NNA namelist.bdy
+
+namelist.bdy_thredds
+++++++++++++++++++++
+
+**untested** in LBay
 
 I don't know how to call the mesh.nc
 mesh_zgr.nc, mesh_hgr.nc, mask.nc files from the thredds server so I pull them off
@@ -818,15 +847,27 @@ NB try these locations. Previous locations are not European
 I had to regenerate the mesh_zgr.nc, mesh_hgr.nc and mask.nc files (I.e.e run
 nemo again. See above.)... Moving on, assuming that is done
 
-Edit namelist.bdy to reflect locally stored mesh and mask files. Also
-thredds_inputs_src.ncml. Set the date info back to Nov 1979.
 
-Need final slash on ``sn_dst_dir = '/work/n01/n01/jelt/LBay/OUTPUT/' ``
+
+namelist.bdy_NNA
+++++++++++++++++++++
+
+Edit namelist.bdy to reflect locally stored mesh and mask files. Also
+NNA_inputs_src.ncml. Set the date info back to Nov 1979.
 
  ::
 
    vi namelist.bdy
 
+   !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   !! NEMO/OPA  : namelist for BDY generation tool
+   !!
+   !!             User inputs for generating open boundary conditions
+   !!             employed by the BDY module in NEMO. Boundary data
+   !!             can be set up for v3.2 NEMO and above.
+   !!
+   !!             More info here.....
+   !!
    !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
    !-----------------------------------------------------------------------
@@ -850,73 +891,74 @@ Need final slash on ``sn_dst_dir = '/work/n01/n01/jelt/LBay/OUTPUT/' ``
    !-----------------------------------------------------------------------
    !  grid information
    !-----------------------------------------------------------------------
-      sn_src_hgr = './mesh_hgr_src.nc'   !  /grid/
-      sn_src_zgr = './mesh_zgr_src.nc'
+      sn_src_hgr = '/work/n01/n01/jdha/LBay/INPUTS/NNA/mesh_hgr.nc'   !  /grid/
+      sn_src_zgr = '/work/n01/n01/jdha/LBay/INPUTS/NNA/mesh_zgr.nc'
       sn_dst_hgr = './mesh_hgr.nc'
       sn_dst_zgr = './inputs_dst.ncml' ! rename output variables
-      sn_src_msk = './mask_src.nc'
+      sn_src_msk = '/work/n01/n01/jdha/LBay/INPUTS/NNA/mask.nc'
       sn_bathy   = './bathy_meter.nc'
 
    !-----------------------------------------------------------------------
    !  I/O
    !-----------------------------------------------------------------------
-      sn_src_dir = './thredds_inputs_src.ncml'       ! src_files/'
+      sn_src_dir = './NNA_inputs_src.ncml'       ! src_files/'
       sn_dst_dir = '/work/n01/n01/jelt/LBay/OUTPUT/'
       sn_fn      = 'LBay'                 ! prefix for output files
       nn_fv      = -1e20                     !  set fill value for output files
       nn_src_time_adj = 0                                    ! src time adjustment
       sn_dst_metainfo = 'metadata info: jelt'
 
-   !-----------------------------------------------------------------------
-   !  unstructured open boundaries
-   !-----------------------------------------------------------------------
-       ln_coords_file = .true.               !  =T : produce bdy coordinates files
-       cn_coords_file = 'coordinates.bdy.nc' !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
-       ln_mask_file   = .false.              !  =T : read mask from file
-       cn_mask_file   = './mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-       ln_dyn2d       = .false.               !  boundary conditions for barotropic fields
-       ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
-       ln_tra         = .true.               !  boundary conditions for T and S
-       ln_ice         = .false.               !  ice boundary condition
-       nn_rimwidth    = 9                    !  width of the relaxation zone
 
-   !-----------------------------------------------------------------------
-   !  unstructured open boundaries tidal parameters
-   !-----------------------------------------------------------------------
-       ln_tide        = .false.               !  =T : produce bdy tidal conditions
-       clname(1)      = 'M2'                 ! constituent name
-       clname(2)      = 'S2'
-       clname(3)      = 'K2'
-       ln_trans       = .false.
-       sn_tide_h     = '/Users/jdha/Projects/pynemo_data/DATA/h_tpxo7.2.nc'
-       sn_tide_u     = '/Users/jdha/Projects/pynemo_data/DATA/u_tpxo7.2.nc'
+    !-----------------------------------------------------------------------
+    !  unstructured open boundaries
+    !-----------------------------------------------------------------------
+        ln_coords_file = .true.               !  =T : produce bdy coordinates files
+        cn_coords_file = 'coordinates.bdy.nc' !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
+        ln_mask_file   = .false.              !  =T : read mask from file
+        cn_mask_file   = './mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+        ln_dyn2d       = .true.               !  boundary conditions for barotropic fields
+        ln_dyn3d       = .true.               !  boundary conditions for baroclinic velocities
+        ln_tra         = .true.               !  boundary conditions for T and S
+        ln_ice         = .false.               !  ice boundary condition
+        nn_rimwidth    = 9                    !  width of the relaxation zone
 
-   !-----------------------------------------------------------------------
-   !  Time information
-   !-----------------------------------------------------------------------
-       nn_year_000     = 1979        !  year start
-       nn_year_end     = 1979        !  year end
-       nn_month_000    = 11          !  month start (default = 1 is years>1)
-       nn_month_end    = 11          !  month end (default = 12 is years>1)
-       sn_dst_calendar = 'gregorian' !  output calendar format
-       nn_base_year    = 1960        !  base year for time counter
-       sn_tide_grid    = '/Users/jdha/Projects/pynemo_data/DATA/grid_tpxo7.2.nc'
+    !-----------------------------------------------------------------------
+    !  unstructured open boundaries tidal parameters
+    !-----------------------------------------------------------------------
+        ln_tide        = .false.               !  =T : produce bdy tidal conditions
+        clname(1)      = 'M2'                 ! constituent name
+        clname(2)      = 'S2'
+        clname(3)      = 'K2'
+        ln_trans       = .false.
+        sn_tide_h     = '/Users/jdha/Projects/pynemo_data/DATA/h_tpxo7.2.nc'
+        sn_tide_u     = '/Users/jdha/Projects/pynemo_data/DATA/u_tpxo7.2.nc'
 
-   !-----------------------------------------------------------------------
-   !  Additional parameters
-   !-----------------------------------------------------------------------
-       nn_wei  = 1                   !  smoothing filter weights
-       rn_r0   = 0.041666666         !  decorrelation distance use in gauss
-                                     !  smoothing onto dst points. Need to
-                                     !  make this a funct. of dlon
-       sn_history  = 'bdy files produced by jelt from AMM60 for testing'
-                                     !  history for netcdf file
-       ln_nemo3p4  = .true.          !  else presume v3.2 or v3.3
-       nn_alpha    = 0               !  Euler rotation angle
-       nn_beta     = 0               !  Euler rotation angle
-       nn_gamma    = 0               !  Euler rotation angle
-       rn_mask_max_depth = 300.0     !  Maximum depth to be ignored for the mask
-       rn_mask_shelfbreak_dist = 60    !  Distance from the shelf break
+    !-----------------------------------------------------------------------
+    !  Time information
+    !-----------------------------------------------------------------------
+        nn_year_000     = 2000        !  year start
+        nn_year_end     = 2000        !  year end
+        nn_month_000    = 01          !  month start (default = 1 is years>1)
+        nn_month_end    = 01          !  month end (default = 12 is years>1)
+        sn_dst_calendar = 'gregorian' !  output calendar format
+        nn_base_year    = 1979        !  base year for time counter
+        sn_tide_grid    = '/Users/jdha/Projects/pynemo_data/DATA/grid_tpxo7.2.nc'
+
+    !-----------------------------------------------------------------------
+    !  Additional parameters
+    !-----------------------------------------------------------------------
+        nn_wei  = 1                   !  smoothing filter weights
+        rn_r0   = 0.041666666         !  decorrelation distance use in gauss
+                                      !  smoothing onto dst points. Need to
+                                      !  make this a funct. of dlon
+        sn_history  = 'bdy files produced by jelt from AMM60 for testing'
+                                      !  history for netcdf file
+        ln_nemo3p4  = .true.          !  else presume v3.2 or v3.3
+        nn_alpha    = 0               !  Euler rotation angle
+        nn_beta     = 0               !  Euler rotation angle
+        nn_gamma    = 0               !  Euler rotation angle
+        rn_mask_max_depth = 300.0     !  Maximum depth to be ignored for the mask
+        rn_mask_shelfbreak_dist = 60    !  Distance from the shelf break
 
 
 
@@ -946,29 +988,34 @@ This generates::
 
   coordinates.bdy.nc
   LBay_bdyT_y2000m01.nc
+  LBay_bdyU_y2000m01.nc
+  LBay_bdyV_y2000m01.nc
   LBay_bt_bdyT_y2000m01.nc
 
-**ACTION**. Need to figure out why ``bdy[UV]`` is not there yet.
 
 8. Run the configuration
 ++++++++++++++++++++++++
 
-When I've got all the bdy files...
+When I've got all the bdy files. Note have not yet got tidal forcing switched on::
 
-exit
-cd $WDIR/INPUTS
-#module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-#module load nco/4.5.0
-#ncrename -v deptht,gdept LH_REEF_bdyT_y1980m01.nc
-#ncrename -v depthu,gdepu LH_REEF_bdyU_y1980m01.nc
-#ncrename -v depthv,gdepv LH_REEF_bdyV_y1980m01.nc
-#module unload nco
-#module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-cd $CDIR/LBay/EXP00
-ln -s $WDIR/OUTPUT/coordinates.bdy.nc $CDIR/LBay/EXP00/coordinates.bdy.nc
-sed -e 's/nn_msh      =    3/nn_msh      =    0/' namelist_cfg > tmp
-sed -e 's/nn_itend    =      1/nn_itend    =       1440 /' tmp > namelist_cfg
-cp $WDIR/INPUTS/*.xml ./
-qsub -q short runscript
+  exit
+  cd $WDIR/INPUTS
+  #module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  #module load nco/4.5.0
+  #ncrename -v deptht,gdept LH_REEF_bdyT_y1980m01.nc
+  #ncrename -v depthu,gdepu LH_REEF_bdyU_y1980m01.nc
+  #ncrename -v depthv,gdepv LH_REEF_bdyV_y1980m01.nc
+  #module unload nco
+  #module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+  cd $CDIR/LBay/EXP00
+  ln -s $WDIR/OUTPUT/coordinates.bdy.nc $CDIR/LBay/EXP00/coordinates.bdy.nc
+  ln -s $WDIR/OUTPUT/LBay_bdyT_y2000m01.nc $CDIR/LBay/EXP00/LBay_bdyT_y2000m01.nc
+  ln -s $WDIR/OUTPUT/LBay_bdyU_y2000m01.nc    $CDIR/LBay/EXP00/LBay_bdyU_y2000m01.nc
+  ln -s $WDIR/OUTPUT/LBay_bdyV_y2000m01.nc    $CDIR/LBay/EXP00/LBay_bdyV_y2000m01.nc
+  ln -s $WDIR/OUTPUT/LBay_bt_bdyT_y2000m01.nc  $CDIR/LBay/EXP00/LBay_bt_bdyT_y2000m01.nc
+  sed -e 's/nn_msh      =    3/nn_msh      =    0/' namelist_cfg > tmp
+  sed -e 's/nn_itend    =      1/nn_itend    =       1440 /' tmp > namelist_cfg
+  cp $WDIR/INPUTS/*.xml ./
+  qsub -q short runscript
 
-4338922.sdb
+  4400194.sdb
