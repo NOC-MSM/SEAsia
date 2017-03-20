@@ -441,7 +441,17 @@ parallel modules)::
 
   module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
   module load cray-netcdf cray-hdf5
-  ncks -d lon,355.,358. -d lat,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_precip_DFS5.1.1_y1979.nc $WDIR/INPUTS/cutdown_drowned_precip_DFS5.1.1_y1979.nc
+  module load nco/4.5.0
+  ncks -d lon,355.,358. -d lat,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_precip_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_precip_DFS5.1.1_y2000.nc
+
+  ncks -d lon0,355.,358. -d lat0,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_u10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_u10_DFS5.1.1_y2000.nc
+  ncks -d lon0,355.,358. -d lat0,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_v10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_v10_DFS5.1.1_y2000.nc
+  ncks -d lon0,355.,358. -d lat0,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_radsw_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_radsw_DFS5.1.1_y2000.nc
+  ncks -d lon0,355.,358. -d lat0,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_radlw_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_radlw_DFS5.1.1_y2000.nc
+  ncks -d lon0,355.,358. -d lat0,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_t2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_t2_DFS5.1.1_y2000.nc
+  ncks -d lon0,355.,358. -d lat0,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_q2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_q2_DFS5.1.1_y2000.nc
+  ncks -d lon0,355.,358. -d lat0,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_snow_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_snow_DFS5.1.1_y2000.nc
+
 
 Setup weights files for the atmospheric forcing::
 
@@ -902,7 +912,7 @@ NNA_inputs_src.ncml. Set the date info back to Nov 1979.
    !  I/O
    !-----------------------------------------------------------------------
       sn_src_dir = './NNA_inputs_src.ncml'       ! src_files/'
-      sn_dst_dir = '/work/n01/n01/jelt/LBay/OUTPUT/'
+      sn_dst_dir = '/work/n01/n01/jelt/LBay/INPUTS/'
       sn_fn      = 'LBay'                 ! prefix for output files
       nn_fv      = -1e20                     !  set fill value for output files
       nn_src_time_adj = 0                                    ! src time adjustment
@@ -996,17 +1006,23 @@ This generates::
 8. Run the configuration
 ++++++++++++++++++++++++
 
-When I've got all the bdy files. Note have not yet got tidal forcing switched on::
+When I've got all the bdy files need to fix some variable names. Note have not
+ yet got tidal forcing switched on::
 
   exit
   cd $WDIR/INPUTS
-  #module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  #module load nco/4.5.0
-  #ncrename -v deptht,gdept LH_REEF_bdyT_y1980m01.nc
-  #ncrename -v depthu,gdepu LH_REEF_bdyU_y1980m01.nc
-  #ncrename -v depthv,gdepv LH_REEF_bdyV_y1980m01.nc
-  #module unload nco
-  #module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module load nco/4.5.0
+  ncrename -v deptht,gdept LBay_bdyT_y2000m01.nc
+  ncrename -v depthu,gdepu LBay_bdyU_y2000m01.nc
+  ncrename -v depthv,gdepv LBay_bdyV_y2000m01.nc
+  module unload nco
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+
+Link the boundary data to the EXP direcory and update the namelist_cfg for
+ running not mesh generation::
+
   cd $CDIR/LBay/EXP00
   ln -s $WDIR/OUTPUT/coordinates.bdy.nc $CDIR/LBay/EXP00/coordinates.bdy.nc
   ln -s $WDIR/OUTPUT/LBay_bdyT_y2000m01.nc $CDIR/LBay/EXP00/LBay_bdyT_y2000m01.nc
@@ -1015,7 +1031,12 @@ When I've got all the bdy files. Note have not yet got tidal forcing switched on
   ln -s $WDIR/OUTPUT/LBay_bt_bdyT_y2000m01.nc  $CDIR/LBay/EXP00/LBay_bt_bdyT_y2000m01.nc
   sed -e 's/nn_msh      =    3/nn_msh      =    0/' namelist_cfg > tmp
   sed -e 's/nn_itend    =      1/nn_itend    =       1440 /' tmp > namelist_cfg
+
+
+Should also check the xml files.
+Then submit::
+
   cp $WDIR/INPUTS/*.xml ./
   qsub -q short runscript
 
-  4400194.sdb
+  4401084.sdb
