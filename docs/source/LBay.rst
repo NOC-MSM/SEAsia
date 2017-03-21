@@ -18,7 +18,7 @@ Issues that arose
 * I didn't copy some stuff into the NEMO compilation. This may be a problem later::
 
   cp $WDIR/INPUTS/cpp_LH_REEF.fcm ./LH_REEF
-  cp $WDIR/INPUTS/dtatsd.F90 LH_REEF/MY_SRC/
+  cp $INPUTS/dtatsd.F90 LH_REEF/MY_SRC/
 
 * PyNEMO doesn't yet deal with sigma parent grids.
 
@@ -84,6 +84,11 @@ Step 2. Obtain and apply patches::
   rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
   cp $INPUTS/arch-* ../ARCH
 
+Copy some input files to new configuration path::
+
+  cp $INPUTS/cpp_LH_REEF.fcm ./LBay/cpp_LBay.fcm
+  cp $INPUTS/dtatsd.F90 LBay/MY_SRC/
+
 On first make only choose OPA_SRC::
 
   ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
@@ -95,10 +100,7 @@ It breaks. Remove key_lim2 from cpp*fcm file and remake::
 
   ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
 
-Copy some input files to new configuration path::
 
-  cp $INPUTS/cpp_LH_REEF.fcm ./LBay
-  cp $INPUTS/dtatsd.F90 LBay/MY_SRC/
 
 To generate bathymetry, initial conditions and grid information we first need
 to compile some of the NEMO TOOLS (after a small bugfix - and to allow direct
@@ -431,11 +433,6 @@ Creates ``initcd_vosaline.nc``.
 4. Generate weights for atm forcing
 +++++++++++++++++++++++++++++++++++
 
-Obtain namelist files and data file::
-
-  cp $INPUTS/namelist_reshape_bilin_atmos $WDIR/INPUTS/.
-  cp $INPUTS/namelist_reshape_bicubic_atmos $WDIR/INPUTS/.
-
 Generate cut down drowned precip file (note that the nco tools don't like the
 parallel modules)::
 
@@ -443,7 +440,6 @@ parallel modules)::
   module load cray-netcdf cray-hdf5
   module load nco/4.5.0
   ncks -d lon,355.,358. -d lat,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_precip_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_precip_DFS5.1.1_y2000.nc
-
   ncks -d lon0,355.,358. -d lat0,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_u10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_u10_DFS5.1.1_y2000.nc
   ncks -d lon0,355.,358. -d lat0,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_v10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_v10_DFS5.1.1_y2000.nc
   ncks -d lon0,355.,358. -d lat0,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_radsw_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_radsw_DFS5.1.1_y2000.nc
@@ -451,6 +447,27 @@ parallel modules)::
   ncks -d lon0,355.,358. -d lat0,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_t2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_t2_DFS5.1.1_y2000.nc
   ncks -d lon0,355.,358. -d lat0,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_q2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_q2_DFS5.1.1_y2000.nc
   ncks -d lon0,355.,358. -d lat0,53.,54. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_snow_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_snow_DFS5.1.1_y2000.nc
+
+  module unload nco/4.5.0
+  module unload cray-netcdf cray-hdf5
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+Obtain namelist files and data file::
+
+  cp $INPUTS/namelist_reshape_bilin_atmos $WDIR/INPUTS/.
+  cp $INPUTS/namelist_reshape_bicubic_atmos $WDIR/INPUTS/.
+
+Edit namelist to reflect source filenames (just a year change)::
+
+  vi $WDIR/INPUTS/namelist_reshape_bilin_atmos
+  ...
+  &grid_inputs
+      input_file = 'cutdown_drowned_precip_DFS5.1.1_y2000.nc'
+
+  vi $WDIR/INPUTS/namelist_reshape_bicubic_atmos
+  ...
+  &grid_inputs
+    input_file = 'cutdown_drowned_precip_DFS5.1.1_y2000.nc'
 
 
 Setup weights files for the atmospheric forcing::
@@ -1024,11 +1041,11 @@ Link the boundary data to the EXP direcory and update the namelist_cfg for
  running not mesh generation::
 
   cd $CDIR/LBay/EXP00
-  ln -s $WDIR/OUTPUT/coordinates.bdy.nc $CDIR/LBay/EXP00/coordinates.bdy.nc
-  ln -s $WDIR/OUTPUT/LBay_bdyT_y2000m01.nc $CDIR/LBay/EXP00/LBay_bdyT_y2000m01.nc
-  ln -s $WDIR/OUTPUT/LBay_bdyU_y2000m01.nc    $CDIR/LBay/EXP00/LBay_bdyU_y2000m01.nc
-  ln -s $WDIR/OUTPUT/LBay_bdyV_y2000m01.nc    $CDIR/LBay/EXP00/LBay_bdyV_y2000m01.nc
-  ln -s $WDIR/OUTPUT/LBay_bt_bdyT_y2000m01.nc  $CDIR/LBay/EXP00/LBay_bt_bdyT_y2000m01.nc
+  ln -s $WDIR/INPUTS/coordinates.bdy.nc $CDIR/LBay/EXP00/coordinates.bdy.nc
+  ln -s $WDIR/INPUTS/LBay_bdyT_y2000m01.nc $CDIR/LBay/EXP00/LBay_bdyT_y2000m01.nc
+  ln -s $WDIR/INPUTS/LBay_bdyU_y2000m01.nc    $CDIR/LBay/EXP00/LBay_bdyU_y2000m01.nc
+  ln -s $WDIR/INPUTS/LBay_bdyV_y2000m01.nc    $CDIR/LBay/EXP00/LBay_bdyV_y2000m01.nc
+  ln -s $WDIR/INPUTS/LBay_bt_bdyT_y2000m01.nc  $CDIR/LBay/EXP00/LBay_bt_bdyT_y2000m01.nc
   sed -e 's/nn_msh      =    3/nn_msh      =    0/' namelist_cfg > tmp
   sed -e 's/nn_itend    =      1/nn_itend    =       1440 /' tmp > namelist_cfg
 
