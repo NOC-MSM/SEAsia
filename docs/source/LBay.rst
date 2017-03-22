@@ -953,13 +953,13 @@ NNA_inputs_src.ncml. Set the date info back to Nov 1979.
     !-----------------------------------------------------------------------
     !  unstructured open boundaries tidal parameters
     !-----------------------------------------------------------------------
-        ln_tide        = .false.               !  =T : produce bdy tidal conditions
+        ln_tide        = .true.               !  =T : produce bdy tidal conditions
         clname(1)      = 'M2'                 ! constituent name
         clname(2)      = 'S2'
         clname(3)      = 'K2'
         ln_trans       = .false.
-        sn_tide_h     = '/Users/jdha/Projects/pynemo_data/DATA/h_tpxo7.2.nc'
-        sn_tide_u     = '/Users/jdha/Projects/pynemo_data/DATA/u_tpxo7.2.nc'
+        sn_tide_h     = '/work/n01/n01/jelt/tpxo7.2/h_tpxo7.2.nc'
+        sn_tide_u     = '/work/n01/n01/jelt/tpxo7.2/u_tpxo7.2.nc'
 
     !-----------------------------------------------------------------------
     !  Time information
@@ -970,7 +970,7 @@ NNA_inputs_src.ncml. Set the date info back to Nov 1979.
         nn_month_end    = 01          !  month end (default = 12 is years>1)
         sn_dst_calendar = 'gregorian' !  output calendar format
         nn_base_year    = 1979        !  base year for time counter
-        sn_tide_grid    = '/Users/jdha/Projects/pynemo_data/DATA/grid_tpxo7.2.nc'
+        sn_tide_grid    = '/work/n01/n01/jelt/tpxo7.2/grid_tpxo7.2.nc'
 
     !-----------------------------------------------------------------------
     !  Additional parameters
