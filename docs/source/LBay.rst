@@ -1068,3 +1068,39 @@ Then submit::
   qsub -q short runscript
 
   4401084.sdb
+
+----
+
+
+Tidal boundary conditions
++++++++++++++++++++++++++
+
+Try turning of the 3d velocities::
+
+  vi namelist.bdy::
+  ..
+  ln_dyn2d       = .true.               !  boundary conditions for barotropic fields
+  ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
+  ln_tra         = .true.               !  boundary conditions for T and S
+
+Generate the boundary conditions again, with PyNEMO
+::
+
+  ssh -Y espp1
+  module load anaconda
+  source activate pynemo_env
+
+  export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+  #export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
+  cd $WDIR/INPUTS
+  pynemo -g -s namelist.bdy
+
+Didn't work. Also tried setting all these things to false::
+
+  vi namelist.bdy::
+  ..
+  ln_dyn2d       = .false.               !  boundary conditions for barotropic fields
+  ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
+  ln_tra         = .false.               !  boundary conditions for T and S
+
+Didn't produce tidal boundary files.
