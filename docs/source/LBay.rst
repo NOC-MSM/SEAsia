@@ -4,6 +4,8 @@ Setting up a Liverpool Bay NEMO configuration
 
 URL:: http://nemo-reloc.readthedocs.io/en/latest/LBay.html
 
+* Build notes with:: ~/GitLab/NEMO-RELOC/docs$ make html
+
 Issues that arose
 =================
 
@@ -602,7 +604,7 @@ First install PyNEMO if not already done so. Full description::
   svn checkout https://ccpforge.cse.rl.ac.uk/svn/pynemo
   cd pynemo/trunk/Python
   python setup.py build
-  export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
+  export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/:$PYTHONPATH
   python setup.py install --prefix ~/.conda/envs/pynemo_env
   #cp data/namelist.bdy $WDIR
   cd $WDIR
@@ -1104,3 +1106,123 @@ Didn't work. Also tried setting all these things to false::
   ln_tra         = .false.               !  boundary conditions for T and S
 
 Didn't produce tidal boundary files.
+
+
+---
+
+(9 Aug 17)
+
+Try and pick up this thread and get tidal boundary conditions working.
+The error logs suggested that a 3D array was expected when a 4D array was given.
+Fix with running python and put back into source python.
+
+Fatal Java error, so try a new java build too (jdk1.8.0_51). No it doesn't exist.
+::
+
+  ssh -Y espp1
+  module load anaconda
+  vi /home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/tide/nemo_bdy_tide3.py
+  ...
+  #e3X = zgr['e3u'][:,:,:].squeeze()
+  e3X = zgr['e3u'][:].squeeze() # jelt 9 Aug 17: Generalise array dimensions to accomodate 4D data
+  ...
+  #e3X = zgr['e3v'][:,:,:].squeeze()
+  e3X = zgr['e3v'][:].squeeze() # jelt 9 Aug 17: Generalise array dimensions to accomodate 4D data
+  ...
+
+  source activate pynemo_env
+  export WDIR=/work/n01/n01/jelt/LBay/
+  export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+
+  cd $WDIR/INPUTS
+  pynemo -g -s namelist.bdy
+
+JAVA fatal error. Recompile pyNEMO (first move pynemo_env to pynemo_env2).
+Use *nrct* instead of *pynemo* name
+
+First install PyNEMO if not already done so. Full description::
+
+  ssh -Y espp1
+  cd ~
+  module load anaconda/4.3.1-python2
+  conda create --name nrct_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=1.0.0
+  source activate nrct_env
+  conda install -c conda-forge seawater=3.3.4
+  conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
+  conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
+  #export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=/usr/lib64/jvm/jre-1.7.0-ibm/bin/j9vm:$LD_LIBRARY_PATH
+
+  git clone https://jpolton@bitbucket.org/jdha/nrct.git
+  cd nrct/Python
+  python setup.py build
+  export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
+
+  python setup.py install --prefix ~/.conda/envs/nrct_env
+  export WDIR=/work/n01/n01/jelt/LBay/
+
+# Perhaps change the path where java is sought: $whereis java
+#  export PATH=/usr/lib64/jvm/java-1.7.0-ibm-1.7.0:$PATH
+# Didn't work but maybe I didn't do it properly
+
+Find the shared object libjvm.so in
+  /usr/lib64/jvm/jre-1.7.0-ibm/bin/j9vm
+and link to this instead::
+  export LD_LIBRARY_PATH=/usr/lib64/jvm/jre-1.7.0-ibm/bin/j9vm:$LD_LIBRARY_PATH
+
+conda install libxcb # Works but didn't resolve problems.
+
+  cd $WDIR
+  pynemo -g -s namelist.bdy
+
+  ----
+
+  Errors. Errors. Can I do it on livljobs6?
+
+  (11 Aug 17)
+
+  First install PyNEMO if not already done so. Full description::
+
+    ssh -Y livljobs6
+    cd /work/jelt
+    mkdir /scratch/jelt/LBay
+    export WDIR=/scratch/jelt/LBay/
+    module load anaconda/2.1.0  # Want python2
+    conda create --name nrct_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=1.0.0
+    source activate nrct_env
+
+    mkdir /scratch/jelt/LBay
+    export WDIR=/scratch/jelt/LBay/
+
+    conda install -c https://conda.anaconda.org/conda-forge seawater=3.3.4 # Note had to add https path
+    conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
+    conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
+
+Find java object by doing a which java and then following the trail
+find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print
+::
+
+    export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+
+*Got here*
+
+    git clone https://jpolton@bitbucket.org/jdha/nrct.git
+    cd nrct/Python
+    python setup.py build
+    export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
+
+    python setup.py install --prefix ~/.conda/envs/nrct_env
+
+  # Perhaps change the path where java is sought: $whereis java
+  #  export PATH=/usr/lib64/jvm/java-1.7.0-ibm-1.7.0:$PATH
+  # Didn't work but maybe I didn't do it properly
+
+  Find the shared object libjvm.so in
+    /usr/lib64/jvm/jre-1.7.0-ibm/bin/j9vm
+  and link to this instead::
+    export LD_LIBRARY_PATH=/usr/lib64/jvm/jre-1.7.0-ibm/bin/j9vm:$LD_LIBRARY_PATH
+
+  conda install libxcb # Works but didn't resolve problems.
+
+    cd $WDIR
+    pynemo -g -s namelist.bdy
