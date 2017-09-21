@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Setting up a Liverpool Bay NEMO configuration &#8212; NEMO-RELOC 0.1 documentation</title>
+    <title>Setting up a Liverpool Bay NEMO configuration, on livljob4 &#8212; NEMO-RELOC 0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -24,7 +24,6 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
-    <link rel="prev" title="Setting up a SE Asia NEMO configuration" href="SEAsia.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -40,46 +39,52 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="setting-up-a-liverpool-bay-nemo-configuration">
-<h1>Setting up a Liverpool Bay NEMO configuration<a class="headerlink" href="#setting-up-a-liverpool-bay-nemo-configuration" title="Permalink to this headline">¶</a></h1>
-<p>URL:: <a class="reference external" href="http://nemo-reloc.readthedocs.io/en/latest/LBay.html">http://nemo-reloc.readthedocs.io/en/latest/LBay.html</a></p>
+  <div class="section" id="setting-up-a-liverpool-bay-nemo-configuration-on-livljob4">
+<h1>Setting up a Liverpool Bay NEMO configuration, on livljob4<a class="headerlink" href="#setting-up-a-liverpool-bay-nemo-configuration-on-livljob4" title="Permalink to this headline">¶</a></h1>
+<p>URL:: <a class="reference external" href="http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html">http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html</a></p>
 <ul class="simple">
 <li>Build notes with:: ~/GitLab/NEMO-RELOC/docs$ make html</li>
 </ul>
+<p>Originally tried building on ARCHER but ran into a java problem with PyNEMO that they needed to fix. Also MDP can&#8217;t use ARCHER.</p>
+<p>The total procedure:
+1) start with running NEMO on a new domain to generate grid files
+2) generate boundary forcings (e.g. tides, T,S,U,V) from a parent grid / model
+3) run the new configuration</p>
+<p>Step 2 is focussed on here. This was done on livljobs4. Though the other steps are documented, they are less revised.</p>
 <div class="section" id="issues-that-arose">
 <h2>Issues that arose<a class="headerlink" href="#issues-that-arose" title="Permalink to this headline">¶</a></h2>
-<ul>
-<li><p class="first">Notes the <code class="docutils literal"><span class="pre">cpp_*.fcm</span></code> files are different:</p>
-<p>diff /work/n01/n01/jelt/Solent/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/Solent/cpp_Solent.fcm /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/cpp_LH_REEF.fcm
-1c1
-&lt;  bld::tool::fppkeys key_trabbl key_dynspg_flt key_diaeiv key_ldfslp key_traldf_c2d key_traldf_eiv key_dynldf_c3d key_zdftke key_zdfddm key_zdftmx key_iomput key_mpp_mpi
-&#8212;
-&gt; bld::tool::fppkeys   key_dynspg_ts key_ldfslp  key_zdfgls  key_vvl key_mpp_mpi key_netcdf4 key_nosignedzero  key_iomput key_gen_IC key_bdy</p>
-</li>
-<li><p class="first">I didn&#8217;t copy some stuff into the NEMO compilation. This may be a problem later:</p>
-<p>cp $WDIR/INPUTS/cpp_LH_REEF.fcm ./LH_REEF
-cp $INPUTS/dtatsd.F90 LH_REEF/MY_SRC/</p>
-</li>
-<li><p class="first">PyNEMO doesn&#8217;t yet deal with sigma parent grids.</p>
-</li>
+<ul class="simple">
+<li>PyNEMO doesn&#8217;t yet deal with sigma parent grids.</li>
 </ul>
-<p>Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef</span></code>
-Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://nemo-reloc.readthedocs.io/en/latest/SEAsia.html</span></code></p>
+<p>Other related recipes:
+Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef</span></code>
+Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://nemo-reloc.readthedocs.io/en/latest/SEAsia.html</span></code>
+Follow PyNEMO recipe for LBay on ARCHER (not complete because PyNEMO java issue): <code class="docutils literal"><span class="pre">http://nemo-reloc.readthedocs.io/en/latest/LBay.html</span></code></p>
 </div>
 <hr class="docutils" />
 <div class="section" id="recipe-notes">
 <h2>Recipe Notes<a class="headerlink" href="#recipe-notes" title="Permalink to this headline">¶</a></h2>
-<p>Define working directory and other useful shortcuts. Load modules:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/LBay/
-export INPUTS=/work/n01/n01/jelt/lighthousereef/INPUTS
+<p>Define working directory and other useful shortcuts. Load module:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/jelt/NEMO/LBay/
+export INPUTS=/work/jelt/NEMO/LBay/INPUTS
 export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
 export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-
-module swap PrgEnv-cray PrgEnv-intel
-module load cray-netcdf-hdf5parallel
-module load cray-hdf5-parallel
 </pre></div>
 </div>
+<dl class="docutils">
+<dt>In the following some of the code is required to build the OPA source. I&#8217;m not</dt>
+<dd>too interested in doing this on livljobs4. I might be best done on Mobius.
+I will skip and move onto the pyNEMO bits</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">old:</th><td class="field-body"><blockquote class="first">
+<div><p>module swap PrgEnv-cray PrgEnv-intel
+module load cray-netcdf-hdf5parallel
+module load cray-hdf5-parallel</p>
+</div></blockquote>
 <p>Follow recipe. Step 1 inlcuded getting INPUT files. For LHReef these were all
 prepared. Now they are not so make them as and when they are required:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
@@ -141,7 +146,7 @@ cp $INPUTS/dtatsd.F90 LBay/MY_SRC/
 <p>To generate bathymetry, initial conditions and grid information we first need
 to compile some of the NEMO TOOLS (after a small bugfix - and to allow direct
 passing of arguments). For some reason GRIDGEN doesn’t like INTEL:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/WEIGHTS/src
+<div class="last highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/WEIGHTS/src
 patch -b &lt; $INPUTS/scripinterp_mod.patch
 patch -b &lt; $INPUTS/scripinterp.patch
 patch -b &lt; $INPUTS/scrip.patch
@@ -160,11 +165,19 @@ module load cray-netcdf cray-hdf5
 module swap PrgEnv-cray PrgEnv-intel
 </pre></div>
 </div>
-<p><em>(1 March 2017)</em></p>
+</td>
+</tr>
+</tbody>
+</table>
 <p>Need to take a more structured approach to setting up this new configuration</p>
 <div class="section" id="generate-new-coordinates-file">
 <h3>1. Generate new coordinates file<a class="headerlink" href="#generate-new-coordinates-file" title="Permalink to this headline">¶</a></h3>
-<p>Generate a <code class="docutils literal"><span class="pre">coordinates.nc</span></code> file from a parent NEMO grid at some resolution.
+<p>This all worked fine on ARCHER. I don&#8217;t really want to be getting into fixing this for livljobs4 at this time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">old:</th><td class="field-body"><p class="first">Generate a <code class="docutils literal"><span class="pre">coordinates.nc</span></code> file from a parent NEMO grid at some resolution.
 <strong>Plan:</strong> Use tool <code class="docutils literal"><span class="pre">create_coordinates.exe</span></code> which reads cutting indices and
 parent grid location from <code class="docutils literal"><span class="pre">namelist.input</span></code> and outputs a new files with new
 resolution grid elements.</p>
@@ -205,10 +218,10 @@ cp 1_coordinates_ORCA_R12.nc $WDIR/INPUTS/coordinates.nc
 <p>This creates a coordinates.nc file with contents, which are now copied to
 INPUTS:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dimensions</span><span class="p">:</span>
-      <span class="n">x</span> <span class="o">=</span> <span class="mi">57</span> <span class="p">;</span>
-      <span class="n">y</span> <span class="o">=</span> <span class="mi">113</span> <span class="p">;</span>
-      <span class="n">z</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">;</span>
-      <span class="n">time</span> <span class="o">=</span> <span class="n">UNLIMITED</span> <span class="p">;</span> <span class="o">//</span> <span class="p">(</span><span class="mi">1</span> <span class="n">currently</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="mi">57</span> <span class="p">;</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="mi">113</span> <span class="p">;</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">;</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">UNLIMITED</span> <span class="p">;</span> <span class="o">//</span> <span class="p">(</span><span class="mi">1</span> <span class="n">currently</span><span class="p">)</span>
 <span class="n">variables</span><span class="p">:</span>
   <span class="nb">float</span> <span class="n">nav_lon</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
   <span class="nb">float</span> <span class="n">nav_lat</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
@@ -233,7 +246,11 @@ INPUTS:</p>
   <span class="n">double</span> <span class="n">e2f</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="p">;</span>
 </pre></div>
 </div>
-<p>Now we need to generate a bathymetry on this new grid.</p>
+<p class="last">Now we need to generate a bathymetry on this new grid.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section" id="generate-bathymetry-file">
 <h3>2. Generate bathymetry file<a class="headerlink" href="#generate-bathymetry-file" title="Permalink to this headline">¶</a></h3>
@@ -578,11 +595,11 @@ rm mesh_* mask_* LBay_0000*
 cd $WDIR/INPUTS
 </pre></div>
 </div>
+<p>THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO <em>(20 Sept 2017)</em></p>
 </div>
 <div class="section" id="generate-boundary-conditions-with-pynemo-create-netcdf-abstraction-wrapper">
 <h3>6. Generate boundary conditions with PyNEMO: Create netcdf abstraction wrapper<a class="headerlink" href="#generate-boundary-conditions-with-pynemo-create-netcdf-abstraction-wrapper" title="Permalink to this headline">¶</a></h3>
-<p><em>(Reinstall pyNEMO, with updates, 10 March 2017)</em>
-In this section there are two stages.
+<p>In this section there are two stages.
 * generate a ncml file which describes the files needed to create boundary conditions
 * generate a namelist.bdy file which controls the actual boundary condition generation.</p>
 <p>For each parent data set a new pair of (<code class="docutils literal"><span class="pre">*.ncml</span></code>, <code class="docutils literal"><span class="pre">namelist.bdy</span></code>) are needed.
@@ -591,32 +608,37 @@ Here I attempt to use parent data from:
 * thredds server (as in the LH_REEF example)
 * NNA local data (easiest ?)</p>
 <p>First install PyNEMO if not already done so. Full description:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd ~
-module load anaconda
-conda create --name pynemo_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=1.0.0
-source activate pynemo_env
-conda install -c conda-forge seawater=3.3.4
-conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
-conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
-export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-svn checkout https://ccpforge.cse.rl.ac.uk/svn/pynemo
-cd pynemo/trunk/Python
-python setup.py build
-export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/:$PYTHONPATH
-python setup.py install --prefix ~/.conda/envs/pynemo_env
-#cp data/namelist.bdy $WDIR
-cd $WDIR
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ssh</span> <span class="o">-</span><span class="n">Y</span> <span class="n">livljobs4</span>
+<span class="n">cd</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">jelt</span>
+<span class="n">mkdir</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">NEMO</span><span class="o">/</span><span class="n">LBay</span>
+<span class="n">export</span> <span class="n">WDIR</span><span class="o">=/</span><span class="n">work</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">NEMO</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">anaconda</span><span class="o">/</span><span class="mf">2.1</span><span class="o">.</span><span class="mi">0</span>  <span class="c1"># Want python2</span>
+<span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">nrct_env</span> <span class="n">scipy</span><span class="o">=</span><span class="mf">0.16</span><span class="o">.</span><span class="mi">0</span> <span class="n">numpy</span> <span class="n">matplotlib</span><span class="o">=</span><span class="mf">1.5</span><span class="o">.</span><span class="mi">1</span> <span class="n">basemap</span> <span class="n">netcdf4</span> <span class="n">libgfortran</span><span class="o">=</span><span class="mf">1.0</span><span class="o">.</span><span class="mi">0</span>
+<span class="n">source</span> <span class="n">activate</span> <span class="n">nrct_env</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">seawater</span><span class="o">=</span><span class="mf">3.3</span><span class="o">.</span><span class="mi">4</span> <span class="c1"># Note had to add https path</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">srikanthnagella</span> <span class="n">thredds_crawler</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">srikanthnagella</span> <span class="n">pyjnius</span>
 </pre></div>
 </div>
-<p>The first time I did this I copied the PyNEMO namelist.bdy file into $WDIR.
-<code class="docutils literal"><span class="pre">#cp</span> <span class="pre">data/namelist.bdy</span> <span class="pre">$WDIR</span></code>. Subsequently I generalised this (and moved to INPUTS)
-<code class="docutils literal"><span class="pre">cd</span> <span class="pre">$WDIR/INPUTS;</span> <span class="pre">cp</span> <span class="pre">$INPUTS/namelist.bdy</span> <span class="pre">$WDIR/INPUTS/.</span></code>. However, now I
-suggest managing the namelist.bdy file
-after the <code class="docutils literal"><span class="pre">ncml</span></code> file is generated. Hopefully edits here to this effect will
-not break the workflow.</p>
+<p>Find java object by doing a which java and then following the trail
+find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+unset SSH_ASKPASS # Didn&#39;t need this on ARCHER...
+git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
+cd nrct/Python
+python setup.py build
+export PYTHONPATH=/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
+python setup.py install --prefix ~/.conda/envs/nrct_env
+cd $WDIR/INPUTS
+</pre></div>
 </div>
-<div class="section" id="a-generate-ncml-files">
-<h3>6a. Generate ncml files<a class="headerlink" href="#a-generate-ncml-files" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>I suggest managing the namelist.bdy file after the <code class="docutils literal"><span class="pre">ncml</span></code> file is generated.</dt>
+<dd>A fresh <code class="docutils literal"><span class="pre">ncml</span></code> file can be generated automatically or an existing one can be edited.</dd>
+</dl>
+</div>
+<div class="section" id="a-generate-ncml-files-not-tested-on-livljobs4">
+<h3>6a. Generate ncml files (Not tested on livljobs4)<a class="headerlink" href="#a-generate-ncml-files-not-tested-on-livljobs4" title="Permalink to this headline">¶</a></h3>
 <p>Activate generator:</p>
 <p>Start up pynemo and generate boundary conditions. First we need to create a
 few ncml files to gather input data and map variable names. Then using pynemo
@@ -681,124 +703,6 @@ vi NNA_inputs_src.ncml
 </pre></div>
 </div>
 </div>
-<div class="section" id="amm60-inputs-src-ncml">
-<h3>AMM60_inputs_src.ncml<a class="headerlink" href="#amm60-inputs-src-ncml" title="Permalink to this headline">¶</a></h3>
-<p>This is <strong>untested</strong> in pynemo because pynemo can&#8217;t handle interpolation of sigma
-coordinate parent data. It currently assumes all the points are on the same geopotential.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/INPUTS
-vi AMM60_inputs_src.ncml
-
-&lt;ns0:netcdf xmlns:ns0=&quot;http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2&quot; title=&quot;NEMO aggregation&quot;&gt;
-  &lt;ns0:aggregation type=&quot;union&quot;&gt;
-    &lt;ns0:netcdf&gt;
-      &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;temperature&quot; type=&quot;joinExisting&quot;&gt;
-        &lt;ns0:scan location=&quot;file://work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT&quot; regExp=&quot;AMM60_1d_20120221_20120420_grid_T\.nc$&quot; /&gt;
-      &lt;/ns0:aggregation&gt;
-    &lt;/ns0:netcdf&gt;
-    &lt;ns0:netcdf&gt;
-      &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;salinity&quot; type=&quot;joinExisting&quot;&gt;
-        &lt;ns0:scan location=&quot;file://work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT&quot; regExp=&quot;AMM60_1d_20120221_20120420_grid_T\.nc$&quot; /&gt;
-      &lt;/ns0:aggregation&gt;
-    &lt;/ns0:netcdf&gt;
-    &lt;ns0:netcdf&gt;
-      &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;zonal_velocity&quot; type=&quot;joinExisting&quot;&gt;
-        &lt;ns0:scan location=&quot;file://work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT&quot; regExp=&quot;AMM60_1d_20120221_20120420_grid_U\.nc$&quot; /&gt;
-      &lt;/ns0:aggregation&gt;
-    &lt;/ns0:netcdf&gt;
-    &lt;ns0:netcdf&gt;
-      &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;meridian_velocity&quot; type=&quot;joinExisting&quot;&gt;
-        &lt;ns0:scan location=&quot;file://work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT&quot; regExp=&quot;AMM60_1d_20120221_20120420_grid_V\.nc$&quot; /&gt;
-      &lt;/ns0:aggregation&gt;
-    &lt;/ns0:netcdf&gt;
-    &lt;ns0:netcdf&gt;
-      &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;sea_surface_height&quot; type=&quot;joinExisting&quot;&gt;
-        &lt;ns0:scan location=&quot;file://work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT&quot; regExp=&quot;AMM60_1d_20120221_20120420_grid_T\.nc$&quot; /&gt;
-      &lt;/ns0:aggregation&gt;
-    &lt;/ns0:netcdf&gt;
-  &lt;/ns0:aggregation&gt;
-&lt;/ns0:netcdf&gt;
-</pre></div>
-</div>
-</div>
-<div class="section" id="thredds-inputs-src-ncml">
-<h3>thredds_inputs_src.ncml<a class="headerlink" href="#thredds-inputs-src-ncml" title="Permalink to this headline">¶</a></h3>
-<p><strong>Untested</strong>
-In the pynemo_ncml_generator if using the thredds server use:
-Source directory: <code class="docutils literal"><span class="pre">http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data</span></code></p>
-<p><em>(16 March 2017)</em>
-Created a thredds_inputs_src.ncml file to access ORCA12 data from the
-thredds server. Note that the pynemo_ncml_generator populates this file with available
-files according to the input regular expressions:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/INPUTS
-vi thredds_inputs_src.ncml
-
-&lt;ns0:netcdf xmlns:ns0=&quot;http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2&quot; title=&quot;NEMO aggregation&quot;&gt;
-&lt;ns0:aggregation type=&quot;union&quot;&gt;
-  &lt;ns0:netcdf&gt;
-    &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;temperature&quot; type=&quot;joinExisting&quot;&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05T.nc&quot; /&gt;
-    &lt;/ns0:aggregation&gt;
-  &lt;/ns0:netcdf&gt;
-  &lt;ns0:netcdf&gt;
-    &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;salinity&quot; type=&quot;joinExisting&quot;&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05T.nc&quot; /&gt;
-    &lt;/ns0:aggregation&gt;
-  &lt;/ns0:netcdf&gt;
-  &lt;ns0:netcdf&gt;
-    &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;zonal_velocity&quot; type=&quot;joinExisting&quot;&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05U.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05U.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05U.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05U.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05U.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05U.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05U.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05U.nc&quot; /&gt;
-    &lt;/ns0:aggregation&gt;
-  &lt;/ns0:netcdf&gt;
-  &lt;ns0:netcdf&gt;
-    &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;meridian_velocity&quot; type=&quot;joinExisting&quot;&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05V.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05V.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05V.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05V.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05V.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05V.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05V.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05V.nc&quot; /&gt;
-    &lt;/ns0:aggregation&gt;
-  &lt;/ns0:netcdf&gt;
-  &lt;ns0:netcdf&gt;
-    &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;sea_surface_height&quot; type=&quot;joinExisting&quot;&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05T.nc&quot; /&gt;
-        &lt;ns0:netcdf location=&quot;http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05T.nc&quot; /&gt;
-    &lt;/ns0:aggregation&gt;
-  &lt;/ns0:netcdf&gt;
-&lt;/ns0:aggregation&gt;
-&lt;/ns0:netcdf&gt;
-</pre></div>
-</div>
-</div>
 <div class="section" id="b-generate-the-namelist-bdy-file-for-pynemo">
 <h3>6b. Generate the namelist.bdy file for PyNEMO<a class="headerlink" href="#b-generate-the-namelist-bdy-file-for-pynemo" title="Permalink to this headline">¶</a></h3>
 <p>Copy the PyNEMO template namelist.bdy from the lighthouse project:</p>
@@ -831,40 +735,40 @@ but it might have given me trouble.</p>
 * namelist.bdy_AMM60
 * namelist.bdy_thredds (uses global 1/12 degree data)
 * namelist.bdy_NNA</p>
-<p>To use one copy e.g.:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="n">namelist</span><span class="o">.</span><span class="n">bdy_NNA</span> <span class="n">namelist</span><span class="o">.</span><span class="n">bdy</span>
+</div>
+<div class="section" id="generate-boundary-conditions-with-pynemo-run-pynemo">
+<h3>7. Generate boundary conditions with PyNEMO: Run PyNEMO<a class="headerlink" href="#generate-boundary-conditions-with-pynemo-run-pynemo" title="Permalink to this headline">¶</a></h3>
+<p>Errors. ARCHER Errors with PyNEMO. Can I do it on livljobs4?</p>
+<p>&#8212;</p>
+<p><em>(20/21 Sept 2017)</em></p>
+<p><strong>Start the process again on livljobs4: LBay_livljobs4.rst</strong></p>
+<p>Need to grab some INPUT files from ARCHER because I am not building them with livljobs4:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/namelist.bdy $WDIR/INPUTS/.
+scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/bathy_meter.nc $WDIR/INPUTS/.
+rsync -uartv jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/ $WDIR/INPUTS
+cd $WDIR/INPUTS
 </pre></div>
 </div>
+<p>Make sure the NNA data is available:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>mkdir $WDIR/INPUTS/NNA
+scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/mesh_hgr.nc $WDIR/INPUTS/NNA/.
+scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/mesh_hgr.nc $WDIR/INPUTS/NNA/.
+scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/mask.nc $WDIR/INPUTS/NNA/.
+for file in NNA_*200001*nc ; do scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/$file $WDIR/INPUTS/NNA/. ; done
+</pre></div>
 </div>
-<div class="section" id="namelist-bdy-thredds">
-<h3>namelist.bdy_thredds<a class="headerlink" href="#namelist-bdy-thredds" title="Permalink to this headline">¶</a></h3>
-<p><strong>untested</strong> in LBay</p>
-<p>I don&#8217;t know how to call the mesh.nc
-mesh_zgr.nc, mesh_hgr.nc, mask.nc files from the thredds server so I pull them off
-manually</p>
-<p>This will overwrite the destination mesh and mask files. There is probably a wget
-option to specify the write filename...:</p>
-<p>NB try these locations. Previous locations are not European
-| * /thredds/fileServer/PyNEMO/extra_data/NN_ORCA025-N206_19791106d05T.nc* includes UK
-| <em>/thredds/fileServer/PyNEMO/grid_low_res_C/mask.nc</em></p>
-<blockquote>
-<div>mkdir tmp
-cd tmp
-wget <a class="reference external" href="http://esurgeod.noc.soton.ac.uk:8080/thredds/fileServer/PyNEMO/grid_low_res_C/mesh_zgr.nc">http://esurgeod.noc.soton.ac.uk:8080/thredds/fileServer/PyNEMO/grid_low_res_C/mesh_zgr.nc</a>
-mv mesh_zgr.nc ../mesh_zgr_src.nc
-wget <a class="reference external" href="http://esurgeod.noc.soton.ac.uk:8080/thredds/fileServer/PyNEMO/grid_low_res_C/mesh_hgr.nc">http://esurgeod.noc.soton.ac.uk:8080/thredds/fileServer/PyNEMO/grid_low_res_C/mesh_hgr.nc</a>
-mv mesh_hgr.nc ../mesh_hgr_src.nc
-wget <a class="reference external" href="http://esurgeod.noc.soton.ac.uk:8080/thredds/fileServer/PyNEMO/grid_low_res_C/mask.nc">http://esurgeod.noc.soton.ac.uk:8080/thredds/fileServer/PyNEMO/grid_low_res_C/mask.nc</a>
-mv mask.nc ../mask_src.nc</div></blockquote>
-<p>I had to regenerate the mesh_zgr.nc, mesh_hgr.nc and mask.nc files (I.e.e run
-nemo again. See above.)... Moving on, assuming that is done</p>
+<p>Make sure the destination meshes exist. These were generated by running the new config for a timestep:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/mesh_zgr.nc $WDIR/INPUTS/.
+scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/mesh_hgr.nc $WDIR/INPUTS/.
+</pre></div>
+</div>
 </div>
 <div class="section" id="namelist-bdy-nna">
 <h3>namelist.bdy_NNA<a class="headerlink" href="#namelist-bdy-nna" title="Permalink to this headline">¶</a></h3>
 <p>Edit namelist.bdy to reflect locally stored mesh and mask files. Also
-NNA_inputs_src.ncml. Set the date info back to Nov 1979.</p>
+NNA_inputs_src.ncml. Set the date info back to (Nov?) 1979.</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist.bdy
+<div><div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist.bdy_NNA
 
 !!&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
 !! NEMO/OPA  : namelist for BDY generation tool
@@ -898,88 +802,85 @@ NNA_inputs_src.ncml. Set the date info back to Nov 1979.</p>
 !-----------------------------------------------------------------------
 !  grid information
 !-----------------------------------------------------------------------
-   sn_src_hgr = &#39;/work/n01/n01/jdha/LBay/INPUTS/NNA/mesh_hgr.nc&#39;   !  /grid/
-   sn_src_zgr = &#39;/work/n01/n01/jdha/LBay/INPUTS/NNA/mesh_zgr.nc&#39;
+   sn_src_hgr = &#39;/work/jelt/NEMO/LBay/INPUTS/NNA/mesh_hgr.nc&#39;   !  /grid/
+   sn_src_zgr = &#39;/work/jelt/NEMO/LBay/INPUTS/NNA/mesh_zgr.nc&#39;
    sn_dst_hgr = &#39;./mesh_hgr.nc&#39;
    sn_dst_zgr = &#39;./inputs_dst.ncml&#39; ! rename output variables
-   sn_src_msk = &#39;/work/n01/n01/jdha/LBay/INPUTS/NNA/mask.nc&#39;
+   sn_src_msk = &#39;/work/jelt/NEMO/LBay/INPUTS/NNA/mask.nc&#39;
    sn_bathy   = &#39;./bathy_meter.nc&#39;
 
 !-----------------------------------------------------------------------
 !  I/O
 !-----------------------------------------------------------------------
    sn_src_dir = &#39;./NNA_inputs_src.ncml&#39;       ! src_files/&#39;
-   sn_dst_dir = &#39;/work/n01/n01/jelt/LBay/INPUTS/&#39;
+   sn_dst_dir = &#39;/work/jelt/NEMO/LBay/INPUTS/&#39;
    sn_fn      = &#39;LBay&#39;                 ! prefix for output files
    nn_fv      = -1e20                     !  set fill value for output files
    nn_src_time_adj = 0                                    ! src time adjustment
    sn_dst_metainfo = &#39;metadata info: jelt&#39;
 
+!-----------------------------------------------------------------------
+!  unstructured open boundaries
+!-----------------------------------------------------------------------
+    ln_coords_file = .true.               !  =T : produce bdy coordinates files
+    cn_coords_file = &#39;coordinates.bdy.nc&#39; !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
+    ln_mask_file   = .false.              !  =T : read mask from file
+    cn_mask_file   = &#39;./mask.nc&#39;                   !  name of mask file (if ln_mask_file=.TRUE.)
+    ln_dyn2d       = .true.               !  boundary conditions for barotropic fields
+    ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
+    ln_tra         = .true.               !  boundary conditions for T and S
+    ln_ice         = .false.               !  ice boundary condition
+    nn_rimwidth    = 9                    !  width of the relaxation zone
 
- !-----------------------------------------------------------------------
- !  unstructured open boundaries
- !-----------------------------------------------------------------------
-     ln_coords_file = .true.               !  =T : produce bdy coordinates files
-     cn_coords_file = &#39;coordinates.bdy.nc&#39; !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
-     ln_mask_file   = .false.              !  =T : read mask from file
-     cn_mask_file   = &#39;./mask.nc&#39;                   !  name of mask file (if ln_mask_file=.TRUE.)
-     ln_dyn2d       = .true.               !  boundary conditions for barotropic fields
-     ln_dyn3d       = .true.               !  boundary conditions for baroclinic velocities
-     ln_tra         = .true.               !  boundary conditions for T and S
-     ln_ice         = .false.               !  ice boundary condition
-     nn_rimwidth    = 9                    !  width of the relaxation zone
+!-----------------------------------------------------------------------
+!  unstructured open boundaries tidal parameters
+!-----------------------------------------------------------------------
+    ln_tide        = .true.               !  =T : produce bdy tidal conditions
+    clname(1)      = &#39;M2&#39;                 ! constituent name
+    clname(2)      = &#39;S2&#39;
+    clname(3)      = &#39;K2&#39;
+    ln_trans       = .false.
+    sn_tide_h     = &#39;/work/jelt/tpxo7.2/h_tpxo7.2.nc&#39;
+    sn_tide_u     = &#39;/work/jelt/tpxo7.2/u_tpxo7.2.nc&#39;
 
- !-----------------------------------------------------------------------
- !  unstructured open boundaries tidal parameters
- !-----------------------------------------------------------------------
-     ln_tide        = .true.               !  =T : produce bdy tidal conditions
-     clname(1)      = &#39;M2&#39;                 ! constituent name
-     clname(2)      = &#39;S2&#39;
-     clname(3)      = &#39;K2&#39;
-     ln_trans       = .false.
-     sn_tide_h     = &#39;/work/n01/n01/jelt/tpxo7.2/h_tpxo7.2.nc&#39;
-     sn_tide_u     = &#39;/work/n01/n01/jelt/tpxo7.2/u_tpxo7.2.nc&#39;
 
- !-----------------------------------------------------------------------
- !  Time information
- !-----------------------------------------------------------------------
-     nn_year_000     = 2000        !  year start
-     nn_year_end     = 2000        !  year end
-     nn_month_000    = 01          !  month start (default = 1 is years&gt;1)
-     nn_month_end    = 01          !  month end (default = 12 is years&gt;1)
-     sn_dst_calendar = &#39;gregorian&#39; !  output calendar format
-     nn_base_year    = 1979        !  base year for time counter
-     sn_tide_grid    = &#39;/work/n01/n01/jelt/tpxo7.2/grid_tpxo7.2.nc&#39;
+!-----------------------------------------------------------------------
+!  Time information
+!-----------------------------------------------------------------------
+    nn_year_000     = 2000        !  year start
+    nn_year_end     = 2000        !  year end
+    nn_month_000    = 01          !  month start (default = 1 is years&gt;1)
+    nn_month_end    = 01          !  month end (default = 12 is years&gt;1)
+    sn_dst_calendar = &#39;gregorian&#39; !  output calendar format
+    nn_base_year    = 1979        !  base year for time counter
+    sn_tide_grid    = &#39;/work/jelt/tpxo7.2/grid_tpxo7.2.nc&#39;
 
- !-----------------------------------------------------------------------
- !  Additional parameters
- !-----------------------------------------------------------------------
-     nn_wei  = 1                   !  smoothing filter weights
-     rn_r0   = 0.041666666         !  decorrelation distance use in gauss
-                                   !  smoothing onto dst points. Need to
-                                   !  make this a funct. of dlon
-     sn_history  = &#39;bdy files produced by jelt from AMM60 for testing&#39;
-                                   !  history for netcdf file
-     ln_nemo3p4  = .true.          !  else presume v3.2 or v3.3
-     nn_alpha    = 0               !  Euler rotation angle
-     nn_beta     = 0               !  Euler rotation angle
-     nn_gamma    = 0               !  Euler rotation angle
-     rn_mask_max_depth = 300.0     !  Maximum depth to be ignored for the mask
-     rn_mask_shelfbreak_dist = 60    !  Distance from the shelf break
+!-----------------------------------------------------------------------
+!  Additional parameters
+!-----------------------------------------------------------------------
+    nn_wei  = 1                   !  smoothing filter weights
+    rn_r0   = 0.041666666         !  decorrelation distance use in gauss
+                                  !  smoothing onto dst points. Need to
+                                  !  make this a funct. of dlon
+    sn_history  = &#39;bdy files produced by jelt from AMM60 for testing&#39;
+                                  !  history for netcdf file
+    ln_nemo3p4  = .true.          !  else presume v3.2 or v3.3
+    nn_alpha    = 0               !  Euler rotation angle
+    nn_beta     = 0               !  Euler rotation angle
+    nn_gamma    = 0               !  Euler rotation angle
+    rn_mask_max_depth = 300.0     !  Maximum depth to be ignored for the mask
+    rn_mask_shelfbreak_dist = 60    !  Distance from the shelf break
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="generate-boundary-conditions-with-pynemo-run-pynemo">
-<h3>7. Generate boundary conditions with PyNEMO: Run PyNEMO<a class="headerlink" href="#generate-boundary-conditions-with-pynemo-run-pynemo" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-default"><div class="highlight"><pre><span></span>ssh -Y espp1
-module load anaconda
-source activate pynemo_env
-
-export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-#export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
+<p>Generate the boundary conditions again, with PyNEMO</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>module load anaconda/2.1.0  # Want python2
+source activate nrct_env
+export WDIR=/work/jelt/NEMO/LBay/
 cd $WDIR/INPUTS
-pynemo -g -s namelist.bdy
+export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+
+pynemo -g -s namelist.bdy_NNA
 </pre></div>
 </div>
 <p>Once the area of interest is selected and the close button is clicked, open
@@ -989,33 +890,68 @@ boundary data should be generated in $WDIR/OUTPUT</p>
 <dt>This generates::</dt>
 <dd><p class="first">ls -1 /work/n01/n01/jelt/LBay/OUTPUT</p>
 <p class="last">coordinates.bdy.nc
+LBay_bdytide_rotT_M2_grid_T.nc
+LBay_bdytide_rotT_K2_grid_T.nc
+LBay_bdytide_rotT_S2_grid_T.nc
+LBay_bdytide_rotT_M2_grid_U.nc
+LBay_bdytide_rotT_K2_grid_U.nc
+LBay_bdytide_rotT_S2_grid_U.nc
+LBay_bdytide_rotT_M2_grid_V.nc
+LBay_bdytide_rotT_K2_grid_V.nc
+LBay_bdytide_rotT_S2_grid_V.nc
 LBay_bdyT_y2000m01.nc
+LBay_bt_bdyT_y2000m01.nc
 LBay_bdyU_y2000m01.nc
-LBay_bdyV_y2000m01.nc
-LBay_bt_bdyT_y2000m01.nc</p>
+LBay_bdyV_y2000m01.nc</p>
 </dd>
 </dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<p>Though it doesn&#8217;t quite work with <code class="docutils literal"><span class="pre">ln_tra</span> <span class="pre">=</span> <span class="pre">.false.</span></code></p>
+<p>This wont work because variable <code class="docutils literal"><span class="pre">ft</span></code> which deals with the number of time steps
+if only defined using the T fields, but needed for the velocity bcs. Wont work
+with ln_dyn3d = .true. either
+See e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">File</span> <span class="s2">&quot;/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">435</span><span class="p">,</span> <span class="ow">in</span> <span class="n">process_bdy</span>
+ <span class="n">ft</span><span class="p">,</span> <span class="n">num_bdy</span><span class="p">,</span> <span class="n">time_counter</span><span class="p">,</span> <span class="n">unit_origin</span><span class="p">)</span>
+ <span class="ne">UnboundLocalError</span><span class="p">:</span> <span class="n">local</span> <span class="n">variable</span> <span class="s1">&#39;ft&#39;</span> <span class="n">referenced</span> <span class="n">before</span> <span class="n">assignment</span>
+</pre></div>
 </div>
-<div class="section" id="run-the-configuration">
-<h3>8. Run the configuration<a class="headerlink" href="#run-the-configuration" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="run-the-configuration-on-archer">
+<h3>8. Run the configuration ON ARCHER<a class="headerlink" href="#run-the-configuration-on-archer" title="Permalink to this headline">¶</a></h3>
+<p><em>(21 Sept 2017)</em></p>
+<p>When I&#8217;ve got all the bdy files need to fix some variable names.
+Copy the new files back onto ARCHER</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>livljobs4$
+cd /work/jelt/NEMO/LBay/INPUTS
+for file in LBay*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/. ; done
+</pre></div>
+</div>
+<p>Open a terminal on ARCHER</p>
 <dl class="docutils">
-<dt>When I&#8217;ve got all the bdy files need to fix some variable names. Note have not</dt>
-<dd><p class="first">yet got tidal forcing switched on:</p>
-<div class="last highlight-default"><div class="highlight"><pre><span></span>exit
-cd $WDIR/INPUTS
-module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+<dt>::</dt>
+<dd><p class="first">export WDIR=/work/n01/n01/jelt/LBay/
+export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG</p>
+<p>cd $WDIR/INPUTS</p>
+<p class="last">module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
 module load nco/4.5.0
 ncrename -v deptht,gdept LBay_bdyT_y2000m01.nc
 ncrename -v depthu,gdepu LBay_bdyU_y2000m01.nc
 ncrename -v depthv,gdepv LBay_bdyV_y2000m01.nc
 module unload nco
-module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-</pre></div>
-</div>
+module load cray-netcdf-hdf5parallel cray-hdf5-parallel</p>
 </dd>
-<dt>Link the boundary data to the EXP direcory and update the namelist_cfg for</dt>
-<dd><p class="first">running not mesh generation:</p>
-<div class="last highlight-default"><div class="highlight"><pre><span></span>cd $CDIR/LBay/EXP00
+</dl>
+<p>Link the boundary data to the EXP direcory and update the namelist_cfg for
+running, not mesh generation:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR/LBay/EXP00
 ln -s $WDIR/INPUTS/coordinates.bdy.nc $CDIR/LBay/EXP00/coordinates.bdy.nc
 ln -s $WDIR/INPUTS/LBay_bdyT_y2000m01.nc $CDIR/LBay/EXP00/LBay_bdyT_y2000m01.nc
 ln -s $WDIR/INPUTS/LBay_bdyU_y2000m01.nc    $CDIR/LBay/EXP00/LBay_bdyU_y2000m01.nc
@@ -1025,17 +961,13 @@ sed -e &#39;s/nn_msh      =    3/nn_msh      =    0/&#39; namelist_cfg &gt; tmp
 sed -e &#39;s/nn_itend    =      1/nn_itend    =       1440 /&#39; tmp &gt; namelist_cfg
 </pre></div>
 </div>
-</dd>
-</dl>
 <p>Should also check the xml files. There was something <strong>fishy</strong> with the
-<code class="docutils literal"><span class="pre">field_def.xml</span></code> and <code class="docutils literal"><span class="pre">iodef.xml</span></code> files where variables were not defined in</p>
-<blockquote>
-<div><p>the NEMO checkout. Copy these files from lighthouse reef:</p>
+<code class="docutils literal"><span class="pre">field_def.xml</span></code> and <code class="docutils literal"><span class="pre">iodef.xml</span></code> files where variables were not defined in
+the NEMO checkout. Copy these files from lighthouse reef:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cp /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/EXP00/iodef.xml  $CDIR/LBay/EXP00/iodef.xml
 cp /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/SHARED/field_def.xml  $CDIR/SHARED/field_def.xml
 </pre></div>
 </div>
-</div></blockquote>
 <p>Increase the number of XIOS cores used:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>aprun -b -n 5 -N 5 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
 #aprun -b -n $XIOCORES -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
@@ -1044,145 +976,10 @@ cp /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONF
 <p>Then submit:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">qsub</span> <span class="o">-</span><span class="n">q</span> <span class="n">short</span> <span class="n">runscript</span>
 
-<span class="mf">4401084.</span><span class="n">sdb</span>
+<span class="mf">4806706.</span><span class="n">sdb</span>
 </pre></div>
-</div>
 </div>
 <hr class="docutils" />
-<div class="section" id="tidal-boundary-conditions">
-<h3>Tidal boundary conditions<a class="headerlink" href="#tidal-boundary-conditions" title="Permalink to this headline">¶</a></h3>
-<p>Try turning of the 3d velocities:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist.bdy::
-..
-ln_dyn2d       = .true.               !  boundary conditions for barotropic fields
-ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
-ln_tra         = .true.               !  boundary conditions for T and S
-</pre></div>
-</div>
-<p>Generate the boundary conditions again, with PyNEMO</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>ssh -Y espp1
-module load anaconda
-source activate pynemo_env
-
-export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-#export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
-cd $WDIR/INPUTS
-pynemo -g -s namelist.bdy
-</pre></div>
-</div>
-<p>Didn&#8217;t work. Also tried setting all these things to false:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist.bdy::
-..
-ln_dyn2d       = .false.               !  boundary conditions for barotropic fields
-ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
-ln_tra         = .false.               !  boundary conditions for T and S
-</pre></div>
-</div>
-<p>Didn&#8217;t produce tidal boundary files.</p>
-<p>&#8212;</p>
-<p>(9 Aug 17)</p>
-<p>Try and pick up this thread and get tidal boundary conditions working.
-The error logs suggested that a 3D array was expected when a 4D array was given.
-Fix with running python and put back into source python.</p>
-<p>Fatal Java error, so try a new java build too (jdk1.8.0_51). No it doesn&#8217;t exist.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>ssh -Y espp1
-module load anaconda
-vi /home/n01/n01/jelt/.conda/envs/pynemo_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/tide/nemo_bdy_tide3.py
-...
-#e3X = zgr[&#39;e3u&#39;][:,:,:].squeeze()
-e3X = zgr[&#39;e3u&#39;][:].squeeze() # jelt 9 Aug 17: Generalise array dimensions to accomodate 4D data
-...
-#e3X = zgr[&#39;e3v&#39;][:,:,:].squeeze()
-e3X = zgr[&#39;e3v&#39;][:].squeeze() # jelt 9 Aug 17: Generalise array dimensions to accomodate 4D data
-...
-
-source activate pynemo_env
-export WDIR=/work/n01/n01/jelt/LBay/
-export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-
-cd $WDIR/INPUTS
-pynemo -g -s namelist.bdy
-</pre></div>
-</div>
-<p>JAVA fatal error. Recompile pyNEMO (first move pynemo_env to pynemo_env2).
-Use <em>nrct</em> instead of <em>pynemo</em> name</p>
-<p>First install PyNEMO if not already done so. Full description:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>ssh -Y espp1
-cd ~
-module load anaconda/4.3.1-python2
-conda create --name nrct_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=1.0.0
-source activate nrct_env
-conda install -c conda-forge seawater=3.3.4
-conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
-conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
-#export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/usr/lib64/jvm/jre-1.7.0-ibm/bin/j9vm:$LD_LIBRARY_PATH
-
-git clone https://jpolton@bitbucket.org/jdha/nrct.git
-cd nrct/Python
-python setup.py build
-export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
-
-python setup.py install --prefix ~/.conda/envs/nrct_env
-export WDIR=/work/n01/n01/jelt/LBay/
-</pre></div>
-</div>
-<p># Perhaps change the path where java is sought: $whereis java
-#  export PATH=/usr/lib64/jvm/java-1.7.0-ibm-1.7.0:$PATH
-# Didn&#8217;t work but maybe I didn&#8217;t do it properly</p>
-<dl class="docutils">
-<dt>Find the shared object libjvm.so in</dt>
-<dd>/usr/lib64/jvm/jre-1.7.0-ibm/bin/j9vm</dd>
-<dt>and link to this instead::</dt>
-<dd>export LD_LIBRARY_PATH=/usr/lib64/jvm/jre-1.7.0-ibm/bin/j9vm:$LD_LIBRARY_PATH</dd>
-</dl>
-<p>conda install libxcb # Works but didn&#8217;t resolve problems.</p>
-<blockquote>
-<div><p>cd $WDIR
-pynemo -g -s namelist.bdy</p>
-<p>Errors. Errors. Can I do it on livljobs4?</p>
-<p>(11/15 Aug 17)</p>
-<p>First install PyNEMO if not already done so. Full description:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ssh</span> <span class="o">-</span><span class="n">Y</span> <span class="n">livljobs4</span>
-<span class="n">cd</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">jelt</span>
-<span class="n">mkdir</span> <span class="o">/</span><span class="n">scratch</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span>
-<span class="n">export</span> <span class="n">WDIR</span><span class="o">=/</span><span class="n">scratch</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span>
-<span class="n">module</span> <span class="n">load</span> <span class="n">anaconda</span><span class="o">/</span><span class="mf">2.1</span><span class="o">.</span><span class="mi">0</span>  <span class="c1"># Want python2</span>
-<span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">nrct_env</span> <span class="n">scipy</span><span class="o">=</span><span class="mf">0.16</span><span class="o">.</span><span class="mi">0</span> <span class="n">numpy</span> <span class="n">matplotlib</span><span class="o">=</span><span class="mf">1.5</span><span class="o">.</span><span class="mi">1</span> <span class="n">basemap</span> <span class="n">netcdf4</span> <span class="n">libgfortran</span><span class="o">=</span><span class="mf">1.0</span><span class="o">.</span><span class="mi">0</span>
-<span class="n">source</span> <span class="n">activate</span> <span class="n">nrct_env</span>
-
-<span class="n">mkdir</span> <span class="o">/</span><span class="n">scratch</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span>
-<span class="n">export</span> <span class="n">WDIR</span><span class="o">=/</span><span class="n">scratch</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span>
-
-<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">seawater</span><span class="o">=</span><span class="mf">3.3</span><span class="o">.</span><span class="mi">4</span> <span class="c1"># Note had to add https path</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">srikanthnagella</span> <span class="n">thredds_crawler</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">srikanthnagella</span> <span class="n">pyjnius</span>
-</pre></div>
-</div>
-</div></blockquote>
-<p>Find java object by doing a which java and then following the trail
-find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
-
-unset SSH_ASKPASS # Didn&#39;t need this on ARCHER...
-git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
-cd nrct/Python
-python setup.py build
-export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
-
-python setup.py install --prefix ~/.conda/envs/nrct_env
-
-cd $WDIR/INPUTS
-pynemo -g -s namelist.bdy
-</pre></div>
-</div>
-<p># Java problems on ARCHER. OK on livljobs4</p>
-<p>Seemed to have made some progress. Copied namelist.bdy from ARCHER $WDIR/INPUTS.
-Might be an issue with some java libraries being in the path.</p>
-<p>Really need to do a clean version on livljobs4</p>
-<p>&#8212;</p>
-<p><em>(20 Sept 2017)</em></p>
-<p><strong>Start the process again on livljobs4: LBay_livljobs4.rst</strong></p>
 </div>
 </div>
 </div>
@@ -1195,7 +992,7 @@ Might be an issue with some java libraries being in the path.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Setting up a Liverpool Bay NEMO configuration</a><ul>
+<li><a class="reference internal" href="#">Setting up a Liverpool Bay NEMO configuration, on livljob4</a><ul>
 <li><a class="reference internal" href="#issues-that-arose">Issues that arose</a></li>
 <li><a class="reference internal" href="#recipe-notes">Recipe Notes</a><ul>
 <li><a class="reference internal" href="#generate-new-coordinates-file">1. Generate new coordinates file</a></li>
@@ -1204,16 +1001,12 @@ Might be an issue with some java libraries being in the path.</p>
 <li><a class="reference internal" href="#generate-weights-for-atm-forcing">4. Generate weights for atm forcing</a></li>
 <li><a class="reference internal" href="#generate-mesh-and-mask-files-for-open-boundary-conditions">5. Generate mesh and mask files for open boundary conditions</a></li>
 <li><a class="reference internal" href="#generate-boundary-conditions-with-pynemo-create-netcdf-abstraction-wrapper">6. Generate boundary conditions with PyNEMO: Create netcdf abstraction wrapper</a></li>
-<li><a class="reference internal" href="#a-generate-ncml-files">6a. Generate ncml files</a></li>
+<li><a class="reference internal" href="#a-generate-ncml-files-not-tested-on-livljobs4">6a. Generate ncml files (Not tested on livljobs4)</a></li>
 <li><a class="reference internal" href="#nna-inputs-src-ncml">NNA_inputs_src.ncml</a></li>
-<li><a class="reference internal" href="#amm60-inputs-src-ncml">AMM60_inputs_src.ncml</a></li>
-<li><a class="reference internal" href="#thredds-inputs-src-ncml">thredds_inputs_src.ncml</a></li>
 <li><a class="reference internal" href="#b-generate-the-namelist-bdy-file-for-pynemo">6b. Generate the namelist.bdy file for PyNEMO</a></li>
-<li><a class="reference internal" href="#namelist-bdy-thredds">namelist.bdy_thredds</a></li>
-<li><a class="reference internal" href="#namelist-bdy-nna">namelist.bdy_NNA</a></li>
 <li><a class="reference internal" href="#generate-boundary-conditions-with-pynemo-run-pynemo">7. Generate boundary conditions with PyNEMO: Run PyNEMO</a></li>
-<li><a class="reference internal" href="#run-the-configuration">8. Run the configuration</a></li>
-<li><a class="reference internal" href="#tidal-boundary-conditions">Tidal boundary conditions</a></li>
+<li><a class="reference internal" href="#namelist-bdy-nna">namelist.bdy_NNA</a></li>
+<li><a class="reference internal" href="#run-the-configuration-on-archer">8. Run the configuration ON ARCHER</a></li>
 </ul>
 </li>
 </ul>
@@ -1223,14 +1016,13 @@ Might be an issue with some java libraries being in the path.</p>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="SEAsia.html" title="previous chapter">Setting up a SE Asia NEMO configuration</a></li>
   </ul></li>
 </ul>
 </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/LBay.txt"
+      <li><a href="_sources/LBay_livljobs4.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -1256,7 +1048,7 @@ Might be an issue with some java libraries being in the path.</p>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |
-      <a href="_sources/LBay.txt"
+      <a href="_sources/LBay_livljobs4.txt"
           rel="nofollow">Page source</a>
     </div>
 

@@ -1177,13 +1177,13 @@ conda install libxcb # Works but didn't resolve problems.
 
   ----
 
-  Errors. Errors. Can I do it on livljobs6?
+  Errors. Errors. Can I do it on livljobs4?
 
-  (11 Aug 17)
+  (11/15 Aug 17)
 
   First install PyNEMO if not already done so. Full description::
 
-    ssh -Y livljobs6
+    ssh -Y livljobs4
     cd /work/jelt
     mkdir /scratch/jelt/LBay
     export WDIR=/scratch/jelt/LBay/
@@ -1204,25 +1204,27 @@ find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print
 
     export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
 
-*Got here*
-
-    git clone https://jpolton@bitbucket.org/jdha/nrct.git
+    unset SSH_ASKPASS # Didn't need this on ARCHER...
+    git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
     cd nrct/Python
     python setup.py build
     export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
 
     python setup.py install --prefix ~/.conda/envs/nrct_env
 
-  # Perhaps change the path where java is sought: $whereis java
-  #  export PATH=/usr/lib64/jvm/java-1.7.0-ibm-1.7.0:$PATH
-  # Didn't work but maybe I didn't do it properly
-
-  Find the shared object libjvm.so in
-    /usr/lib64/jvm/jre-1.7.0-ibm/bin/j9vm
-  and link to this instead::
-    export LD_LIBRARY_PATH=/usr/lib64/jvm/jre-1.7.0-ibm/bin/j9vm:$LD_LIBRARY_PATH
-
-  conda install libxcb # Works but didn't resolve problems.
-
-    cd $WDIR
+    cd $WDIR/INPUTS
     pynemo -g -s namelist.bdy
+
+
+# Java problems on ARCHER. OK on livljobs4
+
+Seemed to have made some progress. Copied namelist.bdy from ARCHER $WDIR/INPUTS.
+Might be an issue with some java libraries being in the path.
+
+Really need to do a clean version on livljobs4
+
+---
+
+*(20 Sept 2017)*
+
+**Start the process again on livljobs4: LBay_livljobs4.rst**
