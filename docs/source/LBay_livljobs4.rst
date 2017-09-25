@@ -30,105 +30,104 @@ Follow PyNEMO recipe for LBay on ARCHER (not complete because PyNEMO java issue)
 Recipe Notes
 ============
 
-Define working directory and other useful shortcuts. Load module::
+In the following I build most stuff on ARCHER but the PyNEMO bits are done on livljobs4.
+(There was a problem with some java bits working on ARCHER)
+Starting on ARCHER::
 
-  export WDIR=/work/jelt/NEMO/LBay/
-  export INPUTS=/work/jelt/NEMO/LBay/INPUTS
+  ssh login.archer.ac.uk
+
+  export WDIR=/work/n01/n01/jelt/LBay/
+  export INPUTS=$WDIR/INPUTS
   export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
   export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
 
-In the following some of the code is required to build the OPA source. I'm not
- too interested in doing this on livljobs4. I might be best done on Mobius.
- I will skip and move onto the pyNEMO bits
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
 
-:old:
-    module swap PrgEnv-cray PrgEnv-intel
-    module load cray-netcdf-hdf5parallel
-    module load cray-hdf5-parallel
+Follow recipe. Step 1 inlcuded getting INPUT files. For LHReef these were all
+prepared. Now they are not so make them as and when they are required::
 
-  Follow recipe. Step 1 inlcuded getting INPUT files. For LHReef these were all
-  prepared. Now they are not so make them as and when they are required::
+  cd $WDIR
+  mkdir INPUTS
 
-    cd $WDIR
-    mkdir INPUTS
+Old code::
 
-  Old code::
+  cd INPUTS
+  wget ftp.nerc-liv.ac.uk:/pub/general/jdha/inputs.tar.gz
+  tar xvfz inputs.tar.gz
+  rm inputs.tar.gz
 
-    cd INPUTS
-    wget ftp.nerc-liv.ac.uk:/pub/general/jdha/inputs.tar.gz
-    tar xvfz inputs.tar.gz
-    rm inputs.tar.gz
+*Now* code::
 
-  *Now* code::
+  cd $WDIR
+  svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2014/dev_r4621_NOC4_BDY_VERT_INTERP@5709
+  svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
 
-    cd $WDIR
-    svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2014/dev_r4621_NOC4_BDY_VERT_INTERP@5709
-    svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
+Need to get arch files from INPUTS::
 
-  Need to get arch files from INPUTS::
+  cd $WDIR/xios-1.0
+  cp $INPUTS/arch-XC30_ARCHER.* ./arch
 
-    cd $WDIR/xios-1.0
-    cp $INPUTS/arch-XC30_ARCHER.* ./arch
+Implement make command::
 
-  Implement make command::
-
-    ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
+  ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
 
 
-  Step 2. Obtain and apply patches::
+Step 2. Obtain and apply patches::
 
-    export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-    export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-    cd $CDIR/../NEMO/OPA_SRC/SBC
-    patch -b < $INPUTS/fldread.patch
-    cd ../DOM
-    patch -b < $INPUTS/dommsk.patch
-    cd ../BDY
-    patch -b < $INPUTS/bdyini.patch
-    cd $CDIR
-    rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
-    cp $INPUTS/arch-* ../ARCH
+  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+  cd $CDIR/../NEMO/OPA_SRC/SBC
+  patch -b < $INPUTS/fldread.patch
+  cd ../DOM
+  patch -b < $INPUTS/dommsk.patch
+  cd ../BDY
+  patch -b < $INPUTS/bdyini.patch
+  cd $CDIR
+  rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
+  cp $INPUTS/arch-* ../ARCH
 
-  Copy some input files to new configuration path::
+Copy some input files to new configuration path::
 
-    cp $INPUTS/cpp_LH_REEF.fcm ./LBay/cpp_LBay.fcm
-    cp $INPUTS/dtatsd.F90 LBay/MY_SRC/
+  cp $INPUTS/cpp_LH_REEF.fcm ./LBay/cpp_LBay.fcm
+  cp $INPUTS/dtatsd.F90 LBay/MY_SRC/
 
-  On first make only choose OPA_SRC::
+On first make only choose OPA_SRC::
 
-    ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
+  ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
 
-  It breaks. Remove key_lim2 from cpp*fcm file and remake::
+It breaks. Remove key_lim2 from cpp*fcm file and remake::
 
-    vi LBay/cpp_LBay.fcm
-    ...
+  vi LBay/cpp_LBay.fcm
+  ...
 
-    ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
+  ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
 
 
 
-  To generate bathymetry, initial conditions and grid information we first need
-  to compile some of the NEMO TOOLS (after a small bugfix - and to allow direct
-  passing of arguments). For some reason GRIDGEN doesn’t like INTEL::
+To generate bathymetry, initial conditions and grid information we first need
+to compile some of the NEMO TOOLS (after a small bugfix - and to allow direct
+passing of arguments). For some reason GRIDGEN doesn’t like INTEL::
 
-    cd $WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/WEIGHTS/src
-    patch -b < $INPUTS/scripinterp_mod.patch
-    patch -b < $INPUTS/scripinterp.patch
-    patch -b < $INPUTS/scrip.patch
-    patch -b < $INPUTS/scripshape.patch
-    patch -b < $INPUTS/scripgrid.patch
+  cd $WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/WEIGHTS/src
+  patch -b < $INPUTS/scripinterp_mod.patch
+  patch -b < $INPUTS/scripinterp.patch
+  patch -b < $INPUTS/scrip.patch
+  patch -b < $INPUTS/scripshape.patch
+  patch -b < $INPUTS/scripgrid.patch
 
-    cd ../../
-    ./maketools -n WEIGHTS -m XC_ARCHER_INTEL
-    ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL
+  cd ../../
+  ./maketools -n WEIGHTS -m XC_ARCHER_INTEL
+  ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL
 
-    module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-    module swap PrgEnv-intel PrgEnv-cray
-    module load cray-netcdf cray-hdf5
-    ./maketools -n GRIDGEN -m XC_ARCHER
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module swap PrgEnv-intel PrgEnv-cray
+  module load cray-netcdf cray-hdf5
+  ./maketools -n GRIDGEN -m XC_ARCHER
 
-    module swap PrgEnv-cray PrgEnv-intel
+  module swap PrgEnv-cray PrgEnv-intel
 
 
 Need to take a more structured approach to setting up this new configuration
@@ -136,84 +135,79 @@ Need to take a more structured approach to setting up this new configuration
 1. Generate new coordinates file
 ++++++++++++++++++++++++++++++++
 
+Generate a ``coordinates.nc`` file from a parent NEMO grid at some resolution.
+**Plan:** Use tool ``create_coordinates.exe`` which reads cutting indices and
+parent grid location from ``namelist.input`` and outputs a new files with new
+resolution grid elements.
 
-This all worked fine on ARCHER. I don't really want to be getting into fixing this for livljobs4 at this time.
+First we need to figure out the indices for the new domain, from the parent grid.
+Move parent grid into INPUTS::
 
-:old:
+  cp $INPUTS/coordinates_ORCA_R12.nc $WDIR/INPUTS/.
 
-  Generate a ``coordinates.nc`` file from a parent NEMO grid at some resolution.
-  **Plan:** Use tool ``create_coordinates.exe`` which reads cutting indices and
-  parent grid location from ``namelist.input`` and outputs a new files with new
-  resolution grid elements.
+Inspect this parent coordinates file to define the boundary indices for the new config.
 
-  First we need to figure out the indices for the new domain, from the parent grid.
-  Move parent grid into INPUTS::
+Note, I used FERRET locally::
 
-    cp $INPUTS/coordinates_ORCA_R12.nc $WDIR/INPUTS/.
-
-  Inspect this parent coordinates file to define the boundary indices for the new config.
-
-  Note, I used FERRET locally::
-
-    $livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
-    ferret etc
-    shade/i=3385:3392/j=2251:2266 NAV_LAT
-    shade/i=3385:3392/j=2251:2266 NAV_LON
+  $livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
+  ferret etc
+  shade/i=3385:3392/j=2251:2266 NAV_LAT
+  shade/i=3385:3392/j=2251:2266 NAV_LON
 
 
-  Copy namelist file from LH_reef and edit with new indices, retaining use of
-  ORCA_R12 as course
-  parent grid::
+Copy namelist file from LH_reef and edit with new indices, retaining use of
+ORCA_R12 as course
+parent grid::
 
-    cd $TDIR/GRIDGEN
-    cp $INPUTS/namelist_R12 ./
-    vi namelist_R12
-    ...
-    cn_parent_coordinate_file = '../../../../INPUTS/coordinates_ORCA_R12.nc'
-    ...
-    nn_imin = 3385
-    nn_imax = 3392
-    nn_jmin = 2251
-    nn_jmax = 2266
-    nn_rhox  = 7
-    nn_rhoy = 7
+  cd $TDIR/GRIDGEN
+  cp $INPUTS/namelist_R12 ./
+  vi namelist_R12
+  ...
+  cn_parent_coordinate_file = '../../../../INPUTS/coordinates_ORCA_R12.nc'
+  ...
+  nn_imin = 3385
+  nn_imax = 3392
+  nn_jmin = 2251
+  nn_jmax = 2266
+  nn_rhox  = 7
+  nn_rhoy = 7
 
-    ln -s namelist_R12 namelist.input
-    ./create_coordinates.exe
-    cp 1_coordinates_ORCA_R12.nc $WDIR/INPUTS/coordinates.nc
+  ln -s namelist_R12 namelist.input
+  ./create_coordinates.exe
+  cp 1_coordinates_ORCA_R12.nc $WDIR/INPUTS/coordinates.nc
 
-  This creates a coordinates.nc file with contents, which are now copied to
-  INPUTS::
+This creates a coordinates.nc file with contents, which are now copied to
+INPUTS::
 
-    dimensions:
-    	x = 57 ;
-    	y = 113 ;
-    	z = 1 ;
-    	time = UNLIMITED ; // (1 currently)
-    variables:
-      float nav_lon(y, x) ;
-      float nav_lat(y, x) ;
-      float nav_lev(z) ;
-      float time(time) ;
-      int time_steps(time) ;
-      double glamt(z, y, x) ;
-      double glamu(z, y, x) ;
-      double glamv(z, y, x) ;
-      double glamf(z, y, x) ;
-      double gphit(z, y, x) ;
-      double gphiu(z, y, x) ;
-      double gphiv(z, y, x) ;
-      double gphif(z, y, x) ;
-      double e1t(z, y, x) ;
-      double e1u(z, y, x) ;
-      double e1v(z, y, x) ;
-      double e1f(z, y, x) ;
-      double e2t(z, y, x) ;
-      double e2u(z, y, x) ;
-      double e2v(z, y, x) ;
-      double e2f(z, y, x) ;
+  dimensions:
+  	x = 57 ;
+  	y = 113 ;
+  	z = 1 ;
+  	time = UNLIMITED ; // (1 currently)
+  variables:
+    float nav_lon(y, x) ;
+    float nav_lat(y, x) ;
+    float nav_lev(z) ;
+    float time(time) ;
+    int time_steps(time) ;
+    double glamt(z, y, x) ;
+    double glamu(z, y, x) ;
+    double glamv(z, y, x) ;
+    double glamf(z, y, x) ;
+    double gphit(z, y, x) ;
+    double gphiu(z, y, x) ;
+    double gphiv(z, y, x) ;
+    double gphif(z, y, x) ;
+    double e1t(z, y, x) ;
+    double e1u(z, y, x) ;
+    double e1v(z, y, x) ;
+    double e1f(z, y, x) ;
+    double e2t(z, y, x) ;
+    double e2u(z, y, x) ;
+    double e2v(z, y, x) ;
+    double e2f(z, y, x) ;
 
-  Now we need to generate a bathymetry on this new grid.
+Now we need to generate a bathymetry on this new grid.
 
 
 
@@ -972,6 +966,8 @@ Open a terminal on ARCHER
  ncrename -v deptht,gdept LBay_bdyT_y2000m01.nc
  ncrename -v depthu,gdepu LBay_bdyU_y2000m01.nc
  ncrename -v depthv,gdepv LBay_bdyV_y2000m01.nc
+
+ ncrename -v deptht,gdept initcd_votemper.nc
  module unload nco
  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
@@ -985,8 +981,18 @@ running, not mesh generation::
  ln -s $WDIR/INPUTS/LBay_bdyU_y2000m01.nc    $CDIR/LBay/EXP00/LBay_bdyU_y2000m01.nc
  ln -s $WDIR/INPUTS/LBay_bdyV_y2000m01.nc    $CDIR/LBay/EXP00/LBay_bdyV_y2000m01.nc
  ln -s $WDIR/INPUTS/LBay_bt_bdyT_y2000m01.nc  $CDIR/LBay/EXP00/LBay_bt_bdyT_y2000m01.nc
+ ln -s $WDIR/INPUTS $CDIR/LBay/EXP00/bdydta
  sed -e 's/nn_msh      =    3/nn_msh      =    0/' namelist_cfg > tmp
  sed -e 's/nn_itend    =      1/nn_itend    =       1440 /' tmp > namelist_cfg
+
+Edit the link to the tidal boundary files to fix file names::
+
+  vi namelist_cfg
+  ...
+  !-----------------------------------------------------------------------
+  &nambdy_tide     ! tidal forcing at open boundaries
+  !-----------------------------------------------------------------------
+    filtide      = 'bdydta/LBay_bdytide_'         !  file name root of tidal forcing files
 
 
 Should also check the xml files. There was something **fishy** with the
@@ -998,13 +1004,176 @@ the NEMO checkout. Copy these files from lighthouse reef::
 
 Increase the number of XIOS cores used::
 
+ vi runscript
+ ...
  aprun -b -n 5 -N 5 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
  #aprun -b -n $XIOCORES -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
 
 Then submit::
 
+ cd $CDIR/LBay/EXP00
  qsub -q short runscript
 
  4806706.sdb
 
 ----
+
+*(22 Sept 17)*
+
+did it work?
+
+ LBay_1d_20000102_20000111_grid_W_0003.nc
+
+Rebuild the files::
+
+  export WDIR=/work/n01/n01/jelt/LBay/
+  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1d_20000102_20000111_grid_T 5
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1d_20000102_20000111_grid_U 5
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1d_20000102_20000111_grid_V 5
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1d_20000102_20000111_grid_W 5
+
+
+Should remove individual processor files once the build is verified::
+  rm LBay_1d_20000102_20000111_grid_?_*nc
+
+
+Check the model output
+
+scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/LBay_1d_20000102_20000111_grid_T.nc ~/Desktop/.
+
+IT WORKED
+
+Can I turn the tides on?
+
+Failed to recompile and run with tides. It wouldn't run so something wrong the the keys and FORTRAN mix rather than settings..
+
+Recompile with tides. Add key_diaharm key_tide, changed to use 3d tides code in MY_SRC. Added key_jdha_init removed key_gen_IC.
+FAILED. Copied all keys from 3D harmonics AMM60 code::
+
+ cd $CDIR/LBay> vi cpp_LBay.fcm
+
+ bld::tool::fppkeys    key_ldfslp key_iomput key_mpp_mpi key_netcdf4 key_tide key_bdy key_jdha_init key_dynspg_ts key_vvl key_zdfgls key_dynldf_smag key_traldf_smag key_traldf_c3d    key_dynldf_c3d  key_diaharm
+
+copy harmonic code from 'working' code base (with 3D harmonics)::
+
+
+
+
+ rsync  /work/n01/n01/jelt/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/XIOS_AMM60_nemo_harmIT2/MY_SRC/* $CDIR/LBay/MY_SRC/.
+
+Add symbolic link that wasn't copied::
+
+ ln -s diawri.F90_mane1 diawri.F90
+
+Compile (not sure if I need the module commands)::
+
+ module swap PrgEnv-cray PrgEnv-intel
+ module load cray-netcdf-hdf5parallel
+ module load cray-hdf5-parallel
+ export WDIR=/work/n01/n01/jelt/LBay/
+ export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+
+ cd $CDIR
+ ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10 clean
+ ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
+
+Rerun. Changed iodef.xml output to include 1hrly SSH
+Change namelist to include tides output
+
+!-----------------------------------------------------------------------
+&nam_diaharm   !   Harmonic analysis of tidal constituents ('key_diaharm')
+!-----------------------------------------------------------------------
+     nit000_han = 1440         ! First time step used for harmonic analysis
+     nitend_han = 14400        ! Last time step used for harmonic analysis
+     nstep_han  = 15        ! Time step frequency for harmonic analysis
+     tname(1)     =   'O1'  !  name of constituent
+     tname(2)     =   'P1'
+     tname(3)     =   'K1'
+     tname(4)     =   'N2'
+     tname(5)     =   'M2'
+     tname(6)     =   'S2'
+     tname(7)     =   'K2'
+     tname(8)     =   'Q1'
+     tname(9)     =   'M4'
+
+
+--
+
+Try a clean recompile following the orginal instructions. No attempt to do tides.
+EXCEPT Add in key_tide only
+
+Does not run. Remove key_tide. This should be identical to where I was 2 hours ago, except for changes in iodef.xml and namelist_cfg, which should not matter
+
+This failed too. Perhaps the build process is broken. Copy an existing executable from LH_REEF experiment
+
+It turned out that I broke the code with the 1hry SSH output...
+
+Though subsequent submission have run to wall limit without any output.
+
+**ACTION Do a fresh build of LBay.**
+
+----
+
+*(25 Sept 2017)*
+
+Clean builds of XIOS AND OPA.
+Submit job::
+
+  cd $CDIR/LBay/EXP00
+  qsub -q short runscript
+  4812837.sdb
+
+It looks like I previously broke things by making BAD edits of iodef.xml...
+
+Rebuild the files::
+
+  export WDIR=/work/n01/n01/jelt/LBay/
+  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_T 5
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_U 5
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_V 5
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_W 5
+
+
+Add in key_tide flag::
+
+  vi cpp_LBay.fcm
+  bld::tool::fppkeys   key_dynspg_ts key_ldfslp  key_zdfgls  key_vvl key_mpp_mpi key_netcdf4 key_nosignedzero  key_iomput key_gen_IC key_bdy key_tide
+
+Didn't work. Copy from AMM12 expample::
+
+  cp ../AMM12/cpp_AMM12.fcm cpp_LBay.fcm
+
+Didn't work. Copy MY_SRC and compile flags from AMM60::
+
+  cd $CDIR/LBay
+  rsync -uartv /work/n01/n01/jelt/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/XIOS_AMM60_nemo_harmIT2/MY_SRC/ MY_SRC
+  cp /work/n01/n01/jelt/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/XIOS_AMM60_nemo_harmIT2/cpp_XIOS_AMM60_nemo_harmIT2.fcm cpp_LBay.fcm
+
+
+Fix some nc variables -- doesn't work because gdept is expected to be 3d, but it is only 1d. Otherwise it would probably work::
+
+  export WDIR=/work/n01/n01/jelt/LBay/
+  cd $WDIR/INPUTS
+
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module load nco/4.5.0
+
+  ncrename -v deptht,gdept initcd_votemper.nc
+  ncrename -v deptht,gdept initcd_vosaline.nc
+  module unload nco
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+Recompile::
+
+  cd $CDIR
+  makenemo -n LBay -m XC_ARCHER_INTEL -j 10 clean
+  makenemo -n LBay -m XC_ARCHER_INTEL -j 10
+
+
+Submit::
+  cd $CDIR/LBay/EXP00
+  qsub -q short runscript
