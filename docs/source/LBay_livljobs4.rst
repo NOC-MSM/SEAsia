@@ -1,19 +1,19 @@
-==========================================================
-Setting up a Liverpool Bay NEMO configuration, on livljob4
-==========================================================
+===================================================++=======
+Setting up a Liverpool Bay NEMO configuration, inc. livljob4
+===================================================++=======
 
 URL:: http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html
 
 * Build notes with:: ~/GitLab/NEMO-RELOC/docs$ make html
 
-Originally tried building on ARCHER but ran into a java problem with PyNEMO that they needed to fix. Also MDP can't use ARCHER.
+Originally tried building everything on ARCHER but ran into a java problem with PyNEMO that they needed to fix. Also MDP can't use ARCHER.
 
-The total procedure:
+The summary procedure:
 1) start with running NEMO on a new domain to generate grid files
 2) generate boundary forcings (e.g. tides, T,S,U,V) from a parent grid / model
 3) run the new configuration
 
-Step 2 is focussed on here. This was done on livljobs4. Though the other steps are documented, they are less revised.
+Step 2 was done on livljobs4. The other steps were on ARCHER.
 
 Issues that arose
 =================
@@ -23,7 +23,13 @@ Issues that arose
 Other related recipes:
 Follow PyNEMO recipe for Lighthouse Reef: ``http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef``
 Follow PyNEMO recipe for Lighthouse Reef: ``http://nemo-reloc.readthedocs.io/en/latest/SEAsia.html``
-Follow PyNEMO recipe for LBay on ARCHER (not complete because PyNEMO java issue): ``http://nemo-reloc.readthedocs.io/en/latest/LBay.html``
+Follow PyNEMO recipe for LBay on ARCHER (not complete because PyNEMO java issue): ``http://nemo-reloc.readthedocs.io/en/latest/LBay.html``.
+(Perhaps this note is superceded by this one).
+
+:note:
+
+It is very easy to break the code with bad edits to the iodef.xml file. Don't change
+the iodef.xml file at the same time as something else.
 
 ----
 
@@ -324,7 +330,7 @@ parallel modules)::
 
 ----
 
-*(3 March )*
+*(3 March 2017)*
 Insert new method to use AMM60 data for initial conditions.
 /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT
 AMM60_5d_20131013_20131129_grid_T.nc
@@ -744,10 +750,7 @@ I have a namelist.bdy file for each ncml configuration
 
 
 
-Errors. ARCHER Errors with PyNEMO. Can I do it on livljobs4?
-
-
----
+Using livljobs4
 
 *(20/21 Sept 2017)*
 
@@ -938,8 +941,8 @@ See e.g.::
 
 
 
-8. Run the configuration ON ARCHER
-++++++++++++++++++++++++++++++++++
+8. Run the configuration ON ARCHER. Turn on the tides
++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 *(21 Sept 2017)*
 
@@ -952,9 +955,27 @@ Copy the new files back onto ARCHER
   for file in LBay*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/. ; done
 
 
-Open a terminal on ARCHER
+Open a terminal on ARCHER.
 
-::
+Compile code with new flags (not sure if I need the module commands). Note in particular,
+``key_gen_IC`` and ``key_tide``::
+
+ module swap PrgEnv-cray PrgEnv-intel
+ module load cray-netcdf-hdf5parallel
+ module load cray-hdf5-parallel
+ export WDIR=/work/n01/n01/jelt/LBay/
+ export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+
+ vi $CDIR/LBay/cpp_LBay.fcm
+ bld::tool::fppkeys   key_dynspg_ts key_ldfslp  key_zdfgls  key_vvl key_mpp_mpi key_netcdf4 key_nosignedzero  key_iomput key_gen_IC key_bdy key_tide
+
+
+ cd $CDIR
+ ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10 clean
+ ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
+
+Prepare the boundary files (need to fix some variable names)::
+
  export WDIR=/work/n01/n01/jelt/LBay/
  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
 
@@ -993,15 +1014,49 @@ Edit the link to the tidal boundary files to fix file names::
   !-----------------------------------------------------------------------
     filtide      = 'bdydta/LBay_bdytide_rotT_'         !  file name root of tidal forcing files
 
+Change flag so that boundary data is read in. Spotted ``nn_dyn2d_dta = 3`` in AMM60 run.
+Switch from 1 to 3. I.e.::
+
+   &nambdy        !  unstructured open boundaries                          ("key_bdy")
+       nb_bdy         = 1                    !  number of open boundary sets
+       ln_coords_file = .true.               !  =T : read bdy coordinates from file
+       cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+       ln_mask_file   = .true.              !  =T : read mask from file
+       cn_mask_file   = '../../../../../INPUTS/LBay_bdyT_y2000m01.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+       cn_dyn2d       = 'flather'               !
+       nn_dyn2d_dta   =  3                   !  = 0, bdy data are equal to the initial state
+                                             !  = 1, bdy data are read in 'bdydata   .nc' files
+                                             !  = 2, use tidal harmonic forcing data from files
+                                             !  = 3, use external data AND tidal harmonic forcing
+
 Also need to make sure the harmonic tidal boundary files are consistent with the
  harmonics expected e.g.::
 
   !-----------------------------------------------------------------------
-&nam_tide      !   tide parameters (#ifdef key_tide)
-!-----------------------------------------------------------------------
-    clname(1) = 'K2'
-    clname(2) = 'M2'
-    clname(3) = 'S2'
+  &nam_tide      !   tide parameters (#ifdef key_tide)
+  !-----------------------------------------------------------------------
+      clname(1) = 'K2'
+      clname(2) = 'M2'
+      clname(3) = 'S2'
+
+
+
+:Note:
+
+       I had a problem with initial T,S conditions because the generated netCDF files only had vector fields for the z-coordinate
+       However, Using ``key_gen_IC`` generates the vertical velocity on the fly.
+
+      Completes. Works as a restart or from initial conditions::
+
+        ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
+        ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+
+      OR as::
+
+        ln_rstart   =  .true.  !  start from rest (F) or from a restart file (T)
+        ln_tsd_init   = .false.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+
+
 
 
 
@@ -1012,7 +1067,14 @@ the NEMO checkout. Copy these files from lighthouse reef::
  cp /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/EXP00/iodef.xml  $CDIR/LBay/EXP00/iodef.xml
  cp /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/SHARED/field_def.xml  $CDIR/SHARED/field_def.xml
 
-Increase the number of XIOS cores used::
+Edit the output to have 1hrly SSH::
+
+ vi $CDIR/LBay/EXP00/iodef.xml
+ ...
+
+
+
+Edit runscript: Increase the number of XIOS cores used::
 
  vi runscript
  ...
@@ -1026,71 +1088,44 @@ Then submit::
 
  4806706.sdb
 
-----
 
-*(22 Sept 17)*
 
-did it work?
+*(26 Sept 2017)*
 
- LBay_1d_20000102_20000111_grid_W_0003.nc
 
 Rebuild the files::
 
   export WDIR=/work/n01/n01/jelt/LBay/
   export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1d_20000102_20000111_grid_T 5
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1d_20000102_20000111_grid_U 5
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1d_20000102_20000111_grid_V 5
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1d_20000102_20000111_grid_W 5
-
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_T 5
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_U 5
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_V 5
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_W 5
 
 Should remove individual processor files once the build is verified::
-  rm LBay_1d_20000102_20000111_grid_?_*nc
 
+  rm LBay_1h_20000102_20000106_grid_?_*nc
 
-Check the model output
+Inspect locally e.g.::
 
-scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/LBay_1d_20000102_20000111_grid_T.nc ~/Desktop/.
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/LBay_1h_20000102_20000106_grid_T.nc .
 
-IT WORKED
-
-Can I turn the tides on?
-
-Failed to recompile and run with tides. It wouldn't run so something wrong the the keys and FORTRAN mix rather than settings..
-
-Recompile with tides. Add key_diaharm key_tide, changed to use 3d tides code in MY_SRC. Added key_jdha_init removed key_gen_IC.
-FAILED. Copied all keys from 3D harmonics AMM60 code::
-
- cd $CDIR/LBay> vi cpp_LBay.fcm
-
- bld::tool::fppkeys    key_ldfslp key_iomput key_mpp_mpi key_netcdf4 key_tide key_bdy key_jdha_init key_dynspg_ts key_vvl key_zdfgls key_dynldf_smag key_traldf_smag key_traldf_c3d    key_dynldf_c3d  key_diaharm
-
-copy harmonic code from 'working' code base (with 3D harmonics)::
+  ferret
+  use LBay_1h_20000102_20000106_grid_T.nc
+  plot /i=25/j=70 SOSSHEIG
 
 
 
 
- rsync  /work/n01/n01/jelt/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/XIOS_AMM60_nemo_harmIT2/MY_SRC/* $CDIR/LBay/MY_SRC/.
+**Whoo hoo! It works! With a semi-diurnal SSH signal**
 
-Add symbolic link that wasn't copied::
 
- ln -s diawri.F90_mane1 diawri.F90
+----
 
-Compile (not sure if I need the module commands)::
+**TO DO**
 
- module swap PrgEnv-cray PrgEnv-intel
- module load cray-netcdf-hdf5parallel
- module load cray-hdf5-parallel
- export WDIR=/work/n01/n01/jelt/LBay/
- export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-
- cd $CDIR
- ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10 clean
- ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
-
-Rerun. Changed iodef.xml output to include 1hrly SSH
-Change namelist to include tides output
+Change namelist to include tidal harmonic analysis
 
 !-----------------------------------------------------------------------
 &nam_diaharm   !   Harmonic analysis of tidal constituents ('key_diaharm')
@@ -1107,152 +1142,3 @@ Change namelist to include tides output
      tname(7)     =   'K2'
      tname(8)     =   'Q1'
      tname(9)     =   'M4'
-
-
---
-
-Try a clean recompile following the orginal instructions. No attempt to do tides.
-EXCEPT Add in key_tide only
-
-Does not run. Remove key_tide. This should be identical to where I was 2 hours ago, except for changes in iodef.xml and namelist_cfg, which should not matter
-
-This failed too. Perhaps the build process is broken. Copy an existing executable from LH_REEF experiment
-
-It turned out that I broke the code with the 1hry SSH output...
-
-Though subsequent submission have run to wall limit without any output.
-
-**ACTION Do a fresh build of LBay.**
-
-----
-
-*(25 Sept 2017)*
-
-Clean builds of XIOS AND OPA.
-Submit job::
-
-  cd $CDIR/LBay/EXP00
-  qsub -q short runscript
-  4812837.sdb
-
-It looks like I previously broke things by making BAD edits of iodef.xml...
-
-Rebuild the files::
-
-  export WDIR=/work/n01/n01/jelt/LBay/
-  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_T 5
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_U 5
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_V 5
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_W 5
-
-
-Add in key_tide flag::
-
-  vi cpp_LBay.fcm
-  bld::tool::fppkeys   key_dynspg_ts key_ldfslp  key_zdfgls  key_vvl key_mpp_mpi key_netcdf4 key_nosignedzero  key_iomput key_gen_IC key_bdy key_tide
-
-Didn't work. Copy from AMM12 expample::
-
-  cp ../AMM12/cpp_AMM12.fcm cpp_LBay.fcm
-
-Didn't work. Copy MY_SRC and compile flags from AMM60::
-
-  cd $CDIR/LBay
-  rsync -uartv /work/n01/n01/jelt/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/XIOS_AMM60_nemo_harmIT2/MY_SRC/ MY_SRC
-  cp /work/n01/n01/jelt/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/XIOS_AMM60_nemo_harmIT2/cpp_XIOS_AMM60_nemo_harmIT2.fcm cpp_LBay.fcm
-
-
-Fix some nc variables -- doesn't work because gdept is expected to be 3d, but it
-is only 1d. Otherwise it would probably work. I think that this is probably
-because the parent grid was z-partial step whereas this run is trying to be sigma
-levels::
-
-  export WDIR=/work/n01/n01/jelt/LBay/
-  cd $WDIR/INPUTS
-
-  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  module load nco/4.5.0
-
-  ncrename -v deptht,gdept initcd_votemper.nc
-  ncrename -v deptht,gdept initcd_vosaline.nc
-  module unload nco
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-
-Recompile::
-
-  cd $CDIR
-  makenemo -n LBay -m XC_ARCHER_INTEL -j 10 clean
-  makenemo -n LBay -m XC_ARCHER_INTEL -j 10
-
-
-Submit::
-  cd $CDIR/LBay/EXP00
-  qsub -q short runscript
-
-**ACTIONS** Can I create initial conditions with 3d depth grid?
-**ACTIONS** Create a 2D tide-only run
-
-----
-
-*(26 Sept 2017)*
-
-* Try and start run without initial conditions. It breaks (not surprisingly)
-* Try and run with z-partial step instead of sigma coords. Same major flaw with
-* the depth coords in the initial T,S files being a vector not an array (This could be a function of the code)
-
-Try restart (in s-coords) instead.
-
-Rebuild the files::
-
-  export WDIR=/work/n01/n01/jelt/LBay/
-  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_00007200_restart_oce_out 96
-
-Core dump.
-
-Had a chat with James about: 1) code bases (use ORCHESTRA )
-2) problems with the initial conditions grid (use key_gen_IC)
-
-Revery back to LHREEF code and keys. Try compiling with key_gen_IC so that is interpolates the vertical grid on the fly
-
-Completes. Works as a restart or from initial conditions::
-
-  ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
-  ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
-
-OR as::
-
-  ln_rstart   =  .true.  !  start from rest (F) or from a restart file (T)
-  ln_tsd_init   = .false.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
-
-Rebuild T output. Inspect it::
-
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_T 5
-
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/LBay_1h_20000102_20000106_grid_T.nc .
-
-  ferret
-  use LBay_1h_20000102_20000106_grid_T.nc
-  plot /i=25/j=70 SOSSHEIG
-
-Only a diurnal tide. But it runs!
-
-
-Still a problem with not reading the file. Spotted   ``nn_dyn2d_dta   =  3`` in AMM60 run. Switch from 1 to 3::
-
-   &nambdy        !  unstructured open boundaries                          ("key_bdy")
-       nb_bdy         = 1                    !  number of open boundary sets
-       ln_coords_file = .true.               !  =T : read bdy coordinates from file
-       cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
-       ln_mask_file   = .true.              !  =T : read mask from file
-       cn_mask_file   = '../../../../../INPUTS/LBay_bdyT_y2000m01.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-       cn_dyn2d       = 'flather'               !
-       nn_dyn2d_dta   =  3                   !  = 0, bdy data are equal to the initial state
-                                             !  = 1, bdy data are read in 'bdydata   .nc' files
-                                             !  = 2, use tidal harmonic forcing data from files
-                                             !  = 3, use external data AND tidal harmonic forcing
-
-Whoo hoo! It works! With a semi-diurnal SSH signal
