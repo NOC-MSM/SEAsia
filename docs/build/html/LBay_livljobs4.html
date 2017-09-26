@@ -62,16 +62,11 @@ Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span c
 Follow PyNEMO recipe for LBay on ARCHER (not complete because PyNEMO java issue): <code class="docutils literal"><span class="pre">http://nemo-reloc.readthedocs.io/en/latest/LBay.html</span></code>.
 (Perhaps this other note is superceded by this present one, though the other
 note includes information of using PyNEMO with different data sources).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">note:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<p>It is very easy to break the code with bad edits to the iodef.xml file. Don&#8217;t change
-the iodef.xml file at the same time as something else.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is very easy to break the code with bad edits to the iodef.xml file. Don&#8217;t
+change the iodef.xml file at the same time as something else.</p>
+</div>
 </div>
 <hr class="docutils" />
 <div class="section" id="recipe-notes">
@@ -897,23 +892,18 @@ LBay_bdyU_y2000m01.nc
 LBay_bdyV_y2000m01.nc</p>
 </dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
 <p>Though it doesn&#8217;t quite work with <code class="docutils literal"><span class="pre">ln_tra</span> <span class="pre">=</span> <span class="pre">.false.</span></code></p>
 <p>This wont work because variable <code class="docutils literal"><span class="pre">ft</span></code> which deals with the number of time steps
 if only defined using the T fields, but needed for the velocity bcs. Wont work
 with ln_dyn3d = .true. either
 See e.g.:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">File</span> <span class="s2">&quot;/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">435</span><span class="p">,</span> <span class="ow">in</span> <span class="n">process_bdy</span>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">File</span> <span class="s2">&quot;/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">435</span><span class="p">,</span> <span class="ow">in</span> <span class="n">process_bdy</span>
  <span class="n">ft</span><span class="p">,</span> <span class="n">num_bdy</span><span class="p">,</span> <span class="n">time_counter</span><span class="p">,</span> <span class="n">unit_origin</span><span class="p">)</span>
  <span class="ne">UnboundLocalError</span><span class="p">:</span> <span class="n">local</span> <span class="n">variable</span> <span class="s1">&#39;ft&#39;</span> <span class="n">referenced</span> <span class="n">before</span> <span class="n">assignment</span>
 </pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="run-the-configuration-on-archer-turn-on-the-tides">
@@ -1011,14 +1001,10 @@ Switch from 1 to 3. I.e.:</p>
 </div>
 </dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body"><blockquote class="first">
-<div><p>I had a problem with initial T,S conditions because the generated netCDF files only had vector fields for the z-coordinate
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>I had a problem with initial T,S conditions because the generated netCDF files only had vector fields for the z-coordinate
 However, Using <code class="docutils literal"><span class="pre">key_gen_IC</span></code> generates the vertical velocity on the fly.</p>
-</div></blockquote>
 <p>Completes. Works as a restart or from initial conditions:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
 ln_tsd_init   = .true.   !  Initialisation of ocean T &amp; S with T &amp;S input data (T) or not (F)
@@ -1029,10 +1015,7 @@ ln_tsd_init   = .true.   !  Initialisation of ocean T &amp; S with T &amp;S inpu
 ln_tsd_init   = .false.   !  Initialisation of ocean T &amp; S with T &amp;S input data (T) or not (F)
 </pre></div>
 </div>
-</td>
-</tr>
-</tbody>
-</table>
+</div>
 <p>Should also check the xml files. There was something <strong>fishy</strong> with the
 <code class="docutils literal"><span class="pre">field_def.xml</span></code> and <code class="docutils literal"><span class="pre">iodef.xml</span></code> files where variables were not defined in
 the NEMO checkout. Copy these files from lighthouse reef:</p>
@@ -1083,14 +1066,18 @@ $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_W 5
 </pre></div>
 </div>
 <p><strong>Whoo hoo! It works! With a semi-diurnal SSH signal</strong></p>
+<p>At this point I&#8217;ll move onto the SE Asia configuration.</p>
 <hr class="docutils" />
-<p><strong>TO DO</strong></p>
-<p>Change namelist to include tidal harmonic analysis</p>
-<p>!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;
-&amp;nam_diaharm   !   Harmonic analysis of tidal constituents (&#8216;key_diaharm&#8217;)
+<p><strong>TO DO</strong> another time / for Solent config</p>
+<ul>
+<li><p class="first">Change namelist to include tidal harmonic analysis:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+</pre></div>
+</div>
+<p>&amp;nam_diaharm   !   Harmonic analysis of tidal constituents (&#8216;key_diaharm&#8217;)
 !&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
 <blockquote>
-<div>nit000_han = 1440         ! First time step used for harmonic analysis
+<div><p>nit000_han = 1440         ! First time step used for harmonic analysis
 nitend_han = 14400        ! Last time step used for harmonic analysis
 nstep_han  = 15        ! Time step frequency for harmonic analysis
 tname(1)     =   &#8216;O1&#8217;  !  name of constituent
@@ -1101,7 +1088,12 @@ tname(5)     =   &#8216;M2&#8217;
 tname(6)     =   &#8216;S2&#8217;
 tname(7)     =   &#8216;K2&#8217;
 tname(8)     =   &#8216;Q1&#8217;
-tname(9)     =   &#8216;M4&#8217;</div></blockquote>
+tname(9)     =   &#8216;M4&#8217;</p>
+</div></blockquote>
+</li>
+<li><p class="first">Harmonise all wet forcing to use AMM60 data.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

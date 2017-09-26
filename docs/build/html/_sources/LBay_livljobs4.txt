@@ -27,10 +27,10 @@ Follow PyNEMO recipe for LBay on ARCHER (not complete because PyNEMO java issue)
 (Perhaps this other note is superceded by this present one, though the other
 note includes information of using PyNEMO with different data sources).
 
-:note:
+.. note::
 
-It is very easy to break the code with bad edits to the iodef.xml file. Don't change
-the iodef.xml file at the same time as something else.
+  It is very easy to break the code with bad edits to the iodef.xml file. Don't
+  change the iodef.xml file at the same time as something else.
 
 ----
 
@@ -926,18 +926,18 @@ This generates::
   LBay_bdyU_y2000m01.nc
   LBay_bdyV_y2000m01.nc
 
-:Note:
+.. Warning::
 
-Though it doesn't quite work with ``ln_tra = .false.``
+  Though it doesn't quite work with ``ln_tra = .false.``
 
-This wont work because variable ``ft`` which deals with the number of time steps
-if only defined using the T fields, but needed for the velocity bcs. Wont work
-with ln_dyn3d = .true. either
-See e.g.::
+  This wont work because variable ``ft`` which deals with the number of time steps
+  if only defined using the T fields, but needed for the velocity bcs. Wont work
+  with ln_dyn3d = .true. either
+  See e.g.::
 
-  File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py", line 435, in process_bdy
-   ft, num_bdy, time_counter, unit_origin)
-   UnboundLocalError: local variable 'ft' referenced before assignment
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py", line 435, in process_bdy
+     ft, num_bdy, time_counter, unit_origin)
+     UnboundLocalError: local variable 'ft' referenced before assignment
 
 
 
@@ -1042,20 +1042,20 @@ Also need to make sure the harmonic tidal boundary files are consistent with the
 
 
 
-:Note:
+.. Note::
 
-       I had a problem with initial T,S conditions because the generated netCDF files only had vector fields for the z-coordinate
-       However, Using ``key_gen_IC`` generates the vertical velocity on the fly.
+  I had a problem with initial T,S conditions because the generated netCDF files only had vector fields for the z-coordinate
+  However, Using ``key_gen_IC`` generates the vertical velocity on the fly.
 
-      Completes. Works as a restart or from initial conditions::
+  Completes. Works as a restart or from initial conditions::
 
-        ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
-        ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+    ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
+    ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
 
-      OR as::
+  OR as::
 
-        ln_rstart   =  .true.  !  start from rest (F) or from a restart file (T)
-        ln_tsd_init   = .false.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+    ln_rstart   =  .true.  !  start from rest (F) or from a restart file (T)
+    ln_tsd_init   = .false.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
 
 
 
@@ -1121,25 +1121,29 @@ Inspect locally e.g.::
 
 **Whoo hoo! It works! With a semi-diurnal SSH signal**
 
+At this point I'll move onto the SE Asia configuration.
+
 
 ----
 
-**TO DO**
+**TO DO** another time / for Solent config
 
-Change namelist to include tidal harmonic analysis
+* Change namelist to include tidal harmonic analysis::
 
-!-----------------------------------------------------------------------
-&nam_diaharm   !   Harmonic analysis of tidal constituents ('key_diaharm')
-!-----------------------------------------------------------------------
-     nit000_han = 1440         ! First time step used for harmonic analysis
-     nitend_han = 14400        ! Last time step used for harmonic analysis
-     nstep_han  = 15        ! Time step frequency for harmonic analysis
-     tname(1)     =   'O1'  !  name of constituent
-     tname(2)     =   'P1'
-     tname(3)     =   'K1'
-     tname(4)     =   'N2'
-     tname(5)     =   'M2'
-     tname(6)     =   'S2'
-     tname(7)     =   'K2'
-     tname(8)     =   'Q1'
-     tname(9)     =   'M4'
+  !-----------------------------------------------------------------------
+  &nam_diaharm   !   Harmonic analysis of tidal constituents ('key_diaharm')
+  !-----------------------------------------------------------------------
+       nit000_han = 1440         ! First time step used for harmonic analysis
+       nitend_han = 14400        ! Last time step used for harmonic analysis
+       nstep_han  = 15        ! Time step frequency for harmonic analysis
+       tname(1)     =   'O1'  !  name of constituent
+       tname(2)     =   'P1'
+       tname(3)     =   'K1'
+       tname(4)     =   'N2'
+       tname(5)     =   'M2'
+       tname(6)     =   'S2'
+       tname(7)     =   'K2'
+       tname(8)     =   'Q1'
+       tname(9)     =   'M4'
+
+* Harmonise all wet forcing to use AMM60 data.
