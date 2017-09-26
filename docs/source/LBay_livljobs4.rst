@@ -991,7 +991,18 @@ Edit the link to the tidal boundary files to fix file names::
   !-----------------------------------------------------------------------
   &nambdy_tide     ! tidal forcing at open boundaries
   !-----------------------------------------------------------------------
-    filtide      = 'bdydta/LBay_bdytide_'         !  file name root of tidal forcing files
+    filtide      = 'bdydta/LBay_bdytide_rotT_'         !  file name root of tidal forcing files
+
+Also need to make sure the harmonic tidal boundary files are consistent with the
+ harmonics expected e.g.::
+
+  !-----------------------------------------------------------------------
+&nam_tide      !   tide parameters (#ifdef key_tide)
+!-----------------------------------------------------------------------
+    clname(1) = 'K2'
+    clname(2) = 'M2'
+    clname(3) = 'S2'
+
 
 
 Should also check the xml files. There was something **fishy** with the
@@ -1182,3 +1193,66 @@ Submit::
 
 **ACTIONS** Can I create initial conditions with 3d depth grid?
 **ACTIONS** Create a 2D tide-only run
+
+----
+
+*(26 Sept 2017)*
+
+* Try and start run without initial conditions. It breaks (not surprisingly)
+* Try and run with z-partial step instead of sigma coords. Same major flaw with
+* the depth coords in the initial T,S files being a vector not an array (This could be a function of the code)
+
+Try restart (in s-coords) instead.
+
+Rebuild the files::
+
+  export WDIR=/work/n01/n01/jelt/LBay/
+  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_00007200_restart_oce_out 96
+
+Core dump.
+
+Had a chat with James about: 1) code bases (use ORCHESTRA )
+2) problems with the initial conditions grid (use key_gen_IC)
+
+Revery back to LHREEF code and keys. Try compiling with key_gen_IC so that is interpolates the vertical grid on the fly
+
+Completes. Works as a restart or from initial conditions::
+
+  ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
+  ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+
+OR as::
+
+  ln_rstart   =  .true.  !  start from rest (F) or from a restart file (T)
+  ln_tsd_init   = .false.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+
+Rebuild T output. Inspect it::
+
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_T 5
+
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/LBay_1h_20000102_20000106_grid_T.nc .
+
+  ferret
+  use LBay_1h_20000102_20000106_grid_T.nc
+  plot /i=25/j=70 SOSSHEIG
+
+Only a diurnal tide. But it runs!
+
+
+Still a problem with not reading the file. Spotted   ``nn_dyn2d_dta   =  3`` in AMM60 run. Switch from 1 to 3::
+
+   &nambdy        !  unstructured open boundaries                          ("key_bdy")
+       nb_bdy         = 1                    !  number of open boundary sets
+       ln_coords_file = .true.               !  =T : read bdy coordinates from file
+       cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+       ln_mask_file   = .true.              !  =T : read mask from file
+       cn_mask_file   = '../../../../../INPUTS/LBay_bdyT_y2000m01.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+       cn_dyn2d       = 'flather'               !
+       nn_dyn2d_dta   =  3                   !  = 0, bdy data are equal to the initial state
+                                             !  = 1, bdy data are read in 'bdydata   .nc' files
+                                             !  = 2, use tidal harmonic forcing data from files
+                                             !  = 3, use external data AND tidal harmonic forcing
+
+Whoo hoo! It works! With a semi-diurnal SSH signal
