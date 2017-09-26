@@ -48,15 +48,79 @@
 <h2>Issues that arose<a class="headerlink" href="#issues-that-arose" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Fix the sosie make.macro command</li>
-<li>Queue accound is now n01-NOCL in runscript</li>
-<li>Perhaps need <em>ssh -Y archer before ssh -Y espp1/2</em> (Haven&#8217;t checked if it is required)</li>
 </ul>
-<p>Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef</span></code></p>
-<p>This worked <em>(22 Feb 2017)</em>. The notes here have been rehashed many times, with edits being made to the pynemo pages, which should be the default.</p>
+<p>Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef</span></code>
+Follow PyNEMO recipe for LBay on ARCHER (not complete because PyNEMO java issue): <code class="docutils literal"><span class="pre">http://nemo-reloc.readthedocs.io/en/latest/LBay.html</span></code>.
+Follow PyNEMO recipe for LBay on ARCHER/Livljobs4: <code class="docutils literal"><span class="pre">http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html</span></code>.</p>
 </div>
-<hr class="docutils" />
+<div class="section" id="summary-plan">
+<h2>Summary / Plan<a class="headerlink" href="#summary-plan" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>start with LBay using ORCHESTRA code base</li>
+<li>Check James&#8217; /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/</li>
+</ul>
+<p>configuration for suggested namelist options for a lighter tider run</p>
+<p>Or</p>
+<ul>
+<li><dl class="first docutils">
+<dt>Replicate ODA_E-AFRICA config:</dt>
+<dd><ol class="first last arabic simple">
+<li>copy namelists, execs, forcings. Test.</li>
+<li>generate execs. (James: trunk &#64; r7853 and XIOS2 &#64; r1080). Test.</li>
+</ol>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Extend domain in a new experiments: 1/12 degree</dt>
+<dd><ol class="first last arabic simple" start="3">
+<li>generate coords, forcings</li>
+</ol>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Update to ORCHESTRA code base</dt>
+<dd><ol class="first last arabic simple" start="4">
+<li>Later.</li>
+</ol>
+</dd>
+</dl>
+</li>
+</ul>
+<p>diff EA and LBay cpp keys.
+NB Tide only wont require all the T,S forcing fields.</p>
+</div>
 <div class="section" id="recipe-notes">
 <h2>Recipe Notes<a class="headerlink" href="#recipe-notes" title="Permalink to this headline">¶</a></h2>
+<p>Define working directory, and other useful shortcuts:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/ACCORD/
+export CDIR=$WDIR/ ?????   dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+export TDIR=$WDIR/ ?????   dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+</pre></div>
+</div>
+<p>Load modules:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">swap</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">cray</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">intel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+</pre></div>
+</div>
+<p>Make directory and copy stuff from James&#8217; simulation:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>mkdir $WDIR
+ln -s xios ...
+ln -s nemo.exe ...
+cp namelist_??? ...
+cp iodef.xml ...
+</pre></div>
+</div>
+<p>Either copy or link the forcings</p>
+<p>Edit the namelist_cfg for new path names.</p>
+</div>
+</div>
+<div class="section" id="old-notes-template">
+<h1>OLD NOTES TEMPLATE<a class="headerlink" href="#old-notes-template" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2>Recipe Notes<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>Define working directory, and other useful shortcuts:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/lighthousereef/
 export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
@@ -287,7 +351,7 @@ cp data/namelist.bdy $WDIR
 cd $WDIR
 </pre></div>
 </div>
-<p><strong>Also added</strong>  <a href="#id1"><span class="problematic" id="id2">``</span></a>export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
+<p><strong>Also added</strong>  <a href="#id2"><span class="problematic" id="id3">``</span></a>export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
 ``
 (Couldn&#8217;t get the path for the pynemo_ncml_generator to work!):</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>ssh -Y espp1
@@ -336,7 +400,12 @@ qsub -q short runscript
   <ul>
 <li><a class="reference internal" href="#">Setting up a SE Asia NEMO configuration</a><ul>
 <li><a class="reference internal" href="#issues-that-arose">Issues that arose</a></li>
-<li><a class="reference internal" href="#recipe-notes">Recipe Notes</a><ul>
+<li><a class="reference internal" href="#summary-plan">Summary / Plan</a></li>
+<li><a class="reference internal" href="#recipe-notes">Recipe Notes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#old-notes-template">OLD NOTES TEMPLATE</a><ul>
+<li><a class="reference internal" href="#id1">Recipe Notes</a><ul>
 <li><a class="reference internal" href="#fixed-symbolic-links-and-recompiled-xios-and-nemo-exe-with-same-modules">Fixed symbolic links and recompiled xios and nemo.exe with same modules</a></li>
 </ul>
 </li>
