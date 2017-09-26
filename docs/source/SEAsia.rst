@@ -8,15 +8,80 @@ Issues that arose
 =================
 
 * Fix the sosie make.macro command
-* Queue accound is now n01-NOCL in runscript
-* Perhaps need *ssh -Y archer before ssh -Y espp1/2* (Haven't checked if it is required)
-
 
 Follow PyNEMO recipe for Lighthouse Reef: ``http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef``
+Follow PyNEMO recipe for LBay on ARCHER (not complete because PyNEMO java issue): ``http://nemo-reloc.readthedocs.io/en/latest/LBay.html``.
+Follow PyNEMO recipe for LBay on ARCHER/Livljobs4: ``http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html``.
 
-This worked *(22 Feb 2017)*. The notes here have been rehashed many times, with edits being made to the pynemo pages, which should be the default.
 
-----
+Summary / Plan
+==============
+
+* start with LBay using ORCHESTRA code base
+* Check James' /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/
+configuration for suggested namelist options for a lighter tider run
+
+
+Or
+
+* Replicate ODA_E-AFRICA config:
+    1) copy namelists, execs, forcings. Test.
+    2) generate execs. (James: trunk @ r7853 and XIOS2 @ r1080). Test.
+
+* Extend domain in a new experiments: 1/12 degree
+    3) generate coords, forcings
+
+* Update to ORCHESTRA code base
+    4) Later.
+
+
+diff EA and LBay cpp keys.
+NB Tide only wont require all the T,S forcing fields.
+
+
+Recipe Notes
+============
+
+Define working directory, and other useful shortcuts::
+
+  export WDIR=/work/n01/n01/jelt/ACCORD/
+  export CDIR=$WDIR/ ?????   dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+  export TDIR=$WDIR/ ?????   dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+Load modules::
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+
+
+Make directory and copy stuff from James' simulation::
+
+  mkdir $WDIR
+  ln -s xios ...
+  ln -s nemo.exe ...
+  cp namelist_??? ...
+  cp iodef.xml ...
+
+Either copy or link the forcings
+
+Edit the namelist_cfg for new path names.
+
+
+
+
+
+
+
+
+
+
+
+
+==================
+OLD NOTES TEMPLATE
+==================
+
 
 Recipe Notes
 ============
