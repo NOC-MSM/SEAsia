@@ -1,6 +1,6 @@
-===================================================++=======
+============================================================
 Setting up a Liverpool Bay NEMO configuration, inc. livljob4
-===================================================++=======
+============================================================
 
 URL:: http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html
 
@@ -24,7 +24,8 @@ Other related recipes:
 Follow PyNEMO recipe for Lighthouse Reef: ``http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef``
 Follow PyNEMO recipe for Lighthouse Reef: ``http://nemo-reloc.readthedocs.io/en/latest/SEAsia.html``
 Follow PyNEMO recipe for LBay on ARCHER (not complete because PyNEMO java issue): ``http://nemo-reloc.readthedocs.io/en/latest/LBay.html``.
-(Perhaps this note is superceded by this one).
+(Perhaps this other note is superceded by this present one, though the other
+note includes information of using PyNEMO with different data sources).
 
 :note:
 
