@@ -69,7 +69,7 @@ Make directory and copy stuff from James' simulation::
   ln -s $JEXP/../../SHARED/namelist_ref $EXP/.
   cp $JEXP/iodef.xml $EXP/.
 
-  ln -s /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/BLD/bin/nemo.exe $EXP/opa
+  ln -s $JEXP/../BLD/bin/nemo.exe $EXP/opa
 
 Make xios or copy from James:
   ln -s ??? xios_server.exe
@@ -85,14 +85,46 @@ Implement make command::
 
   ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
 
-Link xios executable to the EXP directory
+Link xios executable to the EXP directory::
 
   ln -s  $WDIR/xios-2.0/bin/xios_server.exe $EXP/xios_server.exe
+
+
+Build NEMO trunk @ r7853::
+
+  cd $WDIR
+  svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@7853
+  #cp xios-2.0/arch/arch-XC30_ARCHER.* NEMOGCM/ARCH
+
+
+Copy compiler keys from James::
+  cd $WDIR/NEMOGCM/CONFIG
+  cp $JEXP/../cpp_* ACCORD/cpp_ACCORD.fcm
+
+On first make only choose OPA_SRC::
+
+  ./makenemo -n ACCORD -m XC_ARCHER_INTEL -j 10 clean
+  ./makenemo -n ACCORD -m XC_ARCHER_INTEL -j 10
+
+It might break if directory structure is built from makenemo. Then remove
+``key_lim2`` from cpp*fcm file and remake.
+
+
+**It doesn't compile.**
+
+
+
+
+
 ----
 
-Look at runscript::
+Look at runscript. Add module load commands::
 
   vi rs_12
+  ...
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
   ...
   echo `date` : Launch Job
   touch stdouterr
@@ -110,7 +142,10 @@ Look at runscript::
 
 ---
 
+Submit run::
 
+  cd $EXP
+  qsub rs_12
 
 
 
