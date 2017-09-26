@@ -44,7 +44,11 @@ Recipe Notes
 
 Define working directory, and other useful shortcuts::
 
-  export WDIR=/work/n01/n01/jelt/ACCORD/
+  export WDIR=/work/n01/n01/jelt/ACCORD
+  export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
+  export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
+  export EXP=$WDIR/EXP_EAFRICA
+
   export CDIR=$WDIR/ ?????   dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
   export TDIR=$WDIR/ ?????   dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
@@ -58,16 +62,53 @@ Load modules::
 Make directory and copy stuff from James' simulation::
 
   mkdir $WDIR
-  ln -s xios ...
-  ln -s nemo.exe ...
-  cp namelist_??? ...
-  cp iodef.xml ...
+  mkdir $WDIR/EXP_EAFRICA
 
-Either copy or link the forcings
+  cp $JEXP/rs_R12 $EXP/.             # run script
+  cp $JEXP/namelist_cfg_R12 $EXP/.   # copy namelist_cfg
+  ln -s $JEXP/../../SHARED/namelist_ref $EXP/.
+  cp $JEXP/iodef.xml $EXP/.
 
-Edit the namelist_cfg for new path names.
+  ln -s /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/BLD/bin/nemo.exe $EXP/opa
 
+Make xios or copy from James:
+  ln -s ??? xios_server.exe
 
+Build XIOS2 @ r1080::
+
+  cd $WDIR
+  svn co -r1080 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0
+  cd $WDIR/xios-2.0
+  cp ../../LBay/xios-1.0/arch/arch-XC30_ARCHER.* ./arch
+
+Implement make command::
+
+  ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
+
+Link xios executable to the EXP directory
+
+  ln -s  $WDIR/xios-2.0/bin/xios_server.exe $EXP/xios_server.exe
+----
+
+Look at runscript::
+
+  vi rs_12
+  ...
+  echo `date` : Launch Job
+  touch stdouterr
+  rm coordinates.bdy.nc
+  rm bdy_mask.nc
+  rm domain_cfg.nc
+  rm TIDES
+  ln -s $JINPUTS/R12/coordinates_E-AFRICA_R12.bdy.nc coordinates.bdy.nc
+  ln -s $JINPUTS/R12/bdy_mask_E-AFRICA_R12.nc bdy_mask.nc
+  ln -s $JINPUTS/R12/domain_cfg_R12.nc domain_cfg.nc
+  #ln -s $JINPUTS/R24/TIDES TIDES
+  ln -s $JINPUTS/R12/TIDES TIDES
+  cp namelist_cfg_R12 namelist_cfg
+  aprun -b -n $NEMOproc -N 24 ./opa   >&  stdouterr_nemo : -N 1 -n $XIOSproc ./xios_server.exe >&  stdouterr_xios
+
+---
 
 
 
