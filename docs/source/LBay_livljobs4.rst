@@ -156,8 +156,7 @@ Note, I used FERRET locally::
 
 
 Copy namelist file from LH_reef and edit with new indices, retaining use of
-ORCA_R12 as course
-parent grid::
+ORCA_R12 as course parent grid::
 
   cd $TDIR/GRIDGEN
   cp $INPUTS/namelist_R12 ./
@@ -1154,7 +1153,10 @@ Didn't work. Copy MY_SRC and compile flags from AMM60::
   cp /work/n01/n01/jelt/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/XIOS_AMM60_nemo_harmIT2/cpp_XIOS_AMM60_nemo_harmIT2.fcm cpp_LBay.fcm
 
 
-Fix some nc variables -- doesn't work because gdept is expected to be 3d, but it is only 1d. Otherwise it would probably work::
+Fix some nc variables -- doesn't work because gdept is expected to be 3d, but it
+is only 1d. Otherwise it would probably work. I think that this is probably
+because the parent grid was z-partial step whereas this run is trying to be sigma
+levels::
 
   export WDIR=/work/n01/n01/jelt/LBay/
   cd $WDIR/INPUTS
@@ -1177,3 +1179,6 @@ Recompile::
 Submit::
   cd $CDIR/LBay/EXP00
   qsub -q short runscript
+
+**ACTIONS** Can I create initial conditions with 3d depth grid?
+**ACTIONS** Create a 2D tide-only run
