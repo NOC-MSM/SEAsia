@@ -203,7 +203,7 @@ Conclusion. Plot the proposed domain::
 
 
 ---
-
+..
 
   module load ferret
   FERRET
@@ -215,24 +215,49 @@ Conclusion. Plot the proposed domain::
   #shade/i=3385:3392/j=2251:2266 NAV_LAT
   #shade/i=3385:3392/j=2251:2266 NAV_LON
 
-Copy namelist file from LH_reef and edit with new indices, retaining use of
-ORCA_R12 as course parent grid. (I changed a path somewhere so had to add .. to
-``cn_parent_coordinate_file`` path)::
+
+Copy namelist file from INPUTS and edit with new indices, retaining use of
+ORCA_R12 as course parent grid::
 
   cd $TDIR/GRIDGEN
   cp $INPUTS/namelist_R12 ./
   vi namelist_R12
   ...
-  cn_parent_coordinate_file = '../../../../../INPUTS/coordinates_ORCA_R12.nc'
+  cn_parent_coordinate_file = '../../../../INPUTS/coordinates_ORCA_R12.nc'
   ...
-  nn_imin = 3385
-  nn_imax = 3392
-  nn_jmin = 2251
-  nn_jmax = 2266
+  nn_imin = 50
+  nn_imax = 730
+  nn_jmin = 1250
+  nn_jmax = 1800
   nn_rhox  = 7
   nn_rhoy = 7
 
   ln -s namelist_R12 namelist.input
   ./create_coordinates.exe
 
-This generates ``1_coordinates_ORCA_R12.nc``
+This generates ``1_coordinates_ORCA_R12.nc``, but also produces an error
+
+.. warning::
+
+  ### END SUBROUTINE child_grid ###
+
+  forrtl: severe (173): A pointer passed to DEALLOCATE points to an object that cannot be deallocated
+  Image              PC                Routine            Line        Source
+  create_coordinate  0000000000427E59  Unknown               Unknown  Unknown
+  create_coordinate  000000000042178A  Unknown               Unknown  Unknown
+  create_coordinate  000000000040BE72  Unknown               Unknown  Unknown
+  create_coordinate  0000000000409BF6  Unknown               Unknown  Unknown
+  libc.so.6          00002AAAABFD8D1D  Unknown               Unknown  Unknown
+  create_coordinate  0000000000409AE9  Unknown               Unknown  Unknown
+  mobius-master1 GRIDGEN $
+
+
+I should probably be building these tools on livljobs servers.
+
+
+----
+
+Build tools on livljobs4
+========================
+
+   
