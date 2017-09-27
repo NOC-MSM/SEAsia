@@ -22,7 +22,7 @@ Define working and other directory, load relevent modules::
 
   export CONFIG=SEAsia
   export WDIR=/work/$USER/NEMO/$CONFIG
-	export INPUTS=/work/$USER/NEMO/INPUTS
+	export INPUTS=$WDIR/INPUTS
 	#export MOBIUS=/work/thopri/NEMO/Mobius
 	export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
 	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
@@ -46,6 +46,8 @@ CDIR, TDIR and INPUTS do not currently exist. Lets make them!::
       .. Jeff::
         ln -s /work/thopri/NEMO/INPUTS $INPUTS
 
+        cp /work/thopri/NEMO/J_INPUTS/*patch $INPUTS/.
+
 Checkout NEMO and XIOS paynote to revision number::
 
   cd $WDIR
@@ -55,7 +57,7 @@ Checkout NEMO and XIOS paynote to revision number::
 Need to get arch files. NB These point to jdha utils paths::
 
   cd $WDIR/xios-1.0
-  cp $WDIR/../ARCH/arch* ./arch
+  cp $INPUTS/arch* ./arch
 
 
 I think XIOS is needed to make NEMO run, which I need to generate mesh files.
@@ -78,7 +80,7 @@ Step two. Obtain and apply patches::
 	patch -b < $INPUTS/bdyini.patch
 	cd $CDIR
 	rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
-  cp $WDIR/../ARCH/1arch-mobius_intel.fcm $CDIR/../ARCH/arch-mobius_intel.fcm
+  cp $INPUTS/1arch-mobius_intel.fcm $CDIR/../ARCH/arch-mobius_intel.fcm
 
 Edit XIOS path in arch file::
 
@@ -100,18 +102,16 @@ Create / Edit new cpp keys file::
   echo "bld::tool::fppkeys   key_dynspg_ts key_ldfslp key_zdfgls key_vvl key_mpp_mpi key_netcdf4 key_nosignedzero key_iomput key_gen_IC key_bdy" > $CDIR/$CONFIG/cpp_$CONFIG.fcm
 
 
-Add a F90 file that handles initial conditions to MY_SRC. Not sure of a good place to store this. It originally came for James::
+Add a F90 file that handles initial conditions to MY_SRC::
 
-  cp /work/thopri/NEMO/INPUTS/dtatsd.F90 $CDIR/$CONFIG/MY_SRC/
+  cp $INPUTS/dtatsd.F90 $CDIR/$CONFIG/MY_SRC/
 
 Compile NEMO::
 
 	./makenemo -n $CONFIG -m mobius_intel -j 10
-**HERE** did it work?
 
 ++++++++++
 
-New dawn new day and I am carrying on with Jeff's recipe.
 
 To generate bathymetry, initial conditions and grid information we first need
 to compile some of the NEMO TOOLS (after a small bugfix - and to allow direct
