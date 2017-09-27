@@ -12,7 +12,9 @@ Recipe Notes
 27/09/2017
 ++++++++++
 
-Working within Mobius
+Working on Mobius::
+
+  ssh mobius
 
 Step One:-
 
@@ -21,7 +23,7 @@ Define working and other directory, load relevent modules::
   export CONFIG=SEAsia
   export WDIR=/work/$USER/NEMO/$CONFIG
 	export INPUTS=/work/$USER/NEMO/INPUTS
-	export MOBIUS=/work/thopri/NEMO/Mobius
+	#export MOBIUS=/work/thopri/NEMO/Mobius
 	export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
 	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
@@ -30,15 +32,19 @@ Define working and other directory, load relevent modules::
 
 CDIR, TDIR and INPUTS do not currently exist. Lets make them!::
 
-.. Tom::
+  mkdir $WDIR
+  mkdir $INPUTS
 
-  cd $WDIR
-  cp $INPUTS/INPUTS.tar.gz $WDIR
-  tar xvfz INPUTS.tar.gz
-  rm INPUTS.tar.gz
+..
+      .. Tom::
 
-.. Jeff::
-  ln -s /work/thopri/NEMO/INPUTS $INPUTS
+        cd $WDIR
+        cp $INPUTS/INPUTS.tar.gz $WDIR
+        tar xvfz INPUTS.tar.gz
+        rm INPUTS.tar.gz
+
+      .. Jeff::
+        ln -s /work/thopri/NEMO/INPUTS $INPUTS
 
 Checkout NEMO and XIOS paynote to revision number::
 
@@ -46,26 +52,20 @@ Checkout NEMO and XIOS paynote to revision number::
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2014/dev_r4621_NOC4_BDY_VERT_INTERP@5709
   svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
 
-Need to get arch files from Ash's files::
+Need to get arch files. NB These point to jdha utils paths::
 
   cd $WDIR/xios-1.0
-  cp $MOBIUS/arch* ./arch
-
-Compile XIOS::
-
- 	./make_xios --full --prod --arch mobius_intel  --netcdf_lib netcdf4_par --jobs 6
+  cp $WDIR/../ARCH/arch* ./arch
 
 
-.. comment::
+.. Do I need this?
 
-  I notice that you have two versions of XIOS:
-  livljobs4 ARCH $ ls -l  /work/thopri/NEMO/Solo/xios-1.0/bin/xios_server.exe
--rwxr-xr-x 1 thopri pol 11818229 Sep 26 14:38 /work/thopri/NEMO/Solo/xios-1.0/bin/xios_server.exe
-livljobs4 ARCH $ ls -l  /work/thopri/NEMO/Mobius/xios-1.0/bin/xios_server.exe
--rwxr-xr-x 1 thopri pol 11852488 Sep 26 09:35 /work/thopri/NEMO/Mobius/xios-1.0/bin/xios_server.exe
+      Compile XIOS::
 
-  And that your $CDIR/../ARCH/arch-mobius_intel.fcm files points to the older one (in NEMO/Mobius)
-  I am just building one. In Solo/.
+       	./make_xios --full --prod --arch mobius_intel  --netcdf_lib netcdf4_par --jobs 6
+
+
+
 
 Step two. Obtain and apply patches::
 
@@ -79,8 +79,15 @@ Step two. Obtain and apply patches::
 	patch -b < $INPUTS/bdyini.patch
 	cd $CDIR
 	rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
-  #cp $INPUTS/arch-* ../ARCH   # You don't want this. You want the mobius file from Ash::
-  cp /scratch/ashbre/NEMO_xios/1arch-mobius_intel.fcm $CDIR/../ARCH/arch-mobius_intel.fcm
+  cp $WDIR/../ARCH/1arch-mobius_intel.fcm $CDIR/../ARCH/arch-mobius_intel.fcm
+
+Edit path in arch file::
+
+  vi $CDIR/../ARCH/arch-mobius_intel.fcm
+  ...
+  %XIOS_HOME           /work/jelt/NEMO/SEAsia/xios-1.0
+  ...
+
 
 25/09/2017
 +++++++++++
@@ -89,11 +96,17 @@ Ok have got input.gz from Jeff. Will copy into INPUTS directory then untar (is t
 
 **Patches applied successfully!**
 
-Copy some input files to new configuration path::
+Create new config. Select only OPA_SRC option::
 
-  ./makenemo -n Solo -m mobius_intel -j 10 clean
+  ./makenemo -n $CONFIG -m mobius_intel -j 10 clean
 
-  cp $INPUTS/cpp_LH_REEF.fcm $CDIR/Solo/cpp_Solo.fcm
+Create / Edit new cpp keys file::
+
+  echo "bld::tool::fppkeys   key_dynspg_ts key_ldfslp key_zdfgls key_vvl key_mpp_mpi key_netcdf4 key_nosignedzero key_iomput key_gen_IC key_bdy" > $CDIR/$CONFIG/cpp_$CONFIG.fcm
+
+
+**GOT HERE**
+
   cp $INPUTS/dtatsd.F90 $CDIR/Solo/MY_SRC/
 
 Compile NEMO::
