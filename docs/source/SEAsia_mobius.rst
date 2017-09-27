@@ -58,11 +58,10 @@ Need to get arch files. NB These point to jdha utils paths::
   cp $WDIR/../ARCH/arch* ./arch
 
 
-.. Do I need this?
+I think XIOS is needed to make NEMO run, which I need to generate mesh files.
+Compile XIOS::
 
-      Compile XIOS::
-
-       	./make_xios --full --prod --arch mobius_intel  --netcdf_lib netcdf4_par --jobs 6
+  ./make_xios --full --prod --arch mobius_intel  --netcdf_lib netcdf4_par --jobs 6
 
 
 
@@ -81,7 +80,7 @@ Step two. Obtain and apply patches::
 	rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
   cp $WDIR/../ARCH/1arch-mobius_intel.fcm $CDIR/../ARCH/arch-mobius_intel.fcm
 
-Edit path in arch file::
+Edit XIOS path in arch file::
 
   vi $CDIR/../ARCH/arch-mobius_intel.fcm
   ...
@@ -89,12 +88,8 @@ Edit path in arch file::
   ...
 
 
-25/09/2017
-+++++++++++
-
-Ok have got input.gz from Jeff. Will copy into INPUTS directory then untar (is that a word?) and remove tar file. Have ammended recipe from last week to account for new INPUTS file. So will now try and apply patches.
-
-**Patches applied successfully!**
+blind bake a fresh config
++++++++++++++++++++++++++
 
 Create new config. Select only OPA_SRC option::
 
@@ -105,22 +100,15 @@ Create / Edit new cpp keys file::
   echo "bld::tool::fppkeys   key_dynspg_ts key_ldfslp key_zdfgls key_vvl key_mpp_mpi key_netcdf4 key_nosignedzero key_iomput key_gen_IC key_bdy" > $CDIR/$CONFIG/cpp_$CONFIG.fcm
 
 
-**GOT HERE**
+Add a F90 file that handles initial conditions to MY_SRC. Not sure of a good place to store this. It originally came for James::
 
-  cp $INPUTS/dtatsd.F90 $CDIR/Solo/MY_SRC/
+  cp /work/thopri/NEMO/INPUTS/dtatsd.F90 $CDIR/$CONFIG/MY_SRC/
 
 Compile NEMO::
 
-	./makenemo -n Solo -m mobius_intel -j 10
+	./makenemo -n $CONFIG -m mobius_intel -j 10
+**HERE** did it work?
 
-
-26/09/2017
-+++++++++++
-
-Not a day I want to relive
-
-
-27/09/2017
 ++++++++++
 
 New dawn new day and I am carrying on with Jeff's recipe.
