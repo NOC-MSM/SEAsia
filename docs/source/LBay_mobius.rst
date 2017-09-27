@@ -21,18 +21,23 @@ Define working and other directory, load relevent modules::
 
 	module purge
 	module load shared intel/compiler/64/14.0/2013_sp1.3.174 mvapich2/intel/64/2.0b slurm/14.03.0 cluster-tools/7.0
-	export WDIR=/work/thopri/NEMO/Solo
-	export INPUTS=/work/thopri/NEMO/INPUTS
+  export WDIR=/work/$USER/NEMO/Solo
+	export INPUTS=/work/$USER/NEMO/INPUTS
 	export MOBIUS=/work/thopri/NEMO/Mobius
 	export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
 	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
 CDIR, TDIR and INPUTS do not currently exist. Lets make them!::
 
+.. Tom::
+
   cd $WDIR
-  cp $INPUTS/INPUTS.tar.gz $WDIRls
+  cp $INPUTS/INPUTS.tar.gz $WDIR
   tar xvfz INPUTS.tar.gz
   rm INPUTS.tar.gz
+
+.. Jeff::
+  ln -s /work/thopri/NEMO/INPUTS $INPUTS
 
 Checkout NEMO and XIOS paynote to revision number::
 
@@ -45,9 +50,21 @@ Need to get arch files from Ash's files::
   cd $WDIR/xios-1.0
   cp $MOBIUS/arch* ./arch
 
-  Compile XIOS::
+Compile XIOS::
 
  	./make_xios --full --prod --arch mobius_intel  --netcdf_lib netcdf4_par --jobs 6
+
+
+.. comment::
+
+  I notice that you have two versions of XIOS:
+  livljobs4 ARCH $ ls -l  /work/thopri/NEMO/Solo/xios-1.0/bin/xios_server.exe
+-rwxr-xr-x 1 thopri pol 11818229 Sep 26 14:38 /work/thopri/NEMO/Solo/xios-1.0/bin/xios_server.exe
+livljobs4 ARCH $ ls -l  /work/thopri/NEMO/Mobius/xios-1.0/bin/xios_server.exe
+-rwxr-xr-x 1 thopri pol 11852488 Sep 26 09:35 /work/thopri/NEMO/Mobius/xios-1.0/bin/xios_server.exe
+
+  And that your $CDIR/../ARCH/arch-mobius_intel.fcm files points to the older one (in NEMO/Mobius)
+  I am just building one. In Solo/.
 
 Step two. Obtain and apply patches::
 
@@ -61,7 +78,8 @@ Step two. Obtain and apply patches::
 	patch -b < $INPUTS/bdyini.patch
 	cd $CDIR
 	rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
-	cp $INPUTS/arch-* ../ARCH
+  #cp $INPUTS/arch-* ../ARCH   # You don't want this. You want the mobius file from Ash::
+  cp /scratch/ashbre/NEMO_xios/1arch-mobius_intel.fcm $CDIR/../ARCH/arch-mobius_intel.fcm
 
 25/09/2017
 +++++++++++
@@ -72,12 +90,15 @@ Ok have got input.gz from Jeff. Will copy into INPUTS directory then untar (is t
 
 Copy some input files to new configuration path::
 
-  cp $INPUTS/cpp_LH_REEF.fcm ./Solo/cpp_Solo.fcm
-  cp $INPUTS/dtatsd.F90 LBay/MY_SRC/
+  ./makenemo -n Solo -m mobius_intel -j 10 clean
+
+  cp $INPUTS/cpp_LH_REEF.fcm $CDIR/Solo/cpp_Solo.fcm
+  cp $INPUTS/dtatsd.F90 $CDIR/Solo/MY_SRC/
 
 Compile NEMO::
 
-	./makenemo -n Solo -m mobius_intel -j 10 del_key 'key_lim2'
+	./makenemo -n Solo -m mobius_intel -j 10
+
 
 26/09/2017
 +++++++++++
@@ -121,7 +142,7 @@ resolution grid elements.
 First we need to figure out the indices for the new domain, from the parent grid.
 Move parent grid into INPUTS::
 
-  cp $INPUTS/coordinates_ORCA_R12.nc $WDIR/INPUTS/.
+  #cp $INPUTS/coordinates_ORCA_R12.nc $WDIR/INPUTS/. # Doesn't work for me. As same directory
 
 Inspect this parent coordinates file to define the boundary indices for the new config.
 
@@ -134,14 +155,14 @@ Note, I used FERRET on Livljobs4::
   shade/i=3385:3392/j=2251:2266 NAV_LON
 
 Copy namelist file from LH_reef and edit with new indices, retaining use of
-ORCA_R12 as course
-parent grid::
+ORCA_R12 as course parent grid. (I changed a path somewhere so had to add .. to
+``cn_parent_coordinate_file`` path)::
 
   cd $TDIR/GRIDGEN
   cp $INPUTS/namelist_R12 ./
   vi namelist_R12
   ...
-  cn_parent_coordinate_file = '../../../../INPUTS/coordinates_ORCA_R12.nc'
+  cn_parent_coordinate_file = '../../../../../INPUTS/coordinates_ORCA_R12.nc'
   ...
   nn_imin = 3385
   nn_imax = 3392
