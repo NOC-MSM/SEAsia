@@ -115,21 +115,36 @@ To generate bathymetry, initial conditions and grid information we first need
 to compile some of the NEMO TOOLS (after a small bugfix - and to allow direct
 passing of arguments). For some reason GRIDGEN doesn’t like INTEL::
 
-  cd $WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/WEIGHTS/src
+  ssh livljobs4
+
+Copy PATHS again::
+
+	export WDIR=/work/$USER/NEMO/Solo
+	export INPUTS=/work/$USER/NEMO/INPUTS
+	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+Apply patches::
+
+	cd $TDIR/WEIGHTS/src
   patch -b < $INPUTS/scripinterp_mod.patch
   patch -b < $INPUTS/scripinterp.patch
   patch -b < $INPUTS/scrip.patch
   patch -b < $INPUTS/scripshape.patch
   patch -b < $INPUTS/scripgrid.patch
 
-  cd ../../
-  ./maketools -n WEIGHTS -m mobius_intel
-  ./maketools -n REBUILD_NEMO -m mobius_intel
+Setup for PGI modules and compile::
 
-  module load netcdf hdf5
-  ./maketools -n GRIDGEN -m mobius_intel
+  cd $TDIR
+	cp /work/jelt/NEMO/SEAsia/INPUTS/arch-pgf90_linux_jb.fcm $TDIR/../ARCH/arch-pgf90_linux_jb.fcm
 
-Need to take a more structured approach to setting up this new configuration
+	module add netcdf/gcc/4.1.3
+	module add pgi/15.4
+
+  ./maketools -n WEIGHTS -m pgf90_linux_jb
+  ./maketools -n REBUILD_NEMO -m pgf90_linux_jb
+  ./maketools -n GRIDGEN -m pgf90_linux_jb
+
+Next we use these tools.
 
 1. Generate new coordinates file
 ++++++++++++++++++++++++++++++++
