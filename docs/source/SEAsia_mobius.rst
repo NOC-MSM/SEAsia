@@ -221,17 +221,6 @@ Use indices  **i=50:730 j=1250:1800**
 
 
 ---
-..
-
-  module load ferret
-  FERRET
-  use coordinates_ORCA_R12.nc
-  shade/i=50:730/j=1250:1800 NAV_LAT
-  shade/i=50:730/j=1250:1800 NAV_LON
-
-
-  #shade/i=3385:3392/j=2251:2266 NAV_LAT
-  #shade/i=3385:3392/j=2251:2266 NAV_LON
 
 
 Copy namelist file from INPUTS and edit with new indices, retaining use of

@@ -2,6 +2,9 @@
 LBay practise prior to Setting up a Solomon Islands and Fiji NEMO configuration
 ================================================================================
 
+*(27 Sept 2017)*: Jeff put this on note on GitLab to help debug Tom's process.
+**It should be deleted or developed.**
+
 * Build notes on creating 2D/3D tide model covering the Solomon Islands and Fiji.
 * Geographical extent is currently 140 degrees W to 185 degrees W and 0 degrees to 30 degrees S
 * Following Jeff's Recipe notes for Liverpool Bay and Examples on pynemo website.
