@@ -192,4 +192,11 @@ ORCA_R12 as course parent grid. (I changed a path somewhere so had to add .. to
   ln -s namelist_R12 namelist.input
   ./create_coordinates.exe
 
-This generates ``1_coordinates_ORCA_R12.nc``
+This generates ``1_coordinates_ORCA_R12.nc``.
+
+
+THe next step is to copy this file into INPUTS. This is probably a bad idea as it
+confuses INPUTS required to build the configuration and INPUTS required to run
+the configuration. I propose that these are separated.
+Ideally create a new directory called START_FILES for all the patch files and parent grid data.
+Keep INPUTS for all the stuff that gets generated and is specific to the new config.
