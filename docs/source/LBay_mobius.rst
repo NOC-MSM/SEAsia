@@ -1,5 +1,5 @@
 ================================================================================
-LBAY practise prior to Setting up a Solomon Islands and Fiji NEMO configuration
+LBay practise prior to Setting up a Solomon Islands and Fiji NEMO configuration
 ================================================================================
 
 * Build notes on creating 2D/3D tide model covering the Solomon Islands and Fiji.
