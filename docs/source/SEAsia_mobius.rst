@@ -2,7 +2,7 @@
 Grid generation and inputs files using Liverpool machine. Application SE Asia
 =============================================================================
 
-* Port of LBay.rst that was written for ARCHER
+* Port of LBay.rst, which was written for ARCHER. This is for liverpool machines
 * Concerned here with generating grids, bathymetry and forcing files for a new config
 * Aim is to run this anywhere (ARCHER), but generate setup locally.
 
@@ -21,8 +21,9 @@ Define working and other directory, load relevent modules::
 
   export CONFIG=SEAsia
   export WDIR=/work/$USER/NEMO/$CONFIG
-	export INPUTS=$WDIR/INPUTS
-	export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+  export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
+	export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
+  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
 	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
   module purge
@@ -31,20 +32,20 @@ Define working and other directory, load relevent modules::
 CDIR, TDIR and INPUTS do not currently exist. Lets make them!::
 
   mkdir $WDIR
-  mkdir $INPUTS
+  mkdir $START_FILES
 
 ..
       .. Tom::
 
         cd $WDIR
-        cp $INPUTS/INPUTS.tar.gz $WDIR
+        cp $START_FILES/INPUTS.tar.gz $WDIR
         tar xvfz INPUTS.tar.gz
         rm INPUTS.tar.gz
 
       .. Jeff::
-        ln -s /work/thopri/NEMO/INPUTS $INPUTS
+        ln -s /work/thopri/NEMO/INPUTS $START_FILES
 
-        cp /work/thopri/NEMO/J_INPUTS/*patch $INPUTS/.
+        cp /work/thopri/NEMO/J_INPUTS/*patch $START_FILES/.
 
 Checkout NEMO and XIOS paynote to revision number::
 
@@ -55,7 +56,7 @@ Checkout NEMO and XIOS paynote to revision number::
 Need to get arch files. NB These point to jdha utils paths::
 
   cd $WDIR/xios-1.0
-  cp $INPUTS/arch* ./arch
+  cp $START_FILES/arch* ./arch
 
 
 I think XIOS is needed to make NEMO run, which I need to generate mesh files.
@@ -71,14 +72,14 @@ Step two. Obtain and apply patches::
 	export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
 	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 	cd $CDIR/../NEMO/OPA_SRC/SBC
-	patch -b < $INPUTS/fldread.patch
+	patch -b < $START_FILES/fldread.patch
 	cd ../DOM
-	patch -b < $INPUTS/dommsk.patch
+	patch -b < $START_FILES/dommsk.patch
 	cd ../BDY
-	patch -b < $INPUTS/bdyini.patch
+	patch -b < $START_FILES/bdyini.patch
 	cd $CDIR
 	rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
-  cp $INPUTS/1arch-mobius_intel.fcm $CDIR/../ARCH/arch-mobius_intel.fcm
+  cp $START_FILES/1arch-mobius_intel.fcm $CDIR/../ARCH/arch-mobius_intel.fcm
 
 Edit XIOS path in arch file::
 
@@ -102,7 +103,7 @@ Create / Edit new cpp keys file::
 
 Add a F90 file that handles initial conditions to MY_SRC::
 
-  cp $INPUTS/dtatsd.F90 $CDIR/$CONFIG/MY_SRC/
+  cp $START_FILES/dtatsd.F90 $CDIR/$CONFIG/MY_SRC/
 
 Compile NEMO::
 
@@ -128,16 +129,16 @@ Copy PATHS again::
 Apply patches::
 
   cd $TDIR/WEIGHTS/src
-  patch -b < $INPUTS/scripinterp_mod.patch
-  patch -b < $INPUTS/scripinterp.patch
-  patch -b < $INPUTS/scrip.patch
-  patch -b < $INPUTS/scripshape.patch
-  patch -b < $INPUTS/scripgrid.patch
+  patch -b < $START_FILES/scripinterp_mod.patch
+  patch -b < $START_FILES/scripinterp.patch
+  patch -b < $START_FILES/scrip.patch
+  patch -b < $START_FILES/scripshape.patch
+  patch -b < $START_FILES/scripgrid.patch
 
 Setup for PGI modules and compile::
 
   cd $TDIR
-  cp $INPUTS/arch-pgf90_linux_jb.fcm $CDIR/../ARCH/arch-pgf90_linux_jb.fcm
+  cp $START_FILES/arch-pgf90_linux_jb.fcm $CDIR/../ARCH/arch-pgf90_linux_jb.fcm
 
   module add netcdf/gcc/4.1.3
   module add pgi/15.4
@@ -160,7 +161,7 @@ resolution grid elements.
 First we need to figure out the indices for the new domain, from the parent grid.
 It is from global NEMO 1/12, and in INPUTS::
 
-  ls -lh $INPUTS/coordinates_ORCA_R12.nc
+  ls -lh $START_FILES/coordinates_ORCA_R12.nc
 
 Inspect this parent coordinates file to define the boundary indices for the new config.
 
@@ -224,10 +225,10 @@ Use indices  **i=50:730 j=1250:1800**
 
 
 Copy namelist file from INPUTS and edit with new indices, retaining use of
-ORCA_R12 as course parent grid::
+ORCA_R12 as course parent grid. (Still on livljobs4)::
 
   cd $TDIR/GRIDGEN
-  cp $INPUTS/namelist_R12 ./
+  cp $START_FILES/namelist_R12 ./
   vi namelist_R12
   ...
   cn_parent_coordinate_file = '../../../../INPUTS/coordinates_ORCA_R12.nc'
@@ -243,7 +244,131 @@ ORCA_R12 as course parent grid::
   ./create_coordinates.exe
 
 This generates ``1_coordinates_ORCA_R12.nc``,
-I should probably be building these tools on livljobs servers.
 
+Make a new directory to collect built items.
+Move this coords file there as ``coordinates.nc::
+
+  mkdir $WDIR/INPUTS
+  mv 1_coordinates_ORCA_R12.nc $WDIR/INPUTS/coordinates.nc
+
+File summary::
+
+  ncdump -h $WDIR/INPUTS/coordinates.nc
+  netcdf coordinates {
+  dimensions:
+   x = 4768 ;
+   y = 3858 ;
+   z = 1 ;
+   time = UNLIMITED ; // (1 currently)
+  variables:
+   float nav_lon(y, x) ;
+     nav_lon:units = "degrees_east" ;
+     nav_lon:valid_min = 76.9642f ;
+     nav_lon:valid_max = 133.7143f ;
+     nav_lon:long_name = "Longitude" ;
+   float nav_lat(y, x) ;
+     nav_lat:units = "degrees_north" ;
+     nav_lat:valid_min = -20.03138f ;
+     nav_lat:valid_max = 24.65656f ;
+     nav_lat:long_name = "Latitude" ;
+   float nav_lev(z) ;
+   float time(time) ;
+   int time_steps(time) ;
+   double glamt(z, y, x) ;
+   double glamu(z, y, x) ;
+   double glamv(z, y, x) ;
+   double glamf(z, y, x) ;
+   double gphit(z, y, x) ;
+   double gphiu(z, y, x) ;
+   double gphiv(z, y, x) ;
+   double gphif(z, y, x) ;
+   double e1t(z, y, x) ;
+   double e1u(z, y, x) ;
+   double e1v(z, y, x) ;
+   double e1f(z, y, x) ;
+   double e2t(z, y, x) ;
+  }
+
+
+Now we need to generate a bathymetry on this new grid.
 
 ----
+
+2. Generate bathymetry file
++++++++++++++++++++++++++++
+
+Download some GEBCO 2014 data (75E,-21N,134E,25N) and copy to $INPUTS::
+
+..  scp ~/Downloads/RN-5922_1488296787410/GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/.
+
+Copy namelist for reshaping GEBCO data::
+
+  cp $START_FILES/namelist_reshape_bilin_gebco $WDIR/INPUTS/.
+
+Edit namelist to point to correct input file. Edit lat and lon variable names to
+ make sure they match the nc file content (used e.g.
+``ncdump -h GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc`` to get input
+variable names)::
+
+  vi $WDIR/INPUTS/namelist_reshape_bilin_gebco
+  ...
+  &grid_inputs
+    input_file = 'gebco_in.nc'
+    nemo_file = 'coordinates.nc'
+    ...
+    input_lon = 'lon'
+    input_lat = 'lat'
+    nemo_lon = 'glamt'
+    nemo_lat = 'gphit'
+    ...
+
+    &interp_inputs
+    input_file = "gebco_in.nc"
+    ...
+    input_name = "elevation"
+
+
+Do some things to 1) flatten out land elevations, 2) make depths positive. *(James
+noted a problem with the default nco module)*::
+
+  cd $WDIR/INPUTS
+  module load nco/4.5.0
+  ncap2 -s 'where(elevation > 0) elevation=0' GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc tmp.nc
+  ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
+  rm tmp.nc
+
+
+Restore the original parallel modules, which were removed to fix tool building issue::
+
+  module unload nco cray-netcdf cray-hdf5
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+Execute first scrip thing::
+
+  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
+
+Output files::
+
+  remap_nemo_grid_gebco.nc
+  remap_data_grid_gebco.nc
+
+Execute second scip thing::
+
+  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
+
+Output files::
+
+  data_nemo_bilin_gebco.nc
+
+Execute third scip thing::
+
+  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
+
+Output files::
+
+  bathy_meter.nc
+
+
+
+3. Generate initial conditions
+++++++++++++++++++++++++++++++
