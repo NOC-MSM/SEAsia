@@ -298,18 +298,18 @@ Now we need to generate a bathymetry on this new grid.
 
 Download some GEBCO 2014 data (75E,-21N,134E,25N) and copy to $INPUTS::
 
-..  scp ~/Downloads/RN-5922_1488296787410/GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/.
+ livmaf$ scp ~/Downloads/RN-9621_1506544326915/GEBCO_2014_2D_75.0_-21.0_134.0_25.0.nc jelt@livljobs4.nerc-liv.ac.uk:$INPUTS/GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc
 
 Copy namelist for reshaping GEBCO data::
 
-  cp $START_FILES/namelist_reshape_bilin_gebco $WDIR/INPUTS/.
+  cp $START_FILES/namelist_reshape_bilin_gebco $INPUTS/.
 
 Edit namelist to point to correct input file. Edit lat and lon variable names to
  make sure they match the nc file content (used e.g.
-``ncdump -h GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc`` to get input
+``ncdump -h gebco_in.nc`` to get input
 variable names)::
 
-  vi $WDIR/INPUTS/namelist_reshape_bilin_gebco
+  vi $INPUTS/namelist_reshape_bilin_gebco
   ...
   &grid_inputs
     input_file = 'gebco_in.nc'
@@ -330,17 +330,17 @@ variable names)::
 Do some things to 1) flatten out land elevations, 2) make depths positive. *(James
 noted a problem with the default nco module)*::
 
-  cd $WDIR/INPUTS
-  module load nco/4.5.0
-  ncap2 -s 'where(elevation > 0) elevation=0' GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc tmp.nc
+  cd $INPUTS
+  module load nco/gcc/4.4.2.ncwa
+  ncap2 -s 'where(elevation > 0) elevation=0' GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc tmp.nc
   ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
   rm tmp.nc
 
-
 Restore the original parallel modules, which were removed to fix tool building issue::
 
-  module unload nco cray-netcdf cray-hdf5
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module purge
+  module add netcdf/gcc/4.1.3
+  module add pgi/15.4
 
 Execute first scrip thing::
 
@@ -371,3 +371,12 @@ Output files::
 
 3. Generate initial conditions
 ++++++++++++++++++++++++++++++
+
+
+
+
+
+
+
+
+**AT END OF PROCESS NEED TO BUILD A start_files.tar BALL**
