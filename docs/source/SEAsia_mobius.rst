@@ -9,10 +9,9 @@ Grid generation and inputs files using Liverpool machine. Application SE Asia
 Recipe Notes
 ============
 
-27/09/2017
-++++++++++
+*(27/09/2017)*
 
-Working on Mobius::
+Build NEMO on Mobius::
 
   ssh mobius
 
@@ -23,7 +22,6 @@ Define working and other directory, load relevent modules::
   export CONFIG=SEAsia
   export WDIR=/work/$USER/NEMO/$CONFIG
 	export INPUTS=$WDIR/INPUTS
-	#export MOBIUS=/work/thopri/NEMO/Mobius
 	export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
 	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
@@ -111,28 +109,45 @@ Compile NEMO::
 	./makenemo -n $CONFIG -m mobius_intel -j 10
 
 
-Build tools
-+++++++++++
+Build tools on livljobs4
+========================
 
 To generate bathymetry, initial conditions and grid information we first need
 to compile some of the NEMO TOOLS (after a small bugfix - and to allow direct
-passing of arguments). For some reason GRIDGEN doesn’t like INTEL::
+passing of arguments). **For some reason GRIDGEN doesn’t like INTEL.**
+**Do this on livljobs4**::
 
-  cd $WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/WEIGHTS/src
+  ssh livljobs4
+
+Copy PATHS again::
+
+	export WDIR=/work/$USER/NEMO/Solo
+	export INPUTS=/work/$USER/NEMO/INPUTS
+	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+Apply patches::
+
+  cd $TDIR/WEIGHTS/src
   patch -b < $INPUTS/scripinterp_mod.patch
   patch -b < $INPUTS/scripinterp.patch
   patch -b < $INPUTS/scrip.patch
   patch -b < $INPUTS/scripshape.patch
   patch -b < $INPUTS/scripgrid.patch
 
-  cd ../../
-  ./maketools -n WEIGHTS -m mobius_intel
-  ./maketools -n REBUILD_NEMO -m mobius_intel
+Setup for PGI modules and compile::
 
-  module load netcdf hdf5
-  ./maketools -n GRIDGEN -m mobius_intel
+  cd $TDIR
+  cp $INPUTS/arch-pgf90_linux_jb.fcm $CDIR/../ARCH/arch-pgf90_linux_jb.fcm
 
-Need to take a more structured approach to setting up this new configuration
+  module add netcdf/gcc/4.1.3
+  module add pgi/15.4
+
+  ./maketools -n WEIGHTS -m pgf90_linux_jb
+  ./maketools -n REBUILD_NEMO -m pgf90_linux_jb
+  ./maketools -n GRIDGEN -m pgf90_linux_jb
+
+Next we use these tools.
+
 
 1. Generate new coordinates file
 ++++++++++++++++++++++++++++++++
@@ -163,6 +178,7 @@ Inspect TPXO harmonic amplitudes to find a good cut off location for boundaries:
   go plot_SEAsia_harmonics.jnl
 
 ... note::
+
   ! plot_SEAsia_harmonics.jnl
   ! Plot tpxo harmonics for the SE Asia region.
   ! Want to build a NEMO config without significant amphidromes on the boundary
@@ -200,6 +216,8 @@ Conclusion. Plot the proposed domain::
   set win 2; set viewport upper; shade/i=50:730/j=1250:1800 NAV_LAT
   set win 2; set viewport lower; shade/i=50:730/j=1250:1800 NAV_LON
 
+Use indices  **i=50:730 j=1250:1800**
+
 
 
 ---
@@ -235,29 +253,8 @@ ORCA_R12 as course parent grid::
   ln -s namelist_R12 namelist.input
   ./create_coordinates.exe
 
-This generates ``1_coordinates_ORCA_R12.nc``, but also produces an error
-
-.. warning::
-
-  ### END SUBROUTINE child_grid ###
-
-  forrtl: severe (173): A pointer passed to DEALLOCATE points to an object that cannot be deallocated
-  Image              PC                Routine            Line        Source
-  create_coordinate  0000000000427E59  Unknown               Unknown  Unknown
-  create_coordinate  000000000042178A  Unknown               Unknown  Unknown
-  create_coordinate  000000000040BE72  Unknown               Unknown  Unknown
-  create_coordinate  0000000000409BF6  Unknown               Unknown  Unknown
-  libc.so.6          00002AAAABFD8D1D  Unknown               Unknown  Unknown
-  create_coordinate  0000000000409AE9  Unknown               Unknown  Unknown
-  mobius-master1 GRIDGEN $
-
-
+This generates ``1_coordinates_ORCA_R12.nc``,
 I should probably be building these tools on livljobs servers.
 
 
 ----
-
-Build tools on livljobs4
-========================
-
-   
