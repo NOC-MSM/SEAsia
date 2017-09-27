@@ -59,6 +59,8 @@ Load modules::
   module load cray-hdf5-parallel
 
 
+
+
 Make directory and copy stuff from James' simulation::
 
   mkdir $WDIR
@@ -149,10 +151,66 @@ Submit run::
 
 
 
+----
+
+*(27 Sept 2017)*
+
+Build the new SE Asia configuration at 1/12 degree, R12
+=======================================================
+
+Generate new coordinates file
+=============================
+
+Inspect TPXO harmonic amplitudes to find a good cut off location for boundaries:
+
+cd /work/jelt/tpxo7.2
+ferret
+go  plot_SEAsia_harmonics.jnl
+
+... note::
+  ! plot_SEAsia_harmonics.jnl
+  ! Plot tpxo harmonics for the SE Asia region.
+  ! Want to build a NEMO config without significant amphidromes on the boundary
+
+  use h_tpxo7.2.nc
+
+  set win 1
+  set viewport ul
+  shade/k=1/j=300:700/i=250:500/levels=(0,1,0.1)/title="M2" HA, lon_z, lat_z; go fland
+  set viewport ur
+  shade/k=2/j=300:700/i=250:500/levels=(0,1,0.1)/title="S2" HA, lon_z, lat_z; go fland
+  set viewport ll
+  shade/k=3/j=300:700/i=250:500/levels=(0,1,0.1)/title="N2" HA, lon_z, lat_z; go fland
+  set viewport lr
+  shade/k=4/j=300:700/i=250:500/levels=(0,1,0.1)/title="K2" HA, lon_z, lat_z; go fland
+
+  set win 2
+  set viewport ul
+  shade/k=5/j=300:700/i=250:500/levels=(0,1,0.1)/title="K1" HA, lon_z, lat_z; go fland
+  set viewport ur
+  shade/k=6/j=300:700/i=250:500/levels=(0,1,0.1)/title="O1" HA, lon_z, lat_z; go fland
+  set viewport ll
+  shade/k=7/j=300:700/i=250:500/levels=(0,1,0.1)/title="P1" HA, lon_z, lat_z; go fland
+  set viewport lr
+  shade/k=8/j=300:700/i=250:500/levels=(0,1,0.1)/title="Q1" HA, lon_z, lat_z; go fland
+
+
+Conclusion. Plot the proposed domain::
+
+  $livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
+
+  ferret
+  use coordinates_ORCA_R12.nc
+  set win 1; shade/X=50:730/Y=1250:1800 E2T, nav_lon, nav_lat ; go fland
+  set win 2; set viewport upper; shade/i=50:730/j=1250:1800 NAV_LAT
+  set win 2; set viewport lower; shade/i=50:730/j=1250:1800 NAV_LON
 
 
 
 
+---
+
+----
 
 ==================
 OLD NOTES TEMPLATE
