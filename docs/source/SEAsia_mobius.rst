@@ -32,7 +32,7 @@ Define working and other directory, load relevent modules::
 CDIR, TDIR and INPUTS do not currently exist. Lets make them!::
 
   mkdir $WDIR
-  mkdir $START_FILES
+  mkdir $START_FILES # Untar start_files.tar if it is complete
 
 ..
       .. Tom::
@@ -245,11 +245,10 @@ ORCA_R12 as course parent grid. (Still on livljobs4)::
 
 This generates ``1_coordinates_ORCA_R12.nc``,
 
-Make a new directory to collect built items.
+Collect built items specific to the new configuration in INPUTS.
 Move this coords file there as ``coordinates.nc::
 
-  mkdir $WDIR/INPUTS
-  mv 1_coordinates_ORCA_R12.nc $WDIR/INPUTS/coordinates.nc
+  mv 1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc
 
 File summary::
 
