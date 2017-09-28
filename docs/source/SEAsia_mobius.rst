@@ -38,14 +38,17 @@ CDIR, TDIR and INPUTS do not currently exist. Lets make them!::
       .. Tom::
 
         cd $WDIR
-        cp $START_FILES/INPUTS.tar.gz $WDIR
+        cp /work/thopti/NEMO/INPUTS.tar.gz $START_FILES #copy Jeff's Inputs to STart files
         tar xvfz INPUTS.tar.gz
-        rm INPUTS.tar.gz
+        cp $START_FILES/INPUTS/* $START_FILES #move inputs file up a directory (not best way I am sure!)
+        rm INPUTS #remove untarred directory
+        rm INPUTS.tar.gz #remove tar file
+
 
       .. Jeff::
         ln -s /work/thopri/NEMO/INPUTS $START_FILES
 
-        cp /work/thopri/NEMO/J_INPUTS/*patch $START_FILES/.
+        cp /work/thopri/NEMO/J_INPUTS/*patch $START_FILES/. #I have removed this directory to reduce duplication so will need changing in future (currently /NEMO/SEAsia/START_FILES) tar file is in my NEMO directory
 
 Checkout NEMO and XIOS paynote to revision number::
 
@@ -120,11 +123,14 @@ passing of arguments). **For some reason GRIDGEN doesn’t like INTEL.**
 
   ssh livljobs4
 
-Copy PATHS again::
+Copy PATHS again:: #I added some paths here and changed some to match the ones used in MOBIUS.
 
-	export WDIR=/work/$USER/NEMO/Solo
-	export INPUTS=/work/$USER/NEMO/INPUTS
-	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+  export CONFIG=SEAsia
+  export WDIR=/work/$USER/NEMO/$CONFIG
+  export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
+  export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
+  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
 Apply patches::
 
@@ -139,6 +145,7 @@ Setup for PGI modules and compile::
 
   cd $TDIR
   cp $START_FILES/arch-pgf90_linux_jb.fcm $CDIR/../ARCH/arch-pgf90_linux_jb.fcm
+  #get arch file from Jeff's workspace first
 
   module add netcdf/gcc/4.1.3
   module add pgi/15.4
@@ -231,7 +238,12 @@ ORCA_R12 as course parent grid. (Still on livljobs4)::
   cp $START_FILES/namelist_R12 ./
   vi namelist_R12
   ...
+  JEFF::
   cn_parent_coordinate_file = '../../../../INPUTS/coordinates_ORCA_R12.nc'
+
+  TOM::
+  cn_parent_coordinate_file = '../../../../START_FILES/coordinates_ORCA_R12.nc'
+
   ...
   nn_imin = 50
   nn_imax = 730
@@ -248,6 +260,9 @@ This generates ``1_coordinates_ORCA_R12.nc``,
 Collect built items specific to the new configuration in INPUTS.
 Move this coords file there as ``coordinates.nc::
 
+TOM::
+  cd $WDIR
+  mkdir INPUTS 
   mv 1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc
 
 File summary::
