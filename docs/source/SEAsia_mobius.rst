@@ -25,6 +25,7 @@ Define working and other directory, load relevent modules::
 	export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
   export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
 	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+  export EXP=$$CDIR/$CONFIG/EXP00
 
   module purge
 	module load shared intel/compiler/64/14.0/2013_sp1.3.174 mvapich2/intel/64/2.0b slurm/14.03.0 cluster-tools/7.0
@@ -72,8 +73,6 @@ Compile XIOS::
 
 Step two. Obtain and apply patches::
 
-	export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 	cd $CDIR/../NEMO/OPA_SRC/SBC
 	patch -b < $START_FILES/fldread.patch
 	cd ../DOM
@@ -84,7 +83,7 @@ Step two. Obtain and apply patches::
 	rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
   cp $START_FILES/1arch-mobius_intel.fcm $CDIR/../ARCH/arch-mobius_intel.fcm
 
-Edit XIOS path in arch file::
+Edit XIOS path in arch file (e.g.)::
 
   vi $CDIR/../ARCH/arch-mobius_intel.fcm
   ...
@@ -434,9 +433,36 @@ Try James' path. Untested...
 
 Actually want to get the tides stuff sorted.
 
+...
+
+---
+
+**I am going to skip 3. Generating Initial Conditions and 4. Generate weight
+for atm forcing**
+
+---
+
+5. Generate mesh and mask files for open boundary conditions
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Run the model to generate the mesh and mask files.
+*(I should look like this when all the files are in place. Structure copied from ARCHER)*::
+
+  cd $CDIR
+  ln -s $INPUTS/bathy_meter.nc $EXP/bathy_meter.nc
+  ln -s $INPUTS/coordinates.nc $EXP/coordinates.nc
+  cp $START_FILES/runscript $EXP/.
+  cp $START_FILES/namelist_cfg $EXP/namelist_cfg
+  cp $START_FILES/namelist_ref $EXP/namelist_ref
+  ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10 clean
+  ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
+  cd $EXP
+  ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
 
 
+Then submit job::
 
+  qsub -q short runscript
 
 
 
