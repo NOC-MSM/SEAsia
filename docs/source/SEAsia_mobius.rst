@@ -125,12 +125,19 @@ passing of arguments). **For some reason GRIDGEN doesn’t like INTEL.**
 
 Copy PATHS again:: #I added some paths here and changed some to match the ones used in MOBIUS.
 
+<<<<<<< HEAD
   export CONFIG=SEAsia
   export WDIR=/work/$USER/NEMO/$CONFIG
   export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
   export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
   export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
   export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+=======
+	export WDIR=/work/$USER/NEMO/$CONFIG
+	export INPUTS=/work/$USER/NEMO/INPUTS
+  export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
+	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+>>>>>>> 69fc51a12695a427a9afa3cc6cdf5b9a3f201d1b
 
 Apply patches::
 
@@ -144,8 +151,12 @@ Apply patches::
 Setup for PGI modules and compile::
 
   cd $TDIR
+<<<<<<< HEAD
   cp $START_FILES/arch-pgf90_linux_jb.fcm $CDIR/../ARCH/arch-pgf90_linux_jb.fcm
   #get arch file from Jeff's workspace first
+=======
+  cp $START_FILES/arch-pgf90_linux_jb.fcm $TDIR/../ARCH/arch-pgf90_linux_jb.fcm
+>>>>>>> 69fc51a12695a427a9afa3cc6cdf5b9a3f201d1b
 
   module add netcdf/gcc/4.1.3
   module add pgi/15.4
@@ -232,25 +243,29 @@ Use indices  **i=50:730 j=1250:1800**
 
 
 Copy namelist file from INPUTS and edit with new indices, retaining use of
-ORCA_R12 as course parent grid. (Still on livljobs4)::
+ORCA_R12 as course parent grid. Keep same grid ie. 1/12 degree, so scale factors are unitary. (Still on livljobs4)::
 
   cd $TDIR/GRIDGEN
   cp $START_FILES/namelist_R12 ./
   vi namelist_R12
   ...
+<<<<<<< HEAD
   JEFF::
   cn_parent_coordinate_file = '../../../../INPUTS/coordinates_ORCA_R12.nc'
 
   TOM::
   cn_parent_coordinate_file = '../../../../START_FILES/coordinates_ORCA_R12.nc'
 
+=======
+  cn_parent_coordinate_file = '../../../../START_FILES/coordinates_ORCA_R12.nc'
+>>>>>>> 69fc51a12695a427a9afa3cc6cdf5b9a3f201d1b
   ...
   nn_imin = 50
   nn_imax = 730
   nn_jmin = 1250
   nn_jmax = 1800
-  nn_rhox  = 7
-  nn_rhoy = 7
+  nn_rhox  = 1
+  nn_rhoy = 1
 
   ln -s namelist_R12 namelist.input
   ./create_coordinates.exe
@@ -270,21 +285,21 @@ File summary::
   ncdump -h $WDIR/INPUTS/coordinates.nc
   netcdf coordinates {
   dimensions:
-   x = 4768 ;
-   y = 3858 ;
-   z = 1 ;
-   time = UNLIMITED ; // (1 currently)
+  	x = 683 ;
+  	y = 553 ;
+  	z = 1 ;
+  	time = UNLIMITED ; // (1 currently)
   variables:
-   float nav_lon(y, x) ;
-     nav_lon:units = "degrees_east" ;
-     nav_lon:valid_min = 76.9642f ;
-     nav_lon:valid_max = 133.7143f ;
-     nav_lon:long_name = "Longitude" ;
-   float nav_lat(y, x) ;
-     nav_lat:units = "degrees_north" ;
-     nav_lat:valid_min = -20.03138f ;
-     nav_lat:valid_max = 24.65656f ;
-     nav_lat:long_name = "Latitude" ;
+  	float nav_lon(y, x) ;
+  		nav_lon:units = "degrees_east" ;
+  		nav_lon:valid_min = 76.91659f ;
+  		nav_lon:valid_max = 133.75f ;
+  		nav_lon:long_name = "Longitude" ;
+  	float nav_lat(y, x) ;
+  		nav_lat:units = "degrees_north" ;
+  		nav_lat:valid_min = -20.07611f ;
+  		nav_lat:valid_max = 24.68884f ;
+  		nav_lat:long_name = "Latitude" ;
    float nav_lev(z) ;
    float time(time) ;
    int time_steps(time) ;
@@ -321,7 +336,7 @@ Copy namelist for reshaping GEBCO data::
 
 Edit namelist to point to correct input file. Edit lat and lon variable names to
  make sure they match the nc file content (used e.g.
-``ncdump -h gebco_in.nc`` to get input
+``ncdump -h GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc`` to get input
 variable names)::
 
   vi $INPUTS/namelist_reshape_bilin_gebco
@@ -365,6 +380,8 @@ Output files::
 
   remap_nemo_grid_gebco.nc
   remap_data_grid_gebco.nc
+
+*(28 Sept 2017)*
 
 Execute second scip thing::
 
