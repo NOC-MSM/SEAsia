@@ -1126,9 +1126,11 @@ At this point I'll move onto the SE Asia configuration.
 
 ----
 
-**TO DO** another time / for Solent config
+.. note::
 
-* Change namelist to include tidal harmonic analysis::
+  **TO DO** another time / for Solent config
+
+  * Change namelist to include tidal harmonic analysis::
 
   !-----------------------------------------------------------------------
   &nam_diaharm   !   Harmonic analysis of tidal constituents ('key_diaharm')
@@ -1146,4 +1148,4 @@ At this point I'll move onto the SE Asia configuration.
        tname(8)     =   'Q1'
        tname(9)     =   'M4'
 
-* Harmonise all wet forcing to use AMM60 data.
+  * Harmonise all wet forcing to use AMM60 data.
