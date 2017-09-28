@@ -276,7 +276,7 @@ Move this coords file there as ``coordinates.nc::
 
 TOM::
   cd $WDIR
-  mkdir INPUTS 
+  mkdir INPUTS
   mv 1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc
 
 File summary::
@@ -412,12 +412,38 @@ Output files::
 
 .. note:: ferret
 
- use bathy_meter
+ use bathy_meter.nc
  shade log(BATHYMETRY), nav_lon, nav_lat; go land
 
 
 3. Generate initial conditions
 ++++++++++++++++++++++++++++++
+
+
+Copy ``make.macro`` file and edit the path if necessary::
+**FIX** to the notes (copied from jdha instead): ``cp $START_FILES/make.macro ./``::
+
+  cp $START_FILES/make.macro /work/jelt/sosie/.
+
+  vi /home/n01/n01/jelt/sosie/make.macro
+  # Directory to install binaries:
+  INSTALL_DIR = /login/jdha/local
+
+TRy James' path. Untested...
+
+Actually want to get the tides stuff sorted.
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
