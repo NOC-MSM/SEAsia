@@ -332,6 +332,7 @@ BODC also host a 1-minute data set (2008) which should work without pre-processi
 
   A 30-second GEBCO cutout is too large to process for the SE Asia domain (7081 x 5521 pts). The older 1-minute data is fine.
 
+
 Download some GEBCO 2014 and 2008 data (75E,-21N,134E,25N) and copy to $INPUTS::
 
  livmaf$
@@ -429,7 +430,7 @@ Copy ``make.macro`` file and edit the path if necessary::
   # Directory to install binaries:
   INSTALL_DIR = /login/jdha/local
 
-TRy James' path. Untested...
+Try James' path. Untested...
 
 Actually want to get the tides stuff sorted.
 
