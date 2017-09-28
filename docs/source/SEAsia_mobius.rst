@@ -238,7 +238,6 @@ Conclusion. Plot the proposed domain::
 Use indices  **i=50:730 j=1250:1800**
 
 
-
 ---
 
 
@@ -282,7 +281,7 @@ TOM::
 
 File summary::
 
-  ncdump -h $WDIR/INPUTS/coordinates.nc
+  ncdump -h $INPUTS/coordinates.nc
   netcdf coordinates {
   dimensions:
   	x = 683 ;
@@ -326,17 +325,27 @@ Now we need to generate a bathymetry on this new grid.
 2. Generate bathymetry file
 +++++++++++++++++++++++++++
 
-Download some GEBCO 2014 data (75E,-21N,134E,25N) and copy to $INPUTS::
+Take GEBCO bathymetry. For a domain as large as SE Asia, the 30-minute GEBCO data is too large to process and needs some spatial filtering.
+BODC also host a 1-minute data set (2008) which should work without pre-processing but is not updated.
 
- livmaf$ scp ~/Downloads/RN-9621_1506544326915/GEBCO_2014_2D_75.0_-21.0_134.0_25.0.nc jelt@livljobs4.nerc-liv.ac.uk:$INPUTS/GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc
+.. warning::
 
+  A 30-second GEBCO cutout is too large to process for the SE Asia domain (7081 x 5521 pts). The older 1-minute data is fine.
+
+Download some GEBCO 2014 and 2008 data (75E,-21N,134E,25N) and copy to $INPUTS::
+
+ livmaf$
+ scp ~/Downloads/RN-9621_1506544326915/GEBCO_2014_2D_75.0_-21.0_134.0_25.0.nc jelt@livljobs4.nerc-liv.ac.uk:$INPUTS/GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc
+ scp ~/Downloads/RN-6060_1506606001516/GRIDONE_2D_74.0_-21.0_134.0_25.0.nc jelt@livljobs4.nerc-liv.ac.uk:$INPUTS/GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc
+
+**In the following I use the 2008 data**
 Copy namelist for reshaping GEBCO data::
 
   cp $START_FILES/namelist_reshape_bilin_gebco $INPUTS/.
 
 Edit namelist to point to correct input file. Edit lat and lon variable names to
  make sure they match the nc file content (used e.g.
-``ncdump -h GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc`` to get input
+``ncdump -h GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc`` to get input
 variable names)::
 
   vi $INPUTS/namelist_reshape_bilin_gebco
@@ -362,7 +371,7 @@ noted a problem with the default nco module)*::
 
   cd $INPUTS
   module load nco/gcc/4.4.2.ncwa
-  ncap2 -s 'where(elevation > 0) elevation=0' GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc tmp.nc
+  ncap2 -s 'where(elevation > 0) elevation=0' GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc tmp.nc
   ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
   rm tmp.nc
 
@@ -374,6 +383,7 @@ Restore the original modules for building tools, which were tampered with to fix
 
 Execute first scrip thing::
 
+  cd $INPUTS
   $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
 
 Output files::
@@ -391,33 +401,6 @@ Output files::
 
   data_nemo_bilin_gebco.nc
 
-.. note::
-  This is fast on ARCHER but does not work for me on livljobs4. It just hangs. Running on ARCHER the output is::
-
-    Using latitude bins to restrict search.
-     Computing remappings between:
-    Remapped regular grid for SCRIP
-
-                          and
-    Remapped NEMO grid for SCRIP
-
-    jelt@archer$>
-
-
-I need to get things moving so I will use ARCHER to build these files. (Not very helpful for some I know)
-Perhaps it is a problem with the config not the tools...
-
-.. note::
-
-  Make a temporary directory on ARCHER and copy in ``gebco_in.nc``, ``cordinates.nc`` and ``namelist_reshape_bilin_gebco``
-
-  ssh archer
-  mkdir /work/n01/n01/jelt/tmp/
-  scp $INPUTS/gebco
-
-
-
-
 Execute third scip thing::
 
   $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
@@ -426,6 +409,11 @@ Output files::
 
   bathy_meter.nc
 
+
+.. note:: ferret
+
+ use bathy_meter
+ shade log(BATHYMETRY), nav_lon, nav_lat; go land
 
 
 3. Generate initial conditions
