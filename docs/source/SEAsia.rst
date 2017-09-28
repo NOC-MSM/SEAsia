@@ -100,8 +100,19 @@ Build NEMO trunk @ r7853::
 
 
 Copy compiler keys from James::
+
   cd $WDIR/NEMOGCM/CONFIG
   cp $JEXP/../cpp_* ACCORD/cpp_ACCORD.fcm
+
+Copy James' entire WORK directory to MY_SRC::
+
+  cp $JEXP/../WORK/* /work/n01/n01/jelt/ACCORD/NEMOGCM/CONFIG/ACCORD/MY_SRC/.
+
+Edit XIOS_HOME in compiler options::
+
+  vi $WDIR/NEMOGCM/ARCH/arch-XC_ARCHER_INTEL.fcm
+  ...
+  %XIOS_HOME           /work/n01/n01/jelt/ACCORD/xios-2.0
 
 On first make only choose OPA_SRC::
 
@@ -112,7 +123,7 @@ It might break if directory structure is built from makenemo. Then remove
 ``key_lim2`` from cpp*fcm file and remake.
 
 
-**It doesn't compile.**
+**It does compile.**
 
 
 
@@ -147,7 +158,7 @@ Look at runscript. Add module load commands::
 Submit run::
 
   cd $EXP
-  qsub rs_12
+  qsub rs_R12
 
 
   4818618.sdb
