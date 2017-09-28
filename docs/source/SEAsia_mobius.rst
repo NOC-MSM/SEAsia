@@ -337,7 +337,7 @@ noted a problem with the default nco module)*::
   ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
   rm tmp.nc
 
-Restore the original parallel modules, which were removed to fix tool building issue::
+Restore the original modules for building tools, which were tampered with to fix a bathy building issue::
 
   module purge
   module add netcdf/gcc/4.1.3
@@ -354,13 +354,40 @@ Output files::
 
 *(28 Sept 2017)*
 
-Execute second scip thing::
+Execute second scrip thing::
 
   $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
 
 Output files::
 
   data_nemo_bilin_gebco.nc
+
+.. note::
+  This is fast on ARCHER but does not work for me on livljobs4. It just hangs. Running on ARCHER the output is::
+
+    Using latitude bins to restrict search.
+     Computing remappings between:
+    Remapped regular grid for SCRIP
+
+                          and
+    Remapped NEMO grid for SCRIP
+
+    jelt@archer$>
+
+
+I need to get things moving so I will use ARCHER to build these files. (Not very helpful for some I know)
+Perhaps it is a problem with the config not the tools...
+
+.. note::
+
+  Make a temporary directory on ARCHER and copy in ``gebco_in.nc``, ``cordinates.nc`` and ``namelist_reshape_bilin_gebco``
+
+  ssh archer
+  mkdir /work/n01/n01/jelt/tmp/
+  scp $INPUTS/gebco
+
+
+
 
 Execute third scip thing::
 
