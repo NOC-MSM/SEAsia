@@ -41,6 +41,7 @@ CDIR, TDIR and INPUTS do not currently exist. Lets make them!::
         cp /work/thopti/NEMO/INPUTS.tar.gz $START_FILES #copy Jeff's Inputs to STart files
         tar xvfz INPUTS.tar.gz
         cp $START_FILES/INPUTS/* $START_FILES #move inputs file up a directory (not best way I am sure!)
+        cp INPUTS/namelist_reshape_bilin_gebco $START_FILES
         rm INPUTS #remove untarred directory
         rm INPUTS.tar.gz #remove tar file
 
@@ -124,20 +125,19 @@ passing of arguments). **For some reason GRIDGEN doesn’t like INTEL.**
   ssh livljobs4
 
 Copy PATHS again:: #I added some paths here and changed some to match the ones used in MOBIUS.
-
-<<<<<<< HEAD
+Tom ::
   export CONFIG=SEAsia
   export WDIR=/work/$USER/NEMO/$CONFIG
   export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
   export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
   export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
   export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-=======
+
+Jeff::
 	export WDIR=/work/$USER/NEMO/$CONFIG
 	export INPUTS=/work/$USER/NEMO/INPUTS
   export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
 	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
->>>>>>> 69fc51a12695a427a9afa3cc6cdf5b9a3f201d1b
 
 Apply patches::
 
@@ -151,15 +151,9 @@ Apply patches::
 Setup for PGI modules and compile::
 
   cd $TDIR
-<<<<<<< HEAD
   cp $START_FILES/arch-pgf90_linux_jb.fcm $CDIR/../ARCH/arch-pgf90_linux_jb.fcm
   #get arch file from Jeff's workspace first
-=======
   cp $START_FILES/arch-pgf90_linux_jb.fcm $TDIR/../ARCH/arch-pgf90_linux_jb.fcm
->>>>>>> 69fc51a12695a427a9afa3cc6cdf5b9a3f201d1b
-
-  module add netcdf/gcc/4.1.3
-  module add pgi/15.4
 
   ./maketools -n WEIGHTS -m pgf90_linux_jb
   ./maketools -n REBUILD_NEMO -m pgf90_linux_jb
@@ -237,10 +231,7 @@ Conclusion. Plot the proposed domain::
 
 Use indices  **i=50:730 j=1250:1800**
 
-
-
 ---
-
 
 Copy namelist file from INPUTS and edit with new indices, retaining use of
 ORCA_R12 as course parent grid. Keep same grid ie. 1/12 degree, so scale factors are unitary. (Still on livljobs4)::
@@ -249,16 +240,13 @@ ORCA_R12 as course parent grid. Keep same grid ie. 1/12 degree, so scale factors
   cp $START_FILES/namelist_R12 ./
   vi namelist_R12
   ...
-<<<<<<< HEAD
+
   JEFF::
   cn_parent_coordinate_file = '../../../../INPUTS/coordinates_ORCA_R12.nc'
 
   TOM::
   cn_parent_coordinate_file = '../../../../START_FILES/coordinates_ORCA_R12.nc'
 
-=======
-  cn_parent_coordinate_file = '../../../../START_FILES/coordinates_ORCA_R12.nc'
->>>>>>> 69fc51a12695a427a9afa3cc6cdf5b9a3f201d1b
   ...
   nn_imin = 50
   nn_imax = 730
@@ -362,7 +350,7 @@ noted a problem with the default nco module)*::
 
   cd $INPUTS
   module load nco/gcc/4.4.2.ncwa
-  ncap2 -s 'where(elevation > 0) elevation=0' GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc tmp.nc
+  ncap2 -s 'where(elevation > 0) elevation=0' GEBCO_2014_2D_75.0_-21.0_134.0_25.0.nc tmp.nc
   ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
   rm tmp.nc
 
