@@ -1243,7 +1243,7 @@ Inspect locally e.g.::
  plot /i=25/j=70 SOSSHEIG
 
 
-It works
+**It works!**
 
 ---
 
