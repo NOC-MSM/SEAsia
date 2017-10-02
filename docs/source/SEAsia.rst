@@ -53,7 +53,7 @@ Define working directory, and other useful shortcuts::
   export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
   export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
 
-Load modules::
+#Load modules::
 
   module swap PrgEnv-cray PrgEnv-intel
   module load cray-netcdf-hdf5parallel
@@ -86,6 +86,10 @@ Build NEMO ORCHESTRA branch @ r8395::
   cd $WDIR
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/NERC/dev_r6998_ORCHESTRA@8395
 
+Use Dave's XIOS file (see ``%XIOS_HOME``)::
+
+  cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
+
 Make a new config directory structure::
 
   cd $CDIR
@@ -112,10 +116,6 @@ Copy Maria's cpp flags (without the lim flag)::
                       key_xios2
 
 
-Use Dave's XIOS file (see ``%XIOS_HOME``)::
-
-  cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
-
 Build opa::
 
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
@@ -125,17 +125,81 @@ Build opa::
 
 Copy stuff from James' simulation::
 
-  cp $JEXP/rs_R12 $EXP/.             # run script
-  cp $JEXP/namelist_cfg_R12 $EXP/.   # copy namelist_cfg
+  cp $JEXP/namelist_cfg_R12 $EXP/namelist_cfg   # copy namelist_cfg
   ln -s $JEXP/../../SHARED/namelist_ref $EXP/.
-  cp $JEXP/iodef.xml $EXP/.
-  cp /work/n01/n01/jelt/LBay/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG/LBay/EXP00/iodef.xml $EXP/.
 
+Edit namelist for self determining processors assignment::
+
+  vi namelist_cfg
+  ...
+  jpni        =  -20       !  jpni   number of processors following i (set automatically if < 1)
+  jpnj        =  -40    !  jpnj   number of processors following j (set automatically if < 1)
+  jpnij       =  -550    !  jpnij  number of local domains (set automatically if < 1)
+
+
+Link other setup and forcing files::
 
   ln -s $JINPUTS/R12/coordinates_E-AFRICA_R12.bdy.nc $EXP/coordinates.bdy.nc
   ln -s $JINPUTS/R12/bdy_mask_E-AFRICA_R12.nc $EXP/bdy_mask.nc
   ln -s $JINPUTS/R12/domain_cfg_R12.nc $EXP/domain_cfg.nc
   ln -s $JINPUTS/R12/TIDES $EXP/TIDES
+
+
+Copy in ``iodef.xml`` file and dependencies::
+
+  rm $EXP/*xml
+  #ln -s $JEXP/context_nemo.xml $EXP/.
+  #ln -s $JEXP/field_def_nemo-opa.xml $EXP/.
+  #ln -s $JEXP/iodef.xml $EXP/.
+  #ln -s $JEXP/../../AMM12/EXP00/file_def_nemo-opa.xml $EXP/.
+  #ln -s $JEXP/../../AMM12/EXP00/domain_def_nemo.xml $EXP/.
+
+  ln -s /work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/*xml $EXP/.
+
+Edit the runscript::
+
+  vi runscript
+
+  #!/bin/bash
+  # ---------------------------
+  #===============================================================
+  # CLUSTER BITS
+  #===============================================================
+  #PBS -N EA_R12
+  #PBS -l select=5
+  #PBS -l walltime=00:20:00
+  #PBS -A n01-NOCL
+  #PBS -j oe
+  #PBS -r n
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+
+  export PBS_O_WORKDIR=$(readlink -f $PBS_O_WORKDIR)
+  # Change to the direcotry that the job was submitted from
+  cd $PBS_O_WORKDIR
+
+
+  # Set the number of threads to 1
+  #   This prevents any system libraries from automatically
+  #   using threading.
+  export OMP_NUM_THREADS=1
+  # Change to the directory that the job was submitted from
+  ulimit -s unlimited
+  ulimit -c unlimited
+
+  export NEMOproc=96 #550
+  export XIOSproc=1
+
+  #===============================================================
+  # LAUNCH JOB
+  #===============================================================
+  echo `date` : Launch Job
+  aprun -b -n 5 -N 5 ./xios_server.exe : -n $NEMOproc -N 24 ./opa
+  exit
+
+
 
 Fix the links with the xios (from Dave) and opa exectutables::
 
@@ -145,7 +209,8 @@ Fix the links with the xios (from Dave) and opa exectutables::
 Submit::
 
   cd $EXP
-   qsub -q short rs_R12
+  #qsub -q short runscript
+  qsub runscript
 
 **PENDING. DOES IT WORK?**
 
@@ -173,7 +238,7 @@ Submit::
 
 
 
-
+Nasty crashing. (Not good leads to follow). Not sure this is worth pursing.
 
 
 
