@@ -1196,7 +1196,7 @@ Use Dave's XIOS file::
 
   cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
 
-On first make only choose OPA_SRC::
+Build opa::
 
   ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
 
