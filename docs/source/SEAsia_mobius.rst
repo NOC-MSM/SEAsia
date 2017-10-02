@@ -442,11 +442,13 @@ for atm forcing**
 
 ---
 
+*(2 Oct 2017)*
+
 5. Generate mesh and mask files for open boundary conditions
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Run the model to generate the mesh and mask files.
-*(I should look like this when all the files are in place. Structure copied from ARCHER)*::
+*(It should look like this when all the files are in place. Structure copied from ARCHER)*::
 
   cd $CDIR
   ln -s $INPUTS/bathy_meter.nc $EXP/bathy_meter.nc
@@ -463,6 +465,9 @@ Run the model to generate the mesh and mask files.
 Then submit job::
 
   qsub -q short runscript
+
+However I want to run this configuration on ARCHER so I am continuing to work
+`there <SEAsia.html>`_
 
 
 
