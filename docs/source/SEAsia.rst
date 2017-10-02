@@ -237,11 +237,26 @@ Submit::
 
 
 
-
 Nasty crashing. (Not good leads to follow). Not sure this is worth pursing.
 
 
+Try add xios2 to James' keys::
 
+  vi ACCORD/cpp_ACCORD.fcm
+
+  bld::tool::fppkeys key_zdfgls        \
+                   key_diaharm       \
+                   key_mpp_mpi       \
+                   key_iomput        \
+                   key_nosignedzero  \
+                   key_xios2
+
+Recompile and submit.
+
+Same problem
+
+
+**PARK THIS DOMAIN. PRESS ON WITH SEAsia DOMAIN. COULD TRY WITH JAMES' XIOS IF THE PERMISSION WERE CHANGED**
 
 
 Old notes
