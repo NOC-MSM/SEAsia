@@ -1143,20 +1143,22 @@ Load paths and modules::
   module load cray-netcdf-hdf5parallel
   module load cray-hdf5-parallel
 
-Build XIOS2 from trunk (This turned out to be r1286)::
+.. Use Dave's XIOS code
 
-  cd $WDIR
-  svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0
-  cd $WDIR/xios-2.0
-  cp ../../LBay/xios-1.0/arch/arch-XC30_ARCHER.* ./arch
+    Build XIOS2 from trunk (This turned out to be r1286)::
 
-Implement make command::
+      cd $WDIR
+      svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0
+      cd $WDIR/xios-2.0
+      cp ../../LBay/xios-1.0/arch/arch-XC30_ARCHER.* ./arch
 
-  ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
+    Implement make command::
 
-**TO DO** Link xios executable to the EXP directory::
+      ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
 
-  ln -s  $WDIR/xios-2.0/bin/xios_server.exe $EXP/xios_server.exe
+    Link xios executable to the EXP directory::
+
+      ln -s  $WDIR/xios-2.0/bin/xios_server.exe $EXP/xios_server.exe
 
 
 Build NEMO ORCHESTRA branch @ r8395::
@@ -1168,6 +1170,10 @@ Make a new config directory structure::
 
   cd $CDIR
   ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10 clean
+
+Copy Maria's MY_SRC::
+
+  cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/CONFIG/TIDE/MY_SRC/* $CDIR/LBay/MY_SRC/.
 
 Try Maria's cpp flags (without the lim flag)::
 
@@ -1199,12 +1205,45 @@ It compiles.
 
 ----
 
+Copy all the EXP files from the working experiment into this EXP directory::
+
+  cp  /work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/* .
+
+Fix the links with the xios and opa exectutables::
+
+  ln -s  /work/n01/n01/munday/XIOS/bin/xios_server.exe $CDIR/LBay/EXP00/.
+  ln -s /work/n01/n01/jelt/LBay/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG/LBay/BLD/bin/nemo.exe $CDIR/LBay/EXP00/opa
+  ln -s /work/n01/n01/jelt/LBay/INPUTS $CDIR/LBay/EXP00/bdydta
+
+
+Submit::
+
+   qsub -q short runscript
 
 
 
+Rebuild the SSH files::
+
+ export WDIR=/work/n01/n01/jelt/LBay/
+ export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+ $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_T 5
 
 
+Should remove individual processor files once the build is verified::
 
+ rm LBay_1h_20000102_20000106_grid_?_*nc
+
+Inspect locally e.g.::
+
+ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG/LBay/EXP00/LBay_1h_20000102_20000106_grid_T.nc .
+
+ ferret
+ use LBay_1h_20000102_20000106_grid_T.nc
+ plot /i=25/j=70 SOSSHEIG
+
+
+It works
 
 ---
 
