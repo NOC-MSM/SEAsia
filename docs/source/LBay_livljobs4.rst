@@ -1116,7 +1116,7 @@ Inspect locally e.g.::
   use LBay_1h_20000102_20000106_grid_T.nc
   plot /i=25/j=70 SOSSHEIG
 
-
+---
 
 
 **Whoo hoo! It works! With a semi-diurnal SSH signal**
@@ -1125,6 +1125,51 @@ At this point I'll move onto the SE Asia configuration.
 
 
 ----
+
+
+*(2 Oct 2017)*
+
+Compile and test in ORCHESTRA code base
++++++++++++++++++++++++++++++++++++++++
+
+Load paths and modules::
+
+  export WDIR=/work/n01/n01/jelt/LBay/
+  export INPUTS=$WDIR/INPUTS
+  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+
+Build XIOS2 from trunk (This turned out to be r1286)::
+
+  cd $WDIR
+  svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0
+  cd $WDIR/xios-2.0
+  cp ../../LBay/xios-1.0/arch/arch-XC30_ARCHER.* ./arch
+
+Implement make command::
+
+  ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
+
+**TO DO** Link xios executable to the EXP directory::
+
+  ln -s  $WDIR/xios-2.0/bin/xios_server.exe $EXP/xios_server.exe
+
+
+Build NEMO ORCHESTRA branch @ r8395::
+
+  cd $WDIR
+  svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/NERC/dev_r6998_ORCHESTRA@8395
+
+
+
+
+
+
+---
 
 .. note::
 
