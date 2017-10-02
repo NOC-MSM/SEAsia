@@ -129,6 +129,8 @@ Copy stuff from James' simulation::
   cp $JEXP/namelist_cfg_R12 $EXP/.   # copy namelist_cfg
   ln -s $JEXP/../../SHARED/namelist_ref $EXP/.
   cp $JEXP/iodef.xml $EXP/.
+  cp /work/n01/n01/jelt/LBay/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG/LBay/EXP00/iodef.xml $EXP/.
+
 
   ln -s $JINPUTS/R12/coordinates_E-AFRICA_R12.bdy.nc $EXP/coordinates.bdy.nc
   ln -s $JINPUTS/R12/bdy_mask_E-AFRICA_R12.nc $EXP/bdy_mask.nc
@@ -142,8 +144,10 @@ Fix the links with the xios (from Dave) and opa exectutables::
 
 Submit::
 
-   qsub -q short runscript
+  cd $EXP
+   qsub -q short rs_R12
 
+**PENDING. DOES IT WORK?**
 
 
 .. Rebuild the SSH files::
@@ -175,8 +179,8 @@ Submit::
 
 
 
-
----
+Old notes
+---------
 
 Build NEMO trunk @ r7853::
 
