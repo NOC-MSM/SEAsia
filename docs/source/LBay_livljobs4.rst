@@ -1136,8 +1136,8 @@ Load paths and modules::
 
   export WDIR=/work/n01/n01/jelt/LBay/
   export INPUTS=$WDIR/INPUTS
-  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+  export CDIR=$WDIR/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG
+  export TDIR=$WDIR/dev_r6998_ORCHESTRA/NEMOGCM/TOOLS
 
   module swap PrgEnv-cray PrgEnv-intel
   module load cray-netcdf-hdf5parallel
@@ -1163,6 +1163,43 @@ Build NEMO ORCHESTRA branch @ r8395::
 
   cd $WDIR
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/NERC/dev_r6998_ORCHESTRA@8395
+
+Make a new config directory structure::
+
+  cd $CDIR
+  ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10 clean
+
+Try Maria's cpp flags (without the lim flag)::
+
+  vi $CDIR/LBay/cpp_LBay.fcm
+
+   bld::tool::fppkeys key_mpp_mpi          \
+                      key_bdy              \
+                      key_tide            \
+                      key_zdftke           \
+                      key_netcdf4          \
+                      key_iomput           \
+                      key_nosignedzero    \
+                      key_trabbl        \
+                      key_zdfddm        \
+                      key_diaharm      \
+                      key_xios2
+
+
+Use Dave's XIOS file::
+
+  cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
+
+On first make only choose OPA_SRC::
+
+  ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
+
+It compiles.
+
+
+----
+
+
 
 
 
