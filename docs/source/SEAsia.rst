@@ -44,6 +44,7 @@ Define working directory, and other useful shortcuts::
 
 Build NEMO ORCHESTRA branch @ r8395::
 
+  mkdir $WDIR
   cd $WDIR
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/NERC/dev_r6998_ORCHESTRA@8395
 
@@ -88,6 +89,25 @@ Make an EXP directory::
   mkdir $EXP
 
 
+----
+
+
+Build some NEMO tools (on ARCHER)
+---------------------------------
+
+For the old build ``dev_r4621_NOC4_BDY_VERT_INTERP/`` we applied patches.
+For the new build ``dev_r6998_ORCHESTRA``, we do not. For some reason GRIDGEN doesn’t like INTEL::
+
+  cd $TDIR
+  ./maketools -n WEIGHTS -m XC_ARCHER_INTEL
+  ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL
+
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module swap PrgEnv-intel PrgEnv-cray
+  module load cray-netcdf cray-hdf5
+  ./maketools -n GRIDGEN -m XC_ARCHER
+
+  module swap PrgEnv-cray PrgEnv-intel
 
 ----
 
