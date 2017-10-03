@@ -17,26 +17,11 @@ Follow PyNEMO recipe for LBay on ARCHER/Livljobs4: ``http://nemo-reloc.readthedo
 Summary / Plan
 ==============
 
-* start with LBay using ORCHESTRA code base
-* Check James' /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/
-configuration for suggested namelist options for a lighter tide only run
+#. Update to ORCHESTRA code base
+
+#. Extend domain in a new experiments: 1/12 degree
 
 
-Or
-
-* Replicate ODA_E-AFRICA config:
-    1) copy namelists, execs, forcings. Test.
-    2) generate execs. (James: trunk @ r7853 and XIOS2 @ r1080). Test.
-
-* Extend domain in a new experiments: 1/12 degree
-    3) generate coords, forcings
-
-* Update to ORCHESTRA code base
-    4) Later.
-
-
-diff EA and LBay cpp keys.
-NB Tide only wont require all the T,S forcing fields.
 
 
 Recipe Notes
@@ -48,10 +33,10 @@ Define working directory, and other useful shortcuts::
   export WDIR=/work/n01/n01/$USER/$CONFIG
   export CDIR=$WDIR/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG
   export TDIR=$WDIR/dev_r6998_ORCHESTRA/NEMOGCM/TOOLS
-  export EXP=$CDIR/$CONFIG/EXP_EAFRICA
+  export EXP=$CDIR/$CONFIG/EXP_SEAsia
 
-  export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
-  export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
+  #export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
+  #export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
 
 #Load modules::
 
@@ -212,7 +197,7 @@ Submit::
   #qsub -q short runscript
   qsub runscript
 
-**PENDING. DOES IT WORK?**
+**PENDING. DOES IT WORK? NO!**
 
 
 .. Rebuild the SSH files::
