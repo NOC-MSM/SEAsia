@@ -31,6 +31,7 @@ Define working directory, and other useful shortcuts::
 
   export CONFIG=ACCORD
   export WDIR=/work/n01/n01/$USER/$CONFIG
+  export INPUTS=$WDIR/INPUTS
   export CDIR=$WDIR/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG
   export TDIR=$WDIR/dev_r6998_ORCHESTRA/NEMOGCM/TOOLS
   export EXP=$CDIR/$CONFIG/EXP_SEAsia
@@ -41,10 +42,13 @@ Define working directory, and other useful shortcuts::
   module load cray-netcdf-hdf5parallel
   module load cray-hdf5-parallel
 
+Make the directories::
+
+  mkdir $WDIR
+  mkdir $INPUTS
 
 Build NEMO ORCHESTRA branch @ r8395::
 
-  mkdir $WDIR
   cd $WDIR
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/NERC/dev_r6998_ORCHESTRA@8395
 
@@ -131,7 +135,9 @@ Run the model to generate the mesh and mask files. Copy
   for file in bathy_meter.nc coordinates.nc; do  scp $INPUTS/$file  jelt@login.archer.ac.uk:/work/n01/n01/jelt/ACCORD/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG/ACCORD/EXP_SEAsia/$file; done
   for file in runscript_archer namelist_cfg namelist_ref iodef.xml; do  scp $START_FILES/$file  jelt@login.archer.ac.uk:/work/n01/n01/jelt/ACCORD/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG/ACCORD/EXP_SEAsia/$file; done
 
-Return to ARCHER. Make sure the executables are in the EXP dir.
+---
+
+Return to **ARCHER**. Make sure the executables are in the EXP dir.
 Using XIOS from Dave::
 
   ln -s /work/n01/n01/munday/XIOS/bin/xios_server.exe $EXP/.
@@ -192,19 +198,19 @@ Submit::
   qsub -q short runscript_archer
 
 
-*IT WORKS IF I USE THE LBAY EXECUTABLE!!**
+**IT WORKED WHEN I USED YESTERDAY'S LBAY EXECUTABLE. HOWEVER I LOST IT WHEN**
+**I RECOMPILED THE CODE TO FIND OUT WHAT WAS DIFFERENT...**
+
 ----
 
 *(6 March 2017)*
 
 If that works, we then need to rebuild the mesh and mask files in to single files for the next step::
 
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_zgr 96
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_hgr 96
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mask 96
-  mv mesh_zgr.nc mesh_hgr.nc mask.nc $WDIR/INPUTS
-  rm mesh_* mask_* LBay_0000*
-  cd $WDIR/INPUTS
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_mask 96
+  #mv mesh_mask.nc $WDIR/INPUTS
+  #rm mesh_* mask_* LBay_0000*
+  #cd $INPUTS
 
 
 THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO
@@ -212,7 +218,17 @@ THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO
 
 ----
 
+On **livljobs4** copy the mesh_mask file from **ARCHER**::
 
+  ssh livljobs4
+
+  export CONFIG=SEAsia
+  export WDIR=/work/$USER/NEMO/$CONFIG
+  export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
+  export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
+
+  # Copy from the $EXP directory
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/ACCORD/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG/ACCORD/EXP_SEAsia/mesh_mask.nc $INPUTS/mesh_mask.nc
 
 
 
