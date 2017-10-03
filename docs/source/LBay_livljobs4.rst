@@ -1166,6 +1166,10 @@ Build NEMO ORCHESTRA branch @ r8395::
   cd $WDIR
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/NERC/dev_r6998_ORCHESTRA@8395
 
+Use Dave's XIOS file::
+
+  cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
+
 Make a new config directory structure::
 
   cd $CDIR
@@ -1191,10 +1195,6 @@ Try Maria's cpp flags (without the lim flag)::
                       key_diaharm      \
                       key_xios2
 
-
-Use Dave's XIOS file::
-
-  cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
 
 Build opa::
 
@@ -1244,6 +1244,17 @@ Inspect locally e.g.::
 
 
 **It works!**
+
+*(3 OCt 2017)*
+
+NOT WOKRING ANYMORE. Dave's XIOS broke too.
+Things to look at
+xios_2.0.exe
+arch-AI.fcm
+
+Or wait a bit and see if things settle down. Maria is also running things.
+
+Recompiling XIOS2 hasn't worked.
 
 ---
 
