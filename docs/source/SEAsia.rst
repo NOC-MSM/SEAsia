@@ -35,9 +35,6 @@ Define working directory, and other useful shortcuts::
   export TDIR=$WDIR/dev_r6998_ORCHESTRA/NEMOGCM/TOOLS
   export EXP=$CDIR/$CONFIG/EXP_SEAsia
 
-  #export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
-  #export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
-
 #Load modules::
 
   module swap PrgEnv-cray PrgEnv-intel
@@ -175,6 +172,7 @@ Submit::
   qsub -q short runscript_archer
 
 
+*IT WORKS IF I USE THE LBAY EXECUTABLE!!**
 ----
 
 *(6 March 2017)*
