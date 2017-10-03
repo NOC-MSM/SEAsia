@@ -448,6 +448,53 @@ Generate the boundary conditions again, with PyNEMO
 
   pynemo -g -s namelist.bdy
 
+Sort of worked. Problem with access to the ORCA12 data::
+
+  INFO:pynemo.reader.ncml:(1, 1, 553, 683)
+  INFO:pynemo.reader.ncml:(1, 1, 553, 683)
+  INFO:pynemo.reader.ncml:(1, 1, 553, 683)
+  INFO:pynemo.reader.ncml:(1, 1, 553, 683)
+  INFO:pynemo.profile:4.68
+  INFO:pynemo.profile:['wv', 'wu', 'wt', 'u', 't', 'v']
+  INFO:pynemo.profile:wv  is (51, 1427) and a nan  max: [ 18.71657181  18.68452454]
+  INFO:pynemo.profile:wu  is (51, 1426) and a nan  max: [ 18.79060745  18.71673203]
+  INFO:pynemo.profile:wt  is (51, 12704) and a nan  max: [ 18.7412262   18.69191742]
+  INFO:pynemo.profile:u  is (51, 1426) and a nan  max: [ 21.30413628  21.21548653]
+  INFO:pynemo.profile:t  is (51, 12704) and a nan  max: [ 21.24488068  21.185709  ]
+  INFO:pynemo.profile:v  is (51, 1427) and a nan  max: [ 21.21529484  21.17683792]
+  INFO:pynemo.profile:horizontal grid info
+  INFO:pynemo.profile:0.02
+  INFO:pynemo.profile:read and assign netcdf data, lon lat
+  INFO:pynemo.profile:0.02
+  INFO:pynemo.profile:range is 12704
+  INFO:pynemo.profile:range is 1426
+  INFO:pynemo.profile:range is 1427
+  INFO:pynemo.profile:(12704,)
+  ./thredds_inputs_src.ncml
+  Oct 03, 2017 4:31:36 PM org.apache.http.impl.client.DefaultRequestDirector tryConnect
+  INFO: I/O exception (java.net.NoRouteToHostException) caught when connecting to the target host: No route to host (Host unreachable)
+  Oct 03, 2017 4:31:36 PM org.apache.http.impl.client.DefaultRequestDirector tryConnect
+  INFO: Retrying connect
+  Traceback (most recent call last):
+    File "/login/jelt/.conda/envs/nrct_env/bin/pynemo", line 11, in <module>
+      load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo')()
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_exe.py", line 44, in main
+      profile.process_bdy(setup_file, mask_gui)
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py", line 271, in process_bdy
+      reader = factory.GetReader(settings['src_dir'],acc)
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/reader/factory.py", line 27, in GetReader
+      return NcMLReader(uri,t_adjust)
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/reader/ncml.py", line 56, in __init__
+      self.dataset = NetcdfDataset.openFile(self.uri, None)
+    File "jnius_export_class.pxi", line 893, in jnius.JavaMultipleMethod.__call__ (jnius/jnius.c:23945)
+    File "jnius_export_class.pxi", line 624, in jnius.JavaMethod.__call__ (jnius/jnius.c:20680)
+    File "jnius_export_class.pxi", line 790, in jnius.JavaMethod.call_staticmethod (jnius/jnius.c:22522)
+    File "jnius_utils.pxi", line 65, in jnius.check_exception (jnius/jnius.c:3815)
+  jnius.JavaException: JVM exception occurred: org.apache.http.conn.ConnectTimeoutException: Connect to esurgeod.noc.soton.ac.uk:8080 timed out
+  Exception AttributeError: "'Reader' object has no attribute 'dataset'" in <bound method Reader.__del__ of <pynemo.reader.ncml.Reader object at 0x7fe5e80a0190>> ignored
+
+  (nrct_env)livljobs4 INPUTS $
+
 
 
 
