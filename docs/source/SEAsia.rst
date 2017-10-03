@@ -94,6 +94,9 @@ Make an EXP directory::
 
 ----
 
+*(3 Oct 2017)*
+
+
 5. Generate mesh and mask files for open boundary conditions
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -116,6 +119,11 @@ Using XIOS from Dave::
 
   ln -s /work/n01/n01/munday/XIOS/bin/xios_server.exe $EXP/.
   ln -s $CDIR/$CONFIG/BLD/bin/nemo.exe $EXP/opa
+
+Also link in the extra XML files::
+
+  ln -s $EXP/../../SHARED/field_def.xml $EXP/.
+  ln -s $EXP/../../SHARED/domain_def.xml $EXP/.
 
 
 
@@ -167,6 +175,8 @@ Submit::
   qsub -q short runscript_archer
 
 
+----
+
 *(6 March 2017)*
 
 If that works, we then need to rebuild the mesh and mask files in to single files for the next step::
@@ -179,7 +189,7 @@ If that works, we then need to rebuild the mesh and mask files in to single file
   cd $WDIR/INPUTS
 
 
-THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO *(20 Sept 2017)*
+THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO
 
 
 ----
