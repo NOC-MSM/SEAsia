@@ -32,6 +32,7 @@ Define working directory, and other useful shortcuts::
   export CONFIG=ACCORD
   export WDIR=/work/n01/n01/$USER/$CONFIG
   export INPUTS=$WDIR/INPUTS
+  export START_FILES=$WDIR/START_FILES
   export CDIR=$WDIR/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG
   export TDIR=$WDIR/dev_r6998_ORCHESTRA/NEMOGCM/TOOLS
   export EXP=$CDIR/$CONFIG/EXP_SEAsia
@@ -231,14 +232,185 @@ On **livljobs4** copy the mesh_mask file from **ARCHER**::
   scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/ACCORD/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG/ACCORD/EXP_SEAsia/mesh_mask.nc $INPUTS/mesh_mask.nc
 
 
+6. Generate boundary conditions with PyNEMO: Create netcdf abstraction wrapper
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+In this section there are two stages.
+* generate a ncml file which describes the files needed to create boundary conditions
+* generate a namelist.bdy file which controls the actual boundary condition generation.
+
+For each parent data set a new pair of (``*.ncml``, ``namelist.bdy``) are needed.
+Here I attempt to use parent data from:
+* AMM60 local data (doesn't yet work because of the sigma levels)
+* thredds server (as in the LH_REEF example)
+* NNA local data (easiest ?)
+
+First install PyNEMO if not already done so. Full description::
+
+  ssh -Y livljobs4
+  cd /work/$USER
+  export CONFIG=SEAsia
+  export WDIR=/work/$USER/NEMO/$CONFIG
+  module load anaconda/2.1.0  # Want python2
+  conda create --name nrct_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=1.0.0
+  source activate nrct_env
+  conda install -c https://conda.anaconda.org/conda-forge seawater=3.3.4 # Note had to add https path
+  conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
+  conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
+
+Find java object by doing a which java and then following the trail
+find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print
+::
+
+  export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+  unset SSH_ASKPASS # Didn't need this on ARCHER...
+  git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
+  cd nrct/Python
+  python setup.py build
+  export PYTHONPATH=/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
+  python setup.py install --prefix ~/.conda/envs/nrct_env
+  cd $WDIR/INPUTS
+
+
+I suggest managing the namelist.bdy file after the ``ncml`` file is generated.
+A fresh ``ncml`` file can be generated automatically or an existing one can be
+edited.
+
+
+6a. Generate ncml files: thredds_inputs_src.ncml
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+**Untested**
+In the pynemo_ncml_generator if using the thredds server use:
+Source directory: ``http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data``
+
+*(16 March 2017)*
+Created a thredds_inputs_src.ncml file to access ORCA12 data from the
+thredds server. Note that the pynemo_ncml_generator populates this file with available
+files according to the input regular expressions::
+
+  cp $START_FILES/thredds_inputs_src.ncml $INPUTS/.
+  cd $INPUTS
+  vi thredds_inputs_src.ncml
+
+  <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+  <ns0:aggregation type="union">
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="temperature" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="salinity" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="zonal_velocity" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05U.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="meridian_velocity" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05V.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="sea_surface_height" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+  </ns0:aggregation>
+  </ns0:netcdf>
+
+
+
+6b. Generate the namelist.bdy file for PyNEMO
++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Copy the PyNEMO template namelist.bdy from the START_FILES dir::
+
+  cd $INPUTS
+  cp $START_FILES/namelist.bdy $INPUTS/.
+
+Edit namelist.bdy to for the configuration name and ``ncml`` file name. **Note
+need the slash following OUTPUT**::
+
+  vi namelist.bdy
+  sn_src_dir = './thredds_inputs_src.ncml'       ! src_files/'
+  sn_dst_dir = '/work/jelt/NEMO/SEAsia/INPUTS/'
+  sn_fn      = 'SEAsia'                 ! prefix for output files
+  ...
+  cn_mask_file   = './mesh_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+
+Now edit the pynemo namelist file. Add location of grid information. Lots of
+the separate mesh and mask files are combined into the new mesh_mask.nc output.
+ Note use ncml to convert to variables without *_0.
+
+ Make sure the timestamps correspond to the input data. (Not sure this is
+  important yet *3-Oct-17*)
+Turn off as many things as possible to help it along.
+Turned off ``ln_mask_file``. James said it was for outputting a new mask file
+but it might have given me trouble.
+
+NB I have a namelist.bdy file for each ncml configuration
+* namelist.bdy_AMM60 (should use for LBay and Solent)
+* namelist.bdy_thredds (Used here. Uses global 1/12 degree data)
+* namelist.bdy_NNA (used for LBay)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 Old notes
 ---------
-
-
-
 
 
 
