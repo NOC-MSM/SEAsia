@@ -24,8 +24,8 @@ Define working directory, and other useful shortcuts::
 
   export CONFIG=ACCORD
   export WDIR=/work/n01/n01/$USER/$CONFIG
-  export CDIR=$WDIR/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG
-  export TDIR=$WDIR/dev_r6998_ORCHESTRA/NEMOGCM/TOOLS
+  export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+  export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
   export EXP=$CDIR/$CONFIG/EXP_EAFRICA
 
   export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
@@ -40,15 +40,14 @@ Define working directory, and other useful shortcuts::
 
 
 .. Use Dave's XIOS executable:
-  Make xios or copy from James:
-        ln -s ??? xios_server.exe
 
       Build XIOS2 @ r1080::
 
-        cd $WDIR
-        svn co -r1080 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0
-        cd $WDIR/xios-2.0
-        cp ../../LBay/xios-1.0/arch/arch-XC30_ARCHER.* ./arch
+        cd /work/n01/n01/$USER
+        svn co -r1080 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0_r1080
+        cd xios-2.0_r1080
+        #cp ../../LBay/xios-1.0/arch/arch-XC30_ARCHER.* ./arch
+        cp ../LBay/xios-2.0/arch/arch-XC30_ARCHER* arch/.
 
       Implement make command::
 
@@ -56,13 +55,14 @@ Define working directory, and other useful shortcuts::
 
       Link xios executable to the EXP directory::
 
-        ln -s  $WDIR/xios-2.0/bin/xios_server.exe $EXP/xios_server.exe
+        ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
 
 
-Build NEMO ORCHESTRA branch @ r8395::
+Build NEMO trunck @ ORCHESTRA r8395::
 
   cd $WDIR
-  svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/NERC/dev_r6998_ORCHESTRA@8395
+  svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
+  #svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/NERC/dev_r6998_ORCHESTRA@8395
 
 Use Dave's XIOS file (see ``%XIOS_HOME``)::
 
@@ -73,11 +73,21 @@ Make a new config directory structure::
   cd $CDIR
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10 clean
 
-Copy Maria's MY_SRC::
+Edit the CPP flags::
+
+  vi ACCORD/cpp_ACCORD.fcm
+
+  bld::tool::fppkeys key_zdfgls        \
+                   key_diaharm       \
+                   key_mpp_mpi       \
+                   key_iomput        \
+                   key_nosignedzero
+
+.. Copy Maria's MY_SRC::
 
   cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/CONFIG/TIDE/MY_SRC/* $CDIR/$CONFIG/MY_SRC/.
 
-Copy Maria's cpp flags (without the lim flag)::
+.. Copy Maria's cpp flags (without the lim flag)::
 
   vi $CDIR/$CONFIG/cpp_ACCORD.fcm
 
@@ -103,12 +113,14 @@ Build opa::
 
 Copy stuff from James' simulation::
 
+  mkdir $EXP
+
   cp $JEXP/namelist_cfg_R12 $EXP/namelist_cfg   # copy namelist_cfg
   ln -s $JEXP/../../SHARED/namelist_ref $EXP/.
 
 Edit namelist for self determining processors assignment::
 
-  vi namelist_cfg
+  vi $EXP/namelist_cfg
   ...
   jpni        =  -20       !  jpni   number of processors following i (set automatically if < 1)
   jpnj        =  -40    !  jpnj   number of processors following j (set automatically if < 1)
@@ -126,15 +138,15 @@ Link other setup and forcing files::
 Copy in ``iodef.xml`` file and dependencies::
 
   rm $EXP/*xml
-  #ln -s $JEXP/context_nemo.xml $EXP/.
-  #ln -s $JEXP/field_def_nemo-opa.xml $EXP/.
-  #ln -s $JEXP/iodef.xml $EXP/.
-  #ln -s $JEXP/../../AMM12/EXP00/file_def_nemo-opa.xml $EXP/.
-  #ln -s $JEXP/../../AMM12/EXP00/domain_def_nemo.xml $EXP/.
+  ln -s $JEXP/context_nemo.xml $EXP/.
+  ln -s $JEXP/field_def_nemo-opa.xml $EXP/.
+  ln -s $JEXP/iodef.xml $EXP/.
+  ln -s $JEXP/../../AMM12/EXP00/file_def_nemo-opa.xml $EXP/.
+  ln -s $JEXP/../../AMM12/EXP00/domain_def_nemo.xml $EXP/.
 
-  ln -s /work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/*xml $EXP/.
+  #ln -s /work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/*xml $EXP/.
 
-Edit the runscript::
+Edit/create the runscript::
 
   vi runscript
 
@@ -190,7 +202,8 @@ Submit::
   #qsub -q short runscript
   qsub runscript
 
-**PENDING. DOES IT WORK? NO!**
+*(4 Oct 2017)*
+**It runs and outputs **
 
 
 .. Rebuild the SSH files::
