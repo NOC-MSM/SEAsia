@@ -193,23 +193,25 @@ Submit::
 
 ---
 
+Rebuild the files and inspect locally
+=====================================
 
-.. Rebuild the SSH files (use an already compiled TOOLS)::
+Rebuild the SSH files (use an already compiled TOOLS)::
 
-   export WDIR=/work/n01/n01/jelt/LBay/
-   export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+  export WDIR=/work/n01/n01/jelt/LBay/
+  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
-   $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_T 5
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 EA_v3_1d_20010101_20010112_grid_T 5
 
+Should remove individual processor files once the build is verified::
 
-  Should remove individual processor files once the build is verified::
+  rm EA_v3_1d_20010101_20010112_grid_T_*.nc
 
-   rm LBay_1h_20000102_20000106_grid_?_*nc
+Inspect locally e.g.::
 
-  Inspect locally e.g.::
+  scp jelt@login.archer.ac.uk:$EXP/EA_v3_1d_20010101_20010112_grid_T.nc .
+  #scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/ACCORD/trunk_NEMOGCM_r8395/CONFIG/ACCORD/EXP_EAFRICA/EA_v3_1d_20010101_20010112_grid_T.nc .
 
-   scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG/LBay/EXP00/LBay_1h_20000102_20000106_grid_T.nc .
-
-   ferret
-   use LBay_1h_20000102_20000106_grid_T.nc
-   plot /i=25/j=70 SOSSHEIG
+  ferret
+  use EA_v3_1d_20010101_20010112_grid_T.nc
+  plot /i=25/j=70 SOSSHEIG
