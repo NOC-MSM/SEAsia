@@ -280,15 +280,18 @@ edited.
 6a. Generate ncml files: thredds_inputs_src.ncml
 ++++++++++++++++++++++++++++++++++++++++++++++++
 
-**Untested**
-In the pynemo_ncml_generator if using the thredds server use:
-Source directory: ``http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data``
+Create a thredds_inputs_src.ncml file to access ORCA12 data from the
+thredds server.
 
-*(16 March 2017)*
-Created a thredds_inputs_src.ncml file to access ORCA12 data from the
-thredds server. Note that the pynemo_ncml_generator populates this file with available
-files according to the input regular expressions::
+.. note:
 
+  In the pynemo_ncml_generator if using the thredds server use:
+  Source directory: ``http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data``
+  Note also that the pynemo_ncml_generator populates this file with available
+  files according to the input regular expressions
+
+Alternatively edit an existing file::
+  
   cp $START_FILES/thredds_inputs_src.ncml $INPUTS/.
   cd $INPUTS
   vi thredds_inputs_src.ncml
