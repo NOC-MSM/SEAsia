@@ -53,6 +53,11 @@ Define working directory, and other useful shortcuts::
 
         ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
 
+
+      Link the xios-2.0_r1080 to a generic XIOS directory name::
+
+        ln -s  /work/n01/n01/$USER/xios-2.0_r108  /work/n01/n01/$USER/XIOS
+
       Link xios executable to the EXP directory::
 
         ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
@@ -64,9 +69,13 @@ Build NEMO trunck @ ORCHESTRA r8395::
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
   #svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/NERC/dev_r6998_ORCHESTRA@8395
 
-Use Dave's XIOS file (see ``%XIOS_HOME``)::
+Use my XIOS file (see ``%XIOS_HOME``)::
 
   cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
+  vi $CDIR/../ARCH/arch-XC_ARCHER_INTEL.fcm
+  ..
+  %XIOS_HOME           /work/n01/n01/jelt/XIOS
+
 
 Make a new config directory structure::
 
@@ -193,14 +202,15 @@ Edit/create the runscript::
 
 Fix the links with the xios (from Dave) and opa exectutables::
 
-  ln -s /work/n01/n01/munday/XIOS/bin/xios_server.exe $EXP/.
+  #ln -s /work/n01/n01/munday/XIOS/bin/xios_server.exe $EXP/.
+  ln -s /work/n01/n01/jelt/xios-2.0_r1080/bin/xios_server.exe $EXP/.
   ln -s $CDIR/$CONFIG/BLD/bin/nemo.exe $EXP/opa
 
 Submit::
 
   cd $EXP
-  #qsub -q short runscript
-  qsub runscript
+  qsub -q short runscript
+  #qsub runscript
 
 *(4 Oct 2017)*
 **It runs and outputs **
