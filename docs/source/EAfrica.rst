@@ -61,11 +61,10 @@ Link xios executable to the EXP directory::
 
 ---
 
-Build NEMO trunck @ ORCHESTRA r8395::
+Build NEMO trunk @ ORCHESTRA r8395::
 
   cd $WDIR
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
-  #svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/NERC/dev_r6998_ORCHESTRA@8395
 
 Use my XIOS file (see ``%XIOS_HOME``)::
 
