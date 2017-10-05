@@ -1,6 +1,6 @@
-===========================================
-Setting up a East Africa NEMO configuration
-===========================================
+============================================================
+Setting up a East Africa with NEMO (ORCHESTRA) configuration
+============================================================
 
 URL:: http://nemo-reloc.readthedocs.io/en/latest/EAfrica.html
 
@@ -8,10 +8,13 @@ URL:: http://nemo-reloc.readthedocs.io/en/latest/EAfrica.html
 Summary / Plan
 ==============
 
+Date :: 4 Oct 2017
+Author :: jelt
+
 * Replicate James' /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/
 configuration.
 
-* Use ORCHESTRA code, which is near the head of the trunk.
+* Use ORCHESTRA code, which is near the head of the trunk (@ r8395).
 
 * Caveat: a number of input files are taken from James' existing configuration
 
@@ -64,7 +67,7 @@ Link xios executable to the EXP directory::
 
 ---
 
-Build NEMO trunk @ ORCHESTRA r8395::
+Build NEMO (ORCHESTRA) trunk @ r8395::
 
   cd $WDIR
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
@@ -93,6 +96,8 @@ Build opa::
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
 **It compiles!!**
+
+---
 
 
 Copy INPUT stuff from James' simulation::
@@ -189,7 +194,6 @@ Edit/create the runscript::
   exit
 
 
-
 Fix the links with the xios (if not already done) and opa exectutables::
 
   ln -s /work/n01/n01/jelt/XIOS/bin/xios_server.exe $EXP/.
@@ -220,7 +224,6 @@ Submit::
   qsub -q short runscript
   #qsub runscript
 
-*(4 Oct 2017)*
 **It runs and outputs lots of stuff including harmonics**
 
 ---
