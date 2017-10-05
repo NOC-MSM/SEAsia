@@ -83,7 +83,7 @@ Make a new config directory structure::
 
 Edit the CPP flags::
 
-  vi ACCORD/cpp_ACCORD.fcm
+  vi $CONFIG/cpp_$CONFIG.fcm
 
   bld::tool::fppkeys key_zdfgls        \
                    key_diaharm       \
