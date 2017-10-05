@@ -15,6 +15,8 @@ The summary procedure:
 
 Step 2 was done on livljobs4. The other steps were on ARCHER.
 
+* 5 Oct 2017 - started migrating to the ORCHESTRA codebase. (Trunk @r8395)
+
 Issues that arose
 =================
 
