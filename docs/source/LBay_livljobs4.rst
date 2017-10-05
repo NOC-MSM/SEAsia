@@ -48,17 +48,19 @@ Starting on ARCHER::
   export CONFIG=LBay
   export WORK=/work/n01/n01
   export WDIR=$WORK/$USER/$CONFIG
+  export INPUTS=$WORK/$USER/$CONFIG/INPUTS
   export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
   export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
   export EXP=$CDIR/$CONFIG/EXP00
 
 
   module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel
-  module load cray-hdf5-parallel
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
   export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
   export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
+
+
 .. note:
  I will these links to James' files when I've figured out how to replace them
 
@@ -80,10 +82,11 @@ Or just build::
 
 ---
 
+Build TOOLS
+===========
 
 To generate bathymetry, initial conditions and grid information we first need
-to compile some of the NEMO TOOLS (after a small bugfix - and to allow direct
-passing of arguments). For some reason GRIDGEN doesn’t like INTEL::
+to compile some of the NEMO TOOLS. NB for some reason GRIDGEN doesn’t like INTEL::
 
   cd $TDIR
   ./maketools -n WEIGHTS -m XC_ARCHER_INTEL
@@ -94,11 +97,80 @@ passing of arguments). For some reason GRIDGEN doesn’t like INTEL::
   module load cray-netcdf cray-hdf5
   ./maketools -n GRIDGEN -m XC_ARCHER
 
+  module unload cray-netcdf cray-hdf5
   module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
 
 .. note: These are compiled with XIOS2. However DOMAINcfg has to be compiled
   with XIOS1. There is a README in the $TDIR/DOMAINcfg on what to do.
 
+
+Finally build DOMAINcfg (which is relatively new). Use my XIOS1 file
+(see userid and path in variable ``%XIOS_HOME``). Copy from *store*::
+
+  cp $WORK/$USER/ARCH/arch-XC_ARCHER_INTEL_XIOS1.fcm $CDIR/../ARCH/.
+
+  ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
+
+The general idea is that you have to copy the ``namelist_cfg`` file into the ``DOMAINcfg``
+directory along with all the inputs files that would have previously been needed
+get v3.6 running. The reason being that all the non-time stepping stuff, like
+grid generating, has been abstracted from the core OPA code and is now done as
+a pre-processing step, and output into an important file ``domain_cfg.nc``.
+
+
+.. warning: This is a bit backwards as I copy in files that I haven't made yet. It will do for now.
+
+::
+
+  cd $TDIR
+  cp $INPUTS/coordinates.nc DOMAINcfg/.
+  cp $INPUTS/bathy_meter.nc DOMAINcfg/.
+
+I am not sure how this is going to pan out with the existing namelist_cfg files;
+it may not be up to date enough. So I will save an original for the time being::
+
+  cp /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/namelist_cfg namelist_cdf_LBay
+  cp namelist_cfg_LBay namelist_cfg
+
+Build a script to run the executable::
+
+  vi $TDIR/DOMAINcdf/rs
+
+  #!/bin/bash
+  #PBS -N domain_cfg
+  #PBS -l walltime=00:20:00
+  #PBS -l select=1
+  #PBS -j oe
+  #PBS -A n01-NOCL
+
+  #! -----------------------------------------------------------------------------
+
+  # Change to the direcotry that the job was submitted from
+  cd $PBS_O_WORKDIR
+
+  # Set the number of threads to 1
+  #   This prevents any system libraries from automatically
+  #   using threading.
+  export OMP_NUM_THREADS=1
+  # Change to the directory that the job was submitted from
+  ulimit -s unlimited
+
+  #===============================================================
+  # LAUNCH JOB
+  #===============================================================
+  echo `date` : Launch Job
+  aprun -n 1 -N 1 ./make_domain_cfg.exe >&  stdouterr_cfg
+  #aprun -n 216 -N 24 ./make_domain_cfg.exe >&  stdouterr_cfg
+
+  exit
+
+
+Try running it::
+
+  cd $TDIR/DOMAINcfg
+  qsub -q short rs
 
 
 
