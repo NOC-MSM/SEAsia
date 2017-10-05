@@ -1208,10 +1208,12 @@ Fix the links with the xios and opa exectutables (incase they were broken by the
 
 
 Submit::
-
+   cd $EXP
    qsub -q short runscript
 
 **Does it work?**
+
+No. Problem with the coordinates file. But this was sort of expected.
 
 
 ---
