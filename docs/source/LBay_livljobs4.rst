@@ -45,89 +45,47 @@ Starting on ARCHER::
 
   ssh login.archer.ac.uk
 
-  export WDIR=/work/n01/n01/jelt/LBay/
-  export INPUTS=$WDIR/INPUTS
-  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+  export CONFIG=LBay
+  export WORK=/work/n01/n01
+  export WDIR=$WORK/$USER/$CONFIG
+  export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+  export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+  export EXP=$CDIR/$CONFIG/EXP00
 
 
   module swap PrgEnv-cray PrgEnv-intel
   module load cray-netcdf-hdf5parallel
   module load cray-hdf5-parallel
 
-Follow recipe. Step 1 inlcuded getting INPUT files. For LHReef these were all
-prepared. Now they are not so make them as and when they are required::
+  export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
+  export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
+.. note:
+ I will these links to James' files when I've figured out how to replace them
 
-  cd $WDIR
-  mkdir INPUTS
+---
 
-Old code::
+Checkout and build XIOS2 @ r1080 `build_XIOS2.html`_::
 
-  cd INPUTS
-  wget ftp.nerc-liv.ac.uk:/pub/general/jdha/inputs.tar.gz
-  tar xvfz inputs.tar.gz
-  rm inputs.tar.gz
+Or just link XIOS executable to the EXP directory::
 
-*Now* code::
+  ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
 
-  cd $WDIR
-  svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2014/dev_r4621_NOC4_BDY_VERT_INTERP@5709
-  svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
+---
 
-Need to get arch files from INPUTS::
+Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
+Or just build::
 
-  cd $WDIR/xios-1.0
-  cp $INPUTS/arch-XC30_ARCHER.* ./arch
-
-Implement make command::
-
-  ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
-
-
-Step 2. Obtain and apply patches::
-
-  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-  cd $CDIR/../NEMO/OPA_SRC/SBC
-  patch -b < $INPUTS/fldread.patch
-  cd ../DOM
-  patch -b < $INPUTS/dommsk.patch
-  cd ../BDY
-  patch -b < $INPUTS/bdyini.patch
   cd $CDIR
-  rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
-  cp $INPUTS/arch-* ../ARCH
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
-Copy some input files to new configuration path::
-
-  cp $INPUTS/cpp_LH_REEF.fcm ./LBay/cpp_LBay.fcm
-  cp $INPUTS/dtatsd.F90 LBay/MY_SRC/
-
-On first make only choose OPA_SRC::
-
-  ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
-
-It breaks. Remove key_lim2 from cpp*fcm file and remake::
-
-  vi LBay/cpp_LBay.fcm
-  ...
-
-  ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
-
+---
 
 
 To generate bathymetry, initial conditions and grid information we first need
 to compile some of the NEMO TOOLS (after a small bugfix - and to allow direct
 passing of arguments). For some reason GRIDGEN doesn’t like INTEL::
 
-  cd $WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/WEIGHTS/src
-  patch -b < $INPUTS/scripinterp_mod.patch
-  patch -b < $INPUTS/scripinterp.patch
-  patch -b < $INPUTS/scrip.patch
-  patch -b < $INPUTS/scripshape.patch
-  patch -b < $INPUTS/scripgrid.patch
-
-  cd ../../
+  cd $TDIR
   ./maketools -n WEIGHTS -m XC_ARCHER_INTEL
   ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL
 
@@ -138,8 +96,11 @@ passing of arguments). For some reason GRIDGEN doesn’t like INTEL::
 
   module swap PrgEnv-cray PrgEnv-intel
 
+.. note: These are compiled with XIOS2. However DOMAINcfg has to be compiled
+  with XIOS1. There is a README in the $TDIR/DOMAINcfg on what to do.
 
-Need to take a more structured approach to setting up this new configuration
+
+
 
 1. Generate new coordinates file
 ++++++++++++++++++++++++++++++++
