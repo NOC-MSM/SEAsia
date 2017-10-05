@@ -172,6 +172,11 @@ Try running it::
   cd $TDIR/DOMAINcfg
   qsub -q short rs
 
+This probably wont work as there are some major differences with the namelist_cfg files.
+Actually diff-ing the files shows nothing very major.
+
+**PENDING (5 Oct) Does the DOMAINcfg THING RUN?**
+
 
 
 1. Generate new coordinates file
