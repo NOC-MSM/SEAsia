@@ -930,14 +930,12 @@ Using livljobs4
 
 **Start the process again on livljobs4: LBay_livljobs4.rst**
 
-Need to grab some INPUT files from ARCHER because I am not building them with livljobs4::
+Need to grab some INPUT files. (File bathy_meter.nc and domain_cfg.nc should be
+ there already)::
 
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/START_FILES/namelist.bdy_NNA $WDIR/INPUTS/.
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/START_FILES/NNA_inputs_src.ncml $WDIR/INPUTS/.
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/START_FILES/inputs_dst.ncml $WDIR/INPUTS/.
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/bathy_meter.nc $WDIR/INPUTS/.
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/domain_cfg.nc $WDIR/INPUTS/.
-  #rsync -uartv jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/ $WDIR/INPUTS
+  cp $START_FILES/namelist.bdy_NNA    $INPUTS/.
+  cp $START_FILES/NNA_inputs_src.ncml $INPUTS/.
+  cp $START_FILES/inputs_dst.ncml     $INPUTS/.
   cd $WDIR/INPUTS
 
 Make sure the NNA data is available::
@@ -1026,9 +1024,19 @@ inputs_dst.ncml. Set the date info back to (Nov?) 1979.
    !  unstructured open boundaries tidal parameters
    !-----------------------------------------------------------------------
        ln_tide        = .true.               !  =T : produce bdy tidal conditions
-       clname(1)      = 'M2'                 ! constituent name
+       clname(1)      = 'M2'                  ! constituent name
        clname(2)      = 'S2'
-       clname(3)      = 'K2'
+       clname(3)      = 'N2'
+       clname(4)      = 'K2'
+       clname(5)      = 'K1'
+       clname(6)      = 'O1'
+       clname(7)      = 'P1'
+       clname(8)      = 'Q1'
+       clname(9)      = 'MF'
+       clname(10)     = 'MM'
+       clname(11)     = 'M4'
+       clname(12)     = 'MS4'
+       clname(13)     = 'MN4'
        ln_trans       = .false.
        sn_tide_h     = '/work/jelt/tpxo7.2/h_tpxo7.2.nc'
        sn_tide_u     = '/work/jelt/tpxo7.2/u_tpxo7.2.nc'
@@ -1215,9 +1223,15 @@ Also need to make sure the harmonic tidal boundary files are consistent with the
   !-----------------------------------------------------------------------
   &nam_tide      !   tide parameters (#ifdef key_tide)
   !-----------------------------------------------------------------------
-      clname(1) = 'K2'
-      clname(2) = 'M2'
-      clname(3) = 'S2'
+  clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(4)    = 'K1'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(5)    = 'N2'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(6)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(7)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(8)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(9)   = 'M4'   !  name of constituent - all tidal components must be set in namelist_cfg
 
 
 
@@ -1534,9 +1548,6 @@ Caused problems with Flather bc etc.
 Turned ln_tide = .true., keep tidal potential off. Simulation terminates with
 same output (above), having listed the harmonic components. Hmmm
 
-**What next. How to get past this point....?**
-
-
 Tide forcing directory::
 
   !-----------------------------------------------------------------------
@@ -1546,10 +1557,24 @@ Tide forcing directory::
 
 Turned ln_tide_pot = .true. (I think that the tidal boundary files are way more
 likely to give trouble than tidal potential forcing)
+
+Added some more constituents to the TPXO forcing list. Regenerated with PyNEMO.
+Not sure about which constituents to include under key_tide in the OPA namelist_cfg
+Not sure because some of the constituent names differ. Is it looking for TPXO files
+of this name, or is it setting the internal harmonic frequencies. On reflection I guess
+the harmonic analyisis is entirely separate and will only pick out freq requested
+in the harm namelist.
+
 Submit::
 
   qsub runscript  # changed to a 4 minute walltime request
   4834214.sdb
+
+**SAME ERROR / NON ERROR AS ABOVE. What next. How to get past this point....?**
+
+
+
+
 
 
 
