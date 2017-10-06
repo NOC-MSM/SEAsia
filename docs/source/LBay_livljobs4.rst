@@ -269,8 +269,8 @@ Output files::
 
 
 
-Generate a domain configuration file
-====================================
+3. Generate a domain configuration file
+=======================================
 
 The general idea is that you have to copy the ``namelist_cfg`` file into the ``DOMAINcfg``
 directory along with all the inputs files that would have previously been needed
@@ -428,7 +428,7 @@ Try running it::
 
 
 
-3. Generate initial conditions
+4. Generate initial conditions
 ++++++++++++++++++++++++++++++
 
 
@@ -441,7 +441,7 @@ Copy ``make.macro`` file and edit the path if necessary::
   # Directory to install binaries:
   INSTALL_DIR = /home/n01/n01/jelt/local
 
-Proceed with Step 6::
+Proceed with Step 6 (of Lighhouse Reef Readthedocs)::
 
   cd ~
   mkdir local
@@ -575,7 +575,7 @@ Creates ``initcd_votemper.nc``. Then::
 Creates ``initcd_vosaline.nc``.
 
 
-4. Generate weights for atm forcing
+5. Generate weights for atm forcing
 +++++++++++++++++++++++++++++++++++
 
 Generate cut down drowned precip file (note that the nco tools don't like the
@@ -639,86 +639,90 @@ Generates ``data_nemo_bicubic_atmos.nc``. Then::
 Generates ``weights_bicubic_atmos.nc``.
 
 
-5. Generate mesh and mask files for open boundary conditions
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+.. note:
+ With the new DOMAINcfg tools this step of running NEMO for one time step is
+ already done. ``mesh_mask.nc`` is superceeded by ``domain_cfg.nc``
 
-Run the model to generate the mesh and mask files::
+  5. Generate mesh and mask files for open boundary conditions
+  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  cd $CDIR
-  cp $INPUTS/cpp_LH_REEF.fcm LBay/cpp_LBay.fcm
-  ln -s $WDIR/INPUTS/bathy_meter.nc $CDIR/LBay/EXP00/bathy_meter.nc
-  ln -s $WDIR/INPUTS/coordinates.nc $CDIR/LBay/EXP00/coordinates.nc
-  cp $INPUTS/runscript $CDIR/LBay/EXP00
-  cp $INPUTS/namelist_cfg $CDIR/LBay/EXP00/namelist_cfg
-  cp $INPUTS/namelist_ref $CDIR/LBay/EXP00/namelist_ref
-  ./makenemo clean
-  ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
-  cd LBay/EXP00
-  ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
+  Run the model to generate the mesh and mask files::
 
-Edit the namelist files for this configuration::
+    cd $CDIR
+    cp $INPUTS/cpp_LH_REEF.fcm LBay/cpp_LBay.fcm
+    ln -s $WDIR/INPUTS/bathy_meter.nc $CDIR/LBay/EXP00/bathy_meter.nc
+    ln -s $WDIR/INPUTS/coordinates.nc $CDIR/LBay/EXP00/coordinates.nc
+    cp $INPUTS/runscript $CDIR/LBay/EXP00
+    cp $INPUTS/namelist_cfg $CDIR/LBay/EXP00/namelist_cfg
+    cp $INPUTS/namelist_ref $CDIR/LBay/EXP00/namelist_ref
+    ./makenemo clean
+    ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
+    cd LBay/EXP00
+    ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
 
-  ncdump -h coordinates.nc
-  x = 57 ;
-  y = 113 ;
+  Edit the namelist files for this configuration::
 
-  vi namelist.cfg
-  ...
-  cn_exp      =   "LBay"  !  experience name
-  ...
-  !-----------------------------------------------------------------------
-  &namcfg        !   parameters of the configuration
-  !-----------------------------------------------------------------------
-     cp_cfg      =  "lbay"                !  name of the configuration
-     jp_cfg      =     084               !  resolution of the configuration
-     jpidta      =      57               !  1st lateral dimension ( >= jpi )
-     jpjdta      =     113               !  2nd    "         "    ( >= jpj )
-     jpkdta      =      51               !  number of levels      ( >= jpk )
-     jpiglo      =      57               !  1st dimension of global domain --> i =jpidta
-     jpjglo      =     113               !  2nd    -                  -    --> j  =jpjdta
+    ncdump -h coordinates.nc
+    x = 57 ;
+    y = 113 ;
 
-**ACTION: There are further edits to be made for when the model is actually run**
-**E.g. other filename instances of Lbay**
+    vi namelist.cfg
+    ...
+    cn_exp      =   "LBay"  !  experience name
+    ...
+    !-----------------------------------------------------------------------
+    &namcfg        !   parameters of the configuration
+    !-----------------------------------------------------------------------
+       cp_cfg      =  "lbay"                !  name of the configuration
+       jp_cfg      =     084               !  resolution of the configuration
+       jpidta      =      57               !  1st lateral dimension ( >= jpi )
+       jpjdta      =     113               !  2nd    "         "    ( >= jpj )
+       jpkdta      =      51               !  number of levels      ( >= jpk )
+       jpiglo      =      57               !  1st dimension of global domain --> i =jpidta
+       jpjglo      =     113               !  2nd    -                  -    --> j  =jpjdta
 
-Note that the old LH_REEF has the following
-| jpidta      =     358               !  1st lateral dimension ( >= jpi )
-| jpjdta      =     428               !  2nd    "         "    ( >= jpj )
+  **ACTION: There are further edits to be made for when the model is actually run**
+  **E.g. other filename instances of Lbay**
 
-with the dimensions in the LH_REFF coordinates file as
-| ncdump -h coordinates.nc
-| x = 358 ;
-| y = 428 ;
+  Note that the old LH_REEF has the following
+  | jpidta      =     358               !  1st lateral dimension ( >= jpi )
+  | jpjdta      =     428               !  2nd    "         "    ( >= jpj )
 
-Edit the runscript to include modules and the Account name (n01-NOCL)::
+  with the dimensions in the LH_REFF coordinates file as
+  | ncdump -h coordinates.nc
+  | x = 358 ;
+  | y = 428 ;
 
-  vi runscript
+  Edit the runscript to include modules and the Account name (n01-NOCL)::
 
-  #!/bin/bash
-  #PBS -N LBay
-  #PBS -l select=5
-  #PBS -l walltime=00:20:00
-  #PBS -A n01-NOCL
+    vi runscript
 
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel
-  module load cray-hdf5-parallel
-  ...
+    #!/bin/bash
+    #PBS -N LBay
+    #PBS -l select=5
+    #PBS -l walltime=00:20:00
+    #PBS -A n01-NOCL
 
-Submit::
+    module swap PrgEnv-cray PrgEnv-intel
+    module load cray-netcdf-hdf5parallel
+    module load cray-hdf5-parallel
+    ...
 
-  qsub -q short runscript
+  Submit::
+
+    qsub -q short runscript
 
 
-*(6 March 2017)*
+  *(6 March 2017)*
 
-If that works, we then need to rebuild the mesh and mask files in to single files for the next step::
+  If that works, we then need to rebuild the mesh and mask files in to single files for the next step::
 
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_zgr 96
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_hgr 96
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mask 96
-  mv mesh_zgr.nc mesh_hgr.nc mask.nc $WDIR/INPUTS
-  rm mesh_* mask_* LBay_0000*
-  cd $WDIR/INPUTS
+    $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_zgr 96
+    $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_hgr 96
+    $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mask 96
+    mv mesh_zgr.nc mesh_hgr.nc mask.nc $WDIR/INPUTS
+    rm mesh_* mask_* LBay_0000*
+    cd $WDIR/INPUTS
 
 
 THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO *(20 Sept 2017)*
