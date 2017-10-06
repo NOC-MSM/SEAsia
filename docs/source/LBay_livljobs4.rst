@@ -382,6 +382,15 @@ it may not be up to date enough. So I will save an original for the time being::
   Also the leap year flag seemed to cause an error so::
     nn_leapy    =       0   !  Leap year calendar (1) or not (0)
 
+Edit the namelist_cfg to include vertical grids in the domain_cfg.nc file.
+ See DOMAINcfg README::
+
+  vi namelist_cfg
+  ...
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+     ln_e3_dep   = .false.    ! This will be obsolete soon. See namelist_ref
 
 Build a script to run the executable::
 
@@ -992,7 +1001,8 @@ inputs_dst.ncml. Set the date info back to (Nov?) 1979.
       sn_src_hgr = '/work/jelt/NEMO/LBay/INPUTS/NNA/mesh_hgr.nc'   !  /grid/
       sn_src_zgr = '/work/jelt/NEMO/LBay/INPUTS/NNA/mesh_zgr.nc'
       sn_dst_hgr = './domain_cfg.nc'
-      sn_dst_zgr = './inputs_dst.ncml' ! rename output variables
+  !      sn_dst_zgr = './inputs_dst.ncml' ! rename output variables
+      sn_dst_zgr = './domain_cfg.nc'
       sn_src_msk = '/work/jelt/NEMO/LBay/INPUTS/NNA/mask.nc'
       sn_bathy   = './bathy_meter.nc'
 
