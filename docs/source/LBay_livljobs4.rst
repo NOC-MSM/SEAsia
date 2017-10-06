@@ -371,7 +371,7 @@ it may not be up to date enough. So I will save an original for the time being::
         nn_msh      =    0      !  create (>0) a mesh file or not (=0)
         rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
         !
-        rn_rdt      =  360.     !  time step for the dynamics (and tracer if nn_acc=0)
+        rn_rdt      =  60.      !  time step for the dynamics (and tracer if nn_acc=0)
         rn_atfp     =    0.1    !  asselin time filter parameter
         !
         ln_crs      = .false.   !  Logical switch for coarsening module
@@ -1291,6 +1291,175 @@ Then submit::
  qsub -q short runscript
 
  4806706.sdb
+
+---
+
+
+**ERROR**::
+
+  > Error [CAttributeMap::operator[](const StdString& key)] : In file '/work/n01/n01/jelt/xios-2.0_r1080/src/attribute_m
+  ap.cpp', line 56 -> [ key = time_origin] key not found !
+  > Error [CAttributeMap::operator[](const StdString& key)] : In file '/work/n01/n01/jelt/xios-2.0_r1080/src/attribute_m
+  ap.cpp', line 56 -> [ key = time_origin] key not found !
+  > Error [CAttributeMap::operator[](const StdString& key)] : In file '/work/n01/n01/jelt/xios-2.0_r1080/src/attribute_m
+  ap.cpp', line 56 -> [ key = time_origin] key not found !
+---
+
+Looks like a XML problem. Copy working XML files from EAfrica
+::
+  export CONFIG=LBay
+  export WORK=/work/n01/n01
+  export WDIR=$WORK/$USER/$CONFIG
+  export INPUTS=$WORK/$USER/$CONFIG/INPUTS
+  export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+  export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+  export EXP=$CDIR/$CONFIG/EXP00
+
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+  export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
+  export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
+
+---
+
+Copy working XML files from EAfrica::
+
+  cd $EXP
+  mv *.xml XML/.
+  cp /work/n01/n01/jelt/ACCORD/trunk_NEMOGCM_r8395/CONFIG/ACCORD/EXP_EAFRICA/*xml .
+
+This works. Highlights missing EOS choice in namelist_cfg. Add in::
+
+  vi namelist_cfg
+
+  !-----------------------------------------------------------------------
+  &nameos        !   ocean physical parameters
+  !-----------------------------------------------------------------------
+  ln_teos10   = .false.         !  = Use TEOS-10 equation of state
+  ln_eos80    = .true.         !  = Use EOS80 equation of state
+  ln_seos     = .false.         !  = Use simplified equation of state (S-EOS)
+                               !
+  !                     ! S-EOS coefficients (ln_seos=T):
+  !                             !  rd(T,S,Z)*rau0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
+  rn_a0       =  1.6550e-1      !  thermal expension coefficient
+  rn_b0       =  7.6554e-1      !  saline  expension coefficient
+  rn_lambda1  =  5.9520e-2      !  cabbeling coeff in T^2  (=0 for linear eos)
+  rn_lambda2  =  7.4914e-4      !  cabbeling coeff in S^2  (=0 for linear eos)
+  rn_mu1      =  1.4970e-4      !  thermobaric coeff. in T (=0 for linear eos)
+  rn_mu2      =  1.1090e-5      !  thermobaric coeff. in S (=0 for linear eos)
+  rn_nu       =  2.4341e-3      !  cabbeling coeff in T*S  (=0 for linear eos)
+
+Odd conflict in notation between namelist_ref in my new build and in JAmes'
+Copy James' here::
+
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/namelist_ref $EXP/namelist_ref
+
+
+  vi namelist_ref
+  !-----------------------------------------------------------------------
+  &nameos        !   ocean physical parameters
+  !-----------------------------------------------------------------------
+     ln_teos10   = .false.         !  = Use TEOS-10 equation of state
+     ln_eos80    = .false.         !  = Use EOS80 equation of state
+     ln_seos     = .false.         !  = Use simplified equation of state (S-EOS)
+
+(Other other format had integers to choose the scheme.)
+
+Problem in namdom
+::
+
+  The IOIPSL calendar is "gregorian", i.e. leap year
+
+  ===>>> : E R R O R
+       ===========
+
+  misspelled variable in namelist namdom in configuration namelist iostat =    19
+
+  Namelist namdom : space & time domain
+     linear free surface (=T)              ln_linssh  =  F
+     suppression of closed seas (=0)       nn_closea  =            0
+     create mesh/mask file(s)              nn_msh     =            0
+          = 0   no file created
+          = 1   mesh_mask
+          = 2   mesh and mask
+          = 3   mesh_hgr, msh_zgr and mask
+     treshold to open the isf cavity       rn_isfhmin =
+  1.00000000000000       (m)
+     ocean time step                       rn_rdt     =
+  60.0000000000000
+     asselin time filter parameter         rn_atfp    =
+  0.100000000000000
+     online coarsening of dynamical fields ln_crs     =  F
+
+
+Try the new format::
+
+  !-----------------------------------------------------------------------
+  &namdom        !   space and time domain (bathymetry, mesh, timestep)
+  !-----------------------------------------------------------------------
+   ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
+   nn_closea   =    0      !  remove (=0) or keep (=1) closed seas and lakes (ORCA)
+   !
+   nn_msh      =    0      !  create (>0) a mesh file or not (=0)
+   rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
+   !
+   rn_rdt      =  60.     !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_atfp     =    0.1    !  asselin time filter parameter
+   !
+   ln_crs      = .false.   !  Logical switch for coarsening module
+
+
+
+The vertical coordintes choice thing seems to have disappeared in the new build::
+
+  !-----------------------------------------------------------------------
+  &namzgr        !   vertical coordinate
+  !-----------------------------------------------------------------------
+     ln_zps      = .false.   !  z-coordinate - partial steps   (T/F)
+     ln_sco      = .true.    !  s- or hybrid z-s-coordinate    (T/F)
+  /
+  !-----------------------------------------------------------------------
+  &namzgr_sco    !   s-coordinate or hybrid z-s-coordinate
+  !-----------------------------------------------------------------------
+     ln_s_sh94   = .false.   !  Song & Haidvogel 1994 hybrid S-sigma   (T)|
+     ln_s_sf12   = .true.    !  Siddorn & Furner 2012 hybrid S-z-sigma (T)| if both are false the NEMO tanh stretching is applied
+     ln_sigcrit  = .true.    !  use sigma coordinates below critical depth (T) or Z coordinates (F) for Siddorn & Furner stretch
+                             !  stretching coefficients for all functions
+     rn_hc       =   50.0    !  critical depth for transition to stretched coordinates
+
+There are a few references to s-coordinates in the HPG and later diffusion variables.
+
+Hmm. Try the other way around start with James' namelist_cfg_R12 and change bits to
+match my LBay (old working) example
+
+Update boundary mask file name::
+
+  /
+  !-----------------------------------------------------------------------
+  &nambdy        !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+      ln_bdy         = .true.              !  Use unstructured open boundaries
+      nb_bdy         = 1                    !  number of open boundary sets
+      ln_coords_file = .true.               !  =T : read bdy coordinates from file
+      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+      ln_mask_file   = .true.              !  =T : read mask from file
+      cn_mask_file   = 'bdydta/LBay_bdyT_y2000m01.nc'     !  name of mask file (if ln_mask_file=.TRUE.)
+      cn_dyn2d       = 'flather'               !
+
+Automatically set the processor decomposition (not sure if it is used)::
+
+  &nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
+
+
+**PENDING**
+
+
+
+
+
+
 
 
 
