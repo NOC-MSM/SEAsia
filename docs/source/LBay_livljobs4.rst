@@ -425,6 +425,12 @@ Try running it::
 
 **6 Oct. This runs and produces ``domain_cfg.nc`` output, though the job has errors**
 
+Copy it to the EXP directory (also copy it to the INPUTS directory, which stores
+ te bits and bobs for a rebuild)::
+
+  cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
+  cp $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
+
 
 
 
@@ -742,14 +748,17 @@ Here I attempt to use parent data from NNA. I could use data from:
 * thredds server (as in the LH_REEF example, though this is turned off!)
 * NNA local data (easiest ?)
 
-First install PyNEMO if not already done so. Full description::
+First install PyNEMO if not already done so. Full description (If this is already
+installed then follow through anyway but skip the mkdir / create / install / clone
+ and build commands)::
 
   ssh -Y livljobs4
 
   export CONFIG=LBay
   export WORK=/work
-  export WDIR=$WORK/$USER/$CONFIG
-  #export INPUTS=$WORK/$USER/$CONFIG/INPUTS
+  export WDIR=$WORK/$USER/NEMO/$CONFIG
+  export INPUTS=$WDIR/INPUTS
+  export START_FILES=$WDIR/START_FILES
   #export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
   #export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
   #export EXP=$CDIR/$CONFIG/EXP00
@@ -772,18 +781,22 @@ find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print
   git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
   cd nrct/Python
   python setup.py build
-  export PYTHONPATH=/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
+  export PYTHONPATH=/login/$USER/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
   python setup.py install --prefix ~/.conda/envs/nrct_env
-  cd $WDIR/INPUTS
+  cd $INPUTS
 
+.. note: It might be best to abstract the above into a separate recipe that deals
+ with either livljobs4 or archer
 
 I suggest managing the namelist.bdy file after the ``ncml`` file is generated.
  A fresh ``ncml`` file can be generated automatically or an existing one can be edited.
 
 
-6a. Generate ncml files (Not tested on livljobs4)
+6a. Generate ncml files
 +++++++++++++++++++++++
 
+.. note: Not tested on livljobs4. It used to work on ARCHER, before switching to
+ domain_cfg.nc files)
 
 Activate generator:
 
@@ -809,10 +822,12 @@ expressions e.g. .*T\.nc$
 To generate a e.g. ``inputs_src.ncml`` file click  **generate**. Defining the
 filename seems to work better with the file selector rather than direct typing.
 
-In the following I have three ncml files.
+In ``$INPUTS`` I have three ncml files.
 * One for using the thredds server to get remote ORCA12 data.
 * One for using local AMM60 data, with ackward s-sigma levels
 * One for using local NNA data
+
+The first two are work in progress / templates. The latter is used here.
 
 NNA_inputs_src.ncml
 +++++++++++++++++++
@@ -820,7 +835,7 @@ NNA_inputs_src.ncml
 Note need to set the time variables and new ``sn_src_dir`` in namelist.bdy.
 Actually upated the following with all the Jan 2000 files::
 
-  cd $WDIR/INPUTS
+  cd $INPUTS
   vi NNA_inputs_src.ncml
 
   <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
@@ -856,14 +871,16 @@ Actually upated the following with all the Jan 2000 files::
 
 
 
-6b. Generate the namelist.bdy file for PyNEMO
-+++++++++++++++++++++++++++++++++++++++++++++
+6b. Generate the namelist.bdy file for PyNEMO / NRCT
++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+Copy the NRCT template namelist.bdy from the START_FILES::
 
-Copy the PyNEMO template namelist.bdy from the lighthouse project::
+  cd $INPUTS
+  cp $START_FILES/namelist.bdy $INPUTS/.
 
-  cd $WDIR/INPUTS
-  cp $INPUTS/namelist.bdy $WDIR/INPUTS/.
+.. note: There is an old namelist.bdy files namelist.bdy_old_mesh_files that does
+ not rely on the new domain_cfg.nc file
 
 Edit namelist.bdy to for the configuration name and ``ncml`` file name. **Note
 need the slash following OUTPUT**::
@@ -906,9 +923,12 @@ Using livljobs4
 
 Need to grab some INPUT files from ARCHER because I am not building them with livljobs4::
 
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/namelist.bdy $WDIR/INPUTS/.
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/START_FILES/namelist.bdy_NNA $WDIR/INPUTS/.
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/START_FILES/NNA_inputs_src.ncml $WDIR/INPUTS/.
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/START_FILES/inputs_dst.ncml $WDIR/INPUTS/.
   scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/bathy_meter.nc $WDIR/INPUTS/.
-  rsync -uartv jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/ $WDIR/INPUTS
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/domain_cfg.nc $WDIR/INPUTS/.
+  #rsync -uartv jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/ $WDIR/INPUTS
   cd $WDIR/INPUTS
 
 Make sure the NNA data is available::
@@ -919,18 +939,19 @@ Make sure the NNA data is available::
   scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/mask.nc $WDIR/INPUTS/NNA/.
   for file in NNA_*200001*nc ; do scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/$file $WDIR/INPUTS/NNA/. ; done
 
-Make sure the destination meshes exist. These were generated by running the new config for a timestep::
+.. old:
+ Make sure the destination meshes exist. These were generated by running the new config for a timestep::
 
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/mesh_zgr.nc $WDIR/INPUTS/.
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/mesh_hgr.nc $WDIR/INPUTS/.
+  #scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/mesh_zgr.nc $WDIR/INPUTS/.
+  #scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/mesh_hgr.nc $WDIR/INPUTS/.
 
-
+.. note: I have not done this as a clean build with the new domain_cfg.nc files
 
 namelist.bdy_NNA
 ++++++++++++++++
 
-Edit namelist.bdy to reflect locally stored mesh and mask files. Also
-NNA_inputs_src.ncml. Set the date info back to (Nov?) 1979.
+Edit namelist.bdy_NNA to reflect locally stored mesh and mask files. Also
+inputs_dst.ncml. Set the date info back to (Nov?) 1979.
 
  ::
 
@@ -970,7 +991,7 @@ NNA_inputs_src.ncml. Set the date info back to (Nov?) 1979.
    !-----------------------------------------------------------------------
       sn_src_hgr = '/work/jelt/NEMO/LBay/INPUTS/NNA/mesh_hgr.nc'   !  /grid/
       sn_src_zgr = '/work/jelt/NEMO/LBay/INPUTS/NNA/mesh_zgr.nc'
-      sn_dst_hgr = './mesh_hgr.nc'
+      sn_dst_hgr = './domain_cfg.nc'
       sn_dst_zgr = './inputs_dst.ncml' ! rename output variables
       sn_src_msk = '/work/jelt/NEMO/LBay/INPUTS/NNA/mask.nc'
       sn_bathy   = './bathy_meter.nc'
@@ -1039,13 +1060,14 @@ NNA_inputs_src.ncml. Set the date info back to (Nov?) 1979.
 
 
 
+Also had to check that ``inputs_dst.ncml`` has the correct file name within.
+ *Now domain_cfg.nc, formerly mesh_zgr.nc*
 Generate the boundary conditions again, with PyNEMO
 ::
 
   module load anaconda/2.1.0  # Want python2
   source activate nrct_env
-  export WDIR=/work/jelt/NEMO/LBay/
-  cd $WDIR/INPUTS
+  cd $INPUTS
   export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
 
   pynemo -g -s namelist.bdy_NNA
