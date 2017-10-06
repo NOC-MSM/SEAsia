@@ -1522,12 +1522,34 @@ Gets further. Now the ocean.output ends with::
   M4    -25.1935276317449        1.04385622195621        16.4871746664668
    2.810378051513493E-004
 
+Try setting tides to false::
+
+  !-----------------------------------------------------------------------
+&nam_tide      !   tide parameters
+!-----------------------------------------------------------------------
+   ln_tide     = .false.
+   ln_tide_pot = .false.    !  use tidal potential forcing
+
+Caused problems with Flather bc etc.
+Turned ln_tide = .true., keep tidal potential off. Simulation terminates with
+same output (above), having listed the harmonic components. Hmmm
+
 **What next. How to get past this point....?**
 
 
+Tide forcing directory::
 
+  !-----------------------------------------------------------------------
+  &nambdy_tide     ! tidal forcing at open boundaries
+  !-----------------------------------------------------------------------
+     filtide      = 'bdydta/LBay_bdytide_rotT_'         !  file name root of tidal forcing files
 
+Turned ln_tide_pot = .true. (I think that the tidal boundary files are way more
+likely to give trouble than tidal potential forcing)
+Submit::
 
+  qsub runscript  # changed to a 4 minute walltime request
+  4834214.sdb
 
 
 
