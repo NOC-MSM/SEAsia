@@ -737,17 +737,25 @@ In this section there are two stages.
 * generate a namelist.bdy file which controls the actual boundary condition generation.
 
 For each parent data set a new pair of (``*.ncml``, ``namelist.bdy``) are needed.
-Here I attempt to use parent data from:
-* AMM60 local data (doesn't yet work because of the sigma levels)
-* thredds server (as in the LH_REEF example)
+Here I attempt to use parent data from NNA. I could use data from:
+* AMM60 local data (might not yet work because of the sigma levels)
+* thredds server (as in the LH_REEF example, though this is turned off!)
 * NNA local data (easiest ?)
 
 First install PyNEMO if not already done so. Full description::
 
   ssh -Y livljobs4
-  cd /work/jelt
-  mkdir /work/jelt/NEMO/LBay
-  export WDIR=/work/jelt/NEMO/LBay/
+
+  export CONFIG=LBay
+  export WORK=/work
+  export WDIR=$WORK/$USER/$CONFIG
+  #export INPUTS=$WORK/$USER/$CONFIG/INPUTS
+  #export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+  #export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+  #export EXP=$CDIR/$CONFIG/EXP00
+
+  cd $WORK/$USER
+  mkdir $WDIR
   module load anaconda/2.1.0  # Want python2
   conda create --name nrct_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=1.0.0
   source activate nrct_env
