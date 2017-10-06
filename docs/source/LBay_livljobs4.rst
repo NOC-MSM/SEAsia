@@ -1129,71 +1129,61 @@ This generates::
      UnboundLocalError: local variable 'ft' referenced before assignment
 
 
+Prepare the boundary files (need to fix some variable names)::
 
+  cd $INPUTS
 
-8. Run the configuration ON ARCHER. Turn on the tides
-+++++++++++++++++++++++++++++++++++++++++++++++++++++
+  module load nco/gcc/4.4.2.ncwa
 
-*(21 Sept 2017 / 6 Oct 17)*
+  ncrename -v depthu,gdepu LBay_bdyU_y2000m01.nc
+  ncrename -v depthv,gdepv LBay_bdyV_y2000m01.nc
+  ncrename -v deptht,gdept initcd_votemper.nc
+  ncrename -v deptht,gdept initcd_vosaline.nc
+  module unload nco
 
-When I've got all the bdy files need to fix some variable names.
 Copy the new files back onto ARCHER
 ::
 
   livljobs4$
   cd /work/jelt/NEMO/LBay/INPUTS
   for file in LBay*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/. ; done
+  for file in initcd_vo*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/. ; done
+  scp coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/.
+
+8. Run the configuration ON ARCHER. Turn on the tides
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+*(21 Sept 2017 / 6 Oct 17)*
+
+Open a terminal on **ARCHER**. Redefine PATHS. Reload modules::
+
+  export CONFIG=LBay
+  export WORK=/work/n01/n01
+  export WDIR=$WORK/$USER/$CONFIG
+  export INPUTS=$WORK/$USER/$CONFIG/INPUTS
+  export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+  export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+  export EXP=$CDIR/$CONFIG/EXP00
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+OPA and XIOS are already built.
 
 
-Open a terminal on ARCHER.
+Link the boundary data to the EXP direcory::
 
-Compile code with new flags (not sure if I need the module commands). Note in particular,
-``key_gen_IC`` and ``key_tide``::
+ cd $EXP
+ ln -s $INPUTS/coordinates.bdy.nc       $EXP/coordinates.bdy.nc
+ ln -s $INPUTS/LBay_bdyT_y2000m01.nc    $EXP/LBay_bdyT_y2000m01.nc
+ ln -s $INPUTS/LBay_bdyU_y2000m01.nc    $EXP/LBay_bdyU_y2000m01.nc
+ ln -s $INPUTS/LBay_bdyV_y2000m01.nc    $EXP/LBay_bdyV_y2000m01.nc
+ ln -s $INPUTS/LBay_bt_bdyT_y2000m01.nc $EXP/LBay_bt_bdyT_y2000m01.nc
+ ln -s $INPUTS                          $EXP/bdydta
 
- module swap PrgEnv-cray PrgEnv-intel
- module load cray-netcdf-hdf5parallel
- module load cray-hdf5-parallel
- export WDIR=/work/n01/n01/jelt/LBay/
- export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-
- vi $CDIR/LBay/cpp_LBay.fcm
- bld::tool::fppkeys   key_dynspg_ts key_ldfslp  key_zdfgls  key_vvl key_mpp_mpi key_netcdf4 key_nosignedzero  key_iomput key_gen_IC key_bdy key_tide
-
-
- cd $CDIR
- ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10 clean
- ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
-
-Prepare the boundary files (need to fix some variable names)::
-
- export WDIR=/work/n01/n01/jelt/LBay/
- export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-
- cd $WDIR/INPUTS
-
- module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
- module load nco/4.5.0
- ncrename -v deptht,gdept LBay_bdyT_y2000m01.nc
- ncrename -v depthu,gdepu LBay_bdyU_y2000m01.nc
- ncrename -v depthv,gdepv LBay_bdyV_y2000m01.nc
-
- ncrename -v deptht,gdept initcd_votemper.nc
- module unload nco
- module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-
-
-Link the boundary data to the EXP direcory and update the namelist_cfg for
-running, not mesh generation::
-
- cd $CDIR/LBay/EXP00
- ln -s $WDIR/INPUTS/coordinates.bdy.nc $CDIR/LBay/EXP00/coordinates.bdy.nc
- ln -s $WDIR/INPUTS/LBay_bdyT_y2000m01.nc $CDIR/LBay/EXP00/LBay_bdyT_y2000m01.nc
- ln -s $WDIR/INPUTS/LBay_bdyU_y2000m01.nc    $CDIR/LBay/EXP00/LBay_bdyU_y2000m01.nc
- ln -s $WDIR/INPUTS/LBay_bdyV_y2000m01.nc    $CDIR/LBay/EXP00/LBay_bdyV_y2000m01.nc
- ln -s $WDIR/INPUTS/LBay_bt_bdyT_y2000m01.nc  $CDIR/LBay/EXP00/LBay_bt_bdyT_y2000m01.nc
- ln -s $WDIR/INPUTS $CDIR/LBay/EXP00/bdydta
- sed -e 's/nn_msh      =    3/nn_msh      =    0/' namelist_cfg > tmp
- sed -e 's/nn_itend    =      1/nn_itend    =       1440 /' tmp > namelist_cfg
+.. old:  and update the namelist_cfg for running, not mesh generation
+ #sed -e 's/nn_msh      =    3/nn_msh      =    0/' namelist_cfg > tmp
+ #sed -e 's/nn_itend    =      1/nn_itend    =       1440 /' tmp > namelist_cfg
 
 Edit the link to the tidal boundary files to fix file names::
 
@@ -1250,33 +1240,54 @@ Also need to make sure the harmonic tidal boundary files are consistent with the
      data (T) or not (F)
 
 
-
-
-
-Should also check the xml files. There was something **fishy** with the
-``field_def.xml`` and ``iodef.xml`` files where variables were not defined in
-the NEMO checkout. Copy these files from lighthouse reef::
-
- cp /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/EXP00/iodef.xml  $CDIR/LBay/EXP00/iodef.xml
- cp /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/SHARED/field_def.xml  $CDIR/SHARED/field_def.xml
-
 Edit the output to have 1hrly SSH::
 
- vi $CDIR/LBay/EXP00/iodef.xml
+ vi file_def_nemo.xml
  ...
+ <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 1h files -->
+  <file id="file19" name_suffix="_SSH" description="ocean T grid variables" >
+    <field field_ref="ssh"          name="zos"   />
+  </file>
+ </file_group>
 
 
 
-Edit runscript: Increase the number of XIOS cores used::
+Create a short queue runscript::
 
- vi runscript
- ...
- aprun -b -n 5 -N 5 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
- #aprun -b -n $XIOCORES -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
+  vi runscript
+  #!/bin/bash
+  #PBS -N LBay
+  #PBS -l select=5
+  #PBS -l walltime=00:20:00
+  #PBS -A n01-NOCL
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+
+  export PBS_O_WORKDIR=$(readlink -f $PBS_O_WORKDIR)
+  #  echo $(readlink -f $PBS_O_WORKDIR)
+  # export OMP_NUM_THREADS=1
+
+  cd $PBS_O_WORKDIR
+  #
+    echo " ";
+    OCEANCORES=96
+    XIOCORES=1
+  ulimit -c unlimited
+  ulimit -s unlimited
+
+  rm -f core
+
+  #aprun -n $OCEANCORES -N 24 ./opa
+  aprun -b -n 5 -N 5 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
+  #aprun -b -n $XIOCORES -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
+
+  exit
 
 Then submit::
 
- cd $CDIR/LBay/EXP00
+ cd $EXP
  qsub -q short runscript
 
  4806706.sdb
