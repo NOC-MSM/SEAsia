@@ -1453,7 +1453,76 @@ Automatically set the processor decomposition (not sure if it is used)::
   &nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
 
 
-**PENDING**
+Switch the vertical grid thing off. Comment it out as the default is .true. BTW
+the run really doesn't work without this action::
+
+  vi namelist_cfg
+  ...
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+  !   ln_e3_dep   = .false.    ! This will be obsolete soon. See namelist_ref
+
+Change some lateral diffusion settings::
+
+  !-----------------------------------------------------------------------
+  &namtra_ldf    !   lateral diffusion scheme for tracers                 (default: NO diffusion)
+  !-----------------------------------------------------------------------
+     !                       !  Operator type:
+     !                           !  no diffusion: set ln_traldf_lap=..._blp=F
+     ln_traldf_lap   =  .true.  !    laplacian operator
+     ln_traldf_blp   =  .false.  !  bilaplacian operator
+     !
+     !                       !  Direction of action:
+     ln_traldf_lev   =  .false.  !  iso-level
+     ln_traldf_hor   =  .false.  !  horizontal (geopotential)
+     ln_traldf_iso   =  .true.  !  iso-neutral (standard operator)
+
+Gets further. Now the ocean.output ends with::
+
+  dia_25h_init : Output 25 hour mean diagnostics
+  ~~~~~~~~~~~~
+  Namelist nam_dia25h : set 25h outputs
+  Switch for 25h diagnostics (T) or not (F)  ln_dia25h  =  F
+
+  AAAAAAAA
+
+
+  sbc_tide : Update of the components and (re)Init. the potential at kt=
+            1
+  ~~~~~~~~
+  Q1    -12.3894431662406       0.908086877990601      -0.702799902800797
+   6.495854101908828E-005
+  O1    -12.3894431662406       0.908086877990601        1.76695796869312
+   6.759774402887834E-005
+  P1    0.000000000000000E+000   1.00000000000000      -0.189080734230733
+   7.252294578606445E-005
+  S1    0.000000000000000E+000   1.00000000000000        3.14377431515479
+   7.272205216643040E-005
+  K1   -0.138134509178184       0.943678543708499        6.47662936454030
+   7.292115854679635E-005
+  2N2   -12.5967638158724        1.02169282172100        3.30407159024559
+   1.352404965560946E-004
+  MU2   -12.5967638158724        1.02169282172100        10.1996260361573
+   1.355937008184885E-004
+  N2    -12.5967638158724        1.02169282172100        5.77382946173951
+   1.378796995658846E-004
+  NU2   -12.5967638158724        1.02169282172100        12.6693839076512
+   1.382329038282786E-004
+  M2    -12.5967638158724        1.02169282172100        8.24358733323342
+   1.405189025756747E-004
+  L2    -12.5967638158724        1.19824874449528        13.8549378583171
+   1.431581055854647E-004
+  T2    0.000000000000000E+000   1.00000000000000        6.32212956235245
+   1.452450074605893E-004
+  S2    0.000000000000000E+000   1.00000000000000        6.28754863030957
+   1.454441043328608E-004
+  K2   -0.264695210962853       0.854177079157964        16.0948513826704
+   1.458423170935927E-004
+  M4    -25.1935276317449        1.04385622195621        16.4871746664668
+   2.810378051513493E-004
+
+**What next. How to get past this point....?**
 
 
 
@@ -1462,6 +1531,9 @@ Automatically set the processor decomposition (not sure if it is used)::
 
 
 
+
+
+----
 
 *(26 Sept 2017)*
 
