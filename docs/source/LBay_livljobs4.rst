@@ -113,70 +113,6 @@ Finally build DOMAINcfg (which is relatively new). Use my XIOS1 file
 
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
 
-The general idea is that you have to copy the ``namelist_cfg`` file into the ``DOMAINcfg``
-directory along with all the inputs files that would have previously been needed
-get v3.6 running. The reason being that all the non-time stepping stuff, like
-grid generating, has been abstracted from the core OPA code and is now done as
-a pre-processing step, and output into an important file ``domain_cfg.nc``.
-
-
-.. warning: This is a bit backwards as I copy in files that I haven't made yet. It will do for now.
-
-::
-
-  cd $TDIR
-  cp $INPUTS/coordinates.nc DOMAINcfg/.
-  cp $INPUTS/bathy_meter.nc DOMAINcfg/.
-
-I am not sure how this is going to pan out with the existing namelist_cfg files;
-it may not be up to date enough. So I will save an original for the time being::
-
-  cp /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/namelist_cfg namelist_cdf_LBay
-  cp namelist_cfg_LBay namelist_cfg
-
-Build a script to run the executable::
-
-  vi $TDIR/DOMAINcdf/rs
-
-  #!/bin/bash
-  #PBS -N domain_cfg
-  #PBS -l walltime=00:20:00
-  #PBS -l select=1
-  #PBS -j oe
-  #PBS -A n01-NOCL
-
-  #! -----------------------------------------------------------------------------
-
-  # Change to the direcotry that the job was submitted from
-  cd $PBS_O_WORKDIR
-
-  # Set the number of threads to 1
-  #   This prevents any system libraries from automatically
-  #   using threading.
-  export OMP_NUM_THREADS=1
-  # Change to the directory that the job was submitted from
-  ulimit -s unlimited
-
-  #===============================================================
-  # LAUNCH JOB
-  #===============================================================
-  echo `date` : Launch Job
-  aprun -n 1 -N 1 ./make_domain_cfg.exe >&  stdouterr_cfg
-  #aprun -n 216 -N 24 ./make_domain_cfg.exe >&  stdouterr_cfg
-
-  exit
-
-
-Try running it::
-
-  cd $TDIR/DOMAINcfg
-  qsub -q short rs
-
-This probably wont work as there are some major differences with the namelist_cfg files.
-Actually diff-ing the files shows nothing very major.
-
-**PENDING (5 Oct) Does the DOMAINcfg THING RUN?**
-
 
 
 1. Generate new coordinates file
@@ -330,6 +266,165 @@ Execute third scip thing::
 Output files::
 
   bathy_meter.nc
+
+
+
+Generate a domain configuration file
+====================================
+
+The general idea is that you have to copy the ``namelist_cfg`` file into the ``DOMAINcfg``
+directory along with all the inputs files that would have previously been needed
+get v3.6 running. The reason being that all the non-time stepping stuff, like
+grid generating, has been abstracted from the core OPA code and is now done as
+a pre-processing step, and output into an important file ``domain_cfg.nc``.
+
+
+.. warning: This is a bit backwards as I copy in files that I haven't made yet. It will do for now.
+
+::
+
+  cd $TDIR
+  cp $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
+  cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
+
+I am not sure how this is going to pan out with the existing namelist_cfg files;
+it may not be up to date enough. So I will save an original for the time being::
+
+  cp /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/namelist_cfg namelist_cdf_LBay
+  cp namelist_cfg_LBay namelist_cfg
+
+
+.. note: I am not sure what to do here. Initially I was concerned that the
+ domain_cfg.nc was not building so sought to fix problems in the new style
+ namelist_cfg file. Then I realised that the errors where not a problem for
+ generating the domain_cfg.nc file. But some of namelist_cfg changes might still
+ be helpful. For now I revert back to the original namelist_cfg file (from the
+ working old code base) but save these comments (in namelist_cfg_LBay):
+
+  To get it to work I (though I) had to make some edits to the namelist_cfg file, according to
+  the E R R O R S reported. I added::
+
+    !-----------------------------------------------------------------------
+    &nameos        !   ocean physical parameters
+    !-----------------------------------------------------------------------
+       ln_teos10   = .false.         !  = Use TEOS-10 equation of state
+       ln_eos80    = .true.         !  = Use EOS80 equation of state
+       ln_seos     = .false.         !  = Use simplified equation of state (S-EOS)
+                                     !
+       !                     ! S-EOS coefficients (ln_seos=T):
+       !                             !  rd(T,S,Z)*rau0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
+       rn_a0       =  1.6550e-1      !  thermal expension coefficient
+       rn_b0       =  7.6554e-1      !  saline  expension coefficient
+       rn_lambda1  =  5.9520e-2      !  cabbeling coeff in T^2  (=0 for linear eos)
+       rn_lambda2  =  7.4914e-4      !  cabbeling coeff in S^2  (=0 for linear eos)
+       rn_mu1      =  1.4970e-4      !  thermobaric coeff. in T (=0 for linear eos)
+       rn_mu2      =  1.1090e-5      !  thermobaric coeff. in S (=0 for linear eos)
+       rn_nu       =  2.4341e-3      !  cabbeling coeff in T*S  (=0 for linear eos)
+    /
+
+
+
+    Replace::
+
+     LBay
+     ----
+
+
+     !-----------------------------------------------------------------------
+     &namdom        !   space and time domain (bathymetry, mesh, timestep)
+     !-----------------------------------------------------------------------
+        nn_msh      =    0      !  create (=1) a mesh file or not (=0)
+        rn_rdt      =   60.    !  time step for the dynamics (and tracer if nn_acc=0)
+        rn_rdtmin   =   600.          !  minimum time step on tracers (used if nn_acc=1)
+        rn_rdtmax   =   600.          !  maximum time step on tracers (used if nn_acc=1)
+        rn_rdth     =   600.          !  depth variation of tracer time step  (used if nn_acc=1)
+        ppglam0     =  999999.0             !  longitude of first raw and column T-point (jphgr_msh = 1)
+        ppgphi0     =  999999.0             ! latitude  of first raw and column T-point (jphgr_msh = 1)
+        ppe1_deg    =  999999.0             !  zonal      grid-spacing (degrees)
+        ppe2_deg    =  999999.0             !  meridional grid-spacing (degrees)
+        ppe1_m      =  999999.0             !  zonal      grid-spacing (degrees)
+        ppe2_m      =  999999.0             !  meridional grid-spacing (degrees)
+        ppsur       =  999999.0             !  ORCA r4, r2 and r05 coefficients
+        ppa0        =  999999.0             ! (default coefficients)
+        ppa1        =  999999.0             !
+        ppkth       =      23.563           !
+        ppacr       =       9.0             !
+        ppdzmin     =       6.0             !  Minimum vertical spacing
+        pphmax      =    5720.              !  Maximum depth
+        ldbletanh   =  .FALSE.              !  Use/do not use double tanf function for vertical coordinates
+        ppa2        =  999999.              !  Double tanh function parameters
+        ppkth2      =  999999.              !
+        ppacr2      =  999999.
+     /
+
+    with::
+
+     Africa
+     ------
+
+     !-----------------------------------------------------------------------
+     &namdom        !   space and time domain (bathymetry, mesh, timestep)
+     !-----------------------------------------------------------------------
+        ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
+        nn_closea   =    0      !  remove (=0) or keep (=1) closed seas and lakes (ORCA)
+        !
+        nn_msh      =    0      !  create (>0) a mesh file or not (=0)
+        rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
+        !
+        rn_rdt      =  360.     !  time step for the dynamics (and tracer if nn_acc=0)
+        rn_atfp     =    0.1    !  asselin time filter parameter
+        !
+        ln_crs      = .false.   !  Logical switch for coarsening module
+     /
+     !
+
+
+  Also the leap year flag seemed to cause an error so::
+    nn_leapy    =       0   !  Leap year calendar (1) or not (0)
+
+
+Build a script to run the executable::
+
+  vi $TDIR/DOMAINcdf/rs
+
+  #!/bin/bash
+  #PBS -N domain_cfg
+  #PBS -l walltime=00:20:00
+  #PBS -l select=1
+  #PBS -j oe
+  #PBS -A n01-NOCL
+
+  #! -----------------------------------------------------------------------------
+
+  # Change to the directory that the job was submitted from
+  cd $PBS_O_WORKDIR
+
+  # Set the number of threads to 1
+  #   This prevents any system libraries from automatically
+  #   using threading.
+  export OMP_NUM_THREADS=1
+  # Change to the directory that the job was submitted from
+  ulimit -s unlimited
+
+  #===============================================================
+  # LAUNCH JOB
+  #===============================================================
+  echo `date` : Launch Job
+  aprun -n 1 -N 1 ./make_domain_cfg.exe >&  stdouterr_cfg
+  #aprun -n 216 -N 24 ./make_domain_cfg.exe >&  stdouterr_cfg
+
+  exit
+
+
+Try running it::
+
+  cd $TDIR/DOMAINcfg
+  qsub -q short rs
+
+
+
+**6 Oct. This runs and produces ``domain_cfg.nc`` output, though the job has errors**
+
 
 
 
