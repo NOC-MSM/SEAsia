@@ -429,7 +429,7 @@ Add vertical coordinate stuff. Note that ln_linssh is also defined in namdom...:
   /
 
 
-Added an HPG option::
+Added an HPG option (switched from ln_hpg_sco). Not sure if that was a good idea or not...::
 
   !-----------------------------------------------------------------------
   &namdyn_hpg    !   Hydrostatic pressure gradient option                 (default: zps)
