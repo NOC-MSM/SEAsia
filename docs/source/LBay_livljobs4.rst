@@ -416,7 +416,8 @@ it may not be up to date enough. So I will save an original for the time being::
   !ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
 
 
-Add vertical coordinate stuff. Note that ln_linssh is also defined in namdom...::
+Add vertical coordinate stuff. Note that ln_linssh is also defined in namdom.
+This led to an error so I removed it from namdom..::
 
   !-----------------------------------------------------------------------
   &namzgr        !   vertical coordinate                                  (default: NO selection)
