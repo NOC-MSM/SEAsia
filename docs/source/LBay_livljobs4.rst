@@ -395,15 +395,59 @@ it may not be up to date enough. So I will save an original for the time being::
   Also the leap year flag seemed to cause an error so::
     nn_leapy    =       0   !  Leap year calendar (1) or not (0)
 
-Edit the namelist_cfg to include vertical grids in the domain_cfg.nc file.
- See DOMAINcfg README::
+.. Edit the namelist_cfg to include vertical grids in the domain_cfg.nc file.
+ See DOMAINcfg README. Also add in vertical coordinates choice::
 
   vi namelist_cfg
   ...
   !-----------------------------------------------------------------------
   &namcfg        !   parameters of the configuration
   !-----------------------------------------------------------------------
-     ln_e3_dep   = .false.    ! This will be obsolete soon. See namelist_ref
+  !   ln_e3_dep   = .false.    ! This will be obsolete soon. See namelist_ref
+
+.. warning:
+  Comment out spurious variable ``ln_linssh`` which appeared in namdom but should
+  be in namzgr::
+
+  vi namelist_cfg
+  !-----------------------------------------------------------------------
+  &namdom        !   space and time domain (bathymetry, mesh, timestep)
+  !-----------------------------------------------------------------------
+  !ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
+
+
+Add vertical coordinate stuff. Note that ln_linssh is also defined in namdom...::
+
+  !-----------------------------------------------------------------------
+  &namzgr        !   vertical coordinate                                  (default: NO selection)
+  !-----------------------------------------------------------------------
+     ln_zco      = .false.   !  z-coordinate - full    steps
+     ln_zps      = .false.   !  z-coordinate - partial steps
+     ln_sco      = .true.   !  s- or hybrid z-s-coordinate
+     ln_isfcav   = .false.   !  ice shelf cavity
+     ln_linssh   = .false.   !  linear free surface
+  /
+
+
+Added an HPG option::
+
+  !-----------------------------------------------------------------------
+  &namdyn_hpg    !   Hydrostatic pressure gradient option                 (default: zps)
+  !-----------------------------------------------------------------------
+     ln_hpg_zco  = .false.   !  z-coordinate - full steps
+     ln_hpg_zps  = .false.   !  z-coordinate - partial steps (interpolation)
+     ln_hpg_sco  = .false.   !  s-coordinate (standard jacobian formulation)
+     ln_hpg_isf  = .false.   !  s-coordinate (sco ) adapted to isf
+     ln_hpg_djc  = .false.   !  s-coordinate (Density Jacobian with Cubic polynomial)
+     ln_hpg_prj  = .true.   !  s-coordinate (Pressure Jacobian scheme)
+  /
+
+Prevent analytic expression for z. **THIS REALLY HELPED**::
+
+  !-----------------------------------------------------------------------
+  &namdom        !   space and time domain (bathymetry, mesh, timestep)
+  !-----------------------------------------------------------------------
+  ldbletanh   =    .false.             !  Use/do not use double tanf function for vertical coordinates
 
 Build a script to run the executable::
 
