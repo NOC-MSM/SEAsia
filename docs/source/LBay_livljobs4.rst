@@ -3,36 +3,48 @@ Setting up a Liverpool Bay NEMO configuration, inc. livljob4
 ============================================================
 
 URL:: http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html
+*Actually I've taken this off readthedocs as it is internal. However writing in*
+*ReStrucTed text means it is trivial to deploy anywhere with whatever style*
 
 * Build notes with:: ~/GitLab/NEMO-RELOC/docs$ make html
 
-Originally tried building everything on ARCHER but ran into a java problem with PyNEMO that they needed to fix. Also MDP can't use ARCHER.
+Originally tried building everything on ARCHER but ran into a java problem with
+NRCT (nee PyNEMO) that they needed to fix. Also MDP can't use ARCHER.
+
+Then got it working on a combination of Liverpool machines for setup with
+ simulations on ARCHER.
+
+Then tried to update this recipe with the pre-release of NEMOv4, which in
+particular has a new method for handling the domain configuration. For this I use
+the ORCHESTRA realease of the trunk (@r8395)
 
 The summary procedure:
-1) start with running NEMO on a new domain to generate grid files
-2) generate boundary forcings (e.g. tides, T,S,U,V) from a parent grid / model
-3) run the new configuration
+#. ARCHER: Get code. Build tools. Generate coordinates, bathymetry, domain_cfg.nc
+#. ARCHER: Generate initial conditions and atmospheric forcings
+#. LIVLJOBS4: Generate boundary conditions with NRCT/PyNEMO
+#. ARCHER: Run simulation
 
-Step 2 was done on livljobs4. The other steps were on ARCHER.
-
-* 5 Oct 2017 - started migrating to the ORCHESTRA codebase. (Trunk @r8395)
 
 Issues that arose
 =================
 
 * PyNEMO doesn't yet deal with sigma parent grids.
+* PyNEMO needs a gdept function. DOMAINcfg (will) only store e3t.
 
-Other related recipes:
+Other related recipes (all NEMOv3.6):
 Follow PyNEMO recipe for Lighthouse Reef: ``http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef``
 Follow PyNEMO recipe for Lighthouse Reef: ``http://nemo-reloc.readthedocs.io/en/latest/SEAsia.html``
 Follow PyNEMO recipe for LBay on ARCHER (not complete because PyNEMO java issue): ``http://nemo-reloc.readthedocs.io/en/latest/LBay.html``.
 (Perhaps this other note is superceded by this present one, though the other
 note includes information of using PyNEMO with different data sources).
 
-.. note::
+.. note:
 
   It is very easy to break the code with bad edits to the iodef.xml file. Don't
   change the iodef.xml file at the same time as something else.
+
+.. note: PyNEMO is interchangabably called NRCT (NEMO Relocatable Configuration Tool)
+
 
 ----
 
@@ -62,7 +74,7 @@ Starting on ARCHER::
 
 
 .. note:
- I will these links to James' files when I've figured out how to replace them
+ I will remove these links to James' files when I've figured out how to build my own
 
 ---
 
@@ -86,9 +98,20 @@ Build TOOLS
 ===========
 
 To generate bathymetry, initial conditions and grid information we first need
-to compile some of the NEMO TOOLS. NB for some reason GRIDGEN doesn’t like INTEL::
+to compile some of the NEMO TOOLS. NB for some reason GRIDGEN doesn’t like INTEL
 
+.. note: These are compiled with XIOS2. However DOMAINcfg has to be compiled
+  with XIOS1. There is a README in the $TDIR/DOMAINcfg on what to do.
+
+First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
+(see userid and path in variable ``%XIOS_HOME``). Copy from ARCH *store*::
+
+  cp $WORK/$USER/ARCH/arch-XC_ARCHER_INTEL_XIOS1.fcm $CDIR/../ARCH/.
   cd $TDIR
+
+  ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
+.. note: Check which arch file this is. Surely should be consistent.
+
   ./maketools -n WEIGHTS -m XC_ARCHER_INTEL
   ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL
 
@@ -102,16 +125,6 @@ to compile some of the NEMO TOOLS. NB for some reason GRIDGEN doesn’t like INT
   module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
 
-.. note: These are compiled with XIOS2. However DOMAINcfg has to be compiled
-  with XIOS1. There is a README in the $TDIR/DOMAINcfg on what to do.
-
-
-Finally build DOMAINcfg (which is relatively new). Use my XIOS1 file
-(see userid and path in variable ``%XIOS_HOME``). Copy from *store*::
-
-  cp $WORK/$USER/ARCH/arch-XC_ARCHER_INTEL_XIOS1.fcm $CDIR/../ARCH/.
-
-  ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
 
 
 
@@ -435,7 +448,7 @@ Try running it::
 **6 Oct. This runs and produces ``domain_cfg.nc`` output, though the job has errors**
 
 Copy it to the EXP directory (also copy it to the INPUTS directory, which stores
- te bits and bobs for a rebuild)::
+ the bits and bobs for a rebuild)::
 
   cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
   cp $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
@@ -744,8 +757,8 @@ THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO *(20 Sep
 
 
 
-6. Generate boundary conditions with PyNEMO: Create netcdf abstraction wrapper
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+6. Generate boundary conditions with NRCT/PyNEMO: Create netcdf abstraction wrapper
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 In this section there are two stages.
 * generate a ncml file which describes the files needed to create boundary conditions
