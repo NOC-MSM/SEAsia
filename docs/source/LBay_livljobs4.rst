@@ -450,6 +450,19 @@ Prevent analytic expression for z. **THIS REALLY HELPED**::
   !-----------------------------------------------------------------------
   ldbletanh   =    .false.             !  Use/do not use double tanf function for vertical coordinates
 
+Tried reversing the ln_read_cfg and ln_write_cfg switches. Put back now::
+
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+     ln_e3_dep   = .true.    ! This will be obsolete soon. See namelist_ref
+     ln_read_cfg = .true.   !  (=T) read the domain configuration file
+        !                    !  (=F) user defined configuration  ==>>>  see usrdef(_...) modules
+        cn_domcfg = "domain_cfg"         ! domain configuration filename
+        !
+     ln_write_cfg= .false.   !  (=T) create the domain configuration file
+
+
 Build a script to run the executable::
 
   vi $TDIR/DOMAINcdf/rs
