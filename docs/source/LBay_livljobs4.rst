@@ -1544,13 +1544,76 @@ Submit::
 **SAME ERROR / NON ERROR AS ABOVE. What next. How to get past this point....?**
 
 
+---
+
+*10 Oct 2017*
+
+::
+
+ sbc_tide : Update of the components and (re)Init. the potential at kt=
+           1
+ ~~~~~~~~
+ Q1    -12.3894431662406       0.908086877990601      -0.702799902800797
+  6.495854101908828E-005
+ O1    -12.3894431662406       0.908086877990601        1.76695796869312
+  6.759774402887834E-005
+ P1    0.000000000000000E+000   1.00000000000000      -0.189080734230733
+  7.252294578606445E-005
+ K1   -0.138134509178184       0.943678543708499        6.47662936454030
+  7.292115854679635E-005
+ N2    -12.5967638158724        1.02169282172100        5.77382946173951
+  1.378796995658846E-004
+ M2    -12.5967638158724        1.02169282172100        8.24358733323342
+  1.405189025756747E-004
+ S2    0.000000000000000E+000   1.00000000000000        6.28754863030957
+  1.454441043328608E-004
+ K2   -0.264695210962853       0.854177079157964        16.0948513826704
+  1.458423170935927E-004
+ M4    -25.1935276317449        1.04385622195621        16.4871746664668
+  2.810378051513493E-004
+                     iom_nf90_open ~~~ open existing file: ../../../../INPUTS/cu
+ tdown_drowned_u10_DFS5.1.1_y2000.nc in READ mode
+                    ---> ../../../../INPUTS/cutdown_drowned_u10_DFS5.1.1_y2000.n
+ c OK
+                     iom_nf90_open ~~~ open existing file: ../../../../INPUTS/cu
+ tdown_drowned_u10_DFS5.1.1_y2000.nc in READ mode
+                    ---> ../../../../INPUTS/cutdown_drowned_u10_DFS5.1.1_y2000.n
+ c OK
+                     iom_close ~~~ close file: ../../../../INPUTS/cutdown_drowne
+ d_u10_DFS5.1.1_y2000.nc ok
+                     iom_nf90_open ~~~ open existing file: ../../../../INPUTS/we
+ ights_bicubic_atmos.nc in READ mode
+                    ---> ../../../../INPUTS/weights_bicubic_atmos.nc OK
+           read src01 (rec:      1) in ../../../../INPUTS/weights_bicubic_atmos.nc ok
 
 
 
+Inspection of v3.6 ocean.output suggests there is a problem with
+ weight_bicublic_atmos.nc. The output would have continued as::
+
+  /work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/ocean.output
+  ...
+
+  iom_nf90_open ~~~ open existing file: ../../../../../INPUTS
+  /cutdown_drowned_u10_DFS5.1.1_y2000.nc in READ mode
+  ---> ../../../../../INPUTS/cutdown_drowned_u10_DFS5.1.1_y200
+  0.nc OK
+  iom_close ~~~ close file: ../../../../../INPUTS/cutdown_dro
+  wned_u10_DFS5.1.1_y2000.nc ok
+  iom_nf90_open ~~~ open existing file: ../../../../../INPUTS
+  /weights_bicubic_atmos.nc in READ mode
+  ---> ../../../../../INPUTS/weights_bicubic_atmos.nc OK
+  read src01 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
+  read src02 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
+  read src03 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
+  read src04 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
+  read wgt01 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
+  read wgt02 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
+  read wgt03 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
 
 
 
-
+Try switch to CORE v3.0 ln_COARE_3p0
 ----
 
 *(26 Sept 2017)*
