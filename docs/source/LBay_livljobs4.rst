@@ -1737,7 +1737,44 @@ Submit::
 
 **Does it work?**
 
-No. Problem with the coordinates file. But this was sort of expected.
+No. Now fixed lots of things...
+
+---
+
+*(10 Oct 2017)*
+
+Change: nn_dyn2d_data = 2 —> 3::
+
+  &nambdy        !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+      ln_bdy         = .true.              !  Use unstructured open boundaries
+      ...
+      nn_dyn2d_dta   =  3                   !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+                                            !  = 2, use tidal harmonic forcing data from files
+                                            !  = 3, use external data AND tidal harmonic forcing
+
+
+**Does it work?**
+
+Waiting for standard queue to proces, I note that
+
+There are a number of differences in the tidal boundary conditions between James’ ORCHESTRA run and my LBay simulations.
+
+Check nambdy::
+
+  /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/EXP00/namelist_cfg
+  /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/namelist_cfg
+
+
+
+
+
+
+
+
+
+
 
 
 ---
