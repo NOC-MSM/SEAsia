@@ -1043,18 +1043,48 @@ in the input files).
 The SAVE button only updates the ``namelist.bdy`` file. The CLOSE button activates the process.
 
 This generates::
-  ls -1 /work/n01/n01/jelt/LBay/OUTPUT
+  ls -1 $INPUTS
 
   coordinates.bdy.nc
+  LBay_bdytide_rotT_M4_grid_T.nc
+  LBay_bdytide_rotT_MM_grid_T.nc
+  LBay_bdytide_rotT_MN4_grid_T.nc
+  LBay_bdytide_rotT_MS4_grid_T.nc
   LBay_bdytide_rotT_M2_grid_T.nc
-  LBay_bdytide_rotT_K2_grid_T.nc
+  LBay_bdytide_rotT_N2_grid_T.nc
   LBay_bdytide_rotT_S2_grid_T.nc
+  LBay_bdytide_rotT_K1_grid_T.nc
+  LBay_bdytide_rotT_K2_grid_T.nc
+  LBay_bdytide_rotT_P1_grid_T.nc
+  LBay_bdytide_rotT_O1_grid_T.nc
+  LBay_bdytide_rotT_MF_grid_T.nc
+  LBay_bdytide_rotT_Q1_grid_T.nc
+  LBay_bdytide_rotT_M4_grid_U.nc
+  LBay_bdytide_rotT_MM_grid_U.nc
+  LBay_bdytide_rotT_MN4_grid_U.nc
+  LBay_bdytide_rotT_MS4_grid_U.nc
   LBay_bdytide_rotT_M2_grid_U.nc
-  LBay_bdytide_rotT_K2_grid_U.nc
+  LBay_bdytide_rotT_N2_grid_U.nc
   LBay_bdytide_rotT_S2_grid_U.nc
+  LBay_bdytide_rotT_K1_grid_U.nc
+  LBay_bdytide_rotT_K2_grid_U.nc
+  LBay_bdytide_rotT_P1_grid_U.nc
+  LBay_bdytide_rotT_O1_grid_U.nc
+  LBay_bdytide_rotT_MF_grid_U.nc
+  LBay_bdytide_rotT_Q1_grid_U.nc
+  LBay_bdytide_rotT_M4_grid_V.nc
+  LBay_bdytide_rotT_MM_grid_V.nc
+  LBay_bdytide_rotT_MN4_grid_V.nc
+  LBay_bdytide_rotT_MS4_grid_V.nc
   LBay_bdytide_rotT_M2_grid_V.nc
-  LBay_bdytide_rotT_K2_grid_V.nc
+  LBay_bdytide_rotT_N2_grid_V.nc
   LBay_bdytide_rotT_S2_grid_V.nc
+  LBay_bdytide_rotT_K1_grid_V.nc
+  LBay_bdytide_rotT_K2_grid_V.nc
+  LBay_bdytide_rotT_P1_grid_V.nc
+  LBay_bdytide_rotT_O1_grid_V.nc
+  LBay_bdytide_rotT_MF_grid_V.nc
+  LBay_bdytide_rotT_Q1_grid_V.nc
   LBay_bdyT_y2000m01.nc
   LBay_bt_bdyT_y2000m01.nc
   LBay_bdyU_y2000m01.nc
@@ -1090,7 +1120,7 @@ Copy the new files back onto ARCHER
 ::
 
   livljobs4$
-  cd /work/jelt/NEMO/LBay/INPUTS
+  cd $INPUTS
   for file in LBay*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/. ; done
   for file in initcd_vo*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/. ; done
   scp coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/.
@@ -1130,29 +1160,29 @@ Link the boundary data to the EXP direcory::
  #sed -e 's/nn_msh      =    3/nn_msh      =    0/' namelist_cfg > tmp
  #sed -e 's/nn_itend    =      1/nn_itend    =       1440 /' tmp > namelist_cfg
 
-Edit the link to the tidal boundary files to fix file names::
+There was a problem running with the namelist_cfg fresh from DOMAINcfg. First with
+with namcfg group. So I cut it back to just reading the cfg file::
 
   vi namelist_cfg
+
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+     ln_read_cfg = .true.   !  (=T) read the domain configuration file
+     cn_domcfg = "domain_cfg"         ! domain configuration filename
+
+
+Then there was an extra variable in namdom. Comment out ldbletanh (which was essential in DOMAINcfg)::
+
+  !-----------------------------------------------------------------------
+  &namdom        !   space and time domain (bathymetry, mesh, timestep)
+  !-----------------------------------------------------------------------
   ...
-  !-----------------------------------------------------------------------
-  &nambdy_tide     ! tidal forcing at open boundaries
-  !-----------------------------------------------------------------------
-    filtide      = 'bdydta/LBay_bdytide_rotT_'         !  file name root of tidal forcing files
+  !    ldbletanh   =    .false.             !  Use/do not use double tanf function for vertical coordinates
 
-Change flag so that boundary data is read in. Spotted ``nn_dyn2d_dta = 3`` in AMM60 run.
-Switch from 1 to 3. I.e.::
 
-   &nambdy        !  unstructured open boundaries                          ("key_bdy")
-       nb_bdy         = 1                    !  number of open boundary sets
-       ln_coords_file = .true.               !  =T : read bdy coordinates from file
-       cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
-       ln_mask_file   = .true.              !  =T : read mask from file
-       cn_mask_file   = '../../../../../INPUTS/LBay_bdyT_y2000m01.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-       cn_dyn2d       = 'flather'               !
-       nn_dyn2d_dta   =  3                   !  = 0, bdy data are equal to the initial state
-                                             !  = 1, bdy data are read in 'bdydata   .nc' files
-                                             !  = 2, use tidal harmonic forcing data from files
-                                             !  = 3, use external data AND tidal harmonic forcing
+Also noted that the sbc namelist variables have changed. Now use ``ln_blk`` and ``ln_COARE_3p5= .true.``
+instead of ``ln_blk_core``
 
 Also need to make sure the harmonic tidal boundary files are consistent with the
  harmonics expected e.g.::
@@ -1211,6 +1241,10 @@ Create a short queue runscript::
   #PBS -l select=5
   #PBS -l walltime=00:20:00
   #PBS -A n01-NOCL
+  # mail alert at (b)eginning, (e)nd and (a)bortion of execution
+  #PBS -m bea
+  #PBS -M jelt@noc.ac.uk
+
 
   module swap PrgEnv-cray PrgEnv-intel
   module load cray-netcdf-hdf5parallel
