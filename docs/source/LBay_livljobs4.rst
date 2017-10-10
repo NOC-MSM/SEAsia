@@ -307,148 +307,9 @@ it may not be up to date enough. So I will save an original for the time being::
   cp namelist_cfg_LBay namelist_cfg
 
 
-.. note: I am not sure what to do here. Initially I was concerned that the
- domain_cfg.nc was not building so sought to fix problems in the new style
- namelist_cfg file. Then I realised that the errors where not a problem for
- generating the domain_cfg.nc file. But some of namelist_cfg changes might still
- be helpful. For now I revert back to the original namelist_cfg file (from the
- working old code base) but save these comments (in namelist_cfg_LBay):
-
-  To get it to work I (though I) had to make some edits to the namelist_cfg file, according to
-  the E R R O R S reported. I added::
-
-    !-----------------------------------------------------------------------
-    &nameos        !   ocean physical parameters
-    !-----------------------------------------------------------------------
-       ln_teos10   = .false.         !  = Use TEOS-10 equation of state
-       ln_eos80    = .true.         !  = Use EOS80 equation of state
-       ln_seos     = .false.         !  = Use simplified equation of state (S-EOS)
-                                     !
-       !                     ! S-EOS coefficients (ln_seos=T):
-       !                             !  rd(T,S,Z)*rau0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
-       rn_a0       =  1.6550e-1      !  thermal expension coefficient
-       rn_b0       =  7.6554e-1      !  saline  expension coefficient
-       rn_lambda1  =  5.9520e-2      !  cabbeling coeff in T^2  (=0 for linear eos)
-       rn_lambda2  =  7.4914e-4      !  cabbeling coeff in S^2  (=0 for linear eos)
-       rn_mu1      =  1.4970e-4      !  thermobaric coeff. in T (=0 for linear eos)
-       rn_mu2      =  1.1090e-5      !  thermobaric coeff. in S (=0 for linear eos)
-       rn_nu       =  2.4341e-3      !  cabbeling coeff in T*S  (=0 for linear eos)
-    /
-
-
-
-    Replace::
-
-     LBay
-     ----
-
-
-     !-----------------------------------------------------------------------
-     &namdom        !   space and time domain (bathymetry, mesh, timestep)
-     !-----------------------------------------------------------------------
-        nn_msh      =    0      !  create (=1) a mesh file or not (=0)
-        rn_rdt      =   60.    !  time step for the dynamics (and tracer if nn_acc=0)
-        rn_rdtmin   =   600.          !  minimum time step on tracers (used if nn_acc=1)
-        rn_rdtmax   =   600.          !  maximum time step on tracers (used if nn_acc=1)
-        rn_rdth     =   600.          !  depth variation of tracer time step  (used if nn_acc=1)
-        ppglam0     =  999999.0             !  longitude of first raw and column T-point (jphgr_msh = 1)
-        ppgphi0     =  999999.0             ! latitude  of first raw and column T-point (jphgr_msh = 1)
-        ppe1_deg    =  999999.0             !  zonal      grid-spacing (degrees)
-        ppe2_deg    =  999999.0             !  meridional grid-spacing (degrees)
-        ppe1_m      =  999999.0             !  zonal      grid-spacing (degrees)
-        ppe2_m      =  999999.0             !  meridional grid-spacing (degrees)
-        ppsur       =  999999.0             !  ORCA r4, r2 and r05 coefficients
-        ppa0        =  999999.0             ! (default coefficients)
-        ppa1        =  999999.0             !
-        ppkth       =      23.563           !
-        ppacr       =       9.0             !
-        ppdzmin     =       6.0             !  Minimum vertical spacing
-        pphmax      =    5720.              !  Maximum depth
-        ldbletanh   =  .FALSE.              !  Use/do not use double tanf function for vertical coordinates
-        ppa2        =  999999.              !  Double tanh function parameters
-        ppkth2      =  999999.              !
-        ppacr2      =  999999.
-     /
-
-    with::
-
-     Africa
-     ------
-
-     !-----------------------------------------------------------------------
-     &namdom        !   space and time domain (bathymetry, mesh, timestep)
-     !-----------------------------------------------------------------------
-        ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
-        nn_closea   =    0      !  remove (=0) or keep (=1) closed seas and lakes (ORCA)
-        !
-        nn_msh      =    0      !  create (>0) a mesh file or not (=0)
-        rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
-        !
-        rn_rdt      =  60.      !  time step for the dynamics (and tracer if nn_acc=0)
-        rn_atfp     =    0.1    !  asselin time filter parameter
-        !
-        ln_crs      = .false.   !  Logical switch for coarsening module
-     /
-     !
-
-
-  Also the leap year flag seemed to cause an error so::
-    nn_leapy    =       0   !  Leap year calendar (1) or not (0)
-
-.. Edit the namelist_cfg to include vertical grids in the domain_cfg.nc file.
- See DOMAINcfg README. Also add in vertical coordinates choice::
-
-  vi namelist_cfg
-  ...
-  !-----------------------------------------------------------------------
-  &namcfg        !   parameters of the configuration
-  !-----------------------------------------------------------------------
-  !   ln_e3_dep   = .false.    ! This will be obsolete soon. See namelist_ref
-
-.. warning:
-  Comment out spurious variable ``ln_linssh`` which appeared in namdom but should
-  be in namzgr::
-
-  vi namelist_cfg
-  !-----------------------------------------------------------------------
-  &namdom        !   space and time domain (bathymetry, mesh, timestep)
-  !-----------------------------------------------------------------------
-  !ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
-
-
-Add vertical coordinate stuff. Note that ln_linssh is also defined in namdom.
-This led to an error so I removed it from namdom..::
-
-  !-----------------------------------------------------------------------
-  &namzgr        !   vertical coordinate                                  (default: NO selection)
-  !-----------------------------------------------------------------------
-     ln_zco      = .false.   !  z-coordinate - full    steps
-     ln_zps      = .false.   !  z-coordinate - partial steps
-     ln_sco      = .true.   !  s- or hybrid z-s-coordinate
-     ln_isfcav   = .false.   !  ice shelf cavity
-     ln_linssh   = .false.   !  linear free surface
-  /
-
-
-Added an HPG option (switched from ln_hpg_sco). Not sure if that was a good idea or not...::
-
-  !-----------------------------------------------------------------------
-  &namdyn_hpg    !   Hydrostatic pressure gradient option                 (default: zps)
-  !-----------------------------------------------------------------------
-     ln_hpg_zco  = .false.   !  z-coordinate - full steps
-     ln_hpg_zps  = .false.   !  z-coordinate - partial steps (interpolation)
-     ln_hpg_sco  = .false.   !  s-coordinate (standard jacobian formulation)
-     ln_hpg_isf  = .false.   !  s-coordinate (sco ) adapted to isf
-     ln_hpg_djc  = .false.   !  s-coordinate (Density Jacobian with Cubic polynomial)
-     ln_hpg_prj  = .true.   !  s-coordinate (Pressure Jacobian scheme)
-  /
-
-Prevent analytic expression for z. **THIS REALLY HELPED**::
-
-  !-----------------------------------------------------------------------
-  &namdom        !   space and time domain (bathymetry, mesh, timestep)
-  !-----------------------------------------------------------------------
-  ldbletanh   =    .false.             !  Use/do not use double tanf function for vertical coordinates
+.. note: It was quite a lot of work to get the v3.6 namelist working as a number
+  of things have been removed and others have been added. In the end I got something
+  working
 
 Tried reversing the ln_read_cfg and ln_write_cfg switches. Put back now::
 
@@ -503,7 +364,12 @@ Try running it::
 
 
 
-**6 Oct. This runs and produces ``domain_cfg.nc`` output, though the job has errors**
+**10 Oct. This runs and produces ``domain_cfg.nc`` output, though the job has 1 error**
+
+Put a copy in $INPUTS for safe keeping. Put a copy in EXP::
+
+    cp $TDIR/DOMAINcfg/namelist_cfg $INPUTS/namelist_cfg_generateDOMAINcfg_101017
+    cp $TDIR/DOMAINcfg/namelist_cfg $EXP/namelist_cfg
 
 Copy it to the EXP directory (also copy it to the INPUTS directory, which stores
  the bits and bobs for a rebuild)::
@@ -812,7 +678,7 @@ Generates ``weights_bicubic_atmos.nc``.
 
 
 THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO *(20 Sept 2017)*
-
+If all the files are ready to go jump straight to `7. Generate boundary conditions with PyNEMO: Run PyNEMO`_
 
 
 6. Generate boundary conditions with NRCT/PyNEMO: Create netcdf abstraction wrapper
