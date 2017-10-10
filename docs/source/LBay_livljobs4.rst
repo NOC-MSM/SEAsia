@@ -1614,6 +1614,8 @@ Inspection of v3.6 ocean.output suggests there is a problem with
 
 
 Try switch to CORE v3.0 ln_COARE_3p0
+No joy. Try and check what comes next. Is this reading in the right file or should it be looking for tide data?
+
 ----
 
 *(26 Sept 2017)*
