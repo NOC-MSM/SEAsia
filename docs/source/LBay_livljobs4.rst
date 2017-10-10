@@ -1591,7 +1591,7 @@ Submit::
 Inspection of v3.6 ocean.output suggests there is a problem with
  weight_bicublic_atmos.nc. The output would have continued as::
 
-  /work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/ocean.output
+  ls /work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/ocean.output
   ...
 
   iom_nf90_open ~~~ open existing file: ../../../../../INPUTS
