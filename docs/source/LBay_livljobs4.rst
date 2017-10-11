@@ -1985,7 +1985,9 @@ Change rimwidth. It is different in the boundary files to namelist_cfg::
   &nambdy
   nn_rimwidth   = 9                    !  width of the relaxation zone
 
-(though the bdy fields, I think, are turned off)       
+(though the bdy fields, I think, are turned off).
+
+Oh the rimwidth variable matching the boundary files seem to fix the problem. Next turn things back on.       
 **PENDING**
 
 
