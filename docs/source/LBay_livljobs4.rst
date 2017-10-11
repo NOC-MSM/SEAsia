@@ -1899,6 +1899,26 @@ an sbc module. It is not clear why ln_bdy would break that...
 
 * James has a bdy_mask.nc file. This looks like top_level in domain_cfg.nc
 
+I can make a bdy_mask.nc file::
+
+  livljobs$
+  cd Desktop
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/domain_cfg.nc  .
+
+  module load nco/gcc/4.4.2.ncwa
+  ncks -v top_level  domain_cfg.nc bdy_mask.nc
+  ncrename -v top_level,bdy_mask bdy_mask.nc
+
+  livmap$
+  scp jelt@livljobs4:Desktop/bdy_mask.nc ~/Desktop/.
+  ferret
+  use bdy_mask.nc
+  shade bdy_mask
+
+However I notice that the (wet) western boundary is masked out by this mask. Is
+that true in James' mask?
+
+
 
 
 
