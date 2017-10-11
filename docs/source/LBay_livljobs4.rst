@@ -1921,7 +1921,7 @@ that true in James' mask?
 
 Copy new file into EXP directory (having copied it into $INPUTS)::
 
-  cp $INPUTS/bdy_mask.nc $EXP/.
+ cp $INPUTS/bdy_mask.nc $EXP/.
 
 Then edit the namelist_cfg.nc to include this new file::
 
