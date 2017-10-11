@@ -1907,17 +1907,18 @@ working on ARCHER so I'll do it on livljobs4)::
   scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/domain_cfg.nc  .
 
   module load nco/gcc/4.4.2.ncwa
-  ncks -v top_level  domain_cfg.nc bdy_mask.nc
-  ncrename -v top_level,bdy_mask bdy_mask.nc
+  ncks -v top_level,nav_lat,nav_lon  domain_cfg.nc tmp.nc
+  ncrename -v top_level,bdy_msk tmp.nc
+  ncwa -a t tmp.nc bdy_mask.nc
 
   livmap$
   scp jelt@livljobs4:Desktop/bdy_mask.nc ~/Desktop/.
   ferret
   use bdy_mask.nc
-  shade bdy_mask
+  shade bdy_msk
 
 However I notice that the (wet) western boundary is masked out by this mask. Is
-that true in James' mask?
+that true in James' mask? Yes it appears so.
 
 Copy new file into EXP directory (having copied it into $INPUTS)::
 
@@ -1935,7 +1936,14 @@ Then edit the namelist_cfg.nc to include this new file::
      ln_mask_file   = .true.              !  =T : read mask from file
      cn_mask_file   = 'bdy_mask.nc'
 
+This still dies in the same place::
 
+  tail ocean.output
+  ...
+  M4    -25.1935276193127        1.04385624018260        16.4795866457279
+   2.810378051513493E-004
+   usr_sbc : WAD_TEST_CASES case: NO surface forcing
+   ~~~~~~~~~~~   utau = vtau = taum = wndm = qns = qsr = emp = sfx = 0
 
 
 
