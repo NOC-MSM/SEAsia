@@ -1894,7 +1894,7 @@ ocean.output abort message (ln_bdy = false)::
 
 This test highlights the next output step that is missing when ln_bdy=T:
 ``           nit000-1 surface forcing fields set to nit000``. This must be in
-an sbc module. It is not clear why ln_bdy would break that...
+an sbc module (``sbcmod.F90``). It is not clear why ln_bdy would break that...
 
 
 * James has a bdy_mask.nc file. This looks like top_level in domain_cfg.nc
@@ -1945,6 +1945,11 @@ This still dies in the same place::
    usr_sbc : WAD_TEST_CASES case: NO surface forcing
    ~~~~~~~~~~~   utau = vtau = taum = wndm = qns = qsr = emp = sfx = 0
 
+
+Inspection of ``sbcmod.F90`` shows that thing might be different if it is a restart.
+Copy a restart from old code base. Update namelist_cfg for a restart and resubmit
+
+**PENDING**
 
 
 
