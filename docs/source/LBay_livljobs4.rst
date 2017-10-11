@@ -71,6 +71,7 @@ Starting on ARCHER::
 
   export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
   export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
+  export OCDIR=/work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/
 
 
 .. note:
@@ -1740,10 +1741,59 @@ from weights_bicubic_atmos.nc whereaas in the old code I read in ten or so...
                    ---> ../../../../INPUTS/weights_bicubic_atmos.nc OK
           read src01 (rec:      1) in ../../../../INPUTS/weights_bicubic_atmos.nc ok
 
+---
+
+.. note:
+
+  Not sure I have the enthusiasm to debug this COARE implentation. Try copying old
+   SBC code from Maria and hope is compiles::
+
+    cd /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/MY_SRC
+    cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/NEMO/OPA_SRC/SBC/sbcmod.F90 .
+    cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/NEMO/OPA_SRC/SBC/sbcblk_core.F90 .
+
+  Will need to make changes in namelist
+  &namsbc_blk   --> &namsbc_core
+
+  !ln_NCAR     = .false.   ! "NCAR"      algorithm   (Large and Yeager 2008)
+  !ln_COARE_3p0= .true.   ! "COARE 3.0" algorithm   (Fairall et al. 2003)
+  !ln_COARE_3p5= .false.   ! "COARE 3.5" algorithm   (Edson et al. 2013)
+  !ln_ECMWF    = .false.   ! "ECMWF"     algorithm   (IFS cycle 31)
+
+  &namsbc
+  ln_blk -->    ln_blk_core = .true.
+
+  Compilation expects a bdy_par file. Bah!...
+
+
+Instead copy the usrdef_sbc.F90 file to impose zero surface forcing::
+  rm $EXP/../MY_SRC/*
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/MY_SRC/usrdef_sbc.F90 $EXP/../MY_SRC/.
+
+Rebuild works. Edit namelist::
+
+  vi namelist_cfg
+  &namsbc
+    ln_usr      = .true.
+    ln_blk      = .false.    !  Bulk formulation                          (T => fill namsbc_blk )
 
 
 
+  &nambdy
+    ln_bdy         = .false.
+    nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+                                            !  = 2, use tidal harmonic forcing data from files
+                                            !  = 3, use external data AND tidal harmonic forcing
+Resubmit
 ----
+
+
+
+
+
+
+
 
 
 
