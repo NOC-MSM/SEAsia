@@ -1987,9 +1987,26 @@ Change rimwidth. It is different in the boundary files to namelist_cfg::
 
 (though the bdy fields, I think, are turned off).
 
-Oh the rimwidth variable matching the boundary files seem to fix the problem. Next turn things back on.       
+Oh the rimwidth variable matching the boundary files seem to fix the problem. Next turn things back on.
+::
+
+  &nam_tide      !   tide parameters
+  !-----------------------------------------------------------------------
+     ln_tide     = .true.
+     ln_tide_pot = .true.
+
+  &nambdy        !  unstructured open boundaries
+     nn_dyn2d_dta   =  1                   !  = 0, bdy data are equal to the initial state
+
 **PENDING**
 
+.. Ideas:
+ *  Add namelist_cfg to GitLab to track changes
+ * Try and restore things I changed --
+ * Check tides are in
+ * initial conditions in T and S
+ * remove the bdy mask
+ * surface forcing
 
 
 
