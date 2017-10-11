@@ -1863,7 +1863,7 @@ Try reducing the timestep for 60s to 10s::
   &namdom
     rn_rdt      =  10.     !  time step for the dynamics (and tracer if nn_acc=0)
 
-Same problem.
+Same problem. The timestep does not seem to have any effect.
 Looking at an abort file that was generated when ``ln_bdy=.false.`` and the
 velocities blew up showed that it was apparent that a coastal point was blowing up in velocity.
 ocean.output abort message (ln_bdy = false)::
@@ -1891,6 +1891,13 @@ ocean.output abort message (ln_bdy = false)::
 
 
 
+
+This test highlights the next output step that is missing when ln_bdy=T:
+``           nit000-1 surface forcing fields set to nit000``. This must be in
+an sbc module. It is not clear why ln_bdy would break that...
+
+
+* James has a bdy_mask.nc file. This looks like top_level in domain_cfg.nc
 
 
 
