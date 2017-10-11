@@ -1958,7 +1958,14 @@ Copy a restart from old code base. Update namelist_cfg for a restart and resubmi
 
 It turns out that the restart file is missing e3t and has a wrong variable name for time.
 Perhaps easier to create a new restart from a single timestep...?
-   
+
+no even with one timestep there is a seg fault problem.
+
+---
+
+change initialisation to false for T and S
+ln_tsd_init   = .false.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+
 **PENDING**
 
 
