@@ -1974,6 +1974,9 @@ Test. Turn off tides::
   !-----------------------------------------------------------------------
      ln_tide     = .false.
      ln_tide_pot = .false.    !  use tidal potential forcing
+
+  &nambdy
+       nn_dyn2d_dta   =  0  ! was 2
 **PENDING**
 
 
