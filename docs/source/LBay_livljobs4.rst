@@ -1966,6 +1966,14 @@ no even with one timestep there is a seg fault problem.
 change initialisation to false for T and S
 ln_tsd_init   = .false.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
 
+
+Test. Turn off tides::
+
+  !-----------------------------------------------------------------------
+  &nam_tide      !   tide parameters
+  !-----------------------------------------------------------------------
+     ln_tide     = .false.
+     ln_tide_pot = .false.    !  use tidal potential forcing
 **PENDING**
 
 
