@@ -1618,11 +1618,25 @@ Inspection of v3.6 ocean.output suggests there is a problem with
 Try switch to CORE v3.0 ln_COARE_3p0
 No joy. Try and check what comes next. Is this reading in the right file or should it be looking for tide data?
 
+.. note: There is a bug with the namelist implementation for COARE forcing.
+ln_COARE_3p0= .true.   ! "COARE 3.0" algorithm   (Fairall et al. 2003)
+ln_COARE_3p5= .false.   ! "COARE 3.5" algorithm   (Edson et al. 2013)
+--> both as true in ocean.output
+
+namelist_cfg:   ln_COARE_3p0= .false.   ! "COARE 3.0" algorithm   (Fairall et al. 2003)
+namelist_cfg:   ln_COARE_3p5= .true.   ! "COARE 3.5" algorithm   (Edson et al. 2013)
+--> both false in ocean.output
+
+Typo in sbcblk.F90 line 251/ Logical flag pointing to wrong variable. See::
+
+  WRITE(numout,*) '      "COARE 3.5" algorithm   (Edson et al. 2013)         ln_COARE_3p5 = ', ln_COARE_3p0
 
 
+Try ln_NCAR instead...
 *(10 Oct 2017)*
 
-Change: nn_dyn2d_data = 2 —> 3::
+Change: nn_dyn2d_data = 2 —> 3. This just means that the 'LBay_bt_bdyT etc in
+&nambdy_dta are read in::
 
   &nambdy        !  unstructured open boundaries
   !-----------------------------------------------------------------------
@@ -1650,7 +1664,81 @@ Check nambdy::
 Need to keep a track of differences between namelist_cfg in EXP and DOMAINcfg
 
 
+---
 
+*(11 Oct 2017)*
+
+Update the mask file::
+
+  !-----------------------------------------------------------------------
+  &nambdy        !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+      ln_bdy         = .true.              !  Use unstructured open boundaries
+      nb_bdy         = 1                    !  number of open boundary sets
+      ln_coords_file = .true.               !  =T : read bdy coordinates from file
+      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+      ln_mask_file   = .false.              !  =T : read mask from file
+      cn_mask_file   = 'domain_cfg.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+
+
+Make some changes in the open boundary files. Originally::
+
+  !-----------------------------------------------------------------------
+  &nambdy_dta    !  open boundaries - external data
+  !-----------------------------------------------------------------------
+  !              !  file name      ! frequency (hours) ! variable  ! time interp.!  clim   ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+  !              !                 !  (if <0  months)  !   name    !  (logical)  !  (T/F ) ! 'monthly' ! filename ! pairing  ! filename      !
+     bn_ssh      = 'Tbdy',                   -1        , 'sossheig',    .false.   , .true. ,  'yearly'  ,    ''    ,   ''     ,     ''
+     bn_u2d      = 'Ubdy',                   -1        , 'vobtcrtx',    .false.   , .true. ,  'yearly'  ,    ''    ,   ''     ,     ''
+     bn_v2d      = 'Vbdy',                   -1        , 'vobtcrty',    .false.   , .true. ,  'yearly'  ,    ''    ,   ''     ,     ''
+     bn_u3d      = 'amm12_bdyU_u3d',         24        , 'vozocrtx',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
+     bn_v3d      = 'amm12_bdyV_u3d',         24        , 'vomecrty',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
+     bn_tem      = 'amm12_bdyT_tra',         24        , 'votemper',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
+     bn_sal      = 'amm12_bdyT_tra',         24        , 'vosaline',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
+
+
+Change to::
+
+  !-----------------------------------------------------------------------
+  &nambdy_dta    !  open boundaries - external data
+  !-----------------------------------------------------------------------
+  !              !  file name      ! frequency (hours) ! variable  ! time interp.!  clim   ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+  !              !                 !  (if <0  months)  !   name    !  (logical)  !  (T/F ) ! 'monthly' ! filename ! pairing  ! filename      !
+  bn_ssh      = 'LBay_bt_bdyT', 24      , 'sossheig',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+  bn_u2d      = 'LBay_bdyU',  24        , 'vobtcrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+  bn_v2d      = 'LBay_bdyV',  24        , 'vobtcrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+  bn_u3d      = 'LBay_bdyU'   24        , 'vozocrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+  bn_v3d      = 'LBay_bdyV'   24        , 'vomecrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+  bn_tem      = 'LBay_bdyT'   24        , 'votemper',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+  bn_sal      = 'LBay_bdyT'   24        , 'vosaline',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+
+Though I need to check that these contain the correct variables. In particular
+ the 2D and 3D currents are in the same file?
+
+Though I don’t use the 3D data - other than setting it to the initial state.
+
+
+Observation.
+Boundary 2D tides looks suspiciously like something I want to switch on. Currently::
+
+!-----------------------------------------------------------------------
+&nambdy_tide   !  tidal forcing at open boundaries
+!-----------------------------------------------------------------------
+   filtide      = 'bdydta/LBay_bdytide_rotT_'         !  file name root of tidal forcing files
+   ln_bdytide_2ddta = .false.                   !
+   ln_bdytide_conj  = .false.                   !
+
+
+Things now look like they fail with the bulk forcing. Only read in one variable
+from weights_bicubic_atmos.nc whereaas in the old code I read in ten or so...
+
+::
+
+  tail ocean.output
+                       iom_nf90_open ~~~ open existing file: ../../../../INPUTS/we
+  ights_bicubic_atmos.nc in READ mode
+                   ---> ../../../../INPUTS/weights_bicubic_atmos.nc OK
+          read src01 (rec:      1) in ../../../../INPUTS/weights_bicubic_atmos.nc ok
 
 
 
