@@ -1977,6 +1977,15 @@ Test. Turn off tides::
 
   &nambdy
        nn_dyn2d_dta   =  0  ! was 2
+
+Didn't change the simulation crash point.
+
+Change rimwidth. It is different in the boundary files to namelist_cfg::
+
+  &nambdy
+  nn_rimwidth   = 9                    !  width of the relaxation zone
+
+(though the bdy fields, I think, are turned off)       
 **PENDING**
 
 
