@@ -1899,7 +1899,8 @@ an sbc module. It is not clear why ln_bdy would break that...
 
 * James has a bdy_mask.nc file. This looks like top_level in domain_cfg.nc
 
-I can make a bdy_mask.nc file::
+I can make a bdy_mask.nc file (I am not confident which modules to load to get
+working on ARCHER so I'll do it on livljobs4)::
 
   livljobs$
   cd Desktop
@@ -1918,8 +1919,21 @@ I can make a bdy_mask.nc file::
 However I notice that the (wet) western boundary is masked out by this mask. Is
 that true in James' mask?
 
+Copy new file into EXP directory (having copied it into $INPUTS)::
 
+  cp $INPUTS/bdy_mask.nc $EXP/.
 
+Then edit the namelist_cfg.nc to include this new file::
+
+ !-----------------------------------------------------------------------
+ &nambdy        !  unstructured open boundaries
+ !-----------------------------------------------------------------------
+     ln_bdy         = .true.              !  Use unstructured open boundaries
+     nb_bdy         = 1                    !  number of open boundary sets
+     ln_coords_file = .true.               !  =T : read bdy coordinates from file
+     cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+     ln_mask_file   = .true.              !  =T : read mask from file
+     cn_mask_file   = 'bdy_mask.nc'
 
 
 
