@@ -1810,18 +1810,20 @@ Try::
       cn_dyn2d       = 'flather'               !
       nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state
 
-Error. Seg fault.
+Error. Seg fault.::
 
-M2    -12.5967638158724        1.02169282172100        8.24358733323342
- 1.405189025756747E-004
-S2    0.000000000000000E+000   1.00000000000000        6.28754863030957
- 1.454441043328608E-004
-K2   -0.264695210962853       0.854177079157964        16.0948513826704
- 1.458423170935927E-004
-M4    -25.1935276317449        1.04385622195621        16.4871746664668
- 2.810378051513493E-004
- usr_sbc : WAD_TEST_CASES case: NO surface forcing
- ~~~~~~~~~~~   utau = vtau = taum = wndm = qns = qsr = emp = sfx = 0
+  tail ocean.output
+
+  M2    -12.5967638158724        1.02169282172100        8.24358733323342
+   1.405189025756747E-004
+  S2    0.000000000000000E+000   1.00000000000000        6.28754863030957
+   1.454441043328608E-004
+  K2   -0.264695210962853       0.854177079157964        16.0948513826704
+   1.458423170935927E-004
+  M4    -25.1935276317449        1.04385622195621        16.4871746664668
+   2.810378051513493E-004
+   usr_sbc : WAD_TEST_CASES case: NO surface forcing
+   ~~~~~~~~~~~   utau = vtau = taum = wndm = qns = qsr = emp = sfx = 0
 
 Try::
 
@@ -1838,6 +1840,28 @@ Try::
      nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
                                            !  = 1, bdy data are read in 'bdydata   .nc' files
                                            !  = 2, use tidal harmonic forcing data from files
+
+
+Same Error. Seg fault. Though ran for 40s::
+
+  tail ocean.output
+
+  M2    -12.5967638158724        1.02169282172100        8.24358733323342
+ 1.405189025756747E-004
+  S2    0.000000000000000E+000   1.00000000000000        6.28754863030957
+   1.454441043328608E-004
+  K2   -0.264695210962853       0.854177079157964        16.0948513826704
+   1.458423170935927E-004
+  M4    -25.1935276317449        1.04385622195621        16.4871746664668
+   2.810378051513493E-004
+   usr_sbc : WAD_TEST_CASES case: NO surface forcing
+   ~~~~~~~~~~~   utau = vtau = taum = wndm = qns = qsr = emp = sfx = 0
+
+
+Try reducing the timestep for 60s to 10s::
+
+  &namdom
+    rn_rdt      =  10.     !  time step for the dynamics (and tracer if nn_acc=0)
 
 
 
