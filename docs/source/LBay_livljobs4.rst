@@ -1949,6 +1949,16 @@ This still dies in the same place::
 Inspection of ``sbcmod.F90`` shows that thing might be different if it is a restart.
 Copy a restart from old code base. Update namelist_cfg for a restart and resubmit
 
+::
+   &namrun
+   nn_date0    =  20000106   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+   ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
+   cn_ocerst_out   = "restart_oce_out"   !  suffix of ocean restart name (output)
+   nrstdt = 0
+
+It turns out that the restart file is missing e3t and has a wrong variable name for time.
+Perhaps easier to create a new restart from a single timestep...?
+   
 **PENDING**
 
 
