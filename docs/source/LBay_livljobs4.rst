@@ -1863,6 +1863,37 @@ Try reducing the timestep for 60s to 10s::
   &namdom
     rn_rdt      =  10.     !  time step for the dynamics (and tracer if nn_acc=0)
 
+Same problem.
+Looking at an abort file that was generated when ``ln_bdy=.false.`` and the
+velocities blew up showed that it was apparent that a coastal point was blowing up in velocity.
+ocean.output abort message (ln_bdy = false)::
+
+  ...
+  1.458423170935927E-004
+  M4    -25.1935276193127        1.04385624018260        16.4795866457279
+  2.810378051513493E-004
+  usr_sbc : WAD_TEST_CASES case: NO surface forcing
+  ~~~~~~~~~~~   utau = vtau = taum = wndm = qns = qsr = emp = sfx = 0
+           nit000-1 surface forcing fields set to nit000
+
+  zdf_evd : Enhanced Vertical Diffusion (evd)
+  ~~~~~~~
+
+
+  zdf_mxl : mixed layer depth
+  ~~~~~~~
+
+  ssh_nxt : after sea surface height
+  ~~~~~~~
+
+  div_hor : horizontal velocity divergence
+  ...
+
+
+
+
+
+
 
 
 
