@@ -1788,6 +1788,14 @@ Rebuild works. Edit namelist::
 Resubmit
 ----
 
+Trying turning on tidal forcing at boundaries in namelist (Though James had this set false) ::
+
+  &nambdy_tide   !  tidal forcing at open boundaries
+  !-----------------------------------------------------------------------
+     filtide      = 'bdydta/LBay_bdytide_rotT_'         !  file name root of tidal forcing files
+     ln_bdytide_2ddta = .true.                   !
+
+This seems to do nothing. Keep it **FALSE**
 
 
 
