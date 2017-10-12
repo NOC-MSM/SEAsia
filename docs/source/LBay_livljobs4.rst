@@ -2042,7 +2042,7 @@ Try and use ramp_tide to ramp up tides over 1 day.
 
 **It worked!!** 1 day in 40s. Extend to 5 days to run in 5 mins
 
-Switch from Laplacian to Bilapacian diffusion.
+Switch from Laplacian to Bilapacian diffusion for momentum.
 
 **PENDING**
 
