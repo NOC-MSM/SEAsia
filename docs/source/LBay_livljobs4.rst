@@ -2039,8 +2039,7 @@ Output every 3 steps and inspect. Didn't output.
 
 Try and use ramp_tide to ramp up tides over 1 day.
 
-Old keys included: key_dynspg_ts key_ldfslp  key_zdfgls
-
+**It worked!!**
 
 **PENDING**
 
