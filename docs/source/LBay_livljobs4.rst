@@ -2001,7 +2001,9 @@ Oh the rimwidth variable matching the boundary files seem to fix the problem. Ne
 This runs but blows up in momentum. Try nn_dyn2d_dta = 2 (like James)
 Still blows up.
 
-Try tiny time step  rn_rdt=5
+Try tiny time step  rn_rdt=5. No.
+
+Try nn_dyn_dta = 3. Stabilize with boundary velocities?
 
 
 **PENDING**
@@ -2012,6 +2014,7 @@ Try tiny time step  rn_rdt=5
  * initial conditions in T and S
  * remove the bdy mask
  * surface forcing
+ * rn_rdt=60
 
 
 

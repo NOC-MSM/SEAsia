@@ -578,7 +578,7 @@ nn_baro=30,
     ln_mask_file   = .true.              !  =T : read mask from file
     cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
     cn_dyn2d       = 'flather'               !
-    nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
+    nn_dyn2d_dta   =  3                   !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
                                           !  = 2, use tidal harmonic forcing data from files
                                           !  = 3, use external data AND tidal harmonic forcing
