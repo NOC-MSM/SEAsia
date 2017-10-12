@@ -2033,6 +2033,12 @@ This blew up in 5 steps. Revert to nn_baro=30
 
 Switch bilaplacian to laplacian to see if it suddenly works
 
+It works better - 19 steps.
+
+Output every 3 steps and inspect. Didn't output.
+
+Try and use ramp_tide to ramp up tides over 1 day.
+
 Old keys included: key_dynspg_ts key_ldfslp  key_zdfgls
 
 

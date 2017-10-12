@@ -27,7 +27,7 @@
 !-----------------------------------------------------------------------
    cn_exp      =    "Lbay"  !  experience name
    nn_it000    =      1   !  first time step
-   nn_itend    =    7440   !  last  time step (std 5475)
+   nn_itend    =   1440   !  last  time step (std 5475)
    nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
@@ -44,10 +44,10 @@
    ln_iscpl    = .false.   !  cavity evolution forcing or coupling to ice sheet model
    nn_istate   =       0   !  output the initial state (1) or not (0)
    ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
-   nn_stock    =    7440   !  frequency of creation of a restart file (modulo referenced to 1)
+   nn_stock    =   1440   !  frequency of creation of a restart file (modulo referenced to 1)
    nn_stocklist = 0,0,0,0,0,0,0,0,0,0 ! List of timesteps when a restart file is to be written
-   nn_write    =    1440   !  frequency of write in the output file   (modulo referenced to nn_it000)
-   ln_mskland  = .false.   !  mask land points in NetCDF outputs (costly: + ~15%)
+   nn_write    =   1440   !  frequency of write in the output file   (modulo referenced to nn_it000)
+   ln_mskland  = .false.   !  mask land points in NetC_DF outputs (costly: + ~15%)
    ln_cfmeta   = .false.   !  output additional data to netCDF files required for compliance with the CF metadata standard
    ln_clobber  = .true.    !  clobber (overwrite) an existing file
    nn_chunksz  =       0   !  chunksize (bytes) for NetCDF file (works only with iom_nf90 routines)
@@ -116,14 +116,14 @@ rn_zs=1.0,
    nn_msh      =    0      !  create (>0) a mesh file or not (=0)
    rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
    !
-   rn_rdt      =  5.     !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_rdt      =  60.     !  time step for the dynamics (and tracer if nn_acc=0)
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module
 !   ldbletanh   =    .false.             !  Use/do not use double tanf function for vertical coordinates
 /
 !&namsplit
-!ln_bt_nn_auto=.false.,
+!ln_bt_nn_auto=.true.,
 !nn_baro=30,
 !-----------------------------------------------------------------------
 &namtsd        !   data : Temperature  & Salinity
@@ -556,8 +556,8 @@ rn_zs=1.0,
 !-----------------------------------------------------------------------
    ln_tide     = .true.
    ln_tide_pot = .true.    !  use tidal potential forcing
-   ln_tide_ramp= .false.   !
-   rdttideramp =    0.     !
+   ln_tide_ramp= .true.   !
+   rdttideramp =    1.     !
    clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
    clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
    clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
@@ -876,7 +876,6 @@ rn_zs=1.0,
 !-----------------------------------------------------------------------
    !                       !  Type of the operator :
    !                           !  no diffusion: set ln_dynldf_lap=..._blp=F
-
    ln_dynldf_lap =  .true.    !    laplacian operator
    ln_dynldf_blp =  .false.    !  bilaplacian operator
    !                       !  Direction of action  :
@@ -1133,8 +1132,8 @@ rn_zs=1.0,
 !-----------------------------------------------------------------------
 &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
 !-----------------------------------------------------------------------
-    nit000_han = 1441         ! First time step used for harmonic analysis
-    nitend_han = 7440       ! Last time step used for harmonic analysis
+    nit000_han = 1         ! First time step used for harmonic analysis
+    nitend_han = 1440      ! Last time step used for harmonic analysis
     nstep_han  = 5        ! Time step frequency for harmonic analysis
     tname(1)   = 'M2'      ! Name of tidal constituents
     tname(2)   = 'S2'      ! Name of tidal constituents
