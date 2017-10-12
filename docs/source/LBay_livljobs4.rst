@@ -2039,7 +2039,7 @@ Output every 3 steps and inspect. Didn't output.
 
 Try and use ramp_tide to ramp up tides over 1 day.
 
-**It worked!!**
+**It worked!!** 1 day in 40s. Extend to 10 days
 
 **PENDING**
 
