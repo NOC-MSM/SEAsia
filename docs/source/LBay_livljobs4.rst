@@ -2005,7 +2005,23 @@ Try tiny time step  rn_rdt=5. No.
 
 Try nn_dyn_dta = 3. Stabilize with boundary velocities? No
 
+Update bottom friction to match old LBay run (rather than James' E-Africa run).
+THis means changing to nonlinear friction, with a coeff 2.5E-3, log layer and
+bottom roughness as follows
+::
+  !-----------------------------------------------------------------------
+  &nambfr        !   bottom friction
+  !-----------------------------------------------------------------------
+     nn_bfr      =    2      !  type of bottom friction :   = 0 : free slip,  = 1 : linear friction
+                             !                              = 2 : nonlinear friction
+     rn_bfri2    =    2.5e-3 !  bottom drag coefficient (non linear case)
+     rn_bfeb2    =    0.0e0  !  bottom turbulent kinetic energy background  (m2/s2)
+     ln_loglayer =    .true. !  loglayer bottom friction (only effect when nn_bfr = 2)
+     rn_bfrz0    =    0.003  !  bottom roughness (only effect when ln_loglayer = .true.)
+  /
 
+I also changed the rn_bfeb2 = 2.5e-3 to zero. This would depend on the tke scheme.
+Though I don't have an idea of what it should be.
 
 **PENDING**
 
