@@ -1,4 +1,10 @@
 # quick plot NEMO output
+#########################
+#
+# jp 12 Oct 2017
+#
+# Quick script to read in nerCDF output from v4 NEMO and see if it is realistic
+
 
 from netCDF4 import Dataset
 import numpy as np
