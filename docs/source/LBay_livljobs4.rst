@@ -2029,6 +2029,9 @@ Instead turn it off there: ln_bt_auto    = .false.
 
 This makes the run go further. 9 time steps...
 Try and manually fix barotropic time step scale. nn_baro=1 (not 30)
+This blew up in 5 steps. Revert to nn_baro=30
+
+Switch bilaplacian to laplacian to see if it suddenly works
 
 Old keys included: key_dynspg_ts key_ldfslp  key_zdfgls
 
