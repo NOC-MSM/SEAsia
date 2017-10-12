@@ -2067,6 +2067,7 @@ Take off the tideramp and it blows up (this is probably not to do with the resta
 
 There is a variable nb_harmo=0 in the ocean.output. It is not being defined properly.
 
+Tried and changed the frequency of the boundary data: e..g bn_ssh      = 'LBay_bt_bdyT', -1   (was 24)
 **PENDING**
 
 .. Ideas:

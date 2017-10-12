@@ -210,7 +210,7 @@ rn_zs=1.0,
 !-----------------------------------------------------------------------
    nn_fsbc     = 1         !  frequency of surface boundary condition computation
                            !     (also = the frequency of sea-ice & iceberg model call)
-                     ! Type of air-sea fluxes 
+                     ! Type of air-sea fluxes
    ln_usr      = .true.    !  user defined formulation                  (T => check usrdef_sbc)
    ln_flx      = .false.   !  flux formulation                          (T => fill namsbc_flx )
    ln_blk      = .false.    !  Bulk formulation                          (T => fill namsbc_blk )
@@ -220,7 +220,7 @@ rn_zs=1.0,
    nn_components = 0       !  configuration of the opa-sas OASIS coupling
                            !  =0 no opa-sas OASIS coupling: default single executable configuration
                            !  =1 opa-sas OASIS coupling: multi executable configuration, OPA component
-                           !  =2 opa-sas OASIS coupling: multi executable configuration, SAS component 
+                           !  =2 opa-sas OASIS coupling: multi executable configuration, SAS component
    nn_limflx = -1          !  LIM3 Multi-category heat flux formulation (use -1 if LIM3 is not used)
                            !  =-1  Use per-category fluxes, bypass redistributor, forced mode only, not yet implemented coupled
                            !  = 0  Average per-category fluxes (forced and coupled mode)
@@ -233,7 +233,7 @@ rn_zs=1.0,
    nn_ice_embd = 1         !  =0 levitating ice (no mass exchange, concentration/dilution effect)
                            !  =1 levitating ice with mass and salt exchange but no presure effect
                            !  =2 embedded sea-ice (full salt and mass exchanges and pressure)
-                     ! Misc. options of sbc : 
+                     ! Misc. options of sbc :
    ln_traqsr   = .false.    !  Light penetration in the ocean            (T => fill namtra_qsr)
    ln_dm2dc    = .false.   !  daily mean to diurnal cycle on short wave
    ln_rnf      = .false.    !  runoffs                                   (T => fill namsbc_rnf)
@@ -245,7 +245,7 @@ rn_zs=1.0,
    ln_isf      = .false.   !  ice shelf                                 (T   => fill namsbc_isf)
    ln_wave     = .false.   !  Activate coupling with wave  (T => fill namsbc_wave)
    ln_cdgw     = .false.   !  Neutral drag coefficient read from wave model (T => ln_wave=.true. & fill namsbc_wave)
-   ln_sdw      = .false.   !  Read 2D Surf Stokes Drift & Computation of 3D stokes drift (T => ln_wave=.true. & fill namsbc_wave) 
+   ln_sdw      = .false.   !  Read 2D Surf Stokes Drift & Computation of 3D stokes drift (T => ln_wave=.true. & fill namsbc_wave)
    ln_tauoc    = .false.   !  Activate ocean stress modified by external wave induced stress (T => ln_wave=.true. & fill namsbc_wave)
    ln_stcor    = .false.   !  Activate Stokes Coriolis term (T => ln_wave=.true. & ln_sdw=.true. & fill namsbc_wave)
    nn_lsm      = 0         !  =0 land/sea mask for input fields is not applied (keep empty land/sea mask filename field) ,
@@ -411,7 +411,7 @@ rn_zs=1.0,
 !
 ! for all case
    nn_isf      = 0         !  ice shelf melting/freezing
-                           !  1 = presence of ISF    2 = bg03 parametrisation 
+                           !  1 = presence of ISF    2 = bg03 parametrisation
                            !  3 = rnf file for isf   4 = ISF fwf specified
                            !  option 1 and 4 need ln_isfcav = .true. (domzgr)
 ! only for nn_isf = 1 or 2
@@ -428,7 +428,7 @@ rn_zs=1.0,
    !                       ! 2 = velocity and stability dependent Gamma    (Holland et al. 1999)
 /
 !-----------------------------------------------------------------------
-&namsbc_iscpl  !   land ice / ocean coupling option                     
+&namsbc_iscpl  !   land ice / ocean coupling option
 !-----------------------------------------------------------------------
    nn_drown    = 10        ! number of iteration of the extrapolation loop (fill the new wet cells)
    ln_hsb      = .false.   ! activate conservation module (conservation exact after a time of rn_fiscpl)
@@ -529,10 +529,10 @@ rn_zs=1.0,
 !!======================================================================
 !!   namlbc        lateral momentum boundary condition
 !!   namagrif      agrif nested grid ( read by child model only )       ("key_agrif")
-!!   nam_tide      Tidal forcing 
-!!   nambdy        Unstructured open boundaries                         
-!!   nambdy_dta    Unstructured open boundaries - external data         
-!!   nambdy_tide   tidal forcing at open boundaries                     
+!!   nam_tide      Tidal forcing
+!!   nambdy        Unstructured open boundaries
+!!   nambdy_dta    Unstructured open boundaries - external data
+!!   nambdy_tide   tidal forcing at open boundaries
 !!======================================================================
 !
 !-----------------------------------------------------------------------
@@ -569,7 +569,7 @@ rn_zs=1.0,
    clname(9)   = 'M4'   !  name of constituent - all tidal components must be set in namelist_cfg
 /
 !-----------------------------------------------------------------------
-&nambdy        !  unstructured open boundaries                          
+&nambdy        !  unstructured open boundaries
 !-----------------------------------------------------------------------
     ln_bdy         = .true.              !  Use unstructured open boundaries
     nb_bdy         = 1                    !  number of open boundary sets
@@ -605,17 +605,17 @@ rn_zs=1.0,
     nb_jpk_bdy    = -1                    ! number of levels in the bdy data (set < 0 if consistent with planned run)
 /
 !-----------------------------------------------------------------------
-&nambdy_dta    !  open boundaries - external data                       
+&nambdy_dta    !  open boundaries - external data
 !-----------------------------------------------------------------------
 !              !  file name      ! frequency (hours) ! variable  ! time interp.!  clim   ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
 !              !                 !  (if <0  months)  !   name    !  (logical)  !  (T/F ) ! 'monthly' ! filename ! pairing  ! filename      !
-   bn_ssh      = 'LBay_bt_bdyT', 24      , 'sossheig',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-   bn_u2d      = 'LBay_bdyU',  24        , 'vobtcrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-   bn_v2d      = 'LBay_bdyV',  24        , 'vobtcrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-   bn_u3d      = 'LBay_bdyU'   24        , 'vozocrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-   bn_v3d      = 'LBay_bdyV'   24        , 'vomecrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-   bn_tem      = 'LBay_bdyT'   24        , 'votemper',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-   bn_sal      = 'LBay_bdyT'   24        , 'vosaline',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+   bn_ssh      = 'LBay_bt_bdyT', -1      , 'sossheig',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+   bn_u2d      = 'LBay_bdyU',  -1        , 'vobtcrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+   bn_v2d      = 'LBay_bdyV',  -1        , 'vobtcrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+   bn_u3d      = 'LBay_bdyU'   -1        , 'vozocrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+   bn_v3d      = 'LBay_bdyV'   -1        , 'vomecrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+   bn_tem      = 'LBay_bdyT'   -1        , 'votemper',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+   bn_sal      = 'LBay_bdyT'   -1        , 'vosaline',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
 ! for lim2
 !   bn_frld    = 'amm12_bdyT_ice',         24        , 'ileadfra',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
 !   bn_hicif   = 'amm12_bdyT_ice',         24        , 'iicethic',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
@@ -626,15 +626,14 @@ rn_zs=1.0,
 !   bn_ht_s    = 'amm12_bdyT_ice',         24        , 'isnowthi',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
 
    cn_dir      = 'bdydta/' !  root directory for the location of the bulk files
-   ln_full_vel = .false.   !  
+   ln_full_vel = .false.   !
 /
 !-----------------------------------------------------------------------
 &nambdy_tide   !  tidal forcing at open boundaries
 !-----------------------------------------------------------------------
    filtide      = 'bdydta/LBay_bdytide_rotT_'         !  file name root of tidal forcing files
-   nb_harmo = 3
    ln_bdytide_2ddta = .false.                   !
-   ln_bdytide_conj  = .false.                   ! 
+   ln_bdytide_conj  = .false.                   !
 /
 
 !!======================================================================
@@ -679,7 +678,7 @@ rn_zs=1.0,
                            !     = 1 constant flux
                            !     = 2 variable flux (read in geothermal_heating.nc in mW/m2)
    rn_geoflx_cst = 86.4e-3 !  Constant value of geothermal heat flux [W/m2]
-   cn_dir      = './'      !  root directory for the location of the runoff files 
+   cn_dir      = './'      !  root directory for the location of the runoff files
 /
 !-----------------------------------------------------------------------
 &nambbl        !   bottom boundary layer scheme                         ("key_trabbl")
@@ -725,8 +724,8 @@ rn_zs=1.0,
       nn_cen_h   =  4            !  =2/4, horizontal 2nd order CEN / 4th order CEN
       nn_cen_v   =  4            !  =2/4, vertical   2nd order CEN / 4th order COMPACT
    ln_traadv_fct = .true. !  FCT scheme
-      nn_fct_h   =  2            !  =2/4, horizontal 2nd / 4th order 
-      nn_fct_v   =  2            !  =2/4, vertical   2nd / COMPACT 4th order 
+      nn_fct_h   =  2            !  =2/4, horizontal 2nd / 4th order
+      nn_fct_v   =  2            !  =2/4, vertical   2nd / COMPACT 4th order
       nn_fct_zts =  0            !  >=1,  2nd order FCT scheme with vertical sub-timestepping
       !                          !        (number of sub-timestep = nn_fct_zts)
    ln_traadv_mus = .false. !  MUSCL scheme
@@ -752,7 +751,7 @@ rn_zs=1.0,
 &namtra_ldf    !   lateral diffusion scheme for tracers                 (default: NO diffusion)
 !-----------------------------------------------------------------------
    !                       !  Operator type:
-   !                           !  no diffusion: set ln_traldf_lap=..._blp=F 
+   !                           !  no diffusion: set ln_traldf_lap=..._blp=F
    ln_traldf_lap   =  .true.  !    laplacian operator
    ln_traldf_blp   =  .false.  !  bilaplacian operator
    !
@@ -762,7 +761,7 @@ rn_zs=1.0,
    ln_traldf_iso   =  .true.  !  iso-neutral (standard operator)
    ln_traldf_triad =  .false.  !  iso-neutral (triad    operator)
    !
-   !		       	         !  iso-neutral options:        
+   !		       	         !  iso-neutral options:
    ln_traldf_msc   =  .false.  !  Method of Stabilizing Correction (both operators)
    rn_slpmax       =   0.01    !  slope limit                      (both operators)
    ln_triad_iso    =  .false.  !  pure horizontal mixing in ML              (triad only)
@@ -772,9 +771,9 @@ rn_zs=1.0,
    !                       !  Coefficients:
    nn_aht_ijk_t    = 0         !  space/time variation of eddy coef
    !                                !   =-20 (=-30)    read in eddy_diffusivity_2D.nc (..._3D.nc) file
-   !                                !   =  0           constant 
-   !                                !   = 10 F(k)      =ldf_c1d 
-   !                                !   = 20 F(i,j)    =ldf_c2d 
+   !                                !   =  0           constant
+   !                                !   = 10 F(k)      =ldf_c1d
+   !                                !   = 20 F(i,j)    =ldf_c2d
    !                                !   = 21 F(i,j,t)  =Treguier et al. JPO 1997 formulation
    !                                !   = 30 F(i,j,k)  =ldf_c2d * ldf_c1d
    !                                !   = 31 F(i,j,k,t)=F(local velocity and grid-spacing)
@@ -789,9 +788,9 @@ rn_zs=1.0,
    rn_aeiv_0     = 2000.   ! eddy induced velocity coefficient   [m2/s]
    nn_aei_ijk_t  = 21      ! space/time variation of the eiv coeficient
    !                                !   =-20 (=-30)    read in eddy_induced_velocity_2D.nc (..._3D.nc) file
-   !                                !   =  0           constant 
-   !                                !   = 10 F(k)      =ldf_c1d 
-   !                                !   = 20 F(i,j)    =ldf_c2d 
+   !                                !   =  0           constant
+   !                                !   = 10 F(k)      =ldf_c1d
+   !                                !   = 20 F(i,j)    =ldf_c2d
    !                                !   = 21 F(i,j,t)  =Treguier et al. JPO 1997 formulation
    !                                !   = 30 F(i,j,k)  =ldf_c2d + ldf_c1d
 /
@@ -876,7 +875,7 @@ rn_zs=1.0,
 &namdyn_ldf    !   lateral diffusion on momentum                        (default: NO)
 !-----------------------------------------------------------------------
    !                       !  Type of the operator :
-   !                           !  no diffusion: set ln_dynldf_lap=..._blp=F 
+   !                           !  no diffusion: set ln_dynldf_lap=..._blp=F
    ln_dynldf_lap =  .false.    !    laplacian operator
    ln_dynldf_blp =  .true.    !  bilaplacian operator
    !                       !  Direction of action  :
@@ -887,7 +886,7 @@ rn_zs=1.0,
    nn_ahm_ijk_t  = 0           !  space/time variation of eddy coef
    !                                !  =-30  read in eddy_viscosity_3D.nc file
    !                                !  =-20  read in eddy_viscosity_2D.nc file
-   !                                !  =  0  constant 
+   !                                !  =  0  constant
    !                                !  = 10  F(k)=c1d
    !                                !  = 20  F(i,j)=F(grid spacing)=c2d
    !                                !  = 30  F(i,j,k)=c2d*c1d
@@ -1017,7 +1016,7 @@ rn_zs=1.0,
 !!                  ***  Miscellaneous namelists  ***
 !!======================================================================
 !!   nammpp            Massively Parallel Processing                    ("key_mpp_mpi)
-!!   namctl            Control prints 
+!!   namctl            Control prints
 !!   namsto            Stochastic parametrization of EOS
 !!======================================================================
 !
@@ -1033,7 +1032,7 @@ rn_zs=1.0,
    jpnij       =  -550    !  jpnij  number of local domains (set automatically if < 1)
 /
 !-----------------------------------------------------------------------
-&namctl        !   Control prints 
+&namctl        !   Control prints
 !-----------------------------------------------------------------------
    ln_ctl      = .false.   !  trends control print (expensive!)
    nn_print    =    0      !  level of print (0 no extra print)
