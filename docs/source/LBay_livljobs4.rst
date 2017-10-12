@@ -2063,7 +2063,9 @@ No joy.
 Try a restart.
 Bad filename. Check and try again.
 
+Take off the tideramp and it blows up (this is probably not to do with the restart)
 
+There is a variable nb_harmo=0 in the ocean.output. It is not being defined properly.
 
 **PENDING**
 
