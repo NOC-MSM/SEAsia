@@ -2044,6 +2044,8 @@ Try and use ramp_tide to ramp up tides over 1 day.
 
 Switch from Laplacian to Bilapacian diffusion for momentum.
 
+No motion
+try n_dyn2d_dta   =  2
 **PENDING**
 
 .. Ideas:
