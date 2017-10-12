@@ -557,7 +557,7 @@ rn_zs=1.0,
    ln_tide     = .true.
    ln_tide_pot = .true.    !  use tidal potential forcing
    ln_tide_ramp= .true.   !
-   rdttideramp =    10.     !
+   rdttideramp =    1.     !
    clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
    clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
    clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
@@ -876,8 +876,8 @@ rn_zs=1.0,
 !-----------------------------------------------------------------------
    !                       !  Type of the operator :
    !                           !  no diffusion: set ln_dynldf_lap=..._blp=F
-   ln_dynldf_lap =  .true.    !    laplacian operator
-   ln_dynldf_blp =  .false.    !  bilaplacian operator
+   ln_dynldf_lap =  .false.    !    laplacian operator
+   ln_dynldf_blp =  .true.    !  bilaplacian operator
    !                       !  Direction of action  :
    ln_dynldf_lev =  .true.    !  iso-level
    ln_dynldf_hor =  .false.    !  horizontal (geopotential)

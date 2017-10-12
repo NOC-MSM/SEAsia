@@ -2038,8 +2038,11 @@ It works better - 19 steps.
 Output every 3 steps and inspect. Didn't output.
 
 Try and use ramp_tide to ramp up tides over 1 day.
+(checked that rdttideramp corresponds to the number of ramping days.)
 
 **It worked!!** 1 day in 40s. Extend to 5 days to run in 5 mins
+
+Switch from Laplacian to Bilapacian diffusion.
 
 **PENDING**
 
