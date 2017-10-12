@@ -2068,6 +2068,13 @@ Take off the tideramp and it blows up (this is probably not to do with the resta
 There is a variable nb_harmo=0 in the ocean.output. It is not being defined properly.
 
 Tried and changed the frequency of the boundary data: e..g bn_ssh      = 'LBay_bt_bdyT', -1   (was 24)
+
+This blows up again. On the first time step.
+
+It looks like the ramp is too severe. If it blows up in 19 steps = 19mins, with
+a 1 day ramp. Maybe a 10 ramp would be better.
+
+Do a cold start
 **PENDING**
 
 .. Ideas:
