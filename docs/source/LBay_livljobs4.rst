@@ -2003,7 +2003,8 @@ Still blows up.
 
 Try tiny time step  rn_rdt=5. No.
 
-Try nn_dyn_dta = 3. Stabilize with boundary velocities?
+Try nn_dyn_dta = 3. Stabilize with boundary velocities? No
+
 
 
 **PENDING**
