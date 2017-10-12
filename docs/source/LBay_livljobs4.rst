@@ -1999,6 +1999,10 @@ Oh the rimwidth variable matching the boundary files seem to fix the problem. Ne
      nn_dyn2d_dta   =  1                   !  = 0, bdy data are equal to the initial state
 
 This runs but blows up in momentum. Try nn_dyn2d_dta = 2 (like James)
+Still blows up.
+
+Try tiny time step  rn_rdt=5
+
 
 **PENDING**
 
