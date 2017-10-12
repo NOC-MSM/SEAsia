@@ -869,7 +869,7 @@ rn_zs=1.0,
          !                          !                     = 2 Boxcar over 2*nn_baro  "    "
       ln_bt_auto    = .false.     ! Number of sub-step defined from:
          rn_bt_cmax   =  0.8        ! =T : the Maximum Courant Number allowed
-         nn_baro      = 30          ! =F : the number of sub-step in rn_rdt seconds
+         nn_baro      = 1 ! 30          ! =F : the number of sub-step in rn_rdt seconds
 /
 !-----------------------------------------------------------------------
 &namdyn_ldf    !   lateral diffusion on momentum                        (default: NO)

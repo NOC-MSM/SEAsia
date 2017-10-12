@@ -2027,6 +2027,9 @@ Turn off time splitting: ln_bt_nn_auto=.false.,
 I think this has moved to a new namelist group &namdyn_spg
 Instead turn it off there: ln_bt_auto    = .false.
 
+This makes the run go further. 9 time steps...
+Try and manually fix barotropic time step scale. nn_baro=1 (not 30)
+
 Old keys included: key_dynspg_ts key_ldfslp  key_zdfgls
 
 
