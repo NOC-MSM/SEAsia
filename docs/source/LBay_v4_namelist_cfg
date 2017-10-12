@@ -26,14 +26,14 @@
 &namrun        !   parameters of the run
 !-----------------------------------------------------------------------
    cn_exp      =    "Lbay"  !  experience name
-   nn_it000    =      1   !  first time step
-   nn_itend    =   7200   !  last  time step (std 5475)
+   nn_it000    =      7201   !  first time step
+   nn_itend    =   14400   !  last  time step (std 5475)
    nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
-   ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
+   ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
       nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
-      nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
+      nn_rstctl   =    0            !  restart control ==> activated only if ln_rstart=T
       !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
       !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
       !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
@@ -556,8 +556,8 @@ rn_zs=1.0,
 !-----------------------------------------------------------------------
    ln_tide     = .true.
    ln_tide_pot = .true.    !  use tidal potential forcing
-   ln_tide_ramp= .true.   !
-   rdttideramp =    1.     !
+   ln_tide_ramp= .false.   !
+   rdttideramp =    0.5     !
    clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
    clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
    clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
@@ -1132,9 +1132,9 @@ rn_zs=1.0,
 !-----------------------------------------------------------------------
 &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
 !-----------------------------------------------------------------------
-    nit000_han = 1         ! First time step used for harmonic analysis
-    nitend_han = 7200      ! Last time step used for harmonic analysis
-    nstep_han  = 5        ! Time step frequency for harmonic analysis
+    nit000_han = 7201         ! First time step used for harmonic analysis
+    nitend_han = 14400      ! Last time step used for harmonic analysis
+    nstep_han  = 4        ! Time step frequency for harmonic analysis
     tname(1)   = 'M2'      ! Name of tidal constituents
     tname(2)   = 'S2'      ! Name of tidal constituents
     tname(3)   = 'K1'      ! Name of tidal constituents

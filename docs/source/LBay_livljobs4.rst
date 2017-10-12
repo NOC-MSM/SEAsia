@@ -2050,6 +2050,22 @@ try n_dyn2d_dta   =  2
 Take that boundary mask off: ln_mask_file   = .false.
 Didn't help.
 
+
+Perhaps it is an issue with the XML file_extensionexport. Define a shortcut::
+
+   EEXP=/work/n01/n01/jelt/ACCORD/trunk_NEMOGCM_r8395/CONFIG/ACCORD/EXP_EAFRICA
+
+Hmm couldn't spot any differences wih the E-Africa XML files - they are identical
+
+Try the tideramp = 0.5
+
+No joy.
+Try a restart.
+Bad filename. Check and try again.
+
+Spotted the number of harmonics did not match the number of names given
+nstep_han  = 4        ! Time step frequency for harmonic analysis
+
 **PENDING**
 
 .. Ideas:
