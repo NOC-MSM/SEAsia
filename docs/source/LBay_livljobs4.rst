@@ -2023,6 +2023,9 @@ bottom roughness as follows
 I also changed the rn_bfeb2 = 2.5e-3 to zero. This would depend on the tke scheme.
 Though I don't have an idea of what it should be.
 
+Turn off time splitting: ln_bt_nn_auto=.false.,
+
+
 **PENDING**
 
 .. Ideas:
@@ -2032,6 +2035,8 @@ Though I don't have an idea of what it should be.
  * remove the bdy mask
  * surface forcing
  * rn_rdt=60
+ * rn_hc=10000.0, --> 50
+
 
 
 

@@ -123,7 +123,7 @@ rn_zs=1.0,
 !   ldbletanh   =    .false.             !  Use/do not use double tanf function for vertical coordinates
 /
 &namsplit
-ln_bt_nn_auto=.true.,
+ln_bt_nn_auto=.false.,
 nn_baro=30,
 !-----------------------------------------------------------------------
 &namtsd        !   data : Temperature  & Salinity
