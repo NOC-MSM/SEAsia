@@ -2046,6 +2046,10 @@ Switch from Laplacian to Bilapacian diffusion for momentum.
 
 No motion
 try n_dyn2d_dta   =  2
+
+Take that boundary mask off: ln_mask_file   = .false.
+Didn't help.
+
 **PENDING**
 
 .. Ideas:
