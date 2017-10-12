@@ -122,9 +122,9 @@ rn_zs=1.0,
    ln_crs      = .false.   !  Logical switch for coarsening module
 !   ldbletanh   =    .false.             !  Use/do not use double tanf function for vertical coordinates
 /
-&namsplit
-ln_bt_nn_auto=.false.,
-nn_baro=30,
+!&namsplit
+!ln_bt_nn_auto=.false.,
+!nn_baro=30,
 !-----------------------------------------------------------------------
 &namtsd        !   data : Temperature  & Salinity
 !-----------------------------------------------------------------------
@@ -867,7 +867,7 @@ nn_baro=30,
          nn_bt_flt     = 1          ! Time filter choice  = 0 None
          !                          !                     = 1 Boxcar over   nn_baro sub-steps
          !                          !                     = 2 Boxcar over 2*nn_baro  "    "
-      ln_bt_auto    = .true.     ! Number of sub-step defined from:
+      ln_bt_auto    = .false.     ! Number of sub-step defined from:
          rn_bt_cmax   =  0.8        ! =T : the Maximum Courant Number allowed
          nn_baro      = 30          ! =F : the number of sub-step in rn_rdt seconds
 /

@@ -2024,6 +2024,10 @@ I also changed the rn_bfeb2 = 2.5e-3 to zero. This would depend on the tke schem
 Though I don't have an idea of what it should be.
 
 Turn off time splitting: ln_bt_nn_auto=.false.,
+I think this has moved to a new namelist group &namdyn_spg
+Instead turn it off there: ln_bt_auto    = .false.
+
+Old keys included: key_dynspg_ts key_ldfslp  key_zdfgls
 
 
 **PENDING**
