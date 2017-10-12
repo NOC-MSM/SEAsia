@@ -2063,8 +2063,7 @@ No joy.
 Try a restart.
 Bad filename. Check and try again.
 
-Spotted the number of harmonics did not match the number of names given
-nstep_han  = 4        ! Time step frequency for harmonic analysis
+
 
 **PENDING**
 

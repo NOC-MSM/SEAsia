@@ -1134,7 +1134,7 @@ rn_zs=1.0,
 !-----------------------------------------------------------------------
     nit000_han = 7201         ! First time step used for harmonic analysis
     nitend_han = 14400      ! Last time step used for harmonic analysis
-    nstep_han  = 4        ! Time step frequency for harmonic analysis
+    nstep_han  = 5        ! Time step frequency for harmonic analysis
     tname(1)   = 'M2'      ! Name of tidal constituents
     tname(2)   = 'S2'      ! Name of tidal constituents
     tname(3)   = 'K1'      ! Name of tidal constituents
