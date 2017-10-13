@@ -2074,7 +2074,7 @@ This blows up again. On the first time step.
 It looks like the ramp is too severe. If it blows up in 19 steps = 19mins, with
 a 1 day ramp. Maybe a 10 ramp would be better.
 
-Do a cold start
+Do a cold start. With a 10 sim. (ramp can not exceed simulation time)
 **PENDING**
 
 .. Ideas:
