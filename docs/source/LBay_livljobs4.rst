@@ -2106,6 +2106,35 @@ SSH blows up::
 
 Reduce harmonic to just M2. Blows up in SSH in the same way.
 
+Reduce the timestep rn_rdt=6.::
+
+  ==>> time-step=         1321  ssh max:  0.111035814265442
+  ==>> time-step=         1381  abs(U) max:   0.117910378601910
+  ==>> time-step=         1381  SSS min:   36.8413812872391
+  ==>> time-step=         1381  ssh max:  0.112485247560570
+  ==>> time-step=         1441  abs(U) max:   0.116803563870784
+  ==>> time-step=         1441  SSS min:   36.8413491215503
+  ==>> time-step=         1441  ssh max:  0.113826565377745
+
+  ===>>> : E R R O R
+         ===========
+
+  stpctl: the zonal velocity is larger than 20 m/s
+  ======
+  kt=  1489 max abs(U):   22.29    , i j k:    32  104   21
+
+Ran for 2.5 hours instead of about 2hrs.
+
+Need to look at some fields. Output initial conditions and evolving fields
+Check CFL. Grid is about 1.3km x 0.7km
+Therefore a 60s timestep 700m/60s > 10m/s >> u. Is OK
+cp = sqrt(g.h) = sqrt(10*50) = 22 m/s.
+
+Inspection of the domain_cfg.nc file shows that the e1x and e2x variables are wrong.
+See: cd /Users/jeff/GitLab/NEMO-RELOC/docs/source
+$ipython
+>> run quickplotNEMO
+
 
 **PENDING**
 
