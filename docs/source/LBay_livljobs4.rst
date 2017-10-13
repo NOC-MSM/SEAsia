@@ -147,6 +147,31 @@ Copy these files to an EXP directory::
   scp coordinates.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP_180/.
   scp bathy_meter.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP_180/.
 
+**ARCHER**
+::
+  export EXP=$EXP/../EXP_180
+  cp $EXP/coordinates.nc $TDIR/DOMAINcfg/.
+  cp $EXP/bathy_meter.nc $TDIR/DOMAINcfg/.
+
+  cd $TDIR/DOMAINcfg
+  ncdump -h coordinates.nc
+  x = 269 ;
+  y = 189 ;
+  z = 1 ;
+  time = 1 ;
+  ...
+
+Edit namelist_cfg for this domain::
+
+  vi namelist_cfg
+  &namcfg
+  ...
+  jpidta      =     269               !  1st lateral dimension ( >= jpi )
+  jpjdta      =     189               !  2nd    "         "    ( >= jpj )
+  jpkdta      =      51               !  number of levels      ( >= jpk )
+  jpiglo      =     269               !  1st dimension of global domain --> i =jpidta
+  jpjglo      =     189               !  2nd    -                  -    --> j  =jpjdta
+  ...
 **GOT THIS FAR**
 
 
