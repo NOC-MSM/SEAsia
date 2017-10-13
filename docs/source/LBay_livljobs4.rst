@@ -2104,6 +2104,7 @@ SSH blows up::
   kt=   154 max ssh:    Infinity, i j:    32   90
 
 
+Reduce harmonic to just M2
 
 
 **PENDING**

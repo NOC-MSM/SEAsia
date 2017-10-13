@@ -558,15 +558,15 @@ rn_zs=1.0,
    ln_tide_pot = .true.    !  use tidal potential forcing
    ln_tide_ramp= .true.   !
    rdttideramp =    1.     !
-   clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
-   clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
-   clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
-   clname(4)    = 'K1'   !  name of constituent - all tidal components must be set in namelist_cfg
-   clname(5)    = 'N2'   !  name of constituent - all tidal components must be set in namelist_cfg
-   clname(6)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
-   clname(7)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
-   clname(8)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
-   clname(9)   = 'M4'   !  name of constituent - all tidal components must be set in namelist_cfg
+!   clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
+!   clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
+!   clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
+!   clname(4)    = 'K1'   !  name of constituent - all tidal components must be set in namelist_cfg
+!   clname(5)    = 'N2'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(1)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
+!   clname(7)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
+!   clname(8)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
+!   clname(9)   = 'M4'   !  name of constituent - all tidal components must be set in namelist_cfg
 /
 !-----------------------------------------------------------------------
 &nambdy        !  unstructured open boundaries
