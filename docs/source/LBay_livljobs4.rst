@@ -60,7 +60,8 @@ Starting on ARCHER::
   export CONFIG=LBay
   export WORK=/work/n01/n01
   export WDIR=$WORK/$USER/$CONFIG
-  export INPUTS=$WORK/$USER/$CONFIG/INPUTS
+  export INPUTS=$WDIR/INPUTS
+  export START_FILES=$WDIR/START_FILES
   export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
   export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
   export EXP=$CDIR/$CONFIG/EXP00
@@ -111,15 +112,18 @@ First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
   cd $TDIR
 
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
-.. note: Check which arch file this is. Surely should be consistent.
 
-  ./maketools -n WEIGHTS -m XC_ARCHER_INTEL
-  ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL
+.. note: Check which arch file this is. Surely should be consistent.
+   Though I don't attempt to change the GRIDGEN build
+::
+
+  ./maketools -n WEIGHTS -m XC_ARCHER_INTEL_XIOS1
+  ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL_XIOS1
 
   module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
   module swap PrgEnv-intel PrgEnv-cray
   module load cray-netcdf cray-hdf5
-  ./maketools -n GRIDGEN -m XC_ARCHER
+  ./maketools -n GRIDGEN -m XC_ARCHER    # This uses acc's XIOS_r474
 
   module unload cray-netcdf cray-hdf5
   module swap PrgEnv-cray PrgEnv-intel
@@ -140,7 +144,7 @@ resolution grid elements.
 First we need to figure out the indices for the new domain, from the parent grid.
 Move parent grid into INPUTS::
 
-  cp $INPUTS/coordinates_ORCA_R12.nc $WDIR/INPUTS/.
+  cp $START_FILES/coordinates_ORCA_R12.nc $INPUTS/.
 
 Inspect this parent coordinates file to define the boundary indices for the new config.
 
@@ -153,13 +157,13 @@ Note, I used FERRET locally::
 
 
 Copy namelist file from LH_reef and edit with new indices, retaining use of
-ORCA_R12 as course parent grid::
+ORCA_R12 as course parent grid *(13 Oct: For ARCHER. Check the path to INPUTS)*::
 
   cd $TDIR/GRIDGEN
-  cp $INPUTS/namelist_R12 ./
+  cp $START_FILES/namelist_R12 ./
   vi namelist_R12
   ...
-  cn_parent_coordinate_file = '../../../../INPUTS/coordinates_ORCA_R12.nc'
+  cn_parent_coordinate_file = '../../../INPUTS/coordinates_ORCA_R12.nc'
   ...
   nn_imin = 3385
   nn_imax = 3392
@@ -170,7 +174,7 @@ ORCA_R12 as course parent grid::
 
   ln -s namelist_R12 namelist.input
   ./create_coordinates.exe
-  cp 1_coordinates_ORCA_R12.nc $WDIR/INPUTS/coordinates.nc
+  cp 1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc
 
 This creates a coordinates.nc file with contents, which are now copied to
 INPUTS::
