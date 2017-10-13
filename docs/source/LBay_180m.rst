@@ -97,6 +97,9 @@ to compile some of the NEMO TOOLS. NB for some reason GRIDGEN doesn’t like INT
 .. note: These are compiled with XIOS2. However DOMAINcfg has to be compiled
   with XIOS1. There is a README in the $TDIR/DOMAINcfg on what to do.
 
+As a first cut at this domain we will only force with tides. So much of these tools
+are needed. See other recipes for extra tools.
+
 First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
 (see userid and path in variable ``%XIOS_HOME``). Copy from ARCH *store*::
 
@@ -106,20 +109,20 @@ First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
 
 .. note: Check which arch file this is. Surely should be consistent.
-   Though I don't attempt to change the GRIDGEN build
-::
+   Though I think I need any of these
+  ::
 
-  ./maketools -n WEIGHTS -m XC_ARCHER_INTEL_XIOS1
-  ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL_XIOS1
+    ./maketools -n WEIGHTS -m XC_ARCHER_INTEL_XIOS1
+    ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL_XIOS1
 
-  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  module swap PrgEnv-intel PrgEnv-cray
-  module load cray-netcdf cray-hdf5
-  ./maketools -n GRIDGEN -m XC_ARCHER    # This uses acc's XIOS_r474
+    module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+    module swap PrgEnv-intel PrgEnv-cray
+    module load cray-netcdf cray-hdf5
+    ./maketools -n GRIDGEN -m XC_ARCHER    # This uses acc's XIOS_r474
 
-  module unload cray-netcdf cray-hdf5
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+    module unload cray-netcdf cray-hdf5
+    module swap PrgEnv-cray PrgEnv-intel
+    module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
 
 0. Copy bathymetry and coordinates file
@@ -132,25 +135,54 @@ Jason converted old POLCOMS files into NEMO speak::
 
 Copy these files to an EXP directory::
 
-  scp coordinates.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP_180/.
-  scp bathy_meter.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP_180/.
+  livljobs4$
+  cd /9900a/NEMO/jholt/mfiles/POLCOMS_2_NEMO
+  scp coordinates.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/4d_coordinates.nc
+  scp bathy_meter.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/bathy_meter.nc
 
-**ARCHER**
+Back on **ARCHER**
 ::
-  export EXP=$EXP/../EXP_180
-  cp $EXP/coordinates.nc $TDIR/DOMAINcfg/.
-  cp $EXP/bathy_meter.nc $TDIR/DOMAINcfg/.
 
   cd $TDIR/DOMAINcfg
-  ncdump -h coordinates.nc
+  ncdump -h 4d_coordinates.nc
   x = 269 ;
   y = 189 ;
   z = 1 ;
   time = 1 ;
   ...
 
+Have to average over the depth and time dimensions to remove redundant dimensions::
+
+    module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+    module load cray-netcdf cray-hdf5
+    module load nco/4.5.0
+
+    ncwa -a time,z 4d_coordinates.nc  coordinates.nc
+
+    module unload nco cray-netcdf cray-hdf5
+    module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+Copy to EXP::
+
+    cp $TDIR/DOMAINcfg/coordinates.nc $EXP/coordinates.nc
+    cp $TDIR/DOMAINcfg/bathy_meter.nc $EXP/bathy_meter.nc
+
+
+3. Generate a domain configuration file
+=======================================
+
+The general idea is that you have to copy the ``namelist_cfg`` file into the ``DOMAINcfg``
+directory along with all the inputs files that would have previously been needed
+get v3.6 running. The reason being that all the non-time stepping stuff, like
+grid generating, has been abstracted from the core OPA code and is now done as
+a pre-processing step, and output into an important file ``domain_cfg.nc``.
+
+
+
+Get namelist_cfg from ``working`` LBay experiment. (NB this may have changed).
 Edit namelist_cfg for this domain::
 
+  cp /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg .
   vi namelist_cfg
   &namcfg
   ...
@@ -162,12 +194,52 @@ Edit namelist_cfg for this domain::
   ...
 
 
-Submit runscript to make domain_cfg.nc file::
+Write a runscript and submit::
+
+  vi rs
+
+  #!/bin/bash
+  #PBS -N domain_cfg
+  #PBS -l walltime=00:04:00
+  #PBS -l select=1
+  #PBS -j oe
+  #PBS -A n01-NOCL
+  # mail alert at (b)eginning, (e)nd and (a)bortion of execution
+  #PBS -m bea
+  #PBS -M jelt@noc.ac.uk
+  #! -----------------------------------------------------------------------------
+
+  # Change to the directory that the job was submitted from
+  cd $PBS_O_WORKDIR
+
+  # Set the number of threads to 1
+  #   This prevents any system libraries from automatically
+  #   using threading.
+  export OMP_NUM_THREADS=1
+  # Change to the directory that the job was submitted from
+  ulimit -s unlimited
+
+  #===============================================================
+  # LAUNCH JOB
+  #===============================================================
+  echo `date` : Launch Job
+  aprun -n 1 -N 1 ./make_domain_cfg.exe >&  stdouterr_cfg
+
+  exit
+
+Submit::
 
   qsub rs
 
 
 **GOT THIS FAR**
+
+
+
+
+
+
+
 
 
 
