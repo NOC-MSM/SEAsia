@@ -46,7 +46,7 @@
    ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
    nn_stock    =   14400   !  frequency of creation of a restart file (modulo referenced to 1)
    nn_stocklist = 0,0,0,0,0,0,0,0,0,0 ! List of timesteps when a restart file is to be written
-   nn_write    =   1440   !  frequency of write in the output file   (modulo referenced to nn_it000)
+   nn_write    =   60   !  frequency of write in the output file   (modulo referenced to nn_it000)
    ln_mskland  = .false.   !  mask land points in NetCDF outputs (costly: + ~15%)
    ln_cfmeta   = .false.   !  output additional data to netCDF files required for compliance with the CF metadata standard
    ln_clobber  = .true.    !  clobber (overwrite) an existing file
@@ -557,7 +557,7 @@ rn_zs=1.0,
    ln_tide     = .true.
    ln_tide_pot = .true.    !  use tidal potential forcing
    ln_tide_ramp= .true.   !
-   rdttideramp =    10.     !
+   rdttideramp =    1.     !
    clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
    clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
    clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
@@ -877,7 +877,7 @@ rn_zs=1.0,
    !                       !  Type of the operator :
    !                           !  no diffusion: set ln_dynldf_lap=..._blp=F
    ln_dynldf_lap =  .false.    !    laplacian operator
-   ln_dynldf_blp =  .true.    !  bilaplacian operator
+   ln_dynldf_blp =  .false.    !  bilaplacian operator
    !                       !  Direction of action  :
    ln_dynldf_lev =  .true.    !  iso-level
    ln_dynldf_hor =  .false.    !  horizontal (geopotential)

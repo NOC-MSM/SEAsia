@@ -2051,7 +2051,7 @@ Take that boundary mask off: ln_mask_file   = .false.
 Didn't help.
 
 
-Perhaps it is an issue with the XML file_extensionexport. Define a shortcut::
+Perhaps it is an issue with the XML files. Define a shortcut::
 
    EEXP=/work/n01/n01/jelt/ACCORD/trunk_NEMOGCM_r8395/CONFIG/ACCORD/EXP_EAFRICA
 
@@ -2075,6 +2075,17 @@ It looks like the ramp is too severe. If it blows up in 19 steps = 19mins, with
 a 1 day ramp. Maybe a 10 ramp would be better.
 
 Do a cold start. With a 10 sim. (ramp can not exceed simulation time)
+Signal dies out within a day. (Min SSS--> 100)
+
+Switch off both laplacian and bilaplacian diffusion. Output info every hr::
+
+  ln_dynldf_lap =  .false.    !    laplacian operator
+  ln_dynldf_blp =  .false.    !  bilaplacian operator
+  nn_write    =   24
+
+Dies fast. Misinterpreted how the ramp worked. Never had a non-zero simulation with
+the ramp. Make it smaller not larger: ``   rdttideramp =    1.     ``
+
 **PENDING**
 
 .. Ideas:
