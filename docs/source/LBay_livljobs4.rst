@@ -4,6 +4,8 @@ Setting up a Liverpool Bay NEMO configuration, inc. livljob4
 
 **BUILD LBAY MODEL USING BATHY AND COORDINATES FROM POLCOMS**
 
+This was taken from the ORCHESTRA branch
+
 URL:: http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html
 *Actually I've taken this off readthedocs as it is internal. However writing in*
 *ReStrucTed text means it is trivial to deploy anywhere with whatever style*
@@ -66,7 +68,7 @@ Starting on ARCHER::
   export START_FILES=$WDIR/START_FILES
   export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
   export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
-  export EXP=$CDIR/$CONFIG/EXP00
+  export EXP=$CDIR/$CONFIG/EXP_180
 
 
   module swap PrgEnv-cray PrgEnv-intel
@@ -130,6 +132,25 @@ First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
   module unload cray-netcdf cray-hdf5
   module swap PrgEnv-cray PrgEnv-intel
   module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+
+0. Copy bathymetry and coordinates file
++++++++++++++++++++++++++++++++++++++++
+
+Jason converted old POLCOMS files into NEMO speak::
+
+  ls /9900a/NEMO/jholt/mfiles/POLCOMS_2_NEMO
+  bathy_meter.nc  bathy.png  coordinates.nc  plocoms_2_nemo.m  polcoms2nemo_func.m
+
+Copy these files to an EXP directory::
+
+  scp coordinates.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP_180/.
+  scp bathy_meter.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP_180/.
+
+**GOT THIS FAR**
+
+
+
 
 
 
