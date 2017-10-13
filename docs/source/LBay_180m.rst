@@ -1,6 +1,6 @@
-============================================================
-Setting up a Liverpool Bay NEMO configuration, inc. livljob4
-============================================================
+=====================================
+Liverpool Bay 180m NEMO configuration
+=====================================
 
 **BUILD LBAY MODEL USING BATHY AND COORDINATES FROM POLCOMS**
 
@@ -12,15 +12,9 @@ URL:: http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html
 
 * Build notes with:: ~/GitLab/NEMO-RELOC/docs$ make html
 
-Originally tried building everything on ARCHER but ran into a java problem with
-NRCT (nee PyNEMO) that they needed to fix. Also MDP can't use ARCHER.
+Notes use a pragmatic combination of livljobs4 and archer. Will run on ARCHER.
 
-Then got it working on a combination of Liverpool machines for setup with
- simulations on ARCHER.
-
-Then tried to update this recipe with the pre-release of NEMOv4, which in
-particular has a new method for handling the domain configuration. For this I use
-the ORCHESTRA realease of the trunk (@r8395)
+For this I use the ORCHESTRA realease of the trunk (@r8395)
 
 The summary procedure:
 #. ARCHER: Get code. Build tools. Generate coordinates, bathymetry, domain_cfg.nc
@@ -61,7 +55,7 @@ Starting on ARCHER::
 
   ssh login.archer.ac.uk
 
-  export CONFIG=LBay
+  export CONFIG=LBay180
   export WORK=/work/n01/n01
   export WDIR=$WORK/$USER/$CONFIG
   export INPUTS=$WDIR/INPUTS
@@ -74,13 +68,15 @@ Starting on ARCHER::
   module swap PrgEnv-cray PrgEnv-intel
   module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-  export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
-  export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
-  export OCDIR=/work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/
+.. note: I copied the paths and modules into a file ~/.set_paths.
+   Execute with . ~/set_paths
+---
 
+Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
+Or just build::
 
-.. note:
- I will remove these links to James' files when I've figured out how to build my own
+  cd $CDIR
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
 ---
 
@@ -89,14 +85,6 @@ Checkout and build XIOS2 @ r1080 `build_XIOS2.html`_::
 Or just link XIOS executable to the EXP directory::
 
   ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
-
----
-
-Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
-Or just build::
-
-  cd $CDIR
-  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
 ---
 
