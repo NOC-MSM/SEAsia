@@ -2086,6 +2086,26 @@ Switch off both laplacian and bilaplacian diffusion. Output info every hr::
 Dies fast. Misinterpreted how the ramp worked. Never had a non-zero simulation with
 the ramp. Make it smaller not larger: ``   rdttideramp =    1.     ``
 
+SSH blows up::
+
+  ==>> time-step=            1  ssh max:  1.311225785606566E-004
+  ==>> time-step=           61  abs(U) max:   9.365770301892096E-002
+  ==>> time-step=           61  SSS min:   36.8418750679304
+  ==>> time-step=           61  ssh max:  6.350050976376775E-002
+  ==>> time-step=          121  abs(U) max:   0.120795267289029
+  ==>> time-step=          121  SSS min:   36.8414750346018
+  ==>> time-step=          121  ssh max:  0.113158707022428
+
+  ===>>> : E R R O R
+         ===========
+
+  stp_ctl : the ssh is larger than 10m
+  =======
+  kt=   154 max ssh:    Infinity, i j:    32   90
+
+
+
+
 **PENDING**
 
 .. Ideas:
