@@ -2,6 +2,8 @@
 Setting up a Liverpool Bay NEMO configuration, inc. livljob4
 ============================================================
 
+**BUILD LBAY MODEL USING BATHY AND COORDINATES FROM POLCOMS**
+
 URL:: http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html
 *Actually I've taken this off readthedocs as it is internal. However writing in*
 *ReStrucTed text means it is trivial to deploy anywhere with whatever style*
