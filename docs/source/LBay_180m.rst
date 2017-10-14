@@ -240,18 +240,6 @@ Copy it to the EXP directory::
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO *(20 Sept 2017)*
 If all the files are ready to go jump straight to `7. Generate boundary conditions with PyNEMO: Run PyNEMO`_
 
@@ -275,7 +263,7 @@ installed then follow through anyway but skip the mkdir / create / install / clo
 
   ssh -Y livljobs4
 
-  export CONFIG=LBay
+  export CONFIG=LBay180
   export WORK=/work
   export WDIR=$WORK/$USER/NEMO/$CONFIG
   export INPUTS=$WDIR/INPUTS
