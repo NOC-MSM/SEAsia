@@ -238,6 +238,165 @@ Copy it to the EXP directory::
 
 **GOT THIS FAR**
 
+4. Generate initial conditions
+++++++++++++++++++++++++++++++
+
+This is a bit of a pain because PyNEMO wont work until tracers and on. However
+much of the hard work setting up initial T,S conditions was done for a previous LBay
+config using AMM60, so I will copy that recipe here. *(The caveat is that some *
+*of the paths might assume I am working in the LBay not LBay180 config)*
+
+Copy ``make.macro`` file and edit the path if necessary::
+**FIX** to the notes (copied from jdha instead): ``cp $WDIR/INPUTS/make.macro ./``::
+
+  cp /home/n01/n01/jdha/sosie/make.macro /home/n01/n01/jelt/sosie/.
+
+  vi /home/n01/n01/jelt/sosie/make.macro
+  # Directory to install binaries:
+  INSTALL_DIR = /home/n01/n01/jelt/local
+
+Proceed with Step 6 (of Lighhouse Reef Readthedocs)::
+
+  cd ~
+  mkdir local
+  svn co svn://svn.code.sf.net/p/sosie/code/trunk sosie
+  cd sosie
+
+  make
+  make install
+  export PATH=~/local/bin:$PATH
+  cd $WDIR/INPUTS
+
+
+Obtain the fields to interpolate. Interpolate AMM60
+data. Get the namelists::
+
+  cp $INPUTS/initcd_votemper.namelist .
+  cp $INPUTS/initcd_vosaline.namelist .
+
+Generate the actual files. Cut them out of something bigger. Use the same indices
+as used in coordinates.nc (note that the nco tools don't like the
+parallel modules)::
+
+
+Insert new method to use AMM60 data for initial conditions.
+/work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT
+AMM60_5d_20131013_20131129_grid_T.nc
+
+Find the AMM60 indices using FERRET on the bathy_meter.nc file: ``shade log(Bathymetry[I=540:750, J=520:820])``
+*(This is old. I assume that these coords are for the whole S Irish Sea..)*
+
+Note that the temperature and salinity variables are ``thetao`` and ``so``
+
+::
+
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module load cray-netcdf cray-hdf5
+  module load nco/4.5.0
+  cd $WDIR/INPUTS
+
+  ncks -d x,560,620 -d y,720,800 /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT/AMM60_5d_20131013_20131129_grid_T.nc $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc
+
+Average over time and restore the parallel modules::
+
+  ncwa -a time_counter $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc  $WDIR/INPUTS/cut_down_201310_LBay_grid_T.nc
+
+  module unload nco cray-netcdf cray-hdf5
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+
+
+Edit namelists::
+
+  vi initcd_votemper.namelist
+  cf_in     = 'cut_down_201310_LBay_grid_T.nc'
+  cv_in     = 'thetao'
+  cf_x_in   = 'cut_down_201310_LBay_grid_T.nc'
+  cv_out   = 'thetao'
+  csource  = 'AMM60'
+  ctarget  = 'LBay'
+
+  vi initcd_vosaline.namelist
+  ...
+  cv_out   = 'so'
+  ...
+
+
+
+Do stuff. I think the intention was for SOSIE to flood fill the land::
+
+  sosie.x -f initcd_votemper.namelist
+
+Creates::
+
+  thetao_AMM60-LBay_2013.nc4
+  sosie_mapping_AMM60-LBay.nc
+
+Repeat for salinity::
+
+  sosie.x -f initcd_vosaline.namelist
+
+Creates::
+
+  so_AMM60-LBay_2013.nc4
+
+
+*15 Oct 2017 - this is where I actually pick up work done in LBay and copy to LBay180*
+.. note: mkdir $INPUTS
+         cd $INPUTS
+         cp $INPUTS/../../LBay/INPUTS/so_AMM60-LBay_2013.nc4 .
+         cp $INPUTS/../../LBay/INPUTS/thetao_AMM60-LBay_2013.nc4 .
+         cp $EXP/coordinates.nc .
+
+Now do interpolation as before. First copy the namelists::
+
+  cp $START_FILES/namelist_reshape_bilin_initcd_votemper $INPUTS/.
+  cp $START_FILES/namelist_reshape_bilin_initcd_vosaline $INPUTS/.
+
+Edit the input files::
+
+  vi $INPUTS/namelist_reshape_bilin_initcd_votemper
+  &grid_inputs
+    input_file = 'thetao_AMM60-LBay_2013.nc4'
+  ...
+
+  &interp_inputs
+    input_file = "thetao_AMM60-LBay_2013.nc4"
+  ...
+
+Simiarly for the *vosaline.nc file::
+
+  vi $WDIR/INPUTS/namelist_reshape_bilin_initcd_vosaline
+  &grid_inputs
+    input_file = 'so_AMM60-LBay_2013.nc4'
+  ...
+
+  &interp_inputs
+    input_file = "so_AMM60-LBay_2013.nc4"
+  ...
+
+This is where I cheekily use prebuild tools::
+
+ export OLD_TDIR=$WORK/$USER/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+Produce the remap files::
+
+  $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
+
+Creates ``remap_nemo_grid_R12.nc`` and ``remap_data_grid_R12.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
+
+Creates ``data_nemo_bilin_R12.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
+
+Creates ``initcd_votemper.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
+
+Creates ``initcd_vosaline.nc``.
+
 
 
 THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO *(20 Sept 2017)*
@@ -584,7 +743,7 @@ inputs_dst.ncml. Set the date info back to (Nov?) 1979. Here it is tides only. N
  .. Warning:
 
     It doesn't quite work with ``ln_tra = .false.``
-    
+
 Also had to check that ``inputs_dst.ncml`` has the correct file name within:
  *Now domain_cfg.nc, formerly mesh_zgr.nc*. Note also that some variables in
   domain_cfg.nc have different names e.g. ``mbathy`` --> ``bottom_level``. Check the mapping
