@@ -383,7 +383,7 @@ Actually upated the following with all the Jan 2000 files::
 6b. Generate the namelist.bdy file for PyNEMO / NRCT
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Copy the NRCT template namelist.bdy from the START_FILES::
+Copy the NRCT template namelist.bdy from the START_FILES.::
 
   cd $INPUTS
   cp $START_FILES/namelist.bdy $INPUTS/.
@@ -431,12 +431,20 @@ Using livljobs4
 **Start the process again on livljobs4: LBay_livljobs4.rst**
 
 Need to grab some INPUT files. (File bathy_meter.nc and domain_cfg.nc should be
- there already)::
+ there already). Might need to check that START_FILES is properly populated, or
+  copy from *LBay* version::
 
   cp $START_FILES/namelist.bdy_NNA    $INPUTS/.
   cp $START_FILES/NNA_inputs_src.ncml $INPUTS/.
   cp $START_FILES/inputs_dst.ncml     $INPUTS/.
-  cd $WDIR/INPUTS
+  cd $INPUTS
+
+Get the domain_cfg.nc and bathy_meter.nc if they are not there::
+
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/CONFIG/LBay180/EXP00/coordinates.nc coordinates.nc
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/CONFIG/LBay180/EXP00/bathy_meter.nc bathy_meter.nc
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/CONFIG/LBay180/EXP00/domain_cfg.nc  domain_cfg.nc
+
 
 Make sure the NNA data is available::
 
@@ -446,13 +454,17 @@ Make sure the NNA data is available::
   scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/mask.nc $WDIR/INPUTS/NNA/.
   for file in NNA_*200001*nc ; do scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/$file $WDIR/INPUTS/NNA/. ; done
 
+Or link from existing location::
+
+  ln -s /work/jelt/NEMO/LBay/INPUTS/NNA $INPUTS/NNA
+
 .. note: I have not done this as a clean build with the new domain_cfg.nc files
 
 namelist.bdy_NNA
 ++++++++++++++++
 
 Edit namelist.bdy_NNA to reflect locally stored mesh and mask files. Also
-inputs_dst.ncml. Set the date info back to (Nov?) 1979.
+inputs_dst.ncml. Set the date info back to (Nov?) 1979. Here it is tides only. No T,S.
 
  ::
 
@@ -490,18 +502,18 @@ inputs_dst.ncml. Set the date info back to (Nov?) 1979.
    !-----------------------------------------------------------------------
    !  grid information
    !-----------------------------------------------------------------------
-      sn_src_hgr = '/work/jelt/NEMO/LBay/INPUTS/NNA/mesh_hgr.nc'   !  /grid/
-      sn_src_zgr = '/work/jelt/NEMO/LBay/INPUTS/NNA/mesh_zgr.nc'
+      sn_src_hgr = '/work/jelt/NEMO/LBay180/INPUTS/NNA/mesh_hgr.nc'   !  /grid/
+      sn_src_zgr = '/work/jelt/NEMO/LBay180/INPUTS/NNA/mesh_zgr.nc'
       sn_dst_hgr = './domain_cfg.nc'
       sn_dst_zgr = './inputs_dst.ncml' ! rename output variables
-      sn_src_msk = '/work/jelt/NEMO/LBay/INPUTS/NNA/mask.nc'
+      sn_src_msk = '/work/jelt/NEMO/LBay180/INPUTS/NNA/mask.nc'
       sn_bathy   = './bathy_meter.nc'
 
    !-----------------------------------------------------------------------
    !  I/O
    !-----------------------------------------------------------------------
       sn_src_dir = './NNA_inputs_src.ncml'       ! src_files/'
-      sn_dst_dir = '/work/jelt/NEMO/LBay/INPUTS/'
+      sn_dst_dir = '/work/jelt/NEMO/LBay180/INPUTS/'
       sn_fn      = 'LBay'                 ! prefix for output files
       nn_fv      = -1e20                     !  set fill value for output files
       nn_src_time_adj = 0                                    ! src time adjustment
@@ -569,6 +581,10 @@ inputs_dst.ncml. Set the date info back to (Nov?) 1979.
        rn_mask_max_depth = 300.0     !  Maximum depth to be ignored for the mask
        rn_mask_shelfbreak_dist = 60    !  Distance from the shelf break
 
+ .. Warning:
+
+    It doesn't quite work with ``ln_tra = .false.``
+    
 Also had to check that ``inputs_dst.ncml`` has the correct file name within:
  *Now domain_cfg.nc, formerly mesh_zgr.nc*. Note also that some variables in
   domain_cfg.nc have different names e.g. ``mbathy`` --> ``bottom_level``. Check the mapping
@@ -603,7 +619,7 @@ boundary data should be generated in the current directory (NB I dont fiddle
 with the GUI; I just click CLOSE to activiate, if everything is already sorted
 in the input files).
 
-The SAVE button only updates the ``namelist.bdy`` file. The CLOSE button activates the process.
+The SAVE button only updates the ``namelist.bdy*`` file. The CLOSE button activates the process.
 
 This generates::
   ls -1 $INPUTS
