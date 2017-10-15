@@ -236,8 +236,6 @@ Copy it to the EXP directory::
   cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
 
 
-**GOT THIS FAR**
-
 4. Generate initial conditions
 ++++++++++++++++++++++++++++++
 
@@ -604,6 +602,10 @@ Get the domain_cfg.nc and bathy_meter.nc if they are not there::
   scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/CONFIG/LBay180/EXP00/bathy_meter.nc bathy_meter.nc
   scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/CONFIG/LBay180/EXP00/domain_cfg.nc  domain_cfg.nc
 
+Get the initial T,S fields if they are not there::
+
+ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/INPUTS/initcd_vosaline.nc $INPUTS/.
+ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/INPUTS/initcd_votemper.nc $INPUTS/.
 
 Make sure the NNA data is available::
 
@@ -771,14 +773,47 @@ Generate the boundary conditions again, with PyNEMO
   cd $INPUTS
   export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
 
-  pynemo -g -s namelist.bdy_NNA
+  pynemo -s namelist.bdy_NNA
 
-Once the area of interest is selected and the close button is clicked, open
-boundary data should be generated in the current directory (NB I dont fiddle
-with the GUI; I just click CLOSE to activiate, if everything is already sorted
-in the input files).
+.. note:
+    IF an optional -g is used then the GUI opens.
+   Once the area of interest is selected and the close button is clicked, open
+   boundary data should be generated in the current directory (NB I dont fiddle
+   with the GUI; I just click CLOSE to activiate, if everything is already sorted
+   in the input files).
 
-The SAVE button only updates the ``namelist.bdy*`` file. The CLOSE button activates the process.
+   The SAVE button only updates the ``namelist.bdy*`` file. The CLOSE button activates the process.
+
+::
+
+  pynemo -s namelist.bdy_NNA
+  Didn't find a proxy environment variable
+  INFO:pynemo.profile:START
+  INFO:pynemo.profile:0.0
+  INFO:pynemo.profile:0.0
+  INFO:pynemo.profile:ice = False
+  INFO:pynemo.profile:Done Setup
+  WARNING:pynemo.profile:Using default mask with bathymetry!!!!
+  INFO:pynemo.profile:0.02
+  INFO:pynemo.profile:Done Mask
+  INFO:pynemo.profile:start bdy_t
+  Traceback (most recent call last):
+    File "/login/jelt/.conda/envs/nrct_env/bin/pynemo", line 11, in <module>
+      load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo')()
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_exe.py", line 44, in main
+      profile.process_bdy(setup_file, mask_gui)
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py", line 100, in process_bdy
+      grid_t = gen_grid.Boundary(bdy_msk, settings, 't')
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/nemo_bdy_gen_c.py", line 109, in __init__
+      bdy_i, bdy_r = self._remove_duplicate_points(bdy_i, bdy_r)
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/nemo_bdy_gen_c.py", line 161, in _remove_duplicate_points
+      uniqind = self._unique_rows(bdy_i2)
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/nemo_bdy_gen_c.py", line 214, in _unique_rows
+      indx = zip(*sorted([(val, i) for i,val in enumerate(tlist)]))[1]
+  IndexError: list index out of range
+  
+**GOT THIS FAR**
+
 
 This generates::
   ls -1 $INPUTS
