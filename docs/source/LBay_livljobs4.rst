@@ -919,8 +919,9 @@ Also had to check that ``inputs_dst.ncml`` has the correct file name within:
      </ns0:aggregation>
    </ns0:netcdf>
 
-.. note:
-  In the v4 domain_cfg.nc there will be no gdept an gdepw.
+.. warning:
+  In the actual v4 release domain_cfg.nc  will not have gdept or gdepw. These 
+  will need to be reconstructed from e3[tw].
 
 Generate the boundary conditions again, with PyNEMO
 ::
@@ -930,7 +931,8 @@ Generate the boundary conditions again, with PyNEMO
   cd $INPUTS
   export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
 
-  pynemo -g -s namelist.bdy_NNA
+  #pynemo -g -s namelist.bdy_NNA
+  pynemo -s namelist.bdy_NNA
 
 Once the area of interest is selected and the close button is clicked, open
 boundary data should be generated in the current directory (NB I dont fiddle
