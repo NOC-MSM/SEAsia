@@ -350,7 +350,22 @@ Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, w
   cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
   cp $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
 
+---
 
+*(16 Oct 17)*
+
+No gdept output which is needed for PyNEMO. Try outputting initial state, which
+ will hold this variable. Edit namelist_cdfg::
+
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+
+     nn_istate   =       1   !  output the initial state (1) or not (0)
+
+Resubmit job
+
+---
 
 
 4. Generate initial conditions
@@ -920,7 +935,7 @@ Also had to check that ``inputs_dst.ncml`` has the correct file name within:
    </ns0:netcdf>
 
 .. warning:
-  In the actual v4 release domain_cfg.nc  will not have gdept or gdepw. These 
+  In the actual v4 release domain_cfg.nc  will not have gdept or gdepw. These
   will need to be reconstructed from e3[tw].
 
 Generate the boundary conditions again, with PyNEMO
