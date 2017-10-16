@@ -300,37 +300,6 @@ Edit the template namelist_cfg with only the essenetial domain building stuff::
 
 
 
----
-*(Previously I tried to create a namelist_cfg file that was similar to the*
-*v4 version that runs OPA. Delete this when ready)*
-
-.. warning: This is a bit backwards as I copy in files that I haven't made yet. It will do for now.
-
-
-I am not sure how this is going to pan out with the existing namelist_cfg files;
-it may not be up to date enough. So I will save an original for the time being::
-
-  cp /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/namelist_cfg namelist_cdf_LBay
-  cp namelist_cfg_LBay namelist_cfg
-
-
-.. note: It was quite a lot of work to get the v3.6 namelist working as a number
-  of things have been removed and others have been added. In the end I got something
-  working
-
-Tried reversing the ln_read_cfg and ln_write_cfg switches. Put back now::
-
-  !-----------------------------------------------------------------------
-  &namcfg        !   parameters of the configuration
-  !-----------------------------------------------------------------------
-     ln_e3_dep   = .true.    ! This will be obsolete soon. See namelist_ref
-     ln_read_cfg = .true.   !  (=T) read the domain configuration file
-        !                    !  (=F) user defined configuration  ==>>>  see usrdef(_...) modules
-        cn_domcfg = "domain_cfg"         ! domain configuration filename
-        !
-     ln_write_cfg= .false.   !  (=T) create the domain configuration file
-
-
 Build a script to run the executable::
 
   vi $TDIR/DOMAINcdf/rs
@@ -371,21 +340,11 @@ Try running it::
   qsub -q short rs
 
 
+Put a copy in $INPUTS for safe keeping::
 
-**10 Oct. This runs and produces ``domain_cfg.nc`` output, though the job has 1 error**
+    cp $TDIR/DOMAINcfg/namelist_cfg $INPUTS/namelist_cfg_generateDOMAINcfg
 
-.. note:
-  I have attempted to harmonise the namelist_cfg files a bit between v3 and v4
-  This was probably a bad idea. It might be cleaner to just keep the DOMAINcfg
-  version in v3.6 since and strip out the things that aren't relevant to the
-  domain_cfg.nc generation.
-
-Put a copy in $INPUTS for safe keeping. Put a copy in EXP::
-
-    cp $TDIR/DOMAINcfg/namelist_cfg $INPUTS/namelist_cfg_generateDOMAINcfg_101017
-    cp $TDIR/DOMAINcfg/namelist_cfg $EXP/namelist_cfg
-
-Copy it to the EXP directory (also copy it to the INPUTS directory, which stores
+Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores
  the bits and bobs for a rebuild)::
 
   cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
