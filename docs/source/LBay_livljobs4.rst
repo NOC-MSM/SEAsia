@@ -405,7 +405,7 @@ Note that the temperature and salinity variables are ``thetao`` and ``so``
   module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
   module load cray-netcdf cray-hdf5
   module load nco/4.5.0
-  cd $WDIR/INPUTS
+  cd $INPUTS
 
   ncks -d x,560,620 -d y,720,800 /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT/AMM60_5d_20131013_20131129_grid_T.nc $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc
 
