@@ -137,75 +137,22 @@ First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
 ++++++++++++++++++++++++++++++++
 
 Generate a ``coordinates.nc`` file from a parent NEMO grid at some resolution.
-**Plan:** Use tool ``create_coordinates.exe`` which reads cutting indices and
+**Plan:** Use tool ``agrif_create_coordinates.exe`` which reads cutting indices and
 parent grid location from ``namelist.input`` and outputs a new files with new
 resolution grid elements.
 
-First we need to figure out the indices for the new domain, from the parent grid.
-Move parent grid into INPUTS::
+.. warning:
+  Using the GRIDGEN/create_coordinates.exe tool runs into a problem for zoom factor
+  >1, since the horizontal spacing metric e.g. e[12]t always match
+  the parent grid. I think that this is a bug. The agrif version works.
 
-  cp $START_FILES/coordinates_ORCA_R12.nc $INPUTS/.
+Build and execute agrif version of create_coordinates.exe.
+See `build_and_create_coordinates.rst`_
 
-Inspect this parent coordinates file to define the boundary indices for the new config.
-
-Note, I used FERRET locally::
-
-  $livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
-  ferret etc
-  shade/i=3385:3392/j=2251:2266 NAV_LAT
-  shade/i=3385:3392/j=2251:2266 NAV_LON
-
-
-Copy namelist file from LH_reef and edit with new indices, retaining use of
-ORCA_R12 as course parent grid *(13 Oct: For ARCHER. Check the path to INPUTS)*::
-
-  cd $TDIR/GRIDGEN
-  cp $START_FILES/namelist_R12 ./
-  vi namelist_R12
-  ...
-  cn_parent_coordinate_file = '../../../INPUTS/coordinates_ORCA_R12.nc'
-  ...
-  nn_imin = 3385
-  nn_imax = 3392
-  nn_jmin = 2251
-  nn_jmax = 2266
-  nn_rhox  = 7
-  nn_rhoy = 7
-
-  ln -s namelist_R12 namelist.input
-  ./create_coordinates.exe
-  cp 1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc
-
-This creates a coordinates.nc file with contents, which are now copied to
+This creates a new coordinatesfile with contents, which is now copied to
 INPUTS::
 
-  dimensions:
-  	x = 57 ;
-  	y = 113 ;
-  	z = 1 ;
-  	time = UNLIMITED ; // (1 currently)
-  variables:
-    float nav_lon(y, x) ;
-    float nav_lat(y, x) ;
-    float nav_lev(z) ;
-    float time(time) ;
-    int time_steps(time) ;
-    double glamt(z, y, x) ;
-    double glamu(z, y, x) ;
-    double glamv(z, y, x) ;
-    double glamf(z, y, x) ;
-    double gphit(z, y, x) ;
-    double gphiu(z, y, x) ;
-    double gphiv(z, y, x) ;
-    double gphif(z, y, x) ;
-    double e1t(z, y, x) ;
-    double e1u(z, y, x) ;
-    double e1v(z, y, x) ;
-    double e1f(z, y, x) ;
-    double e2t(z, y, x) ;
-    double e2u(z, y, x) ;
-    double e2v(z, y, x) ;
-    double e2f(z, y, x) ;
+  cp 1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc
 
 Now we need to generate a bathymetry on this new grid.
 
