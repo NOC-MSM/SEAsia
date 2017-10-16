@@ -1058,6 +1058,8 @@ No met (missing slp). rn_rdt=60s. Output more harmonics (20-30days). Run for 30 
 
 **GOT HERE**
 
+* Tidy up this note. Freeze it. Add met?
+
 ---
 
 *(21 Sept 2017 / 6 Oct 17)*
