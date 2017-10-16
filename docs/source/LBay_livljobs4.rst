@@ -448,7 +448,7 @@ Edit the template namelist_cfg with only the essenetial domain building stuff::
 .. note:
 
   No gdept output in the offical v4 release. Though it was acheived here setting
-  ln_e3_dep = F. This is needed for PyNEMO, though could be constructed from e3[tw]. 
+  ln_e3_dep = F. This is needed for PyNEMO, though could be constructed from e3[tw].
 
 Build a script to run the executable::
 
@@ -500,19 +500,6 @@ Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, w
   cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
   cp $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
 
----
-
-*(16 Oct 17)*
-
-No gdept output which is needed for PyNEMO. Try outputting mesh files.
- Edit namelist_cfg::
-
-  ln_e3_dep   = .false.    ! =T : e3=dk[depth] in discret sens.
-
-
-Resubmit job
-
----
 
 
 
@@ -927,8 +914,8 @@ Also had to check that ``inputs_dst.ncml`` has the correct file name within:
      <ns0:aggregation type="union">
        <ns0:netcdf location="file:domain_cfg.nc">
        <ns0:variable name="mbathy" orgName="bottom_level" />
-       <ns0:variable name="e3t" orgName="e3t_0" />
-       <ns0:variable name="e3w" orgName="e3w_0" />
+       <ns0:variable name="gdept" orgName="gdept_0" />
+       <ns0:variable name="gdepw" orgName="gdepw_0" />
        <ns0:variable name="e3u" orgName="e3u_0" />
        <ns0:variable name="e3v" orgName="e3v_0" />
        </ns0:netcdf>
