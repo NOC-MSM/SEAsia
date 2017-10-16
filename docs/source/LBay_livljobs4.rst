@@ -234,141 +234,7 @@ Output files::
   bathy_meter.nc
 
 
-
-3. Generate a domain configuration file
-=======================================
-
-The general idea is that you have to copy the ``namelist_cfg`` file into the ``DOMAINcfg``
-directory along with all the inputs files that would have previously been needed
-get v3.6 running. The reason being that all the non-time stepping stuff, like
-grid generating, has been abstracted from the core OPA code and is now done as
-a pre-processing step, and output into an important file ``domain_cfg.nc``.
-
-Copy essential files into DOMAINcfg directory::
-
-    cp $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
-    cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
-
-Edit the template namelist_cfg with only the essenetial domain building stuff::
-
-  cd $TDIR/DOMAINcfg
-  vi namelist_cfg
-
-  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !! NEMO/OPA  Configuration namelist : used to overwrite defaults values defined in SHARED/namelist_ref
-  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !
-  !-----------------------------------------------------------------------
-  &namrun        !   parameters of the run
-  !-----------------------------------------------------------------------
-     nn_no       =       0   !  job number (no more used...)
-     cn_exp      =  "domaincfg"  !  experience name
-     nn_it000    =       1   !  first time step
-     nn_itend    =      75   !  last  time step (std 5475)
-  /
-  !-----------------------------------------------------------------------
-  &namcfg        !   parameters of the configuration
-  !-----------------------------------------------------------------------
-     !
-     ln_e3_dep   = .true.    ! =T : e3=dk[depth] in discret sens.
-     !                       !      ===>>> will become the only possibility in v4.0
-     !                       ! =F : e3 analytical derivative of depth function
-     !                       !      only there for backward compatibility test with v3.6
-     !                       !
-     cp_cfg      =  "orca"   !  name of the configuration
-     jp_cfg      =       0   !  resolution of the configuration
-     jpidta      =      53   !  1st lateral dimension ( >= jpi )
-     jpjdta      =     109   !  2nd    "         "    ( >= jpj )
-     jpkdta      =      51   !  number of levels      ( >= jpk )
-     jpiglo      =      53   !  1st dimension of global domain --> i =jpidta
-     jpjglo      =     109   !  2nd    -                  -    --> j  =jpjdta
-     jpizoom     =       1   !  left bottom (i,j) indices of the zoom
-     jpjzoom     =       1   !  in data domain indices
-     jperio      =       0   !  lateral cond. type (between 0 and 6)
-  /
-  !-----------------------------------------------------------------------
-  &namzgr        !   vertical coordinate
-  !-----------------------------------------------------------------------
-     ln_sco      = .true.    !  z-coordinate - partial steps
-     ln_linssh   = .false.    !  linear free surface
-  /
-  !-----------------------------------------------------------------------
-  &namdom        !   space and time domain (bathymetry, mesh, timestep)
-  !-----------------------------------------------------------------------
-     jphgr_msh   =       0               !  type of horizontal mesh
-  ...
-
-
-
-Build a script to run the executable::
-
-  vi $TDIR/DOMAINcdf/rs
-
-  #!/bin/bash
-  #PBS -N domain_cfg
-  #PBS -l walltime=00:20:00
-  #PBS -l select=1
-  #PBS -j oe
-  #PBS -A n01-NOCL
-  # mail alert at (b)eginning, (e)nd and (a)bortion of execution
-  #PBS -m bea
-  #PBS -M jelt@noc.ac.uk
-  #! -----------------------------------------------------------------------------
-
-  # Change to the directory that the job was submitted from
-  cd $PBS_O_WORKDIR
-
-  # Set the number of threads to 1
-  #   This prevents any system libraries from automatically
-  #   using threading.
-  export OMP_NUM_THREADS=1
-  # Change to the directory that the job was submitted from
-  ulimit -s unlimited
-
-  #===============================================================
-  # LAUNCH JOB
-  #===============================================================
-  echo `date` : Launch Job
-  aprun -n 1 -N 1 ./make_domain_cfg.exe >&  stdouterr_cfg
-
-  exit
-
-
-Try running it::
-
-  cd $TDIR/DOMAINcfg
-  qsub -q short rs
-
-
-Put a copy in $INPUTS for safe keeping::
-
-    cp $TDIR/DOMAINcfg/namelist_cfg $INPUTS/namelist_cfg_generateDOMAINcfg
-
-Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores
- the bits and bobs for a rebuild)::
-
-  cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
-  cp $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
-
----
-
-*(16 Oct 17)*
-
-No gdept output which is needed for PyNEMO. Try outputting initial state, which
- will hold this variable. Edit namelist_cdfg::
-
-  !-----------------------------------------------------------------------
-  &namrun        !   parameters of the run
-  !-----------------------------------------------------------------------
-
-     nn_istate   =       1   !  output the initial state (1) or not (0)
-
-Resubmit job
-
----
-
-
-4. Generate initial conditions
+3. Generate initial conditions
 ++++++++++++++++++++++++++++++
 
 
@@ -513,6 +379,154 @@ Creates ``initcd_votemper.nc``. Then::
   $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
 
 Creates ``initcd_vosaline.nc``.
+
+
+
+4. Generate a domain configuration file
+=======================================
+
+The general idea is that you have to copy the ``namelist_cfg`` file into the ``DOMAINcfg``
+directory along with all the inputs files that would have previously been needed
+get v3.6 running. The reason being that all the non-time stepping stuff, like
+grid generating, has been abstracted from the core OPA code and is now done as
+a pre-processing step, and output into an important file ``domain_cfg.nc``.
+
+Copy essential files into DOMAINcfg directory::
+
+    cp $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
+    cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
+
+Edit the template namelist_cfg with only the essenetial domain building stuff::
+
+  cd $TDIR/DOMAINcfg
+  vi namelist_cfg
+
+  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !! NEMO/OPA  Configuration namelist : used to overwrite defaults values defined in SHARED/namelist_ref
+  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     nn_no       =       0   !  job number (no more used...)
+     cn_exp      =  "domaincfg"  !  experience name
+     nn_it000    =       1   !  first time step
+     nn_itend    =      75   !  last  time step (std 5475)
+  /
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+     !
+     ln_e3_dep   = .true.    ! =T : e3=dk[depth] in discret sens.
+     !                       !      ===>>> will become the only possibility in v4.0
+     !                       ! =F : e3 analytical derivative of depth function
+     !                       !      only there for backward compatibility test with v3.6
+     !                       !
+     cp_cfg      =  "orca"   !  name of the configuration
+     jp_cfg      =       0   !  resolution of the configuration
+     jpidta      =      53   !  1st lateral dimension ( >= jpi )
+     jpjdta      =     109   !  2nd    "         "    ( >= jpj )
+     jpkdta      =      51   !  number of levels      ( >= jpk )
+     jpiglo      =      53   !  1st dimension of global domain --> i =jpidta
+     jpjglo      =     109   !  2nd    -                  -    --> j  =jpjdta
+     jpizoom     =       1   !  left bottom (i,j) indices of the zoom
+     jpjzoom     =       1   !  in data domain indices
+     jperio      =       0   !  lateral cond. type (between 0 and 6)
+  /
+  !-----------------------------------------------------------------------
+  &namzgr        !   vertical coordinate
+  !-----------------------------------------------------------------------
+     ln_sco      = .true.    !  z-coordinate - partial steps
+     ln_linssh   = .false.    !  linear free surface
+  /
+  !-----------------------------------------------------------------------
+  &namdom        !   space and time domain (bathymetry, mesh, timestep)
+  !-----------------------------------------------------------------------
+     jphgr_msh   =       0               !  type of horizontal mesh
+  ...
+
+
+
+Build a script to run the executable::
+
+  vi $TDIR/DOMAINcdf/rs
+
+  #!/bin/bash
+  #PBS -N domain_cfg
+  #PBS -l walltime=00:20:00
+  #PBS -l select=1
+  #PBS -j oe
+  #PBS -A n01-NOCL
+  # mail alert at (b)eginning, (e)nd and (a)bortion of execution
+  #PBS -m bea
+  #PBS -M jelt@noc.ac.uk
+  #! -----------------------------------------------------------------------------
+
+  # Change to the directory that the job was submitted from
+  cd $PBS_O_WORKDIR
+
+  # Set the number of threads to 1
+  #   This prevents any system libraries from automatically
+  #   using threading.
+  export OMP_NUM_THREADS=1
+  # Change to the directory that the job was submitted from
+  ulimit -s unlimited
+
+  #===============================================================
+  # LAUNCH JOB
+  #===============================================================
+  echo `date` : Launch Job
+  aprun -n 1 -N 1 ./make_domain_cfg.exe >&  stdouterr_cfg
+
+  exit
+
+
+Try running it::
+
+  cd $TDIR/DOMAINcfg
+  qsub -q short rs
+
+
+Put a copy in $INPUTS for safe keeping::
+
+    cp $TDIR/DOMAINcfg/namelist_cfg $INPUTS/namelist_cfg_generateDOMAINcfg
+
+Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores
+ the bits and bobs for a rebuild)::
+
+  cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
+  cp $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
+
+---
+
+*(16 Oct 17)*
+
+No gdept output which is needed for PyNEMO. Try outputting initial state, which
+ will hold this variable. Edit namelist_cdfg::
+
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+
+     nn_istate   =       1   !  output the initial state (1) or not (0)
+
+   !-----------------------------------------------------------------------
+   &namtsd    !   data : Temperature  & Salinity
+   !-----------------------------------------------------------------------
+      sn_tem  = 'initcd_votemper',         -1        ,'votemper' ,    .false.    , .true. , 'yearly'   , ''       ,
+      ''    ,    ''
+      sn_sal  = 'initcd_vosaline',         -1        ,'vosaline' ,    .false.    , .true. , 'yearly'   , ''       ,
+      ''    ,    ''
+      !
+      cn_dir        = '../../../INPUTS/'     !  root directory for the location of the runoff files
+      ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+      ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
+   /
+
+Resubmit job
+
+---
+
 
 
 5. Generate weights for atm forcing
