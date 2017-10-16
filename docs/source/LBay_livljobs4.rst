@@ -244,14 +244,68 @@ get v3.6 running. The reason being that all the non-time stepping stuff, like
 grid generating, has been abstracted from the core OPA code and is now done as
 a pre-processing step, and output into an important file ``domain_cfg.nc``.
 
+Copy essential files into DOMAINcfg directory::
+
+    cp $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
+    cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
+
+Edit the template namelist_cfg with only the essenetial domain building stuff::
+
+  cd $TDIR/DOMAINcfg
+  vi namelist_cfg
+
+  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !! NEMO/OPA  Configuration namelist : used to overwrite defaults values defined in SHARED/namelist_ref
+  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     nn_no       =       0   !  job number (no more used...)
+     cn_exp      =  "domaincfg"  !  experience name
+     nn_it000    =       1   !  first time step
+     nn_itend    =      75   !  last  time step (std 5475)
+  /
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+     !
+     ln_e3_dep   = .true.    ! =T : e3=dk[depth] in discret sens.
+     !                       !      ===>>> will become the only possibility in v4.0
+     !                       ! =F : e3 analytical derivative of depth function
+     !                       !      only there for backward compatibility test with v3.6
+     !                       !
+     cp_cfg      =  "orca"   !  name of the configuration
+     jp_cfg      =       0   !  resolution of the configuration
+     jpidta      =      53   !  1st lateral dimension ( >= jpi )
+     jpjdta      =     109   !  2nd    "         "    ( >= jpj )
+     jpkdta      =      51   !  number of levels      ( >= jpk )
+     jpiglo      =      53   !  1st dimension of global domain --> i =jpidta
+     jpjglo      =     109   !  2nd    -                  -    --> j  =jpjdta
+     jpizoom     =       1   !  left bottom (i,j) indices of the zoom
+     jpjzoom     =       1   !  in data domain indices
+     jperio      =       0   !  lateral cond. type (between 0 and 6)
+  /
+  !-----------------------------------------------------------------------
+  &namzgr        !   vertical coordinate
+  !-----------------------------------------------------------------------
+     ln_sco      = .true.    !  z-coordinate - partial steps
+     ln_linssh   = .false.    !  linear free surface
+  /
+  !-----------------------------------------------------------------------
+  &namdom        !   space and time domain (bathymetry, mesh, timestep)
+  !-----------------------------------------------------------------------
+     jphgr_msh   =       0               !  type of horizontal mesh
+  ...
+
+
+
+---
+*(Previously I tried to create a namelist_cfg file that was similar to the*
+*v4 version that runs OPA. Delete this when ready)*
 
 .. warning: This is a bit backwards as I copy in files that I haven't made yet. It will do for now.
 
-::
-
-  cd $TDIR
-  cp $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
-  cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
 
 I am not sure how this is going to pan out with the existing namelist_cfg files;
 it may not be up to date enough. So I will save an original for the time being::
@@ -287,7 +341,9 @@ Build a script to run the executable::
   #PBS -l select=1
   #PBS -j oe
   #PBS -A n01-NOCL
-
+  # mail alert at (b)eginning, (e)nd and (a)bortion of execution
+  #PBS -m bea
+  #PBS -M jelt@noc.ac.uk
   #! -----------------------------------------------------------------------------
 
   # Change to the directory that the job was submitted from
@@ -305,7 +361,6 @@ Build a script to run the executable::
   #===============================================================
   echo `date` : Launch Job
   aprun -n 1 -N 1 ./make_domain_cfg.exe >&  stdouterr_cfg
-  #aprun -n 216 -N 24 ./make_domain_cfg.exe >&  stdouterr_cfg
 
   exit
 
