@@ -64,6 +64,7 @@ Starting on ARCHER::
   export START_FILES=$WDIR/START_FILES
   export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
   export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+  export OLD_TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/
   export EXP=$CDIR/$CONFIG/EXP00
 
 
@@ -207,26 +208,26 @@ Restore the original parallel modules, which were removed to fix tool building i
   module unload nco cray-netcdf cray-hdf5
   module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-Execute first scrip thing::
+Execute first scrip thing (use old tools - already compiled)::
 
-  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
+  $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
 
 Output files::
 
   remap_nemo_grid_gebco.nc
   remap_data_grid_gebco.nc
 
-Execute second scip thing::
+Execute second scip thing (use old tools - already compiled)::
 
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
+  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
 
 Output files::
 
   data_nemo_bilin_gebco.nc
 
-Execute third scip thing::
+Execute third scip thing (use old tools - already compiled)::
 
-  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
+  $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
 
 Output files::
 
