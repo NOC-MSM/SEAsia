@@ -382,8 +382,8 @@ Proceed with Step 6 (of Lighhouse Reef Readthedocs)::
 Obtain the fields to interpolate. Interpolate AMM60
 data. Get the namelists::
 
-  cp $INPUTS/initcd_votemper.namelist .
-  cp $INPUTS/initcd_vosaline.namelist .
+  cp $START_FILES/initcd_votemper.namelist $INPUTS/.
+  cp $START_FILES/initcd_vosaline.namelist $INPUTS/.
 
 Generate the actual files. Cut them out of something bigger. Use the same indices
 as used in coordinates.nc (note that the nco tools don't like the
@@ -407,11 +407,11 @@ Note that the temperature and salinity variables are ``thetao`` and ``so``
   module load nco/4.5.0
   cd $INPUTS
 
-  ncks -d x,560,620 -d y,720,800 /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT/AMM60_5d_20131013_20131129_grid_T.nc $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc
+  ncks -d x,560,620 -d y,720,800 /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT/AMM60_5d_20131013_20131129_grid_T.nc $INPUTS/cut_down_20131013_LBay_grid_T.nc
 
 Average over time and restore the parallel modules::
 
-  ncwa -a time_counter $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc  $WDIR/INPUTS/cut_down_201310_LBay_grid_T.nc
+  ncwa -a time_counter $START_FILES/cut_down_20131013_LBay_grid_T.nc  $INPUTS/cut_down_201310_LBay_grid_T.nc
 
   module unload nco cray-netcdf cray-hdf5
   module load cray-netcdf-hdf5parallel cray-hdf5-parallel
@@ -455,12 +455,12 @@ Creates::
 
 Now do interpolation as before. First copy the namelists::
 
-  cp $INPUTS/namelist_reshape_bilin_initcd_votemper $WDIR/INPUTS/.
-  cp $INPUTS/namelist_reshape_bilin_initcd_vosaline $WDIR/INPUTS/.
+  cp $START_FILES/namelist_reshape_bilin_initcd_votemper $INPUTS/.
+  cp $START_FILES/namelist_reshape_bilin_initcd_vosaline $INPUTS/.
 
 Edit the input files::
 
-  vi $WDIR/INPUTS/namelist_reshape_bilin_initcd_votemper
+  vi $INPUTS/namelist_reshape_bilin_initcd_votemper
   &grid_inputs
     input_file = 'thetao_AMM60-LBay_2013.nc4'
   ...
@@ -471,7 +471,7 @@ Edit the input files::
 
 Simiarly for the *vosaline.nc file::
 
-  vi $WDIR/INPUTS/namelist_reshape_bilin_initcd_vosaline
+  vi $INPUTS/namelist_reshape_bilin_initcd_vosaline
   &grid_inputs
     input_file = 'so_AMM60-LBay_2013.nc4'
   ...
@@ -483,19 +483,19 @@ Simiarly for the *vosaline.nc file::
 
 Produce the remap files::
 
-  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
+  $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
 
 Creates ``remap_nemo_grid_R12.nc`` and ``remap_data_grid_R12.nc``. Then::
 
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
+  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
 
 Creates ``data_nemo_bilin_R12.nc``. Then::
 
-  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
+  $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
 
 Creates ``initcd_votemper.nc``. Then::
 
-  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
+  $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
 
 Creates ``initcd_vosaline.nc``.
 
@@ -524,8 +524,8 @@ parallel modules). **HEALTH WARNING** *Cut out files with only one index in that
 
 Obtain namelist files and data file::
 
-  cp $INPUTS/namelist_reshape_bilin_atmos $WDIR/INPUTS/.
-  cp $INPUTS/namelist_reshape_bicubic_atmos $WDIR/INPUTS/.
+  cp $START_FILES/namelist_reshape_bilin_atmos $INPUTS/.
+  cp $START_FILES/namelist_reshape_bicubic_atmos $INPUTS/.
 
 Edit namelist to reflect source filenames (just a year change)::
 
@@ -542,112 +542,27 @@ Edit namelist to reflect source filenames (just a year change)::
 
 Setup weights files for the atmospheric forcing::
 
-  cd $WDIR/INPUTS
-  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
+  cd $INPUTS
+  $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
 
 Generate  remap files ``remap_nemo_grid_atmos.nc`` and ``remap_data_grid_atmos.nc``. Then::
 
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
+  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
 
 Generates ``data_nemo_bilin_atmos.nc``. Then::
 
-  $TDIR/WEIGHTS/scripshape.exe namelist_reshape_bilin_atmos
+  $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bilin_atmos
 
 Generates ``weights_bilinear_atmos.nc``. Then::
 
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bicubic_atmos
+  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bicubic_atmos
 
 Generates ``data_nemo_bicubic_atmos.nc``. Then::
 
-  $TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
+  $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
 
 Generates ``weights_bicubic_atmos.nc``.
 
-
-.. note:
- With the new DOMAINcfg tools this step of running NEMO for one time step is
- already done. ``mesh_mask.nc`` is superceeded by ``domain_cfg.nc``
-
-  5. Generate mesh and mask files for open boundary conditions
-  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  Run the model to generate the mesh and mask files::
-
-    cd $CDIR
-    cp $INPUTS/cpp_LH_REEF.fcm LBay/cpp_LBay.fcm
-    ln -s $WDIR/INPUTS/bathy_meter.nc $CDIR/LBay/EXP00/bathy_meter.nc
-    ln -s $WDIR/INPUTS/coordinates.nc $CDIR/LBay/EXP00/coordinates.nc
-    cp $INPUTS/runscript $CDIR/LBay/EXP00
-    cp $INPUTS/namelist_cfg $CDIR/LBay/EXP00/namelist_cfg
-    cp $INPUTS/namelist_ref $CDIR/LBay/EXP00/namelist_ref
-    ./makenemo clean
-    ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
-    cd LBay/EXP00
-    ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
-
-  Edit the namelist files for this configuration::
-
-    ncdump -h coordinates.nc
-    x = 57 ;
-    y = 113 ;
-
-    vi namelist.cfg
-    ...
-    cn_exp      =   "LBay"  !  experience name
-    ...
-    !-----------------------------------------------------------------------
-    &namcfg        !   parameters of the configuration
-    !-----------------------------------------------------------------------
-       cp_cfg      =  "lbay"                !  name of the configuration
-       jp_cfg      =     084               !  resolution of the configuration
-       jpidta      =      57               !  1st lateral dimension ( >= jpi )
-       jpjdta      =     113               !  2nd    "         "    ( >= jpj )
-       jpkdta      =      51               !  number of levels      ( >= jpk )
-       jpiglo      =      57               !  1st dimension of global domain --> i =jpidta
-       jpjglo      =     113               !  2nd    -                  -    --> j  =jpjdta
-
-  **ACTION: There are further edits to be made for when the model is actually run**
-  **E.g. other filename instances of Lbay**
-
-  Note that the old LH_REEF has the following
-  | jpidta      =     358               !  1st lateral dimension ( >= jpi )
-  | jpjdta      =     428               !  2nd    "         "    ( >= jpj )
-
-  with the dimensions in the LH_REFF coordinates file as
-  | ncdump -h coordinates.nc
-  | x = 358 ;
-  | y = 428 ;
-
-  Edit the runscript to include modules and the Account name (n01-NOCL)::
-
-    vi runscript
-
-    #!/bin/bash
-    #PBS -N LBay
-    #PBS -l select=5
-    #PBS -l walltime=00:20:00
-    #PBS -A n01-NOCL
-
-    module swap PrgEnv-cray PrgEnv-intel
-    module load cray-netcdf-hdf5parallel
-    module load cray-hdf5-parallel
-    ...
-
-  Submit::
-
-    qsub -q short runscript
-
-
-  *(6 March 2017)*
-
-  If that works, we then need to rebuild the mesh and mask files in to single files for the next step::
-
-    $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_zgr 96
-    $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_hgr 96
-    $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mask 96
-    mv mesh_zgr.nc mesh_hgr.nc mask.nc $WDIR/INPUTS
-    rm mesh_* mask_* LBay_0000*
-    cd $WDIR/INPUTS
 
 
 THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO *(20 Sept 2017)*
