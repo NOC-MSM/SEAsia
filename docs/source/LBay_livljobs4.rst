@@ -417,7 +417,7 @@ Edit the template namelist_cfg with only the essenetial domain building stuff::
   &namcfg        !   parameters of the configuration
   !-----------------------------------------------------------------------
      !
-     ln_e3_dep   = .true.    ! =T : e3=dk[depth] in discret sens.
+     ln_e3_dep   = .false.    ! =T : e3=dk[depth] in discret sens.
      !                       !      ===>>> will become the only possibility in v4.0
      !                       ! =F : e3 analytical derivative of depth function
      !                       !      only there for backward compatibility test with v3.6
@@ -445,7 +445,10 @@ Edit the template namelist_cfg with only the essenetial domain building stuff::
      jphgr_msh   =       0               !  type of horizontal mesh
   ...
 
+.. note:
 
+  No gdept output in the offical v4 release. Though it was acheived here setting
+  ln_e3_dep = F. This is needed for PyNEMO, though could be constructed from e3[tw]. 
 
 Build a script to run the executable::
 
@@ -501,27 +504,11 @@ Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, w
 
 *(16 Oct 17)*
 
-No gdept output which is needed for PyNEMO. Try outputting initial state, which
- will hold this variable. Edit namelist_cdfg::
+No gdept output which is needed for PyNEMO. Try outputting mesh files.
+ Edit namelist_cfg::
 
-  !-----------------------------------------------------------------------
-  &namrun        !   parameters of the run
-  !-----------------------------------------------------------------------
+  ln_e3_dep   = .false.    ! =T : e3=dk[depth] in discret sens.
 
-     nn_istate   =       1   !  output the initial state (1) or not (0)
-
-   !-----------------------------------------------------------------------
-   &namtsd    !   data : Temperature  & Salinity
-   !-----------------------------------------------------------------------
-      sn_tem  = 'initcd_votemper',         -1        ,'votemper' ,    .false.    , .true. , 'yearly'   , ''       ,
-      ''    ,    ''
-      sn_sal  = 'initcd_vosaline',         -1        ,'vosaline' ,    .false.    , .true. , 'yearly'   , ''       ,
-      ''    ,    ''
-      !
-      cn_dir        = '../../../INPUTS/'     !  root directory for the location of the runoff files
-      ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
-      ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
-   /
 
 Resubmit job
 
