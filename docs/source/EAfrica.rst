@@ -165,6 +165,9 @@ Edit/create the runscript::
   #PBS -A n01-NOCL
   #PBS -j oe
   #PBS -r n
+  # mail alert at (b)eginning, (e)nd and (a)bortion of execution
+  #PBS -m bea
+  #PBS -M jelt@noc.ac.uk
 
   module swap PrgEnv-cray PrgEnv-intel
   module load cray-netcdf-hdf5parallel
@@ -229,10 +232,10 @@ Submit::
 *(16 Oct 17)*
 Plan::
 
-  * Check it still runs..
-  * Remove bdy_mask.nc from namelist_cfg (Not sure how to build it). Check it runs
+  * Check it still runs.. OK
+  * Remove bdy_mask.nc from namelist_cfg (Not sure how to build it). Check it runs. OK
   * Generate own domain_cfg.nc. Check it runs.
-  
+
 ---
 
 Rebuild the files and inspect locally
