@@ -319,6 +319,12 @@ Try running it::
 
 **10 Oct. This runs and produces ``domain_cfg.nc`` output, though the job has 1 error**
 
+.. note:
+  I have attempted to harmonise the namelist_cfg files a bit between v3 and v4
+  This was probably a bad idea. It might be cleaner to just keep the DOMAINcfg
+  version in v3.6 since and strip out the things that aren't relevant to the
+  domain_cfg.nc generation.
+
 Put a copy in $INPUTS for safe keeping. Put a copy in EXP::
 
     cp $TDIR/DOMAINcfg/namelist_cfg $INPUTS/namelist_cfg_generateDOMAINcfg_101017
