@@ -1041,6 +1041,15 @@ generated on ARCHER::
 8. Run the configuration ON ARCHER. Turn on the tides
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+*(16 OCt 17*
+
+Got here with new forcing files and grids. Just try submitted with existing
+namelist_cfg, but with ln_tide_ramp = F::
+
+  qsub runscript
+  
+---
+
 *(21 Sept 2017 / 6 Oct 17)*
 
 Open a terminal on **ARCHER**. Redefine PATHS. Reload modules::
