@@ -226,6 +226,13 @@ Submit::
 
 **It runs and outputs lots of stuff including harmonics**
 
+*(16 Oct 17)*
+Plan::
+
+  * Check it still runs..
+  * Remove bdy_mask.nc from namelist_cfg (Not sure how to build it). Check it runs
+  * Generate own domain_cfg.nc. Check it runs.
+  
 ---
 
 Rebuild the files and inspect locally
