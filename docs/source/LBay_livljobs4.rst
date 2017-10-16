@@ -758,6 +758,12 @@ Using livljobs4
 Need to grab some INPUT files. (File bathy_meter.nc and domain_cfg.nc should be
  there already)::
 
+   scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/domain_cfg.nc $INPUTS/.
+   scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/bathy_meter.nc $INPUTS/.
+
+
+Copy the pynemo namelist and ncml files::
+
   cp $START_FILES/namelist.bdy_NNA    $INPUTS/.
   cp $START_FILES/NNA_inputs_src.ncml $INPUTS/.
   cp $START_FILES/inputs_dst.ncml     $INPUTS/.
