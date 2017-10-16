@@ -911,13 +911,16 @@ Also had to check that ``inputs_dst.ncml`` has the correct file name within:
      <ns0:aggregation type="union">
        <ns0:netcdf location="file:domain_cfg.nc">
        <ns0:variable name="mbathy" orgName="bottom_level" />
-       <ns0:variable name="gdept" orgName="gdept_0" />
-       <ns0:variable name="gdepw" orgName="gdepw_0" />
+       <ns0:variable name="e3t" orgName="e3t_0" />
+       <ns0:variable name="e3w" orgName="e3w_0" />
        <ns0:variable name="e3u" orgName="e3u_0" />
        <ns0:variable name="e3v" orgName="e3v_0" />
        </ns0:netcdf>
      </ns0:aggregation>
    </ns0:netcdf>
+
+.. note:
+  In the v4 domain_cfg.nc there will be no gdept an gdepw.
 
 Generate the boundary conditions again, with PyNEMO
 ::
