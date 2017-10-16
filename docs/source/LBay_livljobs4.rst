@@ -761,7 +761,7 @@ Need to grab some INPUT files. (File bathy_meter.nc and domain_cfg.nc should be
   cp $START_FILES/namelist.bdy_NNA    $INPUTS/.
   cp $START_FILES/NNA_inputs_src.ncml $INPUTS/.
   cp $START_FILES/inputs_dst.ncml     $INPUTS/.
-  cd $WDIR/INPUTS
+  cd $INPUTS
 
 Make sure the NNA data is available::
 
@@ -929,6 +929,8 @@ with the GUI; I just click CLOSE to activiate, if everything is already sorted
 in the input files).
 
 The SAVE button only updates the ``namelist.bdy`` file. The CLOSE button activates the process.
+
+Alternatively don't invoke the `-g` option and there is no GUI.
 
 This generates::
   ls -1 $INPUTS
