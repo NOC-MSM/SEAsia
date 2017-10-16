@@ -1016,9 +1016,13 @@ Prepare the boundary files (need to fix some variable names)::
 
   ncrename -v depthu,gdepu LBay_bdyU_y2000m01.nc
   ncrename -v depthv,gdepv LBay_bdyV_y2000m01.nc
-  ncrename -v deptht,gdept initcd_votemper.nc
-  ncrename -v deptht,gdept initcd_vosaline.nc
   module unload nco
+
+.. note:
+    Previously the initial T and S fields also needed fixing. But these seem to
+    be OK now as they already contain gdept:
+      ncrename -v deptht,gdept initcd_votemper.nc
+      ncrename -v deptht,gdept initcd_vosaline.nc
 
 Copy the new files back onto ARCHER
 ::
@@ -1026,8 +1030,13 @@ Copy the new files back onto ARCHER
   livljobs4$
   cd $INPUTS
   for file in LBay*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/. ; done
-  for file in initcd_vo*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/. ; done
   scp coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/.
+
+I previously also had the following. But now I comment it out as these files are
+generated on ARCHER::
+
+  #for file in initcd_vo*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/. ; done
+
 
 8. Run the configuration ON ARCHER. Turn on the tides
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
