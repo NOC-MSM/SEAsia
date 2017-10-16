@@ -16,7 +16,8 @@ configuration.
 
 * Use ORCHESTRA code, which is near the head of the trunk (@ r8395).
 
-* Caveat: a number of input files are taken from James' existing configuration
+* Caveat: a number of input files are taken from James' existing configuration.
+Though the domain_cdf.nc file was generated from Jame's coordinates and bathy files.
 
 .. warning:
 
@@ -99,9 +100,12 @@ Build opa::
 
 ---
 
-Build or copy a domain_cfg.nc file::
+Copy::
 
-  #ln -s $JINPUTS/R12/domain_cfg_R12.nc $EXP/domain_cfg.nc
+  ln -s $JINPUTS/R12/domain_cfg_R12.nc $EXP/domain_cfg.nc
+
+**Or** build or copy a domain_cfg.nc file::
+
   cd $TDIR/DOMAINcfg
 
 Copy in the coordinates and bathymetry files::
@@ -148,7 +152,7 @@ Submit the run script. Use tools compiled
 Copy / link new file into the EXP directory::
 
   ln -s $TDIR/DOMAINcfg/domain_cfg.nc $EXP/domain_cfg.nc
-  
+
 ---
 
 Copy other INPUT stuff from James' simulation::
@@ -284,7 +288,7 @@ Plan::
 
   * Check it still runs.. OK
   * Remove bdy_mask.nc from namelist_cfg (Not sure how to build it). Check it runs. OK
-  * Generate own domain_cfg.nc. Check it runs.
+  * Generate own domain_cfg.nc. Check it runs. OK
 
 ---
 
