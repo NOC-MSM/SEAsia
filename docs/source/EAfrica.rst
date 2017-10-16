@@ -99,8 +99,57 @@ Build opa::
 
 ---
 
+Build or copy a domain_cfg.nc file::
 
-Copy INPUT stuff from James' simulation::
+  #ln -s $JINPUTS/R12/domain_cfg_R12.nc $EXP/domain_cfg.nc
+  cd $TDIR/DOMAINcfg
+
+Use tools compiled already::
+
+  export OLD_TDIR= /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/TOOLS
+
+Copy in the coordinates and bathymetry files::
+
+  cp $JINPUTS/R12/coordinates_E-AFRICA_R12.nc $TDIR/DOMAINcfg/coordinates.nc
+  cp $JINPUTS/R12/bathymetry_E-AFRICA_R12.nc  $TDIR/DOMAINcfg/bathy_meter.nc
+
+Edit namelist_cfg (v3.6 version) for this configuration::
+
+  vi namelist_cfg
+
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+     !
+     ln_e3_dep   = .true.    ! =T : e3=dk[depth] in discret sens.
+     !                       !      ===>>> will become the only possibility in v4.0
+     !                       ! =F : e3 analytical derivative of depth function
+     !                       !      only there for backward compatibility test with v3.6
+     !                       !
+     cp_cfg      =  "orca"   !  name of the configuration
+     jp_cfg      =       2   !  resolution of the configuration
+     jpidta      =     303   !  1st lateral dimension ( >= jpi )
+     jpjdta      =     517   !  2nd    "         "    ( >= jpj )
+     jpkdta      =      75   !  number of levels      ( >= jpk )
+     jpiglo      =     303   !  1st dimension of global domain --> i =jpidta
+     jpjglo      =     517   !  2nd    -                  -    --> j  =jpjdta
+     jpizoom     =       1   !  left bottom (i,j) indices of the zoom
+     jpjzoom     =       1   !  in data domain indices
+     jperio      =       0   !  lateral cond. type (between 0 and 6)
+  /
+  !-----------------------------------------------------------------------
+  &namzgr        !   vertical coordinate
+  !-----------------------------------------------------------------------
+     ln_zps      = .true.    !  z-coordinate - partial steps
+     ln_linssh   = .false.    !  linear free surface
+  /
+
+Execute the make script::
+
+  mpirun -np 1 $OLD_TDIR/DOMAINcfg/make_domain_cfg.exe
+---
+
+Copy other INPUT stuff from James' simulation::
 
   mkdir $EXP
 
@@ -120,7 +169,6 @@ Link other setup and forcing files::
 
   ln -s $JINPUTS/R12/coordinates_E-AFRICA_R12.bdy.nc $EXP/coordinates.bdy.nc
   ln -s $JINPUTS/R12/bdy_mask_E-AFRICA_R12.nc $EXP/bdy_mask.nc
-  ln -s $JINPUTS/R12/domain_cfg_R12.nc $EXP/domain_cfg.nc
   ln -s $JINPUTS/R12/TIDES $EXP/TIDES
 
 
