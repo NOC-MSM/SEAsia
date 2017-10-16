@@ -104,10 +104,6 @@ Build or copy a domain_cfg.nc file::
   #ln -s $JINPUTS/R12/domain_cfg_R12.nc $EXP/domain_cfg.nc
   cd $TDIR/DOMAINcfg
 
-Use tools compiled already::
-
-  export OLD_TDIR= /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/TOOLS
-
 Copy in the coordinates and bathymetry files::
 
   cp $JINPUTS/R12/coordinates_E-AFRICA_R12.nc $TDIR/DOMAINcfg/coordinates.nc
@@ -144,9 +140,15 @@ Edit namelist_cfg (v3.6 version) for this configuration::
      ln_linssh   = .false.    !  linear free surface
   /
 
-Execute the make script::
+Submit the run script. Use tools compiled
+ already ``/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/TOOLS``::
 
-  mpirun -np 1 $OLD_TDIR/DOMAINcfg/make_domain_cfg.exe
+  qsub -q short rs
+
+Copy / link new file into the EXP directory::
+
+  ln -s $TDIR/DOMAINcfg/domain_cfg.nc $EXP/domain_cfg.nc
+  
 ---
 
 Copy other INPUT stuff from James' simulation::
