@@ -46,7 +46,7 @@
    ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
    nn_stock    =   14400   !  frequency of creation of a restart file (modulo referenced to 1)
    nn_stocklist = 0,0,0,0,0,0,0,0,0,0 ! List of timesteps when a restart file is to be written
-   nn_write    =   60   !  frequency of write in the output file   (modulo referenced to nn_it000)
+   nn_write    =   14400   !  frequency of write in the output file   (modulo referenced to nn_it000)
    ln_mskland  = .false.   !  mask land points in NetCDF outputs (costly: + ~15%)
    ln_cfmeta   = .false.   !  output additional data to netCDF files required for compliance with the CF metadata standard
    ln_clobber  = .true.    !  clobber (overwrite) an existing file
@@ -116,7 +116,7 @@ rn_zs=1.0,
    nn_msh      =    0      !  create (>0) a mesh file or not (=0)
    rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
    !
-   rn_rdt      =  6.     !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_rdt      =  60.     !  time step for the dynamics (and tracer if nn_acc=0)
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module
@@ -277,7 +277,7 @@ rn_zs=1.0,
    sn_humi     = 'cutdown_drowned_q2_DFS5.1.1'        ,         3         , 'q2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
    sn_prec     = 'cutdown_drowned_precip_DFS5.1.1' ,       24         , 'precip',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
    sn_snow     = 'cutdown_drowned_snow_DFS5.1.1' ,        24         , 'snow'    ,   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_tdif     = 'taudif_core'                 ,        24         , 'taudif'  ,   .false.    , .true. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+!   sn_tdif     = 'taudif_core'                 ,        24         , 'taudif'  ,   .false.    , .true. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
    !                    !  bulk algorithm :
    ln_NCAR     = .false.   ! "NCAR"      algorithm   (Large and Yeager 2008)
    ln_COARE_3p0= .true.   ! "COARE 3.0" algorithm   (Fairall et al. 2003)
@@ -558,15 +558,15 @@ rn_zs=1.0,
    ln_tide_pot = .true.    !  use tidal potential forcing
    ln_tide_ramp= .false.   !
    rdttideramp =    1.     !
-!   clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(4)    = 'K1'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(5)    = 'N2'   !  name of constituent - all tidal components must be set in namelist_cfg
-   clname(1)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(7)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(8)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(9)   = 'M4'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(4)    = 'K1'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(5)    = 'N2'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(6)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(7)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(8)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(9)   = 'M4'   !  name of constituent - all tidal components must be set in namelist_cfg
 /
 !-----------------------------------------------------------------------
 &nambdy        !  unstructured open boundaries

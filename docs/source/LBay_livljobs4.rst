@@ -1044,10 +1044,20 @@ generated on ARCHER::
 *(16 OCt 17*
 
 Got here with new forcing files and grids. Just try submitted with existing
-namelist_cfg, but with ln_tide_ramp = F::
+namelist_cfg, but with ln_tide_ramp = F, ln_usr=T (no wind)::
 
   qsub runscript
-  
+
+**IT WORKS!**
+
+No met (missing slp). rn_rdt=60s. Output more harmonics (20-30days). Run for 30 days::
+
+  qsub runscript
+
+**IT WORKS!**
+
+**GOT HERE**
+
 ---
 
 *(21 Sept 2017 / 6 Oct 17)*
@@ -1082,8 +1092,8 @@ Link the boundary data to the EXP direcory::
  #sed -e 's/nn_msh      =    3/nn_msh      =    0/' namelist_cfg > tmp
  #sed -e 's/nn_itend    =      1/nn_itend    =       1440 /' tmp > namelist_cfg
 
-There was a problem running with the namelist_cfg fresh from DOMAINcfg. First with
-with namcfg group. So I cut it back to just reading the cfg file::
+Note that the namelist_cfg in DOMAINcfg is v3.6. This is v4.
+Some edits::
 
   vi namelist_cfg
 
