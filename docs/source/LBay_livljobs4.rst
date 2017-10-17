@@ -1,6 +1,8 @@
-============================================================
-Setting up a Liverpool Bay NEMO configuration, inc. livljob4
-============================================================
+================================================
+Setting up a Liverpool Bay NEMO v4 configuration
+================================================
+
+Machines: livljobs4, ARCHER
 
 URL:: http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html
 *Actually I've taken this off readthedocs as it is internal. However writing in*
@@ -8,13 +10,16 @@ URL:: http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html
 
 * Build notes with:: ~/GitLab/NEMO-RELOC/docs$ make html
 
+This builds a Liverpool Bay regional tide model using GEBCO bathymetry, NNA tidal
+boundaries and TPXO tides.
+
 Originally tried building everything on ARCHER but ran into a java problem with
 NRCT (nee PyNEMO) that they needed to fix. Also MDP can't use ARCHER.
 
 Then got it working on a combination of Liverpool machines for setup with
  simulations on ARCHER.
 
-Then tried to update this recipe with the pre-release of NEMOv4, which in
+This recipe is updated to use the pre-release of NEMOv4, which in
 particular has a new method for handling the domain configuration. For this I use
 the ORCHESTRA realease of the trunk (@r8395)
 
@@ -24,6 +29,9 @@ The summary procedure:
 #. LIVLJOBS4: Generate boundary conditions with NRCT/PyNEMO
 #. ARCHER: Run simulation
 
+The actual simulation does not switch on T,S boundaries, or inital conditions,
+or met forcing. It is a tide only run. Though much (all) of the machinary for met
+and T,S are all here.
 
 Issues that arose
 =================
@@ -1337,6 +1345,8 @@ Use some python to inspection of the domain_cfg.nc file or ssh, Tide output. See
 
   **TO DO** another time / for Solent config
 
+  * Add in met forcing
+  * Turn on T,S at boundares
   * Change namelist to include tidal harmonic analysis::
 
   !-----------------------------------------------------------------------
