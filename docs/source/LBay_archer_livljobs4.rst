@@ -123,20 +123,23 @@ First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
 
 .. note: Check which arch file this is. Surely should be consistent.
-   Though I don't attempt to change the GRIDGEN build
+   The patches probably should still be applied to WEIGHTS. (Not checked if source
+   updated from v3.6. See ``LBay``)
 ::
 
   ./maketools -n WEIGHTS -m XC_ARCHER_INTEL_XIOS1
   ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL_XIOS1
 
-  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  module swap PrgEnv-intel PrgEnv-cray
-  module load cray-netcdf cray-hdf5
-  ./maketools -n GRIDGEN -m XC_ARCHER    # This uses acc's XIOS_r474
+Actually we don't do use GRIDGEN anymore::
+..
+    module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+    module swap PrgEnv-intel PrgEnv-cray
+    module load cray-netcdf cray-hdf5
+    ./maketools -n GRIDGEN -m XC_ARCHER    # This uses acc's XIOS_r474
 
-  module unload cray-netcdf cray-hdf5
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+    module unload cray-netcdf cray-hdf5
+    module swap PrgEnv-cray PrgEnv-intel
+    module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
 
 
