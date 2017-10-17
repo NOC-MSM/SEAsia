@@ -1113,9 +1113,9 @@ Run for 30 days::
 Note about changes to the namelist_cfg
 ======================================
 
-In order to make a simulation with the new v4 namelist_cfg format a number of
-changes appear. Some of these are noted below. They are cut down from a debug log
-and may not be complete.
+In order to make a simulation with the new v4 namelist_cfg,  a number of
+changes appear with its format. Some of these are noted below. But since they are
+a cut down from a debug log they may not be exhaustive.
 
 I might have added some tidal harmonic constituent names to the template::
 
