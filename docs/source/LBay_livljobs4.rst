@@ -1041,118 +1041,7 @@ generated on ARCHER::
 8. Run the configuration ON ARCHER. Turn on the tides
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-*(16 OCt 17*
-
-Got here with new forcing files and grids. Just try submitted with existing
-namelist_cfg, but with ln_tide_ramp = F, ln_usr=T (no wind)::
-
-  qsub runscript
-
-**IT WORKS!**
-
-No met (missing slp). rn_rdt=60s. Output more harmonics (20-30days). Run for 30 days::
-
-  qsub runscript
-
-**IT WORKS!**
-
-**GOT HERE**
-
-* Tidy up this note. Freeze it. Add met?
-
----
-
-*(21 Sept 2017 / 6 Oct 17)*
-
-Open a terminal on **ARCHER**. Redefine PATHS. Reload modules::
-
-  export CONFIG=LBay
-  export WORK=/work/n01/n01
-  export WDIR=$WORK/$USER/$CONFIG
-  export INPUTS=$WORK/$USER/$CONFIG/INPUTS
-  export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
-  export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
-  export EXP=$CDIR/$CONFIG/EXP00
-
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-
-OPA and XIOS are already built.
-
-
-Link the boundary data to the EXP direcory::
-
- cd $EXP
- ln -s $INPUTS/coordinates.bdy.nc       $EXP/coordinates.bdy.nc
- ln -s $INPUTS/LBay_bdyT_y2000m01.nc    $EXP/LBay_bdyT_y2000m01.nc
- ln -s $INPUTS/LBay_bdyU_y2000m01.nc    $EXP/LBay_bdyU_y2000m01.nc
- ln -s $INPUTS/LBay_bdyV_y2000m01.nc    $EXP/LBay_bdyV_y2000m01.nc
- ln -s $INPUTS/LBay_bt_bdyT_y2000m01.nc $EXP/LBay_bt_bdyT_y2000m01.nc
- ln -s $INPUTS                          $EXP/bdydta
-
-.. old:  and update the namelist_cfg for running, not mesh generation
- #sed -e 's/nn_msh      =    3/nn_msh      =    0/' namelist_cfg > tmp
- #sed -e 's/nn_itend    =      1/nn_itend    =       1440 /' tmp > namelist_cfg
-
-Note that the namelist_cfg in DOMAINcfg is v3.6. This is v4.
-Some edits::
-
-  vi namelist_cfg
-
-  !-----------------------------------------------------------------------
-  &namcfg        !   parameters of the configuration
-  !-----------------------------------------------------------------------
-     ln_read_cfg = .true.   !  (=T) read the domain configuration file
-     cn_domcfg = "domain_cfg"         ! domain configuration filename
-
-
-Then there was an extra variable in namdom. Comment out ldbletanh (which was essential in DOMAINcfg)::
-
-  !-----------------------------------------------------------------------
-  &namdom        !   space and time domain (bathymetry, mesh, timestep)
-  !-----------------------------------------------------------------------
-  ...
-  !    ldbletanh   =    .false.             !  Use/do not use double tanf function for vertical coordinates
-
-
-Also noted that the sbc namelist variables have changed. Now use ``ln_blk`` and ``ln_COARE_3p5= .true.``
-instead of ``ln_blk_core``
-
-Also need to make sure the harmonic tidal boundary files are consistent with the
- harmonics expected e.g.::
-
-  !-----------------------------------------------------------------------
-  &nam_tide      !   tide parameters (#ifdef key_tide)
-  !-----------------------------------------------------------------------
-  clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(4)    = 'K1'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(5)    = 'N2'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(6)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(7)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(8)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(9)   = 'M4'   !  name of constituent - all tidal components must be set in namelist_cfg
-
-
-
-.. Note:
-
-  I had a problem with initial T,S conditions because the generated netCDF files
-   only had vector fields for the z-coordinate. However, Using ``key_gen_IC``
-   generates the vertical velocity on the fly.
-
-  Completes. Works as a restart or from initial conditions::
-
-    ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
-    ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input
-     data (T) or not (F)
-
-  OR as::
-
-    ln_rstart   =  .true.  !  start from rest (F) or from a restart file (T)
-    ln_tsd_init   = .false.   !  Initialisation of ocean T & S with T &S input
-     data (T) or not (F)
+*(16 OCt 17)*
 
 
 Edit the output to have 1hrly SSH::
@@ -1165,7 +1054,7 @@ Edit the output to have 1hrly SSH::
   </file>
  </file_group>
 
-
+---
 
 Create a short queue runscript::
 
@@ -1204,116 +1093,88 @@ Create a short queue runscript::
 
   exit
 
-Then submit::
+---
+
+No met (missing slp) ``ln_usr=T``. rn_rdt=60s. Output more harmonics (20-30days).
+Run for 30 days::
 
  cd $EXP
  qsub -q short runscript
 
- 4806706.sdb
+**IT WORKS!**
 
----
+* Tidy up this note. Freeze it. Add met?
 
-
-**ERROR**::
-
-  > Error [CAttributeMap::operator[](const StdString& key)] : In file '/work/n01/n01/jelt/xios-2.0_r1080/src/attribute_m
-  ap.cpp', line 56 -> [ key = time_origin] key not found !
-  > Error [CAttributeMap::operator[](const StdString& key)] : In file '/work/n01/n01/jelt/xios-2.0_r1080/src/attribute_m
-  ap.cpp', line 56 -> [ key = time_origin] key not found !
-  > Error [CAttributeMap::operator[](const StdString& key)] : In file '/work/n01/n01/jelt/xios-2.0_r1080/src/attribute_m
-  ap.cpp', line 56 -> [ key = time_origin] key not found !
----
-
-Looks like a XML problem. Copy working XML files from EAfrica
-::
-  export CONFIG=LBay
-  export WORK=/work/n01/n01
-  export WDIR=$WORK/$USER/$CONFIG
-  export INPUTS=$WORK/$USER/$CONFIG/INPUTS
-  export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
-  export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
-  export EXP=$CDIR/$CONFIG/EXP00
+ ---
 
 
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-  export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
-  export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
 
----
+Note about changes to the namelist_cfg
+======================================
 
-Copy working XML files from EAfrica::
+In order to make a simulation with the new v4 namelist_cfg format a number of
+changes appear. Some of these are noted below. They are cut down from a debug log
+and may not be complete.
 
-  cd $EXP
-  mv *.xml XML/.
-  cp /work/n01/n01/jelt/ACCORD/trunk_NEMOGCM_r8395/CONFIG/ACCORD/EXP_EAFRICA/*xml .
-
-This works. Highlights missing EOS choice in namelist_cfg. Add in::
-
-  vi namelist_cfg
+I might have added some tidal harmonic constituent names to the template::
 
   !-----------------------------------------------------------------------
-  &nameos        !   ocean physical parameters
+  &nam_tide      !   tide parameters (#ifdef key_tide)
   !-----------------------------------------------------------------------
-  ln_teos10   = .false.         !  = Use TEOS-10 equation of state
-  ln_eos80    = .true.         !  = Use EOS80 equation of state
-  ln_seos     = .false.         !  = Use simplified equation of state (S-EOS)
-                               !
-  !                     ! S-EOS coefficients (ln_seos=T):
-  !                             !  rd(T,S,Z)*rau0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
-  rn_a0       =  1.6550e-1      !  thermal expension coefficient
-  rn_b0       =  7.6554e-1      !  saline  expension coefficient
-  rn_lambda1  =  5.9520e-2      !  cabbeling coeff in T^2  (=0 for linear eos)
-  rn_lambda2  =  7.4914e-4      !  cabbeling coeff in S^2  (=0 for linear eos)
-  rn_mu1      =  1.4970e-4      !  thermobaric coeff. in T (=0 for linear eos)
-  rn_mu2      =  1.1090e-5      !  thermobaric coeff. in S (=0 for linear eos)
-  rn_nu       =  2.4341e-3      !  cabbeling coeff in T*S  (=0 for linear eos)
-
-Odd conflict in notation between namelist_ref in my new build and in JAmes'
-Copy James' here::
-
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/namelist_ref $EXP/namelist_ref
+  clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(4)    = 'K1'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(5)    = 'N2'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(6)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(7)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(8)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
+  clname(9)   = 'M4'   !  name of constituent - all tidal components must be set in namelist_cfg
 
 
-  vi namelist_ref
+Also noted that the sbc namelist variables have changed. Now use ``ln_blk`` and
+ ``ln_COARE_3p5= .true.`` instead of ``ln_blk_core``. *(Except that I use*
+ *ln_blk=F because I don't have a SLP variable for the COARE algorithm to work...)*
+
+There was an extra variable in namdom. Comment out ldbletanh (which was essential in DOMAINcfg)::
+
+  !-----------------------------------------------------------------------
+  &namdom        !   space and time domain (bathymetry, mesh, timestep)
+  !-----------------------------------------------------------------------
+  ...
+  !    ldbletanh   =    .false.             !  Use/do not use double tanf function for vertical coordinates
+
+
+
+The configuration namelist variable is simplified with the new domain_cfg.nc file::
+
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+     ln_read_cfg = .true.   !  (=T) read the domain configuration file
+        !                   !  (=F) user defined configuration  ==>>>  see usrdef(_...) modules
+        cn_domcfg = "domain_cfg"         ! domain configuration filename
+        !
+     ln_write_cfg= .false.   !  (=T) create the domain configuration file
+        cn_domcfg_out = "domain_cfg_out" ! newly created domain configuration filename
+        !
+     ln_use_jattr = .false.  !  use (T) the file attribute: open_ocean_jstart, if present
+     !                       !  in netcdf input files, as the start j-row for reading
+  /
+
+
+Equation of state needed fixing::
+
   !-----------------------------------------------------------------------
   &nameos        !   ocean physical parameters
   !-----------------------------------------------------------------------
      ln_teos10   = .false.         !  = Use TEOS-10 equation of state
-     ln_eos80    = .false.         !  = Use EOS80 equation of state
+     ln_eos80    = .true.         !  = Use EOS80 equation of state
      ln_seos     = .false.         !  = Use simplified equation of state (S-EOS)
 
-(Other other format had integers to choose the scheme.)
 
-Problem in namdom
-::
-
-  The IOIPSL calendar is "gregorian", i.e. leap year
-
-  ===>>> : E R R O R
-       ===========
-
-  misspelled variable in namelist namdom in configuration namelist iostat =    19
-
-  Namelist namdom : space & time domain
-     linear free surface (=T)              ln_linssh  =  F
-     suppression of closed seas (=0)       nn_closea  =            0
-     create mesh/mask file(s)              nn_msh     =            0
-          = 0   no file created
-          = 1   mesh_mask
-          = 2   mesh and mask
-          = 3   mesh_hgr, msh_zgr and mask
-     treshold to open the isf cavity       rn_isfhmin =
-  1.00000000000000       (m)
-     ocean time step                       rn_rdt     =
-  60.0000000000000
-     asselin time filter parameter         rn_atfp    =
-  0.100000000000000
-     online coarsening of dynamical fields ln_crs     =  F
-
-
-Try the new format::
+``&namdom`` has a new format (I think)::
 
   !-----------------------------------------------------------------------
   &namdom        !   space and time domain (bathymetry, mesh, timestep)
@@ -1330,616 +1191,82 @@ Try the new format::
    ln_crs      = .false.   !  Logical switch for coarsening module
 
 
+Note ``ln_linssh`` seems to have moved to ``&namdom``. (I think it was in ``&namzgr_sco``
+ before)
 
-The vertical coordintes choice thing seems to have disappeared in the new build::
+I added in s-coordinate option and which seemed to have vanished from the default
+namelist_cfg template::
 
   !-----------------------------------------------------------------------
-  &namzgr        !   vertical coordinate
+  &namzgr        !   vertical coordinate                                  (default: NO selection)
   !-----------------------------------------------------------------------
-     ln_zps      = .false.   !  z-coordinate - partial steps   (T/F)
-     ln_sco      = .true.    !  s- or hybrid z-s-coordinate    (T/F)
+     ln_zco      = .false.   !  z-coordinate - full    steps
+     ln_zps      = .false.   !  z-coordinate - partial steps
+     ln_sco      = .true.   !  s- or hybrid z-s-coordinate
+     ln_isfcav   = .false.   !  ice shelf cavity
   /
   !-----------------------------------------------------------------------
-  &namzgr_sco    !   s-coordinate or hybrid z-s-coordinate
+  &namzgr_sco
   !-----------------------------------------------------------------------
-     ln_s_sh94   = .false.   !  Song & Haidvogel 1994 hybrid S-sigma   (T)|
-     ln_s_sf12   = .true.    !  Siddorn & Furner 2012 hybrid S-z-sigma (T)| if both are false the NEMO tanh stretching is applied
-     ln_sigcrit  = .true.    !  use sigma coordinates below critical depth (T) or Z coordinates (F) for Siddorn & Furner stretch
-                             !  stretching coefficients for all functions
-     rn_hc       =   50.0    !  critical depth for transition to stretched coordinates
-
-There are a few references to s-coordinates in the HPG and later diffusion variables.
-
-Hmm. Try the other way around start with James' namelist_cfg_R12 and change bits to
-match my LBay (old working) example
-
-Update boundary mask file name::
-
+     ln_s_sf12=.true.,
+     ln_s_sh94=.false.,
+     ln_sigcrit=.true.,
+     rn_alpha=4.4,
+     rn_bb=0.8,
+     rn_efold=0.0,
+     rn_hc=10000.0,
+     rn_rmax=1.0,
+     rn_sbot_max=10000.0,
+     rn_sbot_min=1.0e-5,
+     rn_theta=6.0,
+     rn_thetb=1.0,
+     rn_zb_a=0.024,
+     rn_zb_b=-0.2,
+     rn_zs=1.0,
   /
-  !-----------------------------------------------------------------------
-  &nambdy        !  unstructured open boundaries
-  !-----------------------------------------------------------------------
-      ln_bdy         = .true.              !  Use unstructured open boundaries
-      nb_bdy         = 1                    !  number of open boundary sets
-      ln_coords_file = .true.               !  =T : read bdy coordinates from file
-      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
-      ln_mask_file   = .true.              !  =T : read mask from file
-      cn_mask_file   = 'bdydta/LBay_bdyT_y2000m01.nc'     !  name of mask file (if ln_mask_file=.TRUE.)
-      cn_dyn2d       = 'flather'               !
-
-Automatically set the processor decomposition (not sure if it is used)::
-
-  &nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
 
 
-Switch the vertical grid thing off. Comment it out as the default is .true. BTW
-the run really doesn't work without this action::
-
-  vi namelist_cfg
-  ...
-  !-----------------------------------------------------------------------
-  &namcfg        !   parameters of the configuration
-  !-----------------------------------------------------------------------
-  !   ln_e3_dep   = .false.    ! This will be obsolete soon. See namelist_ref
-
-Change some lateral diffusion settings::
+Though the fields are set up (except for SLP field), no met forcing is used::
 
   !-----------------------------------------------------------------------
-  &namtra_ldf    !   lateral diffusion scheme for tracers                 (default: NO diffusion)
+  &namsbc        !   Surface Boundary Condition (surface module)
   !-----------------------------------------------------------------------
-     !                       !  Operator type:
-     !                           !  no diffusion: set ln_traldf_lap=..._blp=F
-     ln_traldf_lap   =  .true.  !    laplacian operator
-     ln_traldf_blp   =  .false.  !  bilaplacian operator
+     ln_usr      = .true.    !  user defined formulation                  (T => check usrdef_sbc)
+     ln_flx      = .false.   !  flux formulation                          (T => fill namsbc_flx )
+     ln_blk      = .false.    !  Bulk formulation                          (T => fill namsbc_blk )
+
+Though the fields are ready to go I have not used inital T,S conditions::
+
+  !-----------------------------------------------------------------------
+  &namtsd        !   data : Temperature  & Salinity
+  !-----------------------------------------------------------------------
+  !              !  file name                 ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+  !              !                            !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
+     sn_tem  = 'initcd_votemper',         -1        ,'votemper' ,    .false.    , .true. , 'yearly'   , ''       ,   ''    ,    ''
+     sn_sal  = 'initcd_vosaline',         -1        ,'vosaline' ,    .false.    , .true. , 'yearly'   , ''       ,   ''    ,    ''
      !
-     !                       !  Direction of action:
-     ln_traldf_lev   =  .false.  !  iso-level
-     ln_traldf_hor   =  .false.  !  horizontal (geopotential)
-     ln_traldf_iso   =  .true.  !  iso-neutral (standard operator)
+     cn_dir        = '../../../../INPUTS/'     !  root directory for the location of the runoff files
+     ln_tsd_init   = .false.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+     ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
 
-Gets further. Now the ocean.output ends with::
+No lateral diffusion in momentum::
 
-  dia_25h_init : Output 25 hour mean diagnostics
-  ~~~~~~~~~~~~
-  Namelist nam_dia25h : set 25h outputs
-  Switch for 25h diagnostics (T) or not (F)  ln_dia25h  =  F
+  ln_dynldf_lap =  .false.    !    laplacian operator
+  ln_dynldf_blp =  .false.    !  bilaplacian operator
 
-  AAAAAAAA
-
-
-  sbc_tide : Update of the components and (re)Init. the potential at kt=
-            1
-  ~~~~~~~~
-  Q1    -12.3894431662406       0.908086877990601      -0.702799902800797
-   6.495854101908828E-005
-  O1    -12.3894431662406       0.908086877990601        1.76695796869312
-   6.759774402887834E-005
-  P1    0.000000000000000E+000   1.00000000000000      -0.189080734230733
-   7.252294578606445E-005
-  S1    0.000000000000000E+000   1.00000000000000        3.14377431515479
-   7.272205216643040E-005
-  K1   -0.138134509178184       0.943678543708499        6.47662936454030
-   7.292115854679635E-005
-  2N2   -12.5967638158724        1.02169282172100        3.30407159024559
-   1.352404965560946E-004
-  MU2   -12.5967638158724        1.02169282172100        10.1996260361573
-   1.355937008184885E-004
-  N2    -12.5967638158724        1.02169282172100        5.77382946173951
-   1.378796995658846E-004
-  NU2   -12.5967638158724        1.02169282172100        12.6693839076512
-   1.382329038282786E-004
-  M2    -12.5967638158724        1.02169282172100        8.24358733323342
-   1.405189025756747E-004
-  L2    -12.5967638158724        1.19824874449528        13.8549378583171
-   1.431581055854647E-004
-  T2    0.000000000000000E+000   1.00000000000000        6.32212956235245
-   1.452450074605893E-004
-  S2    0.000000000000000E+000   1.00000000000000        6.28754863030957
-   1.454441043328608E-004
-  K2   -0.264695210962853       0.854177079157964        16.0948513826704
-   1.458423170935927E-004
-  M4    -25.1935276317449        1.04385622195621        16.4871746664668
-   2.810378051513493E-004
-
-Try setting tides to false::
-
-  !-----------------------------------------------------------------------
-&nam_tide      !   tide parameters
-!-----------------------------------------------------------------------
-   ln_tide     = .false.
-   ln_tide_pot = .false.    !  use tidal potential forcing
-
-Caused problems with Flather bc etc.
-Turned ln_tide = .true., keep tidal potential off. Simulation terminates with
-same output (above), having listed the harmonic components. Hmmm
-
-Tide forcing directory::
-
-  !-----------------------------------------------------------------------
-  &nambdy_tide     ! tidal forcing at open boundaries
-  !-----------------------------------------------------------------------
-     filtide      = 'bdydta/LBay_bdytide_rotT_'         !  file name root of tidal forcing files
-
-Turned ln_tide_pot = .true. (I think that the tidal boundary files are way more
-likely to give trouble than tidal potential forcing)
-
-Added some more constituents to the TPXO forcing list. Regenerated with PyNEMO.
-Not sure about which constituents to include under key_tide in the OPA namelist_cfg
-Not sure because some of the constituent names differ. Is it looking for TPXO files
-of this name, or is it setting the internal harmonic frequencies. On reflection I guess
-the harmonic analyisis is entirely separate and will only pick out freq requested
-in the harm namelist.
-
-Submit::
-
-  qsub runscript  # changed to a 4 minute walltime request
-  4834214.sdb
-
-**SAME ERROR / NON ERROR AS ABOVE. What next. How to get past this point....?**
-
-*Fixed lots of stuff. Mostly putting in missing stuff into namelist_cfg*
-
----
-
-*10 Oct 2017*
-
-Fail
-::
-
- sbc_tide : Update of the components and (re)Init. the potential at kt=
-           1
- ~~~~~~~~
- Q1    -12.3894431662406       0.908086877990601      -0.702799902800797
-  6.495854101908828E-005
- O1    -12.3894431662406       0.908086877990601        1.76695796869312
-  6.759774402887834E-005
- P1    0.000000000000000E+000   1.00000000000000      -0.189080734230733
-  7.252294578606445E-005
- K1   -0.138134509178184       0.943678543708499        6.47662936454030
-  7.292115854679635E-005
- N2    -12.5967638158724        1.02169282172100        5.77382946173951
-  1.378796995658846E-004
- M2    -12.5967638158724        1.02169282172100        8.24358733323342
-  1.405189025756747E-004
- S2    0.000000000000000E+000   1.00000000000000        6.28754863030957
-  1.454441043328608E-004
- K2   -0.264695210962853       0.854177079157964        16.0948513826704
-  1.458423170935927E-004
- M4    -25.1935276317449        1.04385622195621        16.4871746664668
-  2.810378051513493E-004
-                     iom_nf90_open ~~~ open existing file: ../../../../INPUTS/cu
- tdown_drowned_u10_DFS5.1.1_y2000.nc in READ mode
-                    ---> ../../../../INPUTS/cutdown_drowned_u10_DFS5.1.1_y2000.n
- c OK
-                     iom_nf90_open ~~~ open existing file: ../../../../INPUTS/cu
- tdown_drowned_u10_DFS5.1.1_y2000.nc in READ mode
-                    ---> ../../../../INPUTS/cutdown_drowned_u10_DFS5.1.1_y2000.n
- c OK
-                     iom_close ~~~ close file: ../../../../INPUTS/cutdown_drowne
- d_u10_DFS5.1.1_y2000.nc ok
-                     iom_nf90_open ~~~ open existing file: ../../../../INPUTS/we
- ights_bicubic_atmos.nc in READ mode
-                    ---> ../../../../INPUTS/weights_bicubic_atmos.nc OK
-           read src01 (rec:      1) in ../../../../INPUTS/weights_bicubic_atmos.nc ok
-
-
-
-Inspection of v3.6 ocean.output suggests there is a problem with
- weight_bicublic_atmos.nc. The output would have continued as::
-
-  ls /work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/ocean.output
-  ...
-
-  iom_nf90_open ~~~ open existing file: ../../../../../INPUTS
-  /cutdown_drowned_u10_DFS5.1.1_y2000.nc in READ mode
-  ---> ../../../../../INPUTS/cutdown_drowned_u10_DFS5.1.1_y200
-  0.nc OK
-  iom_close ~~~ close file: ../../../../../INPUTS/cutdown_dro
-  wned_u10_DFS5.1.1_y2000.nc ok
-  iom_nf90_open ~~~ open existing file: ../../../../../INPUTS
-  /weights_bicubic_atmos.nc in READ mode
-  ---> ../../../../../INPUTS/weights_bicubic_atmos.nc OK
-  read src01 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
-  read src02 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
-  read src03 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
-  read src04 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
-  read wgt01 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
-  read wgt02 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
-  read wgt03 (rec:      1) in ../../../../../INPUTS/weights_bicubic_atmos.nc ok
-
-
-
-Try switch to CORE v3.0 ln_COARE_3p0
-No joy. Try and check what comes next. Is this reading in the right file or should it be looking for tide data?
-
-.. note: There is a bug with the namelist implementation for COARE forcing.
-ln_COARE_3p0= .true.   ! "COARE 3.0" algorithm   (Fairall et al. 2003)
-ln_COARE_3p5= .false.   ! "COARE 3.5" algorithm   (Edson et al. 2013)
---> both as true in ocean.output
-
-namelist_cfg:   ln_COARE_3p0= .false.   ! "COARE 3.0" algorithm   (Fairall et al. 2003)
-namelist_cfg:   ln_COARE_3p5= .true.   ! "COARE 3.5" algorithm   (Edson et al. 2013)
---> both false in ocean.output
-
-Typo in sbcblk.F90 line 251/ Logical flag pointing to wrong variable. See::
-
-  WRITE(numout,*) '      "COARE 3.5" algorithm   (Edson et al. 2013)         ln_COARE_3p5 = ', ln_COARE_3p0
-
-
-Try ln_NCAR instead...
-*(10 Oct 2017)*
-
-Change: nn_dyn2d_data = 2 —> 3. This just means that the 'LBay_bt_bdyT etc in
-&nambdy_dta are read in::
-
-  &nambdy        !  unstructured open boundaries
-  !-----------------------------------------------------------------------
-      ln_bdy         = .true.              !  Use unstructured open boundaries
-      ...
-      nn_dyn2d_dta   =  3                   !  = 0, bdy data are equal to the initial state
-                                            !  = 1, bdy data are read in 'bdydata   .nc' files
-                                            !  = 2, use tidal harmonic forcing data from files
-                                            !  = 3, use external data AND tidal harmonic forcing
-
-
-**Does it work?**
-
-Waiting for standard queue to proces, I note that
-
-There are a number of differences in the tidal boundary conditions between James’ ORCHESTRA run and my LBay simulations.
-
-Check nambdy::
-
-  /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/EXP00/namelist_cfg
-  /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/namelist_cfg
-
-**PENDING**
-
-Need to keep a track of differences between namelist_cfg in EXP and DOMAINcfg
-
-
----
-
-*(11 Oct 2017)*
-
-Update the mask file::
+Don't need a boundaries mask file. But the rimwidth must match that used in the
+ PyNEMO process::
 
   !-----------------------------------------------------------------------
   &nambdy        !  unstructured open boundaries
   !-----------------------------------------------------------------------
-      ln_bdy         = .true.              !  Use unstructured open boundaries
-      nb_bdy         = 1                    !  number of open boundary sets
-      ln_coords_file = .true.               !  =T : read bdy coordinates from file
-      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
-      ln_mask_file   = .false.              !  =T : read mask from file
-      cn_mask_file   = 'domain_cfg.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-
-
-Make some changes in the open boundary files. Originally::
-
-  !-----------------------------------------------------------------------
-  &nambdy_dta    !  open boundaries - external data
-  !-----------------------------------------------------------------------
-  !              !  file name      ! frequency (hours) ! variable  ! time interp.!  clim   ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
-  !              !                 !  (if <0  months)  !   name    !  (logical)  !  (T/F ) ! 'monthly' ! filename ! pairing  ! filename      !
-     bn_ssh      = 'Tbdy',                   -1        , 'sossheig',    .false.   , .true. ,  'yearly'  ,    ''    ,   ''     ,     ''
-     bn_u2d      = 'Ubdy',                   -1        , 'vobtcrtx',    .false.   , .true. ,  'yearly'  ,    ''    ,   ''     ,     ''
-     bn_v2d      = 'Vbdy',                   -1        , 'vobtcrty',    .false.   , .true. ,  'yearly'  ,    ''    ,   ''     ,     ''
-     bn_u3d      = 'amm12_bdyU_u3d',         24        , 'vozocrtx',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
-     bn_v3d      = 'amm12_bdyV_u3d',         24        , 'vomecrty',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
-     bn_tem      = 'amm12_bdyT_tra',         24        , 'votemper',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
-     bn_sal      = 'amm12_bdyT_tra',         24        , 'vosaline',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
-
-
-Change to::
-
-  !-----------------------------------------------------------------------
-  &nambdy_dta    !  open boundaries - external data
-  !-----------------------------------------------------------------------
-  !              !  file name      ! frequency (hours) ! variable  ! time interp.!  clim   ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
-  !              !                 !  (if <0  months)  !   name    !  (logical)  !  (T/F ) ! 'monthly' ! filename ! pairing  ! filename      !
-  bn_ssh      = 'LBay_bt_bdyT', 24      , 'sossheig',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-  bn_u2d      = 'LBay_bdyU',  24        , 'vobtcrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-  bn_v2d      = 'LBay_bdyV',  24        , 'vobtcrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-  bn_u3d      = 'LBay_bdyU'   24        , 'vozocrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-  bn_v3d      = 'LBay_bdyV'   24        , 'vomecrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-  bn_tem      = 'LBay_bdyT'   24        , 'votemper',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-  bn_sal      = 'LBay_bdyT'   24        , 'vosaline',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-
-Though I need to check that these contain the correct variables. In particular
- the 2D and 3D currents are in the same file?
-
-Though I don’t use the 3D data - other than setting it to the initial state.
-
-
-Observation.
-Boundary 2D tides looks suspiciously like something I want to switch on. Currently::
-
-!-----------------------------------------------------------------------
-&nambdy_tide   !  tidal forcing at open boundaries
-!-----------------------------------------------------------------------
-   filtide      = 'bdydta/LBay_bdytide_rotT_'         !  file name root of tidal forcing files
-   ln_bdytide_2ddta = .false.                   !
-   ln_bdytide_conj  = .false.                   !
-
-
-Things now look like they fail with the bulk forcing. Only read in one variable
-from weights_bicubic_atmos.nc whereaas in the old code I read in ten or so...
-
-::
-
-  tail ocean.output
-                       iom_nf90_open ~~~ open existing file: ../../../../INPUTS/we
-  ights_bicubic_atmos.nc in READ mode
-                   ---> ../../../../INPUTS/weights_bicubic_atmos.nc OK
-          read src01 (rec:      1) in ../../../../INPUTS/weights_bicubic_atmos.nc ok
-
----
-
-.. note:
-
-  Not sure I have the enthusiasm to debug this COARE implentation. Try copying old
-   SBC code from Maria and hope is compiles::
-
-    cd /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/MY_SRC
-    cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/NEMO/OPA_SRC/SBC/sbcmod.F90 .
-    cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/NEMO/OPA_SRC/SBC/sbcblk_core.F90 .
-
-  Will need to make changes in namelist
-  &namsbc_blk   --> &namsbc_core
-
-  !ln_NCAR     = .false.   ! "NCAR"      algorithm   (Large and Yeager 2008)
-  !ln_COARE_3p0= .true.   ! "COARE 3.0" algorithm   (Fairall et al. 2003)
-  !ln_COARE_3p5= .false.   ! "COARE 3.5" algorithm   (Edson et al. 2013)
-  !ln_ECMWF    = .false.   ! "ECMWF"     algorithm   (IFS cycle 31)
-
-  &namsbc
-  ln_blk -->    ln_blk_core = .true.
-
-  Compilation expects a bdy_par file. Bah!...
-
-
-Instead copy the usrdef_sbc.F90 file to impose zero surface forcing::
-  rm $EXP/../MY_SRC/*
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/MY_SRC/usrdef_sbc.F90 $EXP/../MY_SRC/.
-
-Rebuild works. Edit namelist::
-
-  vi namelist_cfg
-  &namsbc
-    ln_usr      = .true.
-    ln_blk      = .false.    !  Bulk formulation                          (T => fill namsbc_blk )
-
-
-
-  &nambdy
-    ln_bdy         = .false.
-    nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state
-                                            !  = 1, bdy data are read in 'bdydata   .nc' files
-                                            !  = 2, use tidal harmonic forcing data from files
-                                            !  = 3, use external data AND tidal harmonic forcing
-Resubmit
-----
-
-Trying turning on tidal forcing at boundaries in namelist (Though James had this set false) ::
-
-  &nambdy_tide   !  tidal forcing at open boundaries
-  !-----------------------------------------------------------------------
-     filtide      = 'bdydta/LBay_bdytide_rotT_'         !  file name root of tidal forcing files
-     ln_bdytide_2ddta = .true.                   !
-
-This seems to do nothing. Keep it **FALSE**
-
-Try::
-   !-----------------------------------------------------------------------
-  &nambdy        !  unstructured open boundaries
-  !-----------------------------------------------------------------------
-      ln_bdy         = .true.              !  Use unstructured open boundaries
-      nb_bdy         = 1                    !  number of open boundary sets
-      ln_coords_file = .true.               !  =T : read bdy coordinates from file
-      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
-      ln_mask_file   = .false.              !  =T : read mask from file
-      cn_mask_file   = 'domain_cfg.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-      cn_dyn2d       = 'flather'               !
-      nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state
-
-Error. Seg fault.::
-
-  tail ocean.output
-
-  M2    -12.5967638158724        1.02169282172100        8.24358733323342
-   1.405189025756747E-004
-  S2    0.000000000000000E+000   1.00000000000000        6.28754863030957
-   1.454441043328608E-004
-  K2   -0.264695210962853       0.854177079157964        16.0948513826704
-   1.458423170935927E-004
-  M4    -25.1935276317449        1.04385622195621        16.4871746664668
-   2.810378051513493E-004
-   usr_sbc : WAD_TEST_CASES case: NO surface forcing
-   ~~~~~~~~~~~   utau = vtau = taum = wndm = qns = qsr = emp = sfx = 0
-
-Try::
-
- !-----------------------------------------------------------------------
- &nambdy        !  unstructured open boundaries
- !-----------------------------------------------------------------------
-     ln_bdy         = .true.              !  Use unstructured open boundaries
-     nb_bdy         = 1                    !  number of open boundary sets
-     ln_coords_file = .true.               !  =T : read bdy coordinates from file
-     cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
-     ln_mask_file   = .false.              !  =T : read mask from file
-     cn_mask_file   = 'domain_cfg.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-     cn_dyn2d       = 'flather'               !
-     nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
-                                           !  = 1, bdy data are read in 'bdydata   .nc' files
-                                           !  = 2, use tidal harmonic forcing data from files
-
-
-Same Error. Seg fault. Though ran for 40s::
-
-  tail ocean.output
-
-  M2    -12.5967638158724        1.02169282172100        8.24358733323342
- 1.405189025756747E-004
-  S2    0.000000000000000E+000   1.00000000000000        6.28754863030957
-   1.454441043328608E-004
-  K2   -0.264695210962853       0.854177079157964        16.0948513826704
-   1.458423170935927E-004
-  M4    -25.1935276317449        1.04385622195621        16.4871746664668
-   2.810378051513493E-004
-   usr_sbc : WAD_TEST_CASES case: NO surface forcing
-   ~~~~~~~~~~~   utau = vtau = taum = wndm = qns = qsr = emp = sfx = 0
-
-
-Try reducing the timestep for 60s to 10s::
-
-  &namdom
-    rn_rdt      =  10.     !  time step for the dynamics (and tracer if nn_acc=0)
-
-Same problem. The timestep does not seem to have any effect.
-Looking at an abort file that was generated when ``ln_bdy=.false.`` and the
-velocities blew up showed that it was apparent that a coastal point was blowing up in velocity.
-ocean.output abort message (ln_bdy = false)::
-
-  ...
-  1.458423170935927E-004
-  M4    -25.1935276193127        1.04385624018260        16.4795866457279
-  2.810378051513493E-004
-  usr_sbc : WAD_TEST_CASES case: NO surface forcing
-  ~~~~~~~~~~~   utau = vtau = taum = wndm = qns = qsr = emp = sfx = 0
-           nit000-1 surface forcing fields set to nit000
-
-  zdf_evd : Enhanced Vertical Diffusion (evd)
-  ~~~~~~~
-
-
-  zdf_mxl : mixed layer depth
-  ~~~~~~~
-
-  ssh_nxt : after sea surface height
-  ~~~~~~~
-
-  div_hor : horizontal velocity divergence
-  ...
-
-
-
-
-This test highlights the next output step that is missing when ln_bdy=T:
-``           nit000-1 surface forcing fields set to nit000``. This must be in
-an sbc module (``sbcmod.F90``). It is not clear why ln_bdy would break that...
-
-
-* James has a bdy_mask.nc file. This looks like top_level in domain_cfg.nc
-
-I can make a bdy_mask.nc file (I am not confident which modules to load to get
-working on ARCHER so I'll do it on livljobs4)::
-
-  livljobs$
-  cd Desktop
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/domain_cfg.nc  .
-
-  module load nco/gcc/4.4.2.ncwa
-  ncks -v top_level,nav_lat,nav_lon  domain_cfg.nc tmp.nc
-  ncrename -v top_level,bdy_msk tmp.nc
-  ncwa -a t tmp.nc bdy_mask.nc
-
-  livmap$
-  scp jelt@livljobs4:Desktop/bdy_mask.nc ~/Desktop/.
-  ferret
-  use bdy_mask.nc
-  shade bdy_msk
-
-However I notice that the (wet) western boundary is masked out by this mask. Is
-that true in James' mask? Yes it appears so.
-
-Copy new file into EXP directory (having copied it into $INPUTS)::
-
- cp $INPUTS/bdy_mask.nc $EXP/.
-
-Then edit the namelist_cfg.nc to include this new file::
-
- !-----------------------------------------------------------------------
- &nambdy        !  unstructured open boundaries
- !-----------------------------------------------------------------------
-     ln_bdy         = .true.              !  Use unstructured open boundaries
-     nb_bdy         = 1                    !  number of open boundary sets
-     ln_coords_file = .true.               !  =T : read bdy coordinates from file
-     cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
-     ln_mask_file   = .true.              !  =T : read mask from file
-     cn_mask_file   = 'bdy_mask.nc'
-
-This still dies in the same place::
-
-  tail ocean.output
-  ...
-  M4    -25.1935276193127        1.04385624018260        16.4795866457279
-   2.810378051513493E-004
-   usr_sbc : WAD_TEST_CASES case: NO surface forcing
-   ~~~~~~~~~~~   utau = vtau = taum = wndm = qns = qsr = emp = sfx = 0
-
-
-Inspection of ``sbcmod.F90`` shows that thing might be different if it is a restart.
-Copy a restart from old code base. Update namelist_cfg for a restart and resubmit
-
-::
-   &namrun
-   nn_date0    =  20000106   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
-   ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
-   cn_ocerst_out   = "restart_oce_out"   !  suffix of ocean restart name (output)
-   nrstdt = 0
-
-It turns out that the restart file is missing e3t and has a wrong variable name for time.
-Perhaps easier to create a new restart from a single timestep...?
-
-no even with one timestep there is a seg fault problem.
-
----
-
-change initialisation to false for T and S
-ln_tsd_init   = .false.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
-
-
-Test. Turn off tides::
-
-  !-----------------------------------------------------------------------
-  &nam_tide      !   tide parameters
-  !-----------------------------------------------------------------------
-     ln_tide     = .false.
-     ln_tide_pot = .false.    !  use tidal potential forcing
-
-  &nambdy
-       nn_dyn2d_dta   =  0  ! was 2
-
-Didn't change the simulation crash point.
-
-Change rimwidth. It is different in the boundary files to namelist_cfg::
-
-  &nambdy
-  nn_rimwidth   = 9                    !  width of the relaxation zone
-
-(though the bdy fields, I think, are turned off).
-
-Oh the rimwidth variable matching the boundary files seem to fix the problem. Next turn things back on.
-::
-
-  &nam_tide      !   tide parameters
-  !-----------------------------------------------------------------------
-     ln_tide     = .true.
-     ln_tide_pot = .true.
-
-  &nambdy        !  unstructured open boundaries
-     nn_dyn2d_dta   =  1                   !  = 0, bdy data are equal to the initial state
-
-This runs but blows up in momentum. Try nn_dyn2d_dta = 2 (like James)
-Still blows up.
-
-Try tiny time step  rn_rdt=5. No.
-
-Try nn_dyn_dta = 3. Stabilize with boundary velocities? No
-
-Update bottom friction to match old LBay run (rather than James' E-Africa run).
-THis means changing to nonlinear friction, with a coeff 2.5E-3, log layer and
+    ...
+    ln_mask_file   = .false.              !  =T : read mask from file
+    cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+    ...
+    nn_rimwidth   = 9                    !  width of the relaxation zone
+
+Quadratic bottom friction - This means changing to nonlinear friction, with a coeff 2.5E-3, log layer and
 bottom roughness as follows
 ::
   !-----------------------------------------------------------------------
@@ -1954,133 +1281,7 @@ bottom roughness as follows
   /
 
 I also changed the rn_bfeb2 = 2.5e-3 to zero. This would depend on the tke scheme.
-Though I don't have an idea of what it should be.
-
-Turn off time splitting: ln_bt_nn_auto=.false.,
-I think this has moved to a new namelist group &namdyn_spg
-Instead turn it off there: ln_bt_auto    = .false.
-
-This makes the run go further. 9 time steps...
-Try and manually fix barotropic time step scale. nn_baro=1 (not 30)
-This blew up in 5 steps. Revert to nn_baro=30
-
-Switch bilaplacian to laplacian to see if it suddenly works
-
-It works better - 19 steps.
-
-Output every 3 steps and inspect. Didn't output.
-
-Try and use ramp_tide to ramp up tides over 1 day.
-(checked that rdttideramp corresponds to the number of ramping days.)
-
-**It worked!!** 1 day in 40s. Extend to 5 days to run in 5 mins
-
-Switch from Laplacian to Bilapacian diffusion for momentum.
-
-No motion
-try n_dyn2d_dta   =  2
-
-Take that boundary mask off: ln_mask_file   = .false.
-Didn't help.
-
-
-Perhaps it is an issue with the XML files. Define a shortcut::
-
-   EEXP=/work/n01/n01/jelt/ACCORD/trunk_NEMOGCM_r8395/CONFIG/ACCORD/EXP_EAFRICA
-
-Hmm couldn't spot any differences wih the E-Africa XML files - they are identical
-
-Try the tideramp = 0.5
-
-No joy.
-Try a restart.
-Bad filename. Check and try again.
-
-Take off the tideramp and it blows up (this is probably not to do with the restart)
-
-There is a variable nb_harmo=0 in the ocean.output. It is not being defined properly.
-
-Tried and changed the frequency of the boundary data: e..g bn_ssh      = 'LBay_bt_bdyT', -1   (was 24)
-
-This blows up again. On the first time step.
-
-It looks like the ramp is too severe. If it blows up in 19 steps = 19mins, with
-a 1 day ramp. Maybe a 10 ramp would be better.
-
-Do a cold start. With a 10 sim. (ramp can not exceed simulation time)
-Signal dies out within a day. (Min SSS--> 100)
-
-Switch off both laplacian and bilaplacian diffusion. Output info every hr::
-
-  ln_dynldf_lap =  .false.    !    laplacian operator
-  ln_dynldf_blp =  .false.    !  bilaplacian operator
-  nn_write    =   24
-
-Dies fast. Misinterpreted how the ramp worked. Never had a non-zero simulation with
-the ramp. Make it smaller not larger: ``   rdttideramp =    1.     ``
-
-SSH blows up::
-
-  ==>> time-step=            1  ssh max:  1.311225785606566E-004
-  ==>> time-step=           61  abs(U) max:   9.365770301892096E-002
-  ==>> time-step=           61  SSS min:   36.8418750679304
-  ==>> time-step=           61  ssh max:  6.350050976376775E-002
-  ==>> time-step=          121  abs(U) max:   0.120795267289029
-  ==>> time-step=          121  SSS min:   36.8414750346018
-  ==>> time-step=          121  ssh max:  0.113158707022428
-
-  ===>>> : E R R O R
-         ===========
-
-  stp_ctl : the ssh is larger than 10m
-  =======
-  kt=   154 max ssh:    Infinity, i j:    32   90
-
-
-Reduce harmonic to just M2. Blows up in SSH in the same way.
-
-Reduce the timestep rn_rdt=6.::
-
-  ==>> time-step=         1321  ssh max:  0.111035814265442
-  ==>> time-step=         1381  abs(U) max:   0.117910378601910
-  ==>> time-step=         1381  SSS min:   36.8413812872391
-  ==>> time-step=         1381  ssh max:  0.112485247560570
-  ==>> time-step=         1441  abs(U) max:   0.116803563870784
-  ==>> time-step=         1441  SSS min:   36.8413491215503
-  ==>> time-step=         1441  ssh max:  0.113826565377745
-
-  ===>>> : E R R O R
-         ===========
-
-  stpctl: the zonal velocity is larger than 20 m/s
-  ======
-  kt=  1489 max abs(U):   22.29    , i j k:    32  104   21
-
-Ran for 2.5 hours instead of about 2hrs.
-
-Need to look at some fields. Output initial conditions and evolving fields
-Check CFL. Grid is about 1.3km x 0.7km
-Therefore a 60s timestep 700m/60s > 10m/s >> u. Is OK
-cp = sqrt(g.h) = sqrt(10*50) = 22 m/s.
-
-Inspection of the domain_cfg.nc file shows that the e1x and e2x variables are wrong.
-See: cd /Users/jeff/GitLab/NEMO-RELOC/docs/source
-$ipython
->> run quickplotNEMO
-
-
-**PENDING**
-
-.. Ideas:
- * Try and restore things I changed --
- * Check tides are in
- * initial conditions in T and S
- * remove the bdy mask
- * surface forcing
- * rn_rdt=60
- * rn_hc=10000.0, --> 50
-
-
+I am not sure what it should be...
 
 
 
@@ -2121,7 +1322,11 @@ Inspect locally e.g.::
   use Lbay_1d_20000101_20000110_Tides.nc
   plot /i=25/j=70 SOSSHEIG
 
-**Is there a semi-diurnal SSH signal?**
+Use some python to inspection of the domain_cfg.nc file or ssh, Tide output. See::
+
+  cd /Users/jeff/GitLab/NEMO-RELOC/docs/source
+  $ipython
+  >> run quickplotNEMO
 
 ---
 

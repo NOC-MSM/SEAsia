@@ -87,30 +87,32 @@
    ln_zps      = .false.   !  z-coordinate - partial steps
    ln_sco      = .true.   !  s- or hybrid z-s-coordinate
    ln_isfcav   = .false.   !  ice shelf cavity
-   ln_linssh   = .false.   !  linear free surface
+!   ln_linssh   = .false.   !  linear free surface
 /
+!-----------------------------------------------------------------------
 &namzgr_sco
-ln_s_sf12=.true.,
-ln_s_sh94=.false.,
-ln_sigcrit=.true.,
-rn_alpha=4.4,
-rn_bb=0.8,
-rn_efold=0.0,
-rn_hc=10000.0,
-rn_rmax=1.0,
-rn_sbot_max=10000.0,
-rn_sbot_min=1.0e-5,
-rn_theta=6.0,
-rn_thetb=1.0,
-rn_zb_a=0.024,
-rn_zb_b=-0.2,
-rn_zs=1.0,
+!-----------------------------------------------------------------------
+   ln_s_sf12=.true.,
+   ln_s_sh94=.false.,
+   ln_sigcrit=.true.,
+   rn_alpha=4.4,
+   rn_bb=0.8,
+   rn_efold=0.0,
+   rn_hc=10000.0,
+   rn_rmax=1.0,
+   rn_sbot_max=10000.0,
+   rn_sbot_min=1.0e-5,
+   rn_theta=6.0,
+   rn_thetb=1.0,
+   rn_zb_a=0.024,
+   rn_zb_b=-0.2,
+   rn_zs=1.0,
 /
 !-----------------------------------------------------------------------
 &namdom        !   space and time domain (bathymetry, mesh, timestep)
 !-----------------------------------------------------------------------
 
-!   ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
+   ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
    nn_closea   =    0      !  remove (=0) or keep (=1) closed seas and lakes (ORCA)
    !
    nn_msh      =    0      !  create (>0) a mesh file or not (=0)
@@ -122,9 +124,6 @@ rn_zs=1.0,
    ln_crs      = .false.   !  Logical switch for coarsening module
 !   ldbletanh   =    .false.             !  Use/do not use double tanf function for vertical coordinates
 /
-!&namsplit
-!ln_bt_nn_auto=.true.,
-!nn_baro=30,
 !-----------------------------------------------------------------------
 &namtsd        !   data : Temperature  & Salinity
 !-----------------------------------------------------------------------
