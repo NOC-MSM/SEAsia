@@ -51,7 +51,7 @@ Starting on ARCHER::
   export START_FILES=$WDIR/START_FILES
   export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
   export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
-  export OLD_TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/
+  export OLD_TDIR=$WORK/$USER/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/
   export EXP=$CDIR/$CONFIG/EXP00
 
   module swap PrgEnv-cray PrgEnv-intel
@@ -102,8 +102,20 @@ First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
   cd $TDIR
 
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
-  ./maketools -n WEIGHTS -m XC_ARCHER_INTEL_XIOS1
   ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL_XIOS1
+
+For the generation of bathymetry: I actually use some old WEIGHTS tools that I
+patched and have previously compiled.
+I have not reproduced the compilation here (need to keep if the source needs patching
+again). If it didn't need patching::
+
+  #./maketools -n WEIGHTS -m XC_ARCHER_INTEL_XIOS1
+
+Otherwise we will use the weights tool in::
+
+  export OLD_TDIR=$WORK/$USER/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/
+
+
 
 
 
