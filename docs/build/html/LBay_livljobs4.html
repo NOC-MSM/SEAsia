@@ -51,6 +51,9 @@
 2) generate boundary forcings (e.g. tides, T,S,U,V) from a parent grid / model
 3) run the new configuration</p>
 <p>Step 2 was done on livljobs4. The other steps were on ARCHER.</p>
+<ul class="simple">
+<li>5 Oct 2017 - started migrating to the ORCHESTRA codebase. (Trunk &#64;r8395)</li>
+</ul>
 <div class="section" id="issues-that-arose">
 <h2>Issues that arose<a class="headerlink" href="#issues-that-arose" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
@@ -76,86 +79,42 @@ change the iodef.xml file at the same time as something else.</p>
 Starting on ARCHER:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>ssh login.archer.ac.uk
 
-export WDIR=/work/n01/n01/jelt/LBay/
-export INPUTS=$WDIR/INPUTS
-export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+export CONFIG=LBay
+export WORK=/work/n01/n01
+export WDIR=$WORK/$USER/$CONFIG
+export INPUTS=$WORK/$USER/$CONFIG/INPUTS
+export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+export EXP=$CDIR/$CONFIG/EXP00
 
 
 module swap PrgEnv-cray PrgEnv-intel
-module load cray-netcdf-hdf5parallel
-module load cray-hdf5-parallel
-</pre></div>
-</div>
-<p>Follow recipe. Step 1 inlcuded getting INPUT files. For LHReef these were all
-prepared. Now they are not so make them as and when they are required:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
-mkdir INPUTS
-</pre></div>
-</div>
-<p>Old code:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">INPUTS</span>
-<span class="n">wget</span> <span class="n">ftp</span><span class="o">.</span><span class="n">nerc</span><span class="o">-</span><span class="n">liv</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">uk</span><span class="p">:</span><span class="o">/</span><span class="n">pub</span><span class="o">/</span><span class="n">general</span><span class="o">/</span><span class="n">jdha</span><span class="o">/</span><span class="n">inputs</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
-<span class="n">tar</span> <span class="n">xvfz</span> <span class="n">inputs</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
-<span class="n">rm</span> <span class="n">inputs</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
-</pre></div>
-</div>
-<p><em>Now</em> code:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
-svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2014/dev_r4621_NOC4_BDY_VERT_INTERP@5709
-svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
-</pre></div>
-</div>
-<p>Need to get arch files from INPUTS:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/xios-1.0
-cp $INPUTS/arch-XC30_ARCHER.* ./arch
-</pre></div>
-</div>
-<p>Implement make command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">make_xios</span> <span class="o">--</span><span class="n">full</span> <span class="o">--</span><span class="n">prod</span> <span class="o">--</span><span class="n">arch</span> <span class="n">XC30_ARCHER</span> <span class="o">--</span><span class="n">netcdf_lib</span> <span class="n">netcdf4_par</span>
-</pre></div>
-</div>
-<p>Step 2. Obtain and apply patches:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-cd $CDIR/../NEMO/OPA_SRC/SBC
-patch -b &lt; $INPUTS/fldread.patch
-cd ../DOM
-patch -b &lt; $INPUTS/dommsk.patch
-cd ../BDY
-patch -b &lt; $INPUTS/bdyini.patch
-cd $CDIR
-rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
-cp $INPUTS/arch-* ../ARCH
-</pre></div>
-</div>
-<p>Copy some input files to new configuration path:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/cpp_LH_REEF.fcm ./LBay/cpp_LBay.fcm
-cp $INPUTS/dtatsd.F90 LBay/MY_SRC/
-</pre></div>
-</div>
-<p>On first make only choose OPA_SRC:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">makenemo</span> <span class="o">-</span><span class="n">n</span> <span class="n">LBay</span> <span class="o">-</span><span class="n">m</span> <span class="n">XC_ARCHER_INTEL</span> <span class="o">-</span><span class="n">j</span> <span class="mi">10</span>
-</pre></div>
-</div>
-<p>It breaks. Remove key_lim2 from cpp*fcm file and remake:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">LBay</span><span class="o">/</span><span class="n">cpp_LBay</span><span class="o">.</span><span class="n">fcm</span>
-<span class="o">...</span>
+module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-<span class="o">./</span><span class="n">makenemo</span> <span class="o">-</span><span class="n">n</span> <span class="n">LBay</span> <span class="o">-</span><span class="n">m</span> <span class="n">XC_ARCHER_INTEL</span> <span class="o">-</span><span class="n">j</span> <span class="mi">10</span>
+export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
+export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
 </pre></div>
 </div>
+<p>&#8212;</p>
+<p>Checkout and build XIOS2 &#64; r1080 <a href="#id5"><span class="problematic" id="id6">`build_XIOS2.html`_</span></a>:</p>
+<p>Or just link XIOS executable to the EXP directory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
+</pre></div>
+</div>
+<p>&#8212;</p>
+<p>Checkout and build NEMO (ORCHESTRA) trunk &#64; r8395 <a href="#id7"><span class="problematic" id="id8">`build_opa_orchestra.html`_</span></a>.
+Or just build:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR
+./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+</pre></div>
+</div>
+<p>&#8212;</p>
+</div>
+<div class="section" id="build-tools">
+<h2>Build TOOLS<a class="headerlink" href="#build-tools" title="Permalink to this headline">¶</a></h2>
 <p>To generate bathymetry, initial conditions and grid information we first need
-to compile some of the NEMO TOOLS (after a small bugfix - and to allow direct
-passing of arguments). For some reason GRIDGEN doesn’t like INTEL:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/WEIGHTS/src
-patch -b &lt; $INPUTS/scripinterp_mod.patch
-patch -b &lt; $INPUTS/scripinterp.patch
-patch -b &lt; $INPUTS/scrip.patch
-patch -b &lt; $INPUTS/scripshape.patch
-patch -b &lt; $INPUTS/scripgrid.patch
-
-cd ../../
+to compile some of the NEMO TOOLS. NB for some reason GRIDGEN doesn’t like INTEL:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR
 ./maketools -n WEIGHTS -m XC_ARCHER_INTEL
 ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL
 
@@ -164,10 +123,74 @@ module swap PrgEnv-intel PrgEnv-cray
 module load cray-netcdf cray-hdf5
 ./maketools -n GRIDGEN -m XC_ARCHER
 
+module unload cray-netcdf cray-hdf5
 module swap PrgEnv-cray PrgEnv-intel
+module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 </pre></div>
 </div>
-<p>Need to take a more structured approach to setting up this new configuration</p>
+<p>Finally build DOMAINcfg (which is relatively new). Use my XIOS1 file
+(see userid and path in variable <code class="docutils literal"><span class="pre">%XIOS_HOME</span></code>). Copy from <em>store</em>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $WORK/$USER/ARCH/arch-XC_ARCHER_INTEL_XIOS1.fcm $CDIR/../ARCH/.
+
+./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
+</pre></div>
+</div>
+<p>The general idea is that you have to copy the <code class="docutils literal"><span class="pre">namelist_cfg</span></code> file into the <code class="docutils literal"><span class="pre">DOMAINcfg</span></code>
+directory along with all the inputs files that would have previously been needed
+get v3.6 running. The reason being that all the non-time stepping stuff, like
+grid generating, has been abstracted from the core OPA code and is now done as
+a pre-processing step, and output into an important file <code class="docutils literal"><span class="pre">domain_cfg.nc</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR
+cp $INPUTS/coordinates.nc DOMAINcfg/.
+cp $INPUTS/bathy_meter.nc DOMAINcfg/.
+</pre></div>
+</div>
+<p>I am not sure how this is going to pan out with the existing namelist_cfg files;
+it may not be up to date enough. So I will save an original for the time being:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">trunk_NEMOGCM_r8395</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">EXP00</span><span class="o">/</span><span class="n">namelist_cfg</span> <span class="n">namelist_cdf_LBay</span>
+<span class="n">cp</span> <span class="n">namelist_cfg_LBay</span> <span class="n">namelist_cfg</span>
+</pre></div>
+</div>
+<p>Build a script to run the executable:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $TDIR/DOMAINcdf/rs
+
+#!/bin/bash
+#PBS -N domain_cfg
+#PBS -l walltime=00:20:00
+#PBS -l select=1
+#PBS -j oe
+#PBS -A n01-NOCL
+
+#! -----------------------------------------------------------------------------
+
+# Change to the direcotry that the job was submitted from
+cd $PBS_O_WORKDIR
+
+# Set the number of threads to 1
+#   This prevents any system libraries from automatically
+#   using threading.
+export OMP_NUM_THREADS=1
+# Change to the directory that the job was submitted from
+ulimit -s unlimited
+
+#===============================================================
+# LAUNCH JOB
+#===============================================================
+echo `date` : Launch Job
+aprun -n 1 -N 1 ./make_domain_cfg.exe &gt;&amp;  stdouterr_cfg
+#aprun -n 216 -N 24 ./make_domain_cfg.exe &gt;&amp;  stdouterr_cfg
+
+exit
+</pre></div>
+</div>
+<p>Try running it:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR/DOMAINcfg
+qsub -q short rs
+</pre></div>
+</div>
+<p>This probably wont work as there are some major differences with the namelist_cfg files.
+Actually diff-ing the files shows nothing very major.</p>
+<p><strong>PENDING (5 Oct) Does the DOMAINcfg THING RUN?</strong></p>
 <div class="section" id="generate-new-coordinates-file">
 <h3>1. Generate new coordinates file<a class="headerlink" href="#generate-new-coordinates-file" title="Permalink to this headline">¶</a></h3>
 <p>Generate a <code class="docutils literal"><span class="pre">coordinates.nc</span></code> file from a parent NEMO grid at some resolution.
@@ -1001,21 +1024,6 @@ Switch from 1 to 3. I.e.:</p>
 </div>
 </dd>
 </dl>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p>I had a problem with initial T,S conditions because the generated netCDF files only had vector fields for the z-coordinate
-However, Using <code class="docutils literal"><span class="pre">key_gen_IC</span></code> generates the vertical velocity on the fly.</p>
-<p>Completes. Works as a restart or from initial conditions:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
-ln_tsd_init   = .true.   !  Initialisation of ocean T &amp; S with T &amp;S input data (T) or not (F)
-</pre></div>
-</div>
-<p>OR as:</p>
-<div class="last highlight-default"><div class="highlight"><pre><span></span>ln_rstart   =  .true.  !  start from rest (F) or from a restart file (T)
-ln_tsd_init   = .false.   !  Initialisation of ocean T &amp; S with T &amp;S input data (T) or not (F)
-</pre></div>
-</div>
-</div>
 <p>Should also check the xml files. There was something <strong>fishy</strong> with the
 <code class="docutils literal"><span class="pre">field_def.xml</span></code> and <code class="docutils literal"><span class="pre">iodef.xml</span></code> files where variables were not defined in
 the NEMO checkout. Copy these files from lighthouse reef:</p>
@@ -1065,9 +1073,113 @@ $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_W 5
 <span class="n">plot</span> <span class="o">/</span><span class="n">i</span><span class="o">=</span><span class="mi">25</span><span class="o">/</span><span class="n">j</span><span class="o">=</span><span class="mi">70</span> <span class="n">SOSSHEIG</span>
 </pre></div>
 </div>
+<p>&#8212;</p>
 <p><strong>Whoo hoo! It works! With a semi-diurnal SSH signal</strong></p>
 <p>At this point I&#8217;ll move onto the SE Asia configuration.</p>
 <hr class="docutils" />
+<p><em>(4 Oct 2017)</em></p>
+</div>
+<div class="section" id="compile-and-test-in-orchestra-code-base">
+<h3>Compile and test in ORCHESTRA code base<a class="headerlink" href="#compile-and-test-in-orchestra-code-base" title="Permalink to this headline">¶</a></h3>
+<p>This may not work straight off as the new code needs different namelist, and other configuration management files
+.. note:</p>
+<blockquote>
+<div><p>I made a <em>store</em> of architecure files in work, for compiling NEMO</p>
+<p>mkdir /work/n01/n01/jelt/ARCH
+cp /work/n01/n01/jelt/ACCORD/trunk_NEMOGCM_r8395/ARCH/arch-XC_ARCHER_INTEL.fcm /work/n01/n01/jelt/ARCH/.
+echo &#8220;arch-XC_ARCHER_INTEL.fcm is for compiling OPA on ARCHER with my XIOS2&#8221; &gt; /work/n01/n01/jelt/ARCH/README_arch-XC_ARCHER_INTEL.fcm
+vi /work/n01/n01/jelt/ARCH/arch-XC_ARCHER_INTEL.fcm
+...
+%XIOS_HOME           /work/n01/n01/jelt/XIOS</p>
+</div></blockquote>
+<p>Load paths and modules:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export CONFIG=LBay
+export WDIR=/work/n01/n01/jelt/$CONFIG
+export INPUTS=$WDIR/INPUTS
+export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+export EXP=$CDIR/$CONFIG/EXP00
+
+module swap PrgEnv-cray PrgEnv-intel
+module load cray-netcdf-hdf5parallel
+module load cray-hdf5-parallel
+</pre></div>
+</div>
+<p>Build NEMO ORCHESTRA trunk &#64; r8395:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
+svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
+</pre></div>
+</div>
+<p>Use my XIOS file (see <code class="docutils literal"><span class="pre">%XIOS_HOME</span></code>). Copy from <em>store</em>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp /work/n01/n01/$USER/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
+</pre></div>
+</div>
+<p>Make a new config directory structure:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR
+./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10 clean
+</pre></div>
+</div>
+<p>Edit the CPP flags:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $CONFIG/cpp_$CONFIG.fcm
+
+bld::tool::fppkeys key_zdfgls        \
+                 key_diaharm       \
+                 key_mpp_mpi       \
+                 key_iomput        \
+                 key_nosignedzero
+</pre></div>
+</div>
+<p>Build opa:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+</pre></div>
+</div>
+<p>It compiles.</p>
+<p>Link XIOS2 executable to the EXP directory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ln -s  /work/n01/n01/$USER/XIOS/bin/xios_server.exe $EXP/xios_server.exe
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>Copy all the EXP files from the working experiment into this EXP directory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp  /work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/* $EXP/.
+ln -s /work/n01/n01/jelt/LBay/INPUTS $EXP/bdydta
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Fix the links with the xios and opa exectutables (incase they were broken by the cp)::</dt>
+<dd>ln -s  /work/n01/n01/$USER/XIOS/bin/xios_server.exe $EXP/xios_server.exe
+ln -s $CDIR/$CONFIG/BLD/bin/nemo.exe $EXP/opa</dd>
+<dt>Submit::</dt>
+<dd>cd $EXP
+qsub -q short runscript</dd>
+</dl>
+<p><strong>Does it work?</strong></p>
+<p>No. Problem with the coordinates file. But this was sort of expected.</p>
+<p>&#8212;</p>
+</div>
+<div class="section" id="rebuild-the-output-and-inspect">
+<h3>Rebuild the output and inspect<a class="headerlink" href="#rebuild-the-output-and-inspect" title="Permalink to this headline">¶</a></h3>
+<p>Rebuild the SSH files using old tools:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/LBay/
+export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+cd $EXP
+$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_T 5
+</pre></div>
+</div>
+<p>Should remove individual processor files once the build is verified:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>rm LBay_1h_20000102_20000106_grid_?_*nc
+</pre></div>
+</div>
+<p>Inspect locally e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>scp jelt@login.archer.ac.uk:$EXP/LBay_1h_20000102_20000106_grid_T.nc .
+
+ferret
+use LBay_1h_20000102_20000106_grid_T.nc
+plot /i=25/j=70 SOSSHEIG
+</pre></div>
+</div>
+<p><strong>Does it work?</strong></p>
+<p>&#8212;</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p><strong>TO DO</strong> another time / for Solent config</p>
@@ -1108,7 +1220,8 @@ tname(9)     =   &#8216;M4&#8217;</div></blockquote>
   <ul>
 <li><a class="reference internal" href="#">Setting up a Liverpool Bay NEMO configuration, inc. livljob4</a><ul>
 <li><a class="reference internal" href="#issues-that-arose">Issues that arose</a></li>
-<li><a class="reference internal" href="#recipe-notes">Recipe Notes</a><ul>
+<li><a class="reference internal" href="#recipe-notes">Recipe Notes</a></li>
+<li><a class="reference internal" href="#build-tools">Build TOOLS</a><ul>
 <li><a class="reference internal" href="#generate-new-coordinates-file">1. Generate new coordinates file</a></li>
 <li><a class="reference internal" href="#generate-bathymetry-file">2. Generate bathymetry file</a></li>
 <li><a class="reference internal" href="#generate-initial-conditions">3. Generate initial conditions</a></li>
@@ -1121,6 +1234,8 @@ tname(9)     =   &#8216;M4&#8217;</div></blockquote>
 <li><a class="reference internal" href="#generate-boundary-conditions-with-pynemo-run-pynemo">7. Generate boundary conditions with PyNEMO: Run PyNEMO</a></li>
 <li><a class="reference internal" href="#namelist-bdy-nna">namelist.bdy_NNA</a></li>
 <li><a class="reference internal" href="#run-the-configuration-on-archer-turn-on-the-tides">8. Run the configuration ON ARCHER. Turn on the tides</a></li>
+<li><a class="reference internal" href="#compile-and-test-in-orchestra-code-base">Compile and test in ORCHESTRA code base</a></li>
+<li><a class="reference internal" href="#rebuild-the-output-and-inspect">Rebuild the output and inspect</a></li>
 </ul>
 </li>
 </ul>

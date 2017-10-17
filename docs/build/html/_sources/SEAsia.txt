@@ -17,26 +17,11 @@ Follow PyNEMO recipe for LBay on ARCHER/Livljobs4: ``http://nemo-reloc.readthedo
 Summary / Plan
 ==============
 
-* start with LBay using ORCHESTRA code base
-* Check James' /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/
-configuration for suggested namelist options for a lighter tider run
+#. Update to ORCHESTRA code base
+
+#. Extend domain in a new experiments: 1/12 degree
 
 
-Or
-
-* Replicate ODA_E-AFRICA config:
-    1) copy namelists, execs, forcings. Test.
-    2) generate execs. (James: trunk @ r7853 and XIOS2 @ r1080). Test.
-
-* Extend domain in a new experiments: 1/12 degree
-    3) generate coords, forcings
-
-* Update to ORCHESTRA code base
-    4) Later.
-
-
-diff EA and LBay cpp keys.
-NB Tide only wont require all the T,S forcing fields.
 
 
 Recipe Notes
@@ -44,130 +29,484 @@ Recipe Notes
 
 Define working directory, and other useful shortcuts::
 
-  export WDIR=/work/n01/n01/jelt/ACCORD
-  export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
-  export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
-  export EXP=$WDIR/EXP_EAFRICA
+  export CONFIG=ACCORD
+  export WDIR=/work/n01/n01/$USER/$CONFIG
+  export INPUTS=$WDIR/INPUTS
+  export START_FILES=$WDIR/START_FILES
+  export CDIR=$WDIR/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG
+  export TDIR=$WDIR/dev_r6998_ORCHESTRA/NEMOGCM/TOOLS
+  export EXP=$CDIR/$CONFIG/EXP_SEAsia
 
-  export CDIR=$WDIR/ ?????   dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-  export TDIR=$WDIR/ ?????   dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-
-Load modules::
+#Load modules::
 
   module swap PrgEnv-cray PrgEnv-intel
   module load cray-netcdf-hdf5parallel
   module load cray-hdf5-parallel
 
-
-
-
-Make directory and copy stuff from James' simulation::
+Make the directories::
 
   mkdir $WDIR
-  mkdir $WDIR/EXP_EAFRICA
+  mkdir $INPUTS
 
-  cp $JEXP/rs_R12 $EXP/.             # run script
-  cp $JEXP/namelist_cfg_R12 $EXP/.   # copy namelist_cfg
-  ln -s $JEXP/../../SHARED/namelist_ref $EXP/.
-  cp $JEXP/iodef.xml $EXP/.
-
-  ln -s $JEXP/../BLD/bin/nemo.exe $EXP/opa
-
-Make xios or copy from James:
-  ln -s ??? xios_server.exe
-
-Build XIOS2 @ r1080::
+Build NEMO ORCHESTRA branch @ r8395::
 
   cd $WDIR
-  svn co -r1080 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0
-  cd $WDIR/xios-2.0
-  cp ../../LBay/xios-1.0/arch/arch-XC30_ARCHER.* ./arch
+  svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/NERC/dev_r6998_ORCHESTRA@8395
 
-Implement make command::
+Use Dave's XIOS file (see ``%XIOS_HOME``)::
 
-  ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
+  cp /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
 
-Link xios executable to the EXP directory::
+Make a new config directory structure::
 
-  ln -s  $WDIR/xios-2.0/bin/xios_server.exe $EXP/xios_server.exe
+  cd $CDIR
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10 clean
 
+Copy Maria's MY_SRC::
 
-Build NEMO trunk @ r7853::
+  rsync -uartv /work/n01/n01/mane1/ORCHESTRA/NEMOGCM/CONFIG/TIDE/MY_SRC/ $CDIR/$CONFIG/MY_SRC
 
-  cd $WDIR
-  svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@7853
-  #cp xios-2.0/arch/arch-XC30_ARCHER.* NEMOGCM/ARCH
+Copy Maria's cpp flags (without the lim flag)::
 
+  vi $CDIR/$CONFIG/cpp_ACCORD.fcm
 
-Copy compiler keys from James::
-
-  cd $WDIR/NEMOGCM/CONFIG
-  cp $JEXP/../cpp_* ACCORD/cpp_ACCORD.fcm
-
-Copy James' entire WORK directory to MY_SRC::
-
-  cp $JEXP/../WORK/* /work/n01/n01/jelt/ACCORD/NEMOGCM/CONFIG/ACCORD/MY_SRC/.
-
-Edit XIOS_HOME in compiler options::
-
-  vi $WDIR/NEMOGCM/ARCH/arch-XC_ARCHER_INTEL.fcm
-  ...
-  %XIOS_HOME           /work/n01/n01/jelt/ACCORD/xios-2.0
-
-On first make only choose OPA_SRC::
-
-  ./makenemo -n ACCORD -m XC_ARCHER_INTEL -j 10 clean
-  ./makenemo -n ACCORD -m XC_ARCHER_INTEL -j 10
-
-It might break if directory structure is built from makenemo. Then remove
-``key_lim2`` from cpp*fcm file and remake.
+   bld::tool::fppkeys key_mpp_mpi          \
+                      key_bdy              \
+                      key_tide            \
+                      key_zdftke           \
+                      key_netcdf4          \
+                      key_iomput           \
+                      key_nosignedzero    \
+                      key_trabbl        \
+                      key_zdfddm        \
+                      key_diaharm      \
+                      key_xios2
 
 
-**It does compile.**
+Build opa::
 
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
+**It compiles!!**
 
+Make an EXP directory::
+
+  mkdir $EXP
 
 
 ----
 
-Look at runscript. Add module load commands::
 
-  vi rs_12
+Build some NEMO tools (on ARCHER)
+---------------------------------
+
+For the old build ``dev_r4621_NOC4_BDY_VERT_INTERP/`` we applied patches.
+For the new build ``dev_r6998_ORCHESTRA``, we do not. For some reason GRIDGEN doesn’t like INTEL::
+
+  cd $TDIR
+  ./maketools -n WEIGHTS -m XC_ARCHER_INTEL
+  ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL
+
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module swap PrgEnv-intel PrgEnv-cray
+  module load cray-netcdf cray-hdf5
+  ./maketools -n GRIDGEN -m XC_ARCHER
+
+  module swap PrgEnv-cray PrgEnv-intel
+
+----
+
+*(3 Oct 2017)*
+
+
+5. Generate mesh and mask files for open boundary conditions
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Run the model to generate the mesh and mask files. Copy
+ the input files from Liverpool to ARCHER::
+
+  ssh livljobs4
+
+  export CONFIG=SEAsia
+  export WDIR=/work/$USER/NEMO/$CONFIG
+  export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
+  export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
+
+  # Copy into the $EXP directory
+  for file in bathy_meter.nc coordinates.nc; do  scp $INPUTS/$file  jelt@login.archer.ac.uk:/work/n01/n01/jelt/ACCORD/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG/ACCORD/EXP_SEAsia/$file; done
+  for file in runscript_archer namelist_cfg namelist_ref iodef.xml; do  scp $START_FILES/$file  jelt@login.archer.ac.uk:/work/n01/n01/jelt/ACCORD/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG/ACCORD/EXP_SEAsia/$file; done
+
+---
+
+Return to **ARCHER**. Make sure the executables are in the EXP dir.
+Using XIOS from Dave::
+
+  ln -s /work/n01/n01/munday/XIOS/bin/xios_server.exe $EXP/.
+  ln -s $CDIR/$CONFIG/BLD/bin/nemo.exe $EXP/opa
+
+Also link in the extra XML files::
+
+  ln -s $EXP/../../SHARED/field_def.xml $EXP/.
+  ln -s $EXP/../../SHARED/domain_def.xml $EXP/.
+
+
+
+Edit the namelist files for this configuration::
+
+  cd $EXP
+  ncdump -h coordinates.nc
+  x = 683 ;
+  y = 553 ;
+
+  vi namelist.cfg
   ...
+  cn_exp      =   "SEAsia"  !  experience name
+  ...
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+     cp_cfg      =  "seasia"                !  name of the configuration
+     jp_cfg      =     012               !  resolution of the configuration
+     jpidta      =     683               !  1st lateral dimension ( >= jpi )
+     jpjdta      =     553               !  2nd    "         "    ( >= jpj )
+     jpkdta      =      51               !  number of levels      ( >= jpk )
+     jpiglo      =     683               !  1st dimension of global domain --> i =jpidta
+     jpjglo      =     553               !  2nd    -                  -    --> j  =jpjdta
+
+**ACTION: There are further edits to be made for when the model is actually run**
+**E.g. other filename instances of LBay**
+
+**NOT SURE WHAT jp_cfg does. It might be passive? I changed it to 012, representing 1/12**
+
+
+Edit the runscript to include modules and the Account name (n01-NOCL)::
+
+  vi runscript_archer
+
+  #!/bin/bash
+  #PBS -N SEAsia
+  #PBS -l select=5
+  #PBS -l walltime=00:20:00
+  #PBS -A n01-NOCL
+
   module swap PrgEnv-cray PrgEnv-intel
   module load cray-netcdf-hdf5parallel
   module load cray-hdf5-parallel
   ...
-  echo `date` : Launch Job
-  touch stdouterr
-  rm coordinates.bdy.nc
-  rm bdy_mask.nc
-  rm domain_cfg.nc
-  rm TIDES
-  ln -s $JINPUTS/R12/coordinates_E-AFRICA_R12.bdy.nc coordinates.bdy.nc
-  ln -s $JINPUTS/R12/bdy_mask_E-AFRICA_R12.nc bdy_mask.nc
-  ln -s $JINPUTS/R12/domain_cfg_R12.nc domain_cfg.nc
-  #ln -s $JINPUTS/R24/TIDES TIDES
-  ln -s $JINPUTS/R12/TIDES TIDES
-  cp namelist_cfg_R12 namelist_cfg
-  aprun -b -n $NEMOproc -N 24 ./opa   >&  stdouterr_nemo : -N 1 -n $XIOSproc ./xios_server.exe >&  stdouterr_xios
 
----
+Submit::
 
-Submit run::
-
-  cd $EXP
-  qsub rs_R12
+  qsub -q short runscript_archer
 
 
-  4819100.sdb
+**IT WORKED WHEN I USED YESTERDAY'S LBAY EXECUTABLE. HOWEVER I LOST IT WHEN**
+**I RECOMPILED THE CODE TO FIND OUT WHAT WAS DIFFERENT...**
+
+----
+
+*(6 March 2017)*
+
+If that works, we then need to rebuild the mesh and mask files in to single files for the next step::
+
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_mask 96
+  #mv mesh_mask.nc $WDIR/INPUTS
+  #rm mesh_* mask_* LBay_0000*
+  #cd $INPUTS
 
 
-**PENDING: 28 Sept 2017. DOES IT WORK?**
+THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO
+
+
+----
+
+On **livljobs4** copy the mesh_mask file from **ARCHER**::
+
+  ssh livljobs4
+
+  export CONFIG=SEAsia
+  export WDIR=/work/$USER/NEMO/$CONFIG
+  export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
+  export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
+
+  # Copy from the $EXP directory
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/ACCORD/dev_r6998_ORCHESTRA/NEMOGCM/CONFIG/ACCORD/EXP_SEAsia/mesh_mask.nc $INPUTS/mesh_mask.nc
+
+
+6. Generate boundary conditions with PyNEMO: Create netcdf abstraction wrapper
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+In this section there are two stages.
+* generate a ncml file which describes the files needed to create boundary conditions
+* generate a namelist.bdy file which controls the actual boundary condition generation.
+
+For each parent data set a new pair of (``*.ncml``, ``namelist.bdy``) are needed.
+Here I attempt to use parent data from:
+* AMM60 local data (doesn't yet work because of the sigma levels)
+* thredds server (as in the LH_REEF example)
+* NNA local data (easiest ?)
+
+First install PyNEMO if not already done so. Full description::
+
+  ssh -Y livljobs4
+  cd /work/$USER
+  export CONFIG=SEAsia
+  export WDIR=/work/$USER/NEMO/$CONFIG
+  module load anaconda/2.1.0  # Want python2
+  conda create --name nrct_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=1.0.0
+  source activate nrct_env
+  conda install -c https://conda.anaconda.org/conda-forge seawater=3.3.4 # Note had to add https path
+  conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
+  conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
+
+Find java object by doing a which java and then following the trail
+find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print
+::
+
+  export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+  unset SSH_ASKPASS # Didn't need this on ARCHER...
+  git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
+  cd nrct/Python
+  python setup.py build
+  export PYTHONPATH=/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
+  python setup.py install --prefix ~/.conda/envs/nrct_env
+  cd $WDIR/INPUTS
+
+
+I suggest managing the namelist.bdy file after the ``ncml`` file is generated.
+A fresh ``ncml`` file can be generated automatically or an existing one can be
+edited.
+
+
+6a. Generate ncml files: thredds_inputs_src.ncml
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+Create a thredds_inputs_src.ncml file to access ORCA12 data from the
+thredds server.
+
+.. note:
+
+  In the pynemo_ncml_generator if using the thredds server use:
+  Source directory: ``http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data``
+  Note also that the pynemo_ncml_generator populates this file with available
+  files according to the input regular expressions
+
+Alternatively edit an existing file::
+  
+  cp $START_FILES/thredds_inputs_src.ncml $INPUTS/.
+  cd $INPUTS
+  vi thredds_inputs_src.ncml
+
+  <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+  <ns0:aggregation type="union">
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="temperature" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="salinity" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="zonal_velocity" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05U.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05U.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="meridian_velocity" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05V.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05V.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="sea_surface_height" type="joinExisting">
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791206d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791201d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791126d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791121d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791116d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791111d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791106d05T.nc" />
+          <ns0:netcdf location="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data/ORCA025-N206_19791101d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+  </ns0:aggregation>
+  </ns0:netcdf>
 
 
 
+6b. Generate the namelist.bdy file for PyNEMO
++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Copy the PyNEMO template namelist.bdy from the START_FILES dir::
+
+  cd $INPUTS
+  cp $START_FILES/namelist.bdy $INPUTS/.
+
+Edit namelist.bdy to for the configuration name and ``ncml`` file name. **Note
+need the slash following OUTPUT**::
+
+  vi namelist.bdy
+  sn_src_dir = './thredds_inputs_src.ncml'       ! src_files/'
+  sn_dst_dir = '/work/jelt/NEMO/SEAsia/INPUTS/'
+  sn_fn      = 'SEAsia'                 ! prefix for output files
+  ...
+  cn_mask_file   = './mesh_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+
+Now edit the pynemo namelist file. Add location of grid information. Lots of
+the separate mesh and mask files are combined into the new mesh_mask.nc output.
+ Note use ncml to convert to variables without *_0.
+
+ Make sure the timestamps correspond to the input data. (Not sure this is
+  important yet *3-Oct-17*)
+Turn off as many things as possible to help it along.
+Turned off ``ln_mask_file``. James said it was for outputting a new mask file
+but it might have given me trouble.
+
+NB I have a namelist.bdy file for each ncml configuration
+* namelist.bdy_AMM60 (should use for LBay and Solent)
+* namelist.bdy_thredds (Used here. Uses global 1/12 degree data)
+* namelist.bdy_NNA (used for LBay)
+
+
+
+7. Generate boundary conditions with PyNEMO: Run PyNEMO
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Using livljobs4
+
+*(3 Oct 2017)*
+::
+
+  export CONFIG=SEAsia
+  export WDIR=/work/$USER/NEMO/$CONFIG
+  export INPUTS=$WDIR/INPUTS
+  export START_FILES=$WDIR/START_FILES
+
+  cp $START_FILES/namelist.bdy $INPUTS/namelist.bdy
+  cp $START_FILES/thredds_inputs_src.ncml $INPUTS/thredds_inputs_src.ncml
+  cp $START_FILES/inputs_dst.ncml $INPUTS/inputs_dst.ncml
+
+.. Need to grab some INPUT files from ARCHER because I am not building them with livljobs4::
+
+  rsync -uartv jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/ $WDIR/INPUTS
+  cd $WDIR/INPUTS
+
+.. Make sure the NNA data is available::
+
+  mkdir $WDIR/INPUTS/NNA
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/mesh_hgr.nc $WDIR/INPUTS/NNA/.
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/mesh_hgr.nc $WDIR/INPUTS/NNA/.
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/mask.nc $WDIR/INPUTS/NNA/.
+  for file in NNA_*200001*nc ; do scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/$file $WDIR/INPUTS/NNA/. ; done
+
+.. Make sure the destination meshes exist. These were generated by running the new config for a timestep::
+
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/mesh_zgr.nc $WDIR/INPUTS/.
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/mesh_hgr.nc $WDIR/INPUTS/.
+
+
+
+cd $INPUTS
+Edit the namelist.bdy
+Sort out the dates
+
+
+
+Generate the boundary conditions again, with PyNEMO
+::
+
+  module load anaconda/2.1.0  # Want python2
+  source activate nrct_env
+  export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+
+  pynemo -g -s namelist.bdy
+
+Sort of worked. Problem with access to the ORCA12 data::
+
+  INFO:pynemo.reader.ncml:(1, 1, 553, 683)
+  INFO:pynemo.reader.ncml:(1, 1, 553, 683)
+  INFO:pynemo.reader.ncml:(1, 1, 553, 683)
+  INFO:pynemo.reader.ncml:(1, 1, 553, 683)
+  INFO:pynemo.profile:4.68
+  INFO:pynemo.profile:['wv', 'wu', 'wt', 'u', 't', 'v']
+  INFO:pynemo.profile:wv  is (51, 1427) and a nan  max: [ 18.71657181  18.68452454]
+  INFO:pynemo.profile:wu  is (51, 1426) and a nan  max: [ 18.79060745  18.71673203]
+  INFO:pynemo.profile:wt  is (51, 12704) and a nan  max: [ 18.7412262   18.69191742]
+  INFO:pynemo.profile:u  is (51, 1426) and a nan  max: [ 21.30413628  21.21548653]
+  INFO:pynemo.profile:t  is (51, 12704) and a nan  max: [ 21.24488068  21.185709  ]
+  INFO:pynemo.profile:v  is (51, 1427) and a nan  max: [ 21.21529484  21.17683792]
+  INFO:pynemo.profile:horizontal grid info
+  INFO:pynemo.profile:0.02
+  INFO:pynemo.profile:read and assign netcdf data, lon lat
+  INFO:pynemo.profile:0.02
+  INFO:pynemo.profile:range is 12704
+  INFO:pynemo.profile:range is 1426
+  INFO:pynemo.profile:range is 1427
+  INFO:pynemo.profile:(12704,)
+  ./thredds_inputs_src.ncml
+  Oct 03, 2017 4:31:36 PM org.apache.http.impl.client.DefaultRequestDirector tryConnect
+  INFO: I/O exception (java.net.NoRouteToHostException) caught when connecting to the target host: No route to host (Host unreachable)
+  Oct 03, 2017 4:31:36 PM org.apache.http.impl.client.DefaultRequestDirector tryConnect
+  INFO: Retrying connect
+  Traceback (most recent call last):
+    File "/login/jelt/.conda/envs/nrct_env/bin/pynemo", line 11, in <module>
+      load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo')()
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_exe.py", line 44, in main
+      profile.process_bdy(setup_file, mask_gui)
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py", line 271, in process_bdy
+      reader = factory.GetReader(settings['src_dir'],acc)
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/reader/factory.py", line 27, in GetReader
+      return NcMLReader(uri,t_adjust)
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/reader/ncml.py", line 56, in __init__
+      self.dataset = NetcdfDataset.openFile(self.uri, None)
+    File "jnius_export_class.pxi", line 893, in jnius.JavaMultipleMethod.__call__ (jnius/jnius.c:23945)
+    File "jnius_export_class.pxi", line 624, in jnius.JavaMethod.__call__ (jnius/jnius.c:20680)
+    File "jnius_export_class.pxi", line 790, in jnius.JavaMethod.call_staticmethod (jnius/jnius.c:22522)
+    File "jnius_utils.pxi", line 65, in jnius.check_exception (jnius/jnius.c:3815)
+  jnius.JavaException: JVM exception occurred: org.apache.http.conn.ConnectTimeoutException: Connect to esurgeod.noc.soton.ac.uk:8080 timed out
+  Exception AttributeError: "'Reader' object has no attribute 'dataset'" in <bound method Reader.__del__ of <pynemo.reader.ncml.Reader object at 0x7fe5e80a0190>> ignored
+
+  (nrct_env)livljobs4 INPUTS $
+
+
+
+
+
+
+
+
+Old notes
+---------
 
 
 
@@ -231,285 +570,3 @@ Conclusion. Plot the proposed domain::
 ---
 
 ----
-
-==================
-OLD NOTES TEMPLATE
-==================
-
-
-Recipe Notes
-============
-
-Define working directory, and other useful shortcuts::
-
-  export WDIR=/work/n01/n01/jelt/lighthousereef/
-  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-
-Load modules::
-
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel
-  module load cray-hdf5-parallel
-
-Follow recipe. Step 1::
-
-  cd $WDIR
-  mkdir INPUTS
-  cd INPUTS
-  wget ftp.nerc-liv.ac.uk:/pub/general/jdha/inputs.tar.gz
-  tar xvfz inputs.tar.gz
-  rm inputs.tar.gz
-  cd ../
-  svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2014/dev_r4621_NOC4_BDY_VERT_INTERP@5709
-  svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
-  cd xios-1.0
-  cp $WDIR/INPUTS/arch-XC30_ARCHER.* ./arch
-
-Implement make command::
-
-  ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
-
-Step 2, as far as the ``makenemo`` call::
-
-  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-  cd $CDIR/../NEMO/OPA_SRC/SBC
-  patch -b < $WDIR/INPUTS/fldread.patch
-  cd ../DOM
-  patch -b < $WDIR/INPUTS/dommsk.patch
-  cd ../BDY
-  patch -b < $WDIR/INPUTS/bdyini.patch
-  cd $CDIR
-  rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
-  cp $WDIR/INPUTS/arch-* ../ARCH
-  ./makenemo -n LH_REEF -m XC_ARCHER_INTEL -j 10
-
-Build fails (as described) so remove ``key_lim2`` (as described) and re-issue the make command::
-
-  ./makenemo -n LH_REEF -m XC_ARCHER_INTEL -j 10
-
-  cp $WDIR/INPUTS/cpp_LH_REEF.fcm ./LH_REEF
-  cp $WDIR/INPUTS/dtatsd.F90 LH_REEF/MY_SRC/
-
-Step 3 (seemed to work OK)::
-
-  cd $WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/WEIGHTS/src
-  patch -b < $WDIR/INPUTS/scripinterp_mod.patch
-  patch -b < $WDIR/INPUTS/scripinterp.patch
-  patch -b < $WDIR/INPUTS/scrip.patch
-  patch -b < $WDIR/INPUTS/scripshape.patch
-  patch -b < $WDIR/INPUTS/scripgrid.patch
-  cd ../../
-  ./maketools -n WEIGHTS -m XC_ARCHER_INTEL
-  ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL
-  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  module swap PrgEnv-intel PrgEnv-cray
-  module load cray-netcdf cray-hdf5
-  ./maketools -n GRIDGEN -m XC_ARCHER
-  module swap PrgEnv-cray PrgEnv-intel
-  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-
-Step 4::
-
-  cd $TDIR/GRIDGEN
-  cp $WDIR/INPUTS/namelist_R12 ./
-  ln -s namelist_R12 namelist.input
-  ./create_coordinates.exe
-  cp 1_coordinates_ORCA_R12.nc $WDIR/INPUTS/coordinates.nc
-
-Step 5::
-
-  cd $WDIR/INPUTS
-  module load nco/4.5.0
-  ncap2 -s 'where(topo > 0) topo=0' gebco_1_cutdown.nc tmp.nc
-  ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
-  rm tmp.nc
-  module unload nco cray-netcdf cray-hdf5
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
-  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
-
-
-Step 6 didn't find the ``make.macro`` file. Copy it from ``jdha`` and edit the path::
-
-  cp /home/n01/n01/jdha/sosie/make.macro /home/n01/n01/jelt/sosie/.
-
-  vi /home/n01/n01/jelt/sosie/make.macro
-  # Directory to install binaries:
-  INSTALL_DIR = /home/n01/n01/jelt/local
-
-Proceed with Step 6::
-
-  cd ~
-  mkdir local
-  svn co svn://svn.code.sf.net/p/sosie/code/trunk sosie
-  cd sosie
-
-  FIX (copied from jdha instead): cp $WDIR/INPUTS/make.macro ./
-
-  make
-  make install
-  export PATH=~/local/bin:$PATH
-  cd $WDIR/INPUTS
-  sosie.x -f initcd_votemper.namelist
-  sosie.x -f initcd_vosaline.namelist
-  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
-  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
-  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
-
-Step 7, weight files for atmospheric forcing::
-
-  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
-  $TDIR/WEIGHTS/scripshape.exe namelist_reshape_bilin_atmos
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bicubic_atmos
-  $TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
-
-Step 8 (mesh and mask for open boundary condition generation)::
-
-  cd $CDIR
-  cp $WDIR/INPUTS/cpp_LH_REEF.fcm LH_REEF/
-  ln -s $WDIR/INPUTS/bathy_meter.nc $CDIR/LH_REEF/EXP00/bathy_meter.nc
-  ln -s $WDIR/INPUTS/coordinates.nc $CDIR/LH_REEF/EXP00/coordinates.nc
-  cp $WDIR/INPUTS/runscript $CDIR/LH_REEF/EXP00
-  cp $WDIR/INPUTS/namelist_cfg $CDIR/LH_REEF/EXP00/namelist_cfg
-  cp $WDIR/INPUTS/namelist_ref $CDIR/LH_REEF/EXP00/namelist_ref
-  ./makenemo clean
-  ./makenemo -n LH_REEF -m XC_ARCHER_INTEL -j 10
-  cd LH_REEF/EXP00
-  ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
-
-*(16 Jan 2017)* Edit the runscript to include modules and the Account name (n01-NOCL)::
-
-  vi runscript
-
-  #!/bin/bash
-  #PBS -N LH_REEF
-  #PBS -l select=5
-  #PBS -l walltime=00:20:00
-  #PBS -A n01-NOCL
-
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel
-  module load cray-hdf5-parallel
-  ...
-
-Submit::
-
-  qsub -q short runscript
-
-
-*(17 Jan 17)*
-
-Moved module load to .bashrc::
-
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel
-  module load cray-hdf5-parallel
-
-
-Fixed symbolic links and recompiled xios and nemo.exe with same modules
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-These are notes rather than something to be followed
-*(16 Feb 2017)*::
-
-  cd /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/EXP00
-  ln -s /work/n01/n01/jdha/TEST2/xios-1.0/bin/xios_server.exe xios_server.exe
-  ln -s /work/n01/n01/jelt/lighthousereef/INPUTS/bathy_meter.nc bathy_meter.nc
-  ln -s /work/n01/n01/jelt/lighthousereef/INPUTS/coordinates.nc coordinates.nc
-
-  ln -s /work/n01/n01/jdha/TEST2/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/BLD/bin/nemo.exe opa
-
-Spotted symlink issue in WDIR definition in ARCH file. Fix::
-
-  cd /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/WORK>
-  vi ../../../ARCH/arch-XC_ARCHER_INTEL.fcm
-  ...
-  %XIOS_HOME           $WDIR/xios-1.0
-
-Recomile::
-
-  cd /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel
-  module load cray-hdf5-parallel
-
-  ./makenemo clean
-  ./makenemo -n LH_REEF -m XC_ARCHER_INTEL -j 10
-
-  cd LH_REEF/EXP00
-  qsub -q short runscript
-
-
-
----
-
-Get the BDY stuff together::
-
-  cd LH_REEF/EXP00
-
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_zgr 96
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_hgr 96
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mask 96
-  mv mesh_zgr.nc mesh_hgr.nc mask.nc $WDIR/INPUTS
-  rm mesh_* mask_* LH_REEF_0000*
-  cd $WDIR/INPUTS
-
-install PyNEMO (**Note need to use https://ccpforge.cse.rl.ac.uk**)::
-
-New *(22 Feb 2017)*::
-
-  cd ~
-  module load anaconda
-  conda create --name pynemo_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=1.0.0
-  source activate pynemo_env
-  conda install -c conda-forge seawater=3.3.4
-  conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
-  conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
-  export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-  svn checkout https://ccpforge.cse.rl.ac.uk/svn/pynemo
-  cd pynemo/trunk/Python
-  python setup.py build
-  export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
-  python setup.py install --prefix ~/.conda/envs/pynemo
-  cp data/namelist.bdy $WDIR
-  cd $WDIR
-
-**Also added**  ``export PYTHONPATH=/home/n01/n01/jelt/.conda/envs/pynemo/lib/python2.7/site-packages/:$PYTHONPATH
-``
-(Couldn't get the path for the pynemo_ncml_generator to work!)::
-
-  ssh -Y espp1
-  module load anaconda
-  source activate pynemo_env
-  cd $WDIR
-  ~/.conda/envs/pynemo/bin/pynemo_ncml_generator
-
-  export LD_LIBRARY_PATH=/opt/java/jdk1.7.0_45/jre/lib/amd64/server:$LD_LIBRARY_PATH
-  export PYTHONPATH=~/.conda/envs/pynemo_env/lib/python2.7/site-packages:$PYTHONPATH
-  ~/.conda/envs/pynemo/bin/pynemo -g -s namelist.bdy
-
-Accept stuff. Press *close*.
-Exit espp1 do some stuff and submit job::
-
-  exit
-  cd $WDIR/INPUTS
-  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  module load nco/4.5.0
-  ncrename -v deptht,gdept LH_REEF_bdyT_y1980m01.nc
-  ncrename -v depthu,gdepu LH_REEF_bdyU_y1980m01.nc
-  ncrename -v depthv,gdepv LH_REEF_bdyV_y1980m01.nc
-  module unload nco
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-  cd $CDIR/LH_REEF/EXP00
-  ln -s $WDIR/INPUTS/coordinates.bdy.nc $CDIR/LH_REEF/EXP00/coordinates.bdy.nc
-  sed -e 's/nn_msh      =    3/nn_msh      =    0/' namelist_cfg > tmp
-  sed -e 's/nn_itend    =      1/nn_itend    =       1440 /' tmp > namelist_cfg
-  cp $WDIR/INPUTS/*.xml ./
-  qsub -q short runscript
-
-  4338922.sdb
