@@ -60,7 +60,14 @@ Starting on ARCHER::
 
 ---
 
-.. note: you might have to mkdir the odd directory or two.
+Collect essential files
+=======================
+
+Note you might have to mkdir the odd directory or two...::
+
+  cp $WDIR/../LBay/START_FILES/* $START_FILES/.
+  rm $START_FILES/*LBay*nc
+
 
 Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
 Or just build::
@@ -95,6 +102,7 @@ First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
   cd $TDIR
 
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
+  ./maketools -n WEIGHTS -m XC_ARCHER_INTEL_XIOS1
   ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL_XIOS1
 
 
@@ -112,6 +120,43 @@ resolution grid elements.
   Using the GRIDGEN/create_coordinates.exe tool runs into a problem for zoom factor
   >1, since the horizontal spacing metric e.g. e[12]t always match
   the parent grid. I think that this is a bug. The agrif version works.
+
+Edit namelist::
+
+  cd $TDIR/NESTING
+  vi namelist.input
+
+  &input_output
+      iom_activated = true
+  /
+  &coarse_grid_files
+      parent_coordinate_file = 'coordinates_ORCA_R12.nc'
+  /
+  &bathymetry
+  /
+  &nesting
+      imin = 865
+      imax = 1405
+      jmin = 1116
+      jmax = 1494
+      rho  = 5
+      rhot = 5
+      bathy_update = false
+  /
+  &vertical_grid
+  /
+  &partial_cells
+  /
+  &nemo_coarse_grid
+  /
+  &forcing_files
+  /
+  &interp
+  /
+  &restart
+  /
+  &restart_trc
+  /
 
 Build and execute agrif version of create_coordinates.exe.
 See `build_and_create_coordinates.rst`_
