@@ -14,7 +14,7 @@ Summary of contents
 
 * LBay: This was a port of the Lighthouse Reef config setup to a new location, using ARCHER. However some java stuff broke on ARCHER so tools, PyNEMO in particular, were moved to livljobs.
 
-* LBay_archer_livljobs4 (formerly LBay_livljobs4): Because of the java problems, this recipe uses livljobs4 to build input files but runs the code on ARCHER. This
+* LBay_archer_livljobs4 (formerly ``LBay_livljobs4``): Because of the java problems, this recipe uses livljobs4 to build input files but runs the code on ARCHER. This
 was developed for v3.6 then updated to v4. Noticed a problem with e[12]* varibles being generated wrong in GRIDGEN. Use NEST instead. During v4 development it was helpful to also ingest namelist_cfg files into the repository to track what did and didn't work. These files included: LBay_v3_namelist_cfg (where I started with a working namelist in v3.6); EA_namelist_cfg (working simulation in v4, but not DOMAINcfg, from jdha); LBay_v4_namelist_cfg (destination namelist_cfg in v4).
 
 * LBay_mobius: Since MDP can not run on ARCHER. This is a port of ``LBay_livljobs4`` onto NOCL's MOBIUS cluster. This is incomplete *(16 Oct 17)*.
@@ -34,7 +34,6 @@ This is a tide only simulation.
 
 * quickplotNEMO.py: python script to look at NEMO output and see if it is sensible. Reads grid_T.nc, Tides.nc or domain_cfg.nc output
 
-* gridfix.py: Intended to postprocess coordinates.nc file correct e[12]* spacing. Stopped before I really started with this.
 ---
 
 * Solent: This is actually an empty config template. I plan to do this domain with AMM60 boundaries.
