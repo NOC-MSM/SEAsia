@@ -874,7 +874,7 @@ NB try these locations. Previous locations are not European
   wget http://esurgeod.noc.soton.ac.uk:8080/thredds/fileServer/PyNEMO/grid_low_res_C/mask.nc
   mv mask.nc ../mask_src.nc
 
-I had to regenerate the mesh_zgr.nc, mesh_hgr.nc and mask.nc files (I.e.e run
+I had to regenerate the mesh_zgr.nc, mesh_hgr.nc and mask.nc files (I.e. run
 nemo again. See above.)... Moving on, assuming that is done
 
 

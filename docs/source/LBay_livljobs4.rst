@@ -1042,20 +1042,23 @@ Also need to make sure the harmonic tidal boundary files are consistent with the
 
 
 
-.. Note::
+.. Note:
 
-  I had a problem with initial T,S conditions because the generated netCDF files only had vector fields for the z-coordinate
-  However, Using ``key_gen_IC`` generates the vertical velocity on the fly.
+  I had a problem with initial T,S conditions because the generated netCDF files
+   only had vector fields for the z-coordinate. However, Using ``key_gen_IC``
+   generates the vertical velocity on the fly.
 
   Completes. Works as a restart or from initial conditions::
 
     ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
-    ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+    ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input
+     data (T) or not (F)
 
   OR as::
 
     ln_rstart   =  .true.  !  start from rest (F) or from a restart file (T)
-    ln_tsd_init   = .false.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+    ln_tsd_init   = .false.   !  Initialisation of ocean T & S with T &S input
+     data (T) or not (F)
 
 
 
@@ -1116,7 +1119,7 @@ Inspect locally e.g.::
   use LBay_1h_20000102_20000106_grid_T.nc
   plot /i=25/j=70 SOSSHEIG
 
-
+---
 
 
 **Whoo hoo! It works! With a semi-diurnal SSH signal**
@@ -1125,6 +1128,125 @@ At this point I'll move onto the SE Asia configuration.
 
 
 ----
+
+
+*(4 Oct 2017)*
+
+Compile and test in ORCHESTRA code base
++++++++++++++++++++++++++++++++++++++++
+
+This may not work straight off as the new code needs different namelist, and other configuration management files
+.. note:
+
+  I made a *store* of architecure files in work, for compiling NEMO
+
+  mkdir /work/n01/n01/jelt/ARCH
+  cp /work/n01/n01/jelt/ACCORD/trunk_NEMOGCM_r8395/ARCH/arch-XC_ARCHER_INTEL.fcm /work/n01/n01/jelt/ARCH/.
+  echo "arch-XC_ARCHER_INTEL.fcm is for compiling OPA on ARCHER with my XIOS2" > /work/n01/n01/jelt/ARCH/README_arch-XC_ARCHER_INTEL.fcm
+  vi /work/n01/n01/jelt/ARCH/arch-XC_ARCHER_INTEL.fcm
+  ...
+  %XIOS_HOME           /work/n01/n01/jelt/XIOS
+
+Load paths and modules::
+
+  export CONFIG=LBay
+  export WDIR=/work/n01/n01/jelt/$CONFIG
+  export INPUTS=$WDIR/INPUTS
+  export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+  export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+  export EXP=$CDIR/$CONFIG/EXP00
+
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+
+
+Build NEMO ORCHESTRA trunk @ r8395::
+
+  cd $WDIR
+  svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
+
+Use my XIOS file (see ``%XIOS_HOME``). Copy from *store*::
+
+  cp /work/n01/n01/$USER/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
+
+Make a new config directory structure::
+
+  cd $CDIR
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10 clean
+
+Edit the CPP flags::
+
+  vi $CONFIG/cpp_$CONFIG.fcm
+
+  bld::tool::fppkeys key_zdfgls        \
+                   key_diaharm       \
+                   key_mpp_mpi       \
+                   key_iomput        \
+                   key_nosignedzero
+
+Build opa::
+
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+It compiles.
+
+Link XIOS2 executable to the EXP directory::
+
+  ln -s  /work/n01/n01/$USER/XIOS/bin/xios_server.exe $EXP/xios_server.exe
+
+----
+
+Copy all the EXP files from the working experiment into this EXP directory::
+
+  cp  /work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/* $EXP/.
+  ln -s /work/n01/n01/jelt/LBay/INPUTS $EXP/bdydta
+
+Fix the links with the xios and opa exectutables (incase they were broken by the cp)::
+  ln -s  /work/n01/n01/$USER/XIOS/bin/xios_server.exe $EXP/xios_server.exe
+  ln -s $CDIR/$CONFIG/BLD/bin/nemo.exe $EXP/opa
+
+
+Submit::
+   cd $EXP
+   qsub -q short runscript
+
+**Does it work?**
+
+No. Problem with the coordinates file. But this was sort of expected.
+
+
+---
+
+Rebuild the output and inspect
+++++++++++++++++++++++++++++++
+
+Rebuild the SSH files using old tools::
+
+ export WDIR=/work/n01/n01/jelt/LBay/
+ export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+ cd $EXP
+ $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_T 5
+
+
+Should remove individual processor files once the build is verified::
+
+ rm LBay_1h_20000102_20000106_grid_?_*nc
+
+Inspect locally e.g.::
+
+ scp jelt@login.archer.ac.uk:$EXP/LBay_1h_20000102_20000106_grid_T.nc .
+
+ ferret
+ use LBay_1h_20000102_20000106_grid_T.nc
+ plot /i=25/j=70 SOSSHEIG
+
+
+**Does it work?**
+
+
+---
 
 .. note::
 

@@ -94,7 +94,11 @@ NB Tide only wont require all the T,S forcing fields.</p>
 <div class="section" id="recipe-notes">
 <h2>Recipe Notes<a class="headerlink" href="#recipe-notes" title="Permalink to this headline">¶</a></h2>
 <p>Define working directory, and other useful shortcuts:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/ACCORD/
+<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/ACCORD
+export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
+export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
+export EXP=$WDIR/EXP_EAFRICA
+
 export CDIR=$WDIR/ ?????   dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
 export TDIR=$WDIR/ ?????   dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 </pre></div>
@@ -107,16 +111,149 @@ export TDIR=$WDIR/ ?????   dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 </div>
 <p>Make directory and copy stuff from James&#8217; simulation:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>mkdir $WDIR
-ln -s xios ...
-ln -s nemo.exe ...
-cp namelist_??? ...
-cp iodef.xml ...
+mkdir $WDIR/EXP_EAFRICA
+
+cp $JEXP/rs_R12 $EXP/.             # run script
+cp $JEXP/namelist_cfg_R12 $EXP/.   # copy namelist_cfg
+ln -s $JEXP/../../SHARED/namelist_ref $EXP/.
+cp $JEXP/iodef.xml $EXP/.
+
+ln -s $JEXP/../BLD/bin/nemo.exe $EXP/opa
 </pre></div>
 </div>
-<p>Either copy or link the forcings</p>
-<p>Edit the namelist_cfg for new path names.</p>
+<dl class="docutils">
+<dt>Make xios or copy from James:</dt>
+<dd>ln -s ??? xios_server.exe</dd>
+</dl>
+<p>Build XIOS2 &#64; r1080:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
+svn co -r1080 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0
+cd $WDIR/xios-2.0
+cp ../../LBay/xios-1.0/arch/arch-XC30_ARCHER.* ./arch
+</pre></div>
+</div>
+<p>Implement make command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">make_xios</span> <span class="o">--</span><span class="n">full</span> <span class="o">--</span><span class="n">prod</span> <span class="o">--</span><span class="n">arch</span> <span class="n">XC30_ARCHER</span> <span class="o">--</span><span class="n">netcdf_lib</span> <span class="n">netcdf4_par</span>
+</pre></div>
+</div>
+<p>Link xios executable to the EXP directory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ln -s  $WDIR/xios-2.0/bin/xios_server.exe $EXP/xios_server.exe
+</pre></div>
+</div>
+<p>Build NEMO trunk &#64; r7853:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
+svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@7853
+#cp xios-2.0/arch/arch-XC30_ARCHER.* NEMOGCM/ARCH
+</pre></div>
+</div>
+<p>Copy compiler keys from James:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/NEMOGCM/CONFIG
+cp $JEXP/../cpp_* ACCORD/cpp_ACCORD.fcm
+</pre></div>
+</div>
+<p>Copy James&#8217; entire WORK directory to MY_SRC:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $JEXP/../WORK/* /work/n01/n01/jelt/ACCORD/NEMOGCM/CONFIG/ACCORD/MY_SRC/.
+</pre></div>
+</div>
+<p>Edit XIOS_HOME in compiler options:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $WDIR/NEMOGCM/ARCH/arch-XC_ARCHER_INTEL.fcm
+...
+%XIOS_HOME           /work/n01/n01/jelt/ACCORD/xios-2.0
+</pre></div>
+</div>
+<p>On first make only choose OPA_SRC:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">makenemo</span> <span class="o">-</span><span class="n">n</span> <span class="n">ACCORD</span> <span class="o">-</span><span class="n">m</span> <span class="n">XC_ARCHER_INTEL</span> <span class="o">-</span><span class="n">j</span> <span class="mi">10</span> <span class="n">clean</span>
+<span class="o">./</span><span class="n">makenemo</span> <span class="o">-</span><span class="n">n</span> <span class="n">ACCORD</span> <span class="o">-</span><span class="n">m</span> <span class="n">XC_ARCHER_INTEL</span> <span class="o">-</span><span class="n">j</span> <span class="mi">10</span>
+</pre></div>
+</div>
+<p>It might break if directory structure is built from makenemo. Then remove
+<code class="docutils literal"><span class="pre">key_lim2</span></code> from cpp*fcm file and remake.</p>
+<p><strong>It does compile.</strong></p>
+<hr class="docutils" />
+<p>Look at runscript. Add module load commands:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi rs_12
+...
+module swap PrgEnv-cray PrgEnv-intel
+module load cray-netcdf-hdf5parallel
+module load cray-hdf5-parallel
+...
+echo `date` : Launch Job
+touch stdouterr
+rm coordinates.bdy.nc
+rm bdy_mask.nc
+rm domain_cfg.nc
+rm TIDES
+ln -s $JINPUTS/R12/coordinates_E-AFRICA_R12.bdy.nc coordinates.bdy.nc
+ln -s $JINPUTS/R12/bdy_mask_E-AFRICA_R12.nc bdy_mask.nc
+ln -s $JINPUTS/R12/domain_cfg_R12.nc domain_cfg.nc
+#ln -s $JINPUTS/R24/TIDES TIDES
+ln -s $JINPUTS/R12/TIDES TIDES
+cp namelist_cfg_R12 namelist_cfg
+aprun -b -n $NEMOproc -N 24 ./opa   &gt;&amp;  stdouterr_nemo : -N 1 -n $XIOSproc ./xios_server.exe &gt;&amp;  stdouterr_xios
+</pre></div>
+</div>
+<p>&#8212;</p>
+<p>Submit run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $EXP
+qsub rs_R12
+
+
+4819100.sdb
+</pre></div>
+</div>
+<p><strong>PENDING: 28 Sept 2017. DOES IT WORK?</strong></p>
+<hr class="docutils" />
+<p><em>(27 Sept 2017)</em></p>
+</div>
+<div class="section" id="build-the-new-se-asia-configuration-at-1-12-degree-r12">
+<h2>Build the new SE Asia configuration at 1/12 degree, R12<a class="headerlink" href="#build-the-new-se-asia-configuration-at-1-12-degree-r12" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="generate-new-coordinates-file">
+<h2>Generate new coordinates file<a class="headerlink" href="#generate-new-coordinates-file" title="Permalink to this headline">¶</a></h2>
+<p>Inspect TPXO harmonic amplitudes to find a good cut off location for boundaries:</p>
+<p>cd /work/jelt/tpxo7.2
+ferret
+go  plot_SEAsia_harmonics.jnl</p>
+<dl class="docutils">
+<dt>... note::</dt>
+<dd><p class="first">! plot_SEAsia_harmonics.jnl
+! Plot tpxo harmonics for the SE Asia region.
+! Want to build a NEMO config without significant amphidromes on the boundary</p>
+<p>use h_tpxo7.2.nc</p>
+<p>set win 1
+set viewport ul
+shade/k=1/j=300:700/i=250:500/levels=(0,1,0.1)/title=&#8221;M2&#8221; HA, lon_z, lat_z; go fland
+set viewport ur
+shade/k=2/j=300:700/i=250:500/levels=(0,1,0.1)/title=&#8221;S2&#8221; HA, lon_z, lat_z; go fland
+set viewport ll
+shade/k=3/j=300:700/i=250:500/levels=(0,1,0.1)/title=&#8221;N2&#8221; HA, lon_z, lat_z; go fland
+set viewport lr
+shade/k=4/j=300:700/i=250:500/levels=(0,1,0.1)/title=&#8221;K2&#8221; HA, lon_z, lat_z; go fland</p>
+<p class="last">set win 2
+set viewport ul
+shade/k=5/j=300:700/i=250:500/levels=(0,1,0.1)/title=&#8221;K1&#8221; HA, lon_z, lat_z; go fland
+set viewport ur
+shade/k=6/j=300:700/i=250:500/levels=(0,1,0.1)/title=&#8221;O1&#8221; HA, lon_z, lat_z; go fland
+set viewport ll
+shade/k=7/j=300:700/i=250:500/levels=(0,1,0.1)/title=&#8221;P1&#8221; HA, lon_z, lat_z; go fland
+set viewport lr
+shade/k=8/j=300:700/i=250:500/levels=(0,1,0.1)/title=&#8221;Q1&#8221; HA, lon_z, lat_z; go fland</p>
+</dd>
+</dl>
+<p>Conclusion. Plot the proposed domain:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
+
+ferret
+use coordinates_ORCA_R12.nc
+set win 1; shade/X=50:730/Y=1250:1800 E2T, nav_lon, nav_lat ; go fland
+set win 2; set viewport upper; shade/i=50:730/j=1250:1800 NAV_LAT
+set win 2; set viewport lower; shade/i=50:730/j=1250:1800 NAV_LON
+</pre></div>
+</div>
+<p>&#8212;</p>
 </div>
 </div>
+<hr class="docutils" />
 <div class="section" id="old-notes-template">
 <h1>OLD NOTES TEMPLATE<a class="headerlink" href="#old-notes-template" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
@@ -402,6 +539,8 @@ qsub -q short runscript
 <li><a class="reference internal" href="#issues-that-arose">Issues that arose</a></li>
 <li><a class="reference internal" href="#summary-plan">Summary / Plan</a></li>
 <li><a class="reference internal" href="#recipe-notes">Recipe Notes</a></li>
+<li><a class="reference internal" href="#build-the-new-se-asia-configuration-at-1-12-degree-r12">Build the new SE Asia configuration at 1/12 degree, R12</a></li>
+<li><a class="reference internal" href="#generate-new-coordinates-file">Generate new coordinates file</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#old-notes-template">OLD NOTES TEMPLATE</a><ul>

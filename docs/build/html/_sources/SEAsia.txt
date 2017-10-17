@@ -44,7 +44,11 @@ Recipe Notes
 
 Define working directory, and other useful shortcuts::
 
-  export WDIR=/work/n01/n01/jelt/ACCORD/
+  export WDIR=/work/n01/n01/jelt/ACCORD
+  export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
+  export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
+  export EXP=$WDIR/EXP_EAFRICA
+
   export CDIR=$WDIR/ ?????   dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
   export TDIR=$WDIR/ ?????   dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
@@ -55,28 +59,178 @@ Load modules::
   module load cray-hdf5-parallel
 
 
+
+
 Make directory and copy stuff from James' simulation::
 
   mkdir $WDIR
-  ln -s xios ...
-  ln -s nemo.exe ...
-  cp namelist_??? ...
-  cp iodef.xml ...
+  mkdir $WDIR/EXP_EAFRICA
 
-Either copy or link the forcings
+  cp $JEXP/rs_R12 $EXP/.             # run script
+  cp $JEXP/namelist_cfg_R12 $EXP/.   # copy namelist_cfg
+  ln -s $JEXP/../../SHARED/namelist_ref $EXP/.
+  cp $JEXP/iodef.xml $EXP/.
 
-Edit the namelist_cfg for new path names.
+  ln -s $JEXP/../BLD/bin/nemo.exe $EXP/opa
+
+Make xios or copy from James:
+  ln -s ??? xios_server.exe
+
+Build XIOS2 @ r1080::
+
+  cd $WDIR
+  svn co -r1080 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0
+  cd $WDIR/xios-2.0
+  cp ../../LBay/xios-1.0/arch/arch-XC30_ARCHER.* ./arch
+
+Implement make command::
+
+  ./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par
+
+Link xios executable to the EXP directory::
+
+  ln -s  $WDIR/xios-2.0/bin/xios_server.exe $EXP/xios_server.exe
+
+
+Build NEMO trunk @ r7853::
+
+  cd $WDIR
+  svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@7853
+  #cp xios-2.0/arch/arch-XC30_ARCHER.* NEMOGCM/ARCH
+
+
+Copy compiler keys from James::
+
+  cd $WDIR/NEMOGCM/CONFIG
+  cp $JEXP/../cpp_* ACCORD/cpp_ACCORD.fcm
+
+Copy James' entire WORK directory to MY_SRC::
+
+  cp $JEXP/../WORK/* /work/n01/n01/jelt/ACCORD/NEMOGCM/CONFIG/ACCORD/MY_SRC/.
+
+Edit XIOS_HOME in compiler options::
+
+  vi $WDIR/NEMOGCM/ARCH/arch-XC_ARCHER_INTEL.fcm
+  ...
+  %XIOS_HOME           /work/n01/n01/jelt/ACCORD/xios-2.0
+
+On first make only choose OPA_SRC::
+
+  ./makenemo -n ACCORD -m XC_ARCHER_INTEL -j 10 clean
+  ./makenemo -n ACCORD -m XC_ARCHER_INTEL -j 10
+
+It might break if directory structure is built from makenemo. Then remove
+``key_lim2`` from cpp*fcm file and remake.
+
+
+**It does compile.**
+
+
+
+
+
+----
+
+Look at runscript. Add module load commands::
+
+  vi rs_12
+  ...
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel
+  module load cray-hdf5-parallel
+  ...
+  echo `date` : Launch Job
+  touch stdouterr
+  rm coordinates.bdy.nc
+  rm bdy_mask.nc
+  rm domain_cfg.nc
+  rm TIDES
+  ln -s $JINPUTS/R12/coordinates_E-AFRICA_R12.bdy.nc coordinates.bdy.nc
+  ln -s $JINPUTS/R12/bdy_mask_E-AFRICA_R12.nc bdy_mask.nc
+  ln -s $JINPUTS/R12/domain_cfg_R12.nc domain_cfg.nc
+  #ln -s $JINPUTS/R24/TIDES TIDES
+  ln -s $JINPUTS/R12/TIDES TIDES
+  cp namelist_cfg_R12 namelist_cfg
+  aprun -b -n $NEMOproc -N 24 ./opa   >&  stdouterr_nemo : -N 1 -n $XIOSproc ./xios_server.exe >&  stdouterr_xios
+
+---
+
+Submit run::
+
+  cd $EXP
+  qsub rs_R12
+
+
+  4819100.sdb
+
+
+**PENDING: 28 Sept 2017. DOES IT WORK?**
 
 
 
 
 
 
+----
+
+*(27 Sept 2017)*
+
+Build the new SE Asia configuration at 1/12 degree, R12
+=======================================================
+
+Generate new coordinates file
+=============================
+
+Inspect TPXO harmonic amplitudes to find a good cut off location for boundaries:
+
+cd /work/jelt/tpxo7.2
+ferret
+go  plot_SEAsia_harmonics.jnl
+
+... note::
+  ! plot_SEAsia_harmonics.jnl
+  ! Plot tpxo harmonics for the SE Asia region.
+  ! Want to build a NEMO config without significant amphidromes on the boundary
+
+  use h_tpxo7.2.nc
+
+  set win 1
+  set viewport ul
+  shade/k=1/j=300:700/i=250:500/levels=(0,1,0.1)/title="M2" HA, lon_z, lat_z; go fland
+  set viewport ur
+  shade/k=2/j=300:700/i=250:500/levels=(0,1,0.1)/title="S2" HA, lon_z, lat_z; go fland
+  set viewport ll
+  shade/k=3/j=300:700/i=250:500/levels=(0,1,0.1)/title="N2" HA, lon_z, lat_z; go fland
+  set viewport lr
+  shade/k=4/j=300:700/i=250:500/levels=(0,1,0.1)/title="K2" HA, lon_z, lat_z; go fland
+
+  set win 2
+  set viewport ul
+  shade/k=5/j=300:700/i=250:500/levels=(0,1,0.1)/title="K1" HA, lon_z, lat_z; go fland
+  set viewport ur
+  shade/k=6/j=300:700/i=250:500/levels=(0,1,0.1)/title="O1" HA, lon_z, lat_z; go fland
+  set viewport ll
+  shade/k=7/j=300:700/i=250:500/levels=(0,1,0.1)/title="P1" HA, lon_z, lat_z; go fland
+  set viewport lr
+  shade/k=8/j=300:700/i=250:500/levels=(0,1,0.1)/title="Q1" HA, lon_z, lat_z; go fland
+
+
+Conclusion. Plot the proposed domain::
+
+  $livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
+
+  ferret
+  use coordinates_ORCA_R12.nc
+  set win 1; shade/X=50:730/Y=1250:1800 E2T, nav_lon, nav_lat ; go fland
+  set win 2; set viewport upper; shade/i=50:730/j=1250:1800 NAV_LAT
+  set win 2; set viewport lower; shade/i=50:730/j=1250:1800 NAV_LON
 
 
 
 
+---
 
+----
 
 ==================
 OLD NOTES TEMPLATE

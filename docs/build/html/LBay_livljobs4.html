@@ -1068,16 +1068,17 @@ $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_W 5
 <p><strong>Whoo hoo! It works! With a semi-diurnal SSH signal</strong></p>
 <p>At this point I&#8217;ll move onto the SE Asia configuration.</p>
 <hr class="docutils" />
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p><strong>TO DO</strong> another time / for Solent config</p>
-<ul>
-<li><p class="first">Change namelist to include tidal harmonic analysis:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
-</pre></div>
-</div>
-<p>&amp;nam_diaharm   !   Harmonic analysis of tidal constituents (&#8216;key_diaharm&#8217;)
+<ul class="simple">
+<li>Change namelist to include tidal harmonic analysis:</li>
+</ul>
+<p>!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;
+&amp;nam_diaharm   !   Harmonic analysis of tidal constituents (&#8216;key_diaharm&#8217;)
 !&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
 <blockquote>
-<div><p>nit000_han = 1440         ! First time step used for harmonic analysis
+<div>nit000_han = 1440         ! First time step used for harmonic analysis
 nitend_han = 14400        ! Last time step used for harmonic analysis
 nstep_han  = 15        ! Time step frequency for harmonic analysis
 tname(1)     =   &#8216;O1&#8217;  !  name of constituent
@@ -1088,12 +1089,11 @@ tname(5)     =   &#8216;M2&#8217;
 tname(6)     =   &#8216;S2&#8217;
 tname(7)     =   &#8216;K2&#8217;
 tname(8)     =   &#8216;Q1&#8217;
-tname(9)     =   &#8216;M4&#8217;</p>
-</div></blockquote>
-</li>
-<li><p class="first">Harmonise all wet forcing to use AMM60 data.</p>
-</li>
+tname(9)     =   &#8216;M4&#8217;</div></blockquote>
+<ul class="last simple">
+<li>Harmonise all wet forcing to use AMM60 data.</li>
 </ul>
+</div>
 </div>
 </div>
 </div>
