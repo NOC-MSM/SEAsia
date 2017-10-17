@@ -27,7 +27,7 @@
 !-----------------------------------------------------------------------
    cn_exp      =    "Lbay"  !  experience name
    nn_it000    =     1   !  first time step
-   nn_itend    =   14400   !  last  time step (std 5475)
+   nn_itend    =  43200 ! 10day=14400   !  last  time step (std 5475)
    nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
@@ -44,9 +44,9 @@
    ln_iscpl    = .false.   !  cavity evolution forcing or coupling to ice sheet model
    nn_istate   =       0   !  output the initial state (1) or not (0)
    ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
-   nn_stock    =   14400   !  frequency of creation of a restart file (modulo referenced to 1)
+   nn_stock    =   43200 ! 14400   !  frequency of creation of a restart file (modulo referenced to 1)
    nn_stocklist = 0,0,0,0,0,0,0,0,0,0 ! List of timesteps when a restart file is to be written
-   nn_write    =   60   !  frequency of write in the output file   (modulo referenced to nn_it000)
+   nn_write    =   43200 ! 14400   !  frequency of write in the output file   (modulo referenced to nn_it000)
    ln_mskland  = .false.   !  mask land points in NetCDF outputs (costly: + ~15%)
    ln_cfmeta   = .false.   !  output additional data to netCDF files required for compliance with the CF metadata standard
    ln_clobber  = .true.    !  clobber (overwrite) an existing file
@@ -87,44 +87,43 @@
    ln_zps      = .false.   !  z-coordinate - partial steps
    ln_sco      = .true.   !  s- or hybrid z-s-coordinate
    ln_isfcav   = .false.   !  ice shelf cavity
-   ln_linssh   = .false.   !  linear free surface
+!   ln_linssh   = .false.   !  linear free surface
 /
+!-----------------------------------------------------------------------
 &namzgr_sco
-ln_s_sf12=.true.,
-ln_s_sh94=.false.,
-ln_sigcrit=.true.,
-rn_alpha=4.4,
-rn_bb=0.8,
-rn_efold=0.0,
-rn_hc=10000.0,
-rn_rmax=1.0,
-rn_sbot_max=10000.0,
-rn_sbot_min=1.0e-5,
-rn_theta=6.0,
-rn_thetb=1.0,
-rn_zb_a=0.024,
-rn_zb_b=-0.2,
-rn_zs=1.0,
+!-----------------------------------------------------------------------
+   ln_s_sf12=.true.,
+   ln_s_sh94=.false.,
+   ln_sigcrit=.true.,
+   rn_alpha=4.4,
+   rn_bb=0.8,
+   rn_efold=0.0,
+   rn_hc=10000.0,
+   rn_rmax=1.0,
+   rn_sbot_max=10000.0,
+   rn_sbot_min=1.0e-5,
+   rn_theta=6.0,
+   rn_thetb=1.0,
+   rn_zb_a=0.024,
+   rn_zb_b=-0.2,
+   rn_zs=1.0,
 /
 !-----------------------------------------------------------------------
 &namdom        !   space and time domain (bathymetry, mesh, timestep)
 !-----------------------------------------------------------------------
 
-!   ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
+   ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
    nn_closea   =    0      !  remove (=0) or keep (=1) closed seas and lakes (ORCA)
    !
    nn_msh      =    0      !  create (>0) a mesh file or not (=0)
    rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
    !
-   rn_rdt      =  6.     !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_rdt      =  60.     !  time step for the dynamics (and tracer if nn_acc=0)
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module
 !   ldbletanh   =    .false.             !  Use/do not use double tanf function for vertical coordinates
 /
-!&namsplit
-!ln_bt_nn_auto=.true.,
-!nn_baro=30,
 !-----------------------------------------------------------------------
 &namtsd        !   data : Temperature  & Salinity
 !-----------------------------------------------------------------------
@@ -277,7 +276,7 @@ rn_zs=1.0,
    sn_humi     = 'cutdown_drowned_q2_DFS5.1.1'        ,         3         , 'q2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
    sn_prec     = 'cutdown_drowned_precip_DFS5.1.1' ,       24         , 'precip',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
    sn_snow     = 'cutdown_drowned_snow_DFS5.1.1' ,        24         , 'snow'    ,   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_tdif     = 'taudif_core'                 ,        24         , 'taudif'  ,   .false.    , .true. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+!   sn_tdif     = 'taudif_core'                 ,        24         , 'taudif'  ,   .false.    , .true. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
    !                    !  bulk algorithm :
    ln_NCAR     = .false.   ! "NCAR"      algorithm   (Large and Yeager 2008)
    ln_COARE_3p0= .true.   ! "COARE 3.0" algorithm   (Fairall et al. 2003)
@@ -556,17 +555,17 @@ rn_zs=1.0,
 !-----------------------------------------------------------------------
    ln_tide     = .true.
    ln_tide_pot = .true.    !  use tidal potential forcing
-   ln_tide_ramp= .true.   !
+   ln_tide_ramp= .false.   !
    rdttideramp =    1.     !
-!   clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(4)    = 'K1'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(5)    = 'N2'   !  name of constituent - all tidal components must be set in namelist_cfg
-   clname(1)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(7)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(8)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
-!   clname(9)   = 'M4'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(4)    = 'K1'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(5)    = 'N2'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(6)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(7)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(8)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
+   clname(9)   = 'M4'   !  name of constituent - all tidal components must be set in namelist_cfg
 /
 !-----------------------------------------------------------------------
 &nambdy        !  unstructured open boundaries
@@ -1132,8 +1131,8 @@ rn_zs=1.0,
 !-----------------------------------------------------------------------
 &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
 !-----------------------------------------------------------------------
-    nit000_han = 1         ! First time step used for harmonic analysis
-    nitend_han = 7200      ! Last time step used for harmonic analysis
+    nit000_han = 14400         ! First time step used for harmonic analysis
+    nitend_han = 43200 ! 7200      ! Last time step used for harmonic analysis
     nstep_han  = 5        ! Time step frequency for harmonic analysis
     tname(1)   = 'M2'      ! Name of tidal constituents
     tname(2)   = 'S2'      ! Name of tidal constituents
