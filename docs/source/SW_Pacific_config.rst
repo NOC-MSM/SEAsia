@@ -1,6 +1,6 @@
-=============================================================================
-Grid generation and inputs files using Liverpool machine. Application SE Asia
-=============================================================================
+================================================================================
+Grid generation and inputs files using Liverpool machine. Application SW Pacific
+================================================================================
 
 * Port of LBay.rst, which was written for ARCHER. This is for liverpool machines
 * Concerned here with generating grids, bathymetry and forcing files for a new config
@@ -19,7 +19,7 @@ Step One:-
 
 Define working and other directory, load relevent modules::
 
-  export CONFIG=LBay
+  export CONFIG=SWPacific
   export WDIR=/work/$USER/NEMO/$CONFIG
   export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
 	export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
@@ -43,11 +43,14 @@ CDIR, TDIR and INPUTS do not currently exist. Lets make them!::
         cp INPUTS/coordinates_ORCA_R12.nc $START_FILES
         cp Mobius/arch* $START_FILES
         cp Mobius/1arch* $START_FILES
+        cp Mobius/runscript.pbs $START_FILES
         cp /work/jelt/NEMO/SEAsia/START_FILES/arch-pgf90_linux_jb.fcm $START_FILES
         cp INPUTS/dtatsd.F90 $START_FILES
         cp INPUTS/namelist_R12 $START_FILES
         cp INPUTS/namelist_reshape_bilin_gebco $START_FILES
         cp INPUTS/namelist.bdy $START_FILES
+        cp INPUTS/namelist_cfg $START_FILES
+        cp INPUTS/namelist_ref $START_FILES
         cp /work/jelt/NEMO/LBay/INPUTS/NNA/. $START_FILES
         rm INPUTS
 
@@ -128,7 +131,7 @@ passing of arguments). **For some reason GRIDGEN doesn’t like INTEL.**
 
 Copy PATHS again:: #I added some paths here and changed some to match the ones used in MOBIUS.
 
-  export CONFIG=LBay
+  export CONFIG=SWPacific
   export WDIR=/work/$USER/NEMO/$CONFIG
   export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
   export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
@@ -176,7 +179,7 @@ It is from global NEMO 1/12, and in INPUTS::
 
 Inspect this parent coordinates file to define the boundary indices for the new config.
 
-Use indices  **i=3385:3392 j=2251:2266**
+Use indices  **i=865:1405 j=1116:1494**
 
 ---
 
@@ -188,22 +191,17 @@ ORCA_R12 as course parent grid. Keep same grid ie. 1/12 degree, so scale factors
   vi namelist_R12
   ...
 
-  JEFF::
-  cn_parent_coordinate_file = '../../../../INPUTS/coordinates_ORCA_R12.nc'
-
-  TOM::
-  cn_parent_coordinate_file = '../../../../START_FILES/coordinates_ORCA_R12.nc'
   cn_parent_coordinate_file = '../../../../START_FILES/coordinates_ORCA_R12.nc'
 
   ...
-  nn_imin = 3385
-  nn_imax = 3392
-  nn_jmin = 2251
-  nn_jmax = 2266
+  nn_imin = 865
+  nn_imax = 1405
+  nn_jmin = 1116
+  nn_jmax = 1494
 
   #the next two parameters define the scale factor of the output grid 1 being the same resolution. Higher integers results in a finer grid. i.e. 2 = two times finer etc.
-  nn_rhox  = 2 
-  nn_rhoy = 2
+  nn_rhox  = 5 
+  nn_rhoy = 5
 
   ln -s namelist_R12 namelist.input
   ./create_coordinates.exe
@@ -221,22 +219,23 @@ TOM::
 File summary::
 
   ncdump -h $WDIR/INPUTS/coordinates.nc
+
 netcdf coordinates {
 dimensions:
-        x = 10 ;
-        y = 18 ;
+        x = 2706 ;
+        y = 1901 ;
         z = 1 ;
         time = UNLIMITED ; // (1 currently)
 variables:
         float nav_lon(y, x) ;
                 nav_lon:units = "degrees_east" ;
-                nav_lon:valid_min = -3.666563f ;
-                nav_lon:valid_max = -2.68825f ;
+                nav_lon:valid_min = -179.9833f ;
+                nav_lon:valid_max = 189.9667f ;
                 nav_lon:long_name = "Longitude" ;
         float nav_lat(y, x) ;
                 nav_lat:units = "degrees_north" ;
-                nav_lat:valid_min = 53.04568f ;
-                nav_lat:valid_max = 53.98522f ;
+                nav_lat:valid_min = -30.12441f ;
+                nav_lat:valid_max = 0.04999999f ;
                 nav_lat:long_name = "Latitude" ;
         float nav_lev(z) ;
                 nav_lev:units = "model_levels" ;
@@ -287,8 +286,9 @@ variables:
                 e2v:missing_value = 1.e+20f ;
         double e2f(z, y, x) ;
                 e2f:missing_value = 1.e+20f ;
+}
 
-
+Looking at the tools documentation it looks like it will take into account the crossing of the anti meridian where it jumps from 19- degrees to -180 degrees. However I am not sure if the bathymetry will work. I think it will need to match.
 
 Now we need to generate a bathymetry on this new grid.
 

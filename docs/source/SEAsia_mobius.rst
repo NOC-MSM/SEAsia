@@ -25,6 +25,7 @@ Define working and other directory, load relevent modules::
 	export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
   export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
 	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+  export EXP=$$CDIR/$CONFIG/EXP00
 
   module purge
 	module load shared intel/compiler/64/14.0/2013_sp1.3.174 mvapich2/intel/64/2.0b slurm/14.03.0 cluster-tools/7.0
@@ -73,8 +74,6 @@ Compile XIOS::
 
 Step two. Obtain and apply patches::
 
-	export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 	cd $CDIR/../NEMO/OPA_SRC/SBC
 	patch -b < $START_FILES/fldread.patch
 	cd ../DOM
@@ -85,7 +84,7 @@ Step two. Obtain and apply patches::
 	rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
   cp $START_FILES/1arch-mobius_intel.fcm $CDIR/../ARCH/arch-mobius_intel.fcm
 
-Edit XIOS path in arch file::
+Edit XIOS path in arch file (e.g.)::
 
   vi $CDIR/../ARCH/arch-mobius_intel.fcm
   ...
@@ -154,6 +153,9 @@ Setup for PGI modules and compile::
   cp $START_FILES/arch-pgf90_linux_jb.fcm $CDIR/../ARCH/arch-pgf90_linux_jb.fcm
   #get arch file from Jeff's workspace first
   cp $START_FILES/arch-pgf90_linux_jb.fcm $TDIR/../ARCH/arch-pgf90_linux_jb.fcm
+
+  module add netcdf/gcc/4.1.3
+  module add pgi/15.4
 
   ./maketools -n WEIGHTS -m pgf90_linux_jb
   ./maketools -n REBUILD_NEMO -m pgf90_linux_jb
@@ -231,6 +233,10 @@ Conclusion. Plot the proposed domain::
 
 Use indices  **i=50:730 j=1250:1800**
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8d8cc495e0d0d6b3e203f1472532f42d6ddd7a6c
 ---
 
 Copy namelist file from INPUTS and edit with new indices, retaining use of
@@ -265,12 +271,12 @@ Move this coords file there as ``coordinates.nc::
 
 TOM::
   cd $WDIR
-  mkdir INPUTS 
+  mkdir INPUTS
   mv 1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc
 
 File summary::
 
-  ncdump -h $WDIR/INPUTS/coordinates.nc
+  ncdump -h $INPUTS/coordinates.nc
   netcdf coordinates {
   dimensions:
   	x = 683 ;
@@ -314,17 +320,28 @@ Now we need to generate a bathymetry on this new grid.
 2. Generate bathymetry file
 +++++++++++++++++++++++++++
 
-Download some GEBCO 2014 data (75E,-21N,134E,25N) and copy to $INPUTS::
+Take GEBCO bathymetry. For a domain as large as SE Asia, the 30-minute GEBCO data is too large to process and needs some spatial filtering.
+BODC also host a 1-minute data set (2008) which should work without pre-processing but is not updated.
 
- livmaf$ scp ~/Downloads/RN-9621_1506544326915/GEBCO_2014_2D_75.0_-21.0_134.0_25.0.nc jelt@livljobs4.nerc-liv.ac.uk:$INPUTS/GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc
+.. warning::
 
+  A 30-second GEBCO cutout is too large to process for the SE Asia domain (7081 x 5521 pts). The older 1-minute data is fine.
+
+
+Download some GEBCO 2014 and 2008 data (75E,-21N,134E,25N) and copy to $INPUTS::
+
+ livmaf$
+ scp ~/Downloads/RN-9621_1506544326915/GEBCO_2014_2D_75.0_-21.0_134.0_25.0.nc jelt@livljobs4.nerc-liv.ac.uk:$INPUTS/GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc
+ scp ~/Downloads/RN-6060_1506606001516/GRIDONE_2D_74.0_-21.0_134.0_25.0.nc jelt@livljobs4.nerc-liv.ac.uk:$INPUTS/GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc
+
+**In the following I use the 2008 data**
 Copy namelist for reshaping GEBCO data::
 
   cp $START_FILES/namelist_reshape_bilin_gebco $INPUTS/.
 
 Edit namelist to point to correct input file. Edit lat and lon variable names to
  make sure they match the nc file content (used e.g.
-``ncdump -h GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc`` to get input
+``ncdump -h GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc`` to get input
 variable names)::
 
   vi $INPUTS/namelist_reshape_bilin_gebco
@@ -350,7 +367,7 @@ noted a problem with the default nco module)*::
 
   cd $INPUTS
   module load nco/gcc/4.4.2.ncwa
-  ncap2 -s 'where(elevation > 0) elevation=0' GEBCO_2014_2D_75.0_-21.0_134.0_25.0.nc tmp.nc
+  ncap2 -s 'where(elevation > 0) elevation=0' GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc tmp.nc
   ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
   rm tmp.nc
 
@@ -362,6 +379,7 @@ Restore the original modules for building tools, which were tampered with to fix
 
 Execute first scrip thing::
 
+  cd $INPUTS
   $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
 
 Output files::
@@ -379,33 +397,6 @@ Output files::
 
   data_nemo_bilin_gebco.nc
 
-.. note::
-  This is fast on ARCHER but does not work for me on livljobs4. It just hangs. Running on ARCHER the output is::
-
-    Using latitude bins to restrict search.
-     Computing remappings between:
-    Remapped regular grid for SCRIP
-
-                          and
-    Remapped NEMO grid for SCRIP
-
-    jelt@archer$>
-
-
-I need to get things moving so I will use ARCHER to build these files. (Not very helpful for some I know)
-Perhaps it is a problem with the config not the tools...
-
-.. note::
-
-  Make a temporary directory on ARCHER and copy in ``gebco_in.nc``, ``cordinates.nc`` and ``namelist_reshape_bilin_gebco``
-
-  ssh archer
-  mkdir /work/n01/n01/jelt/tmp/
-  scp $INPUTS/gebco
-
-
-
-
 Execute third scip thing::
 
   $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
@@ -415,9 +406,107 @@ Output files::
   bathy_meter.nc
 
 
+.. note:: ferret
+
+ use bathy_meter.nc
+ shade log(BATHYMETRY), nav_lon, nav_lat; go land
+
 
 3. Generate initial conditions
 ++++++++++++++++++++++++++++++
+
+
+Copy ``make.macro`` file and edit the path if necessary::
+**FIX** to the notes (copied from jdha instead): ``cp $START_FILES/make.macro ./``::
+
+  cp $START_FILES/make.macro /work/jelt/sosie/.
+
+  vi /home/n01/n01/jelt/sosie/make.macro
+  # Directory to install binaries:
+  INSTALL_DIR = /login/jdha/local
+
+Try James' path. Untested...
+
+Actually want to get the tides stuff sorted.
+
+...
+
+---
+
+**I am going to skip 3. Generating Initial Conditions and 4. Generate weight
+for atm forcing**
+
+---
+
+5. Generate mesh and mask files for open boundary conditions
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Run the model to generate the mesh and mask files.
+*(I should look like this when all the files are in place. Structure copied from ARCHER)*::
+
+For ARCHER::
+
+  cd $CDIR
+  ln -s $INPUTS/bathy_meter.nc $EXP/bathy_meter.nc
+  ln -s $INPUTS/coordinates.nc $EXP/coordinates.nc
+  cp $START_FILES/runscript.pbs $EXP/.
+  cp $START_FILES/namelist_cfg $EXP/namelist_cfg
+  cp $START_FILES/namelist_ref $EXP/namelist_ref
+  ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10 clean
+  ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
+  cd $EXP
+  ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
+
+
+Then submit job::
+
+  qsub -q short runscript
+
+For MOBIUS::
+  ssh MOBIUS
+  module purge
+  module load shared intel/compiler/64/14.0/2013_sp1.3.174 mvapich2/intel/64/2.0b slurm/14.03.0 cluster-tools/7.0
+  export CONFIG=SEAsia
+  export WDIR=/work/$USER/NEMO/$CONFIG
+  export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
+  export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
+  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+  export EXP=$CDIR/$CONFIG/EXP00
+  cd $CDIR
+  ln -s $INPUTS/bathy_meter.nc $EXP/bathy_meter.nc
+  ln -s $INPUTS/coordinates.nc $EXP/coordinates.nc
+  cp $START_FILES/runscript.pbs $EXP/.
+  cp $START_FILES/namelist_cfg $EXP/namelist_cfg
+  cp $START_FILES/namelist_ref $EXP/namelist_ref
+  ./makenemo -n SEAsia -m mobius_intel -j 10 clean
+  ./makenemo -n SEAsia -m mobius_intel -j 10
+  cd $EXP
+  ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
+  sed 's/rn_ahm_0_lap/rn_ahm_0/' namelist_cfg > tmp; mv tmp namelist_cfg
+
+Then submit job::
+
+  sbatch runscript.pbs
+
+REsults in 9 mesh_mask.nc files these need to be rebuilt into one nc file for the next step::
+
+  ssh livljobs4
+  export CONFIG=SEAsia
+  export WDIR=/work/$USER/NEMO/$CONFIG
+  export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
+  export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
+  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+  export EXP=$CDIR/$CONFIG/EXP00
+
+  module add netcdf/gcc/4.1.3
+  module add pgi/15.4
+
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_mask 96
+  #mv mesh_mask.nc $WDIR/INPUTS
+  #rm mesh_* mask_* LBay_0000*
+  #cd $INPUTS
 
 
 
