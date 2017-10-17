@@ -65,8 +65,8 @@ Collect essential files
 
 Note you might have to mkdir the odd directory or two...::
 
-  cp $WDIR/../LBay/START_FILES/* $START_FILES/.
-  rm $START_FILES/*LBay*nc
+  cp $WDIR/../LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
+  cp $WDIR/../LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
 
 
 Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
@@ -173,20 +173,22 @@ Now we need to generate a bathymetry on this new grid.
 2. Generate bathymetry file
 +++++++++++++++++++++++++++
 
-Download some GEBCO data and copy to ARCHER::
+thopri downloaded some and merged some 1 minute GEBCO data for (-30N :0N , -170E : 145E ).
+Method in ``/work/thopri/NEMO/SWPacific/START_FILES/gebco_lon_convertor.py``
+Copy to ARCHER::
 
-  scp ~/Downloads/RN-5922_1488296787410/GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/.
+  livljobs4$ scp /work/thopri/NEMO/SWPacific/START_FILES/GRIDONE_2D_145_-30.0_-170.0_0.0.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
 
 Copy namelist for reshaping GEBCO data::
 
-  cp $INPUTS/namelist_reshape_bilin_gebco $WDIR/INPUTS/.
+  cp $START_FILES/namelist_reshape_bilin_gebco $INPUTS/.
 
 Edit namelist to point to correct input file. Edit lat and lon variable names to
  make sure they match the nc file content (used e.g.
-``ncdump -h GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc`` to get input
+``ncdump -h GRIDONE_2D_145_-30.0_-170.0_0.0.nc`` to get input
 variable names)::
 
-  vi $WDIR/INPUTS/namelist_reshape_bilin_gebco
+  vi $INPUTS/namelist_reshape_bilin_gebco
   ...
   &grid_inputs
     input_file = 'gebco_in.nc'
@@ -204,17 +206,21 @@ variable names)::
     input_name = "elevation"
 
 
-Do some things to 1) flatten out land elevations, 2) make depths positive. *(James
+Do some things to 1) flatten out land elevations, 2) make depths positive.
+Have to swap around with the modules to get nco working *(James
 noted a problem with the default nco module)*::
 
-  cd $WDIR/INPUTS
+  cd $INPUTS
+
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module load cray-netcdf cray-hdf5
+
   module load nco/4.5.0
-  ncap2 -s 'where(elevation > 0) elevation=0' GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc tmp.nc
+  ncap2 -s 'where(elevation > 0) elevation=0' GRIDONE_2D_145_-30.0_-170.0_0.0.nc tmp.nc
   ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
   rm tmp.nc
 
-
-Restore the original parallel modules, which were removed to fix tool building issue::
+Restore the original parallel modules::
 
   module unload nco cray-netcdf cray-hdf5
   module load cray-netcdf-hdf5parallel cray-hdf5-parallel
