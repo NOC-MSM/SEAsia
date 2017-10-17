@@ -82,8 +82,8 @@ Or just link XIOS executable to the EXP directory::
 Build TOOLS
 ===========
 
-To generate bathymetry, initial conditions and grid information we first need
-to compile some of the NEMO TOOLS. NB for some reason GRIDGEN doesn’t like INTEL
+To generate domain coords and rebuild tools we first need
+to compile some of the NEMO TOOLS.
 
 .. note: These are compiled with XIOS2. However DOMAINcfg has to be compiled
   with XIOS1. There is a README in the $TDIR/DOMAINcfg on what to do.
@@ -95,23 +95,7 @@ First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
   cd $TDIR
 
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
-
-.. note: Check which arch file this is. Surely should be consistent.
-   Though I don't attempt to change the GRIDGEN build
-::
-
-  ./maketools -n WEIGHTS -m XC_ARCHER_INTEL_XIOS1
   ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL_XIOS1
-
-  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  module swap PrgEnv-intel PrgEnv-cray
-  module load cray-netcdf cray-hdf5
-  ./maketools -n GRIDGEN -m XC_ARCHER    # This uses acc's XIOS_r474
-
-  module unload cray-netcdf cray-hdf5
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-
 
 
 
