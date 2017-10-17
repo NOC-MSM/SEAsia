@@ -10,7 +10,7 @@ Recipe Releases
 
 A number of branches (currently one) are 'released' when a recipe is sharable
 
-**LBay_NEMO4_livljobs4_archer_v0**: A Liverpool Bay configuration using NEMOv4 from GEBCO bathymetry.
+**BRANCH: LBay_NEMO4_livljobs4_archer_v0**: A Liverpool Bay configuration using NEMOv4 from GEBCO bathymetry.
 Forced with TPXO and NNA tidal boundary forcing.
 Set up includes description of T,S initial conditions;  T and S boundary forcing, and met forcing, though these are not switched on in the demonstration.
 This configuration is run on ARCHER and built on livljobs4/ARCHER.
