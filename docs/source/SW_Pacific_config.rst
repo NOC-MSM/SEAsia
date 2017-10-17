@@ -288,7 +288,7 @@ variables:
                 e2f:missing_value = 1.e+20f ;
 }
 
-Looking at the tools documentation it looks like it will take into account the crossing of the anti meridian where it jumps from 19- degrees to -180 degrees. However I am not sure if the bathymetry will work. I think it will need to match.
+Looking at the tools documentation it looks like it will take into account the crossing of the anti meridian where it jumps from 180 degrees to -180 degrees. However I am not sure if the bathymetry will work. I think it will need to match.
 
 Now we need to generate a bathymetry on this new grid.
 
