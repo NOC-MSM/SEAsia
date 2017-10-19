@@ -296,13 +296,9 @@ Download some GEBCO 2014 and 2008 data (75E,-21N,134E,25N) and copy to $INPUTS::
 
 .. note: Copying to livljobs4
 
-<<<<<<< HEAD:docs/source/SWPacific_archer_livljobs4.rst
-  livljobs4$ scp /work/thopri/NEMO/SWPacific_ver3.6/START_FILES/GRIDONE_2D_140_-35.0_-165.0_5.0.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
-=======
   livmaf$
   scp ~/Downloads/RN-9621_1506544326915/GEBCO_2014_2D_75.0_-21.0_134.0_25.0.nc jelt@livljobs4.nerc-liv.ac.uk:$INPUTS/GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc
   scp ~/Downloads/RN-6060_1506606001516/GRIDONE_2D_74.0_-21.0_134.0_25.0.nc jelt@livljobs4.nerc-liv.ac.uk:$INPUTS/GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc
->>>>>>> SEAsia:docs/source/SEAsia_archer_livljobs4.rst
 
 **In the following I use the 2008 data**
 Copy namelist for reshaping GEBCO data::
@@ -311,11 +307,7 @@ Copy namelist for reshaping GEBCO data::
 
 Edit namelist to point to correct input file. Edit lat and lon variable names to
  make sure they match the nc file content (used e.g.
-<<<<<<< HEAD:docs/source/SWPacific_archer_livljobs4.rst
-``ncdump -h GRIDONE_2D_140_-35.0_-165.0_5.0.nc`` to get input
-=======
 ``ncdump -h GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc`` to get input
->>>>>>> SEAsia:docs/source/SEAsia_archer_livljobs4.rst
 variable names)::
 
   vi $INPUTS/namelist_reshape_bilin_gebco
@@ -345,11 +337,7 @@ noted a problem with the default nco module)*::
   module load cray-netcdf cray-hdf5
 
   module load nco/4.5.0
-<<<<<<< HEAD:docs/source/SWPacific_archer_livljobs4.rst
-  ncap2 -s 'where(elevation > 0) elevation=0' GRIDONE_2D_140_-35.0_-165.0_5.0.nc tmp.nc
-=======
   ncap2 -s 'where(elevation > 0) elevation=0' GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc tmp.nc
->>>>>>> SEAsia:docs/source/SEAsia_archer_livljobs4.rst
   ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
   rm tmp.nc
 
@@ -392,11 +380,8 @@ Output files::
 3. Generate initial conditions
 ++++++++++++++++++++++++++++++
 
-<<<<<<< HEAD:docs/source/SWPacific_archer_livljobs4.rst
-.. note : don't bother with this
-=======
+
 .. note: Skip this for now.
->>>>>>> SEAsia:docs/source/SEAsia_archer_livljobs4.rst
 
     Copy ``make.macro`` file and edit the path if necessary::
     **FIX** to the notes (copied from jdha instead): ``cp $WDIR/INPUTS/make.macro ./``::
