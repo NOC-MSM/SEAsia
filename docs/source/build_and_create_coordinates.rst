@@ -31,7 +31,7 @@ scaled by the zoom factor.
 
 Move to the TOOL directory e.g.::
 
-  export TDIR=/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/TOOLS
+  #export TDIR=/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/TOOLS
   cd $TDIR
 
 Copy in the right ARCH file::
