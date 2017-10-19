@@ -709,7 +709,6 @@ Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, w
 
     Generates ``weights_bicubic_atmos.nc``.
 
-**GOT HERE**
 
 THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO *(20 Sept 2017)*
 If all the files are ready to go jump straight to `7. Generate boundary conditions with PyNEMO: Run PyNEMO`_

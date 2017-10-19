@@ -118,149 +118,155 @@ Otherwise we will use the weights tool in::
 **CAN USE NEW TOOL. SEE SEAsia NOTES**
 
 
+.. note : COPY bathy_meter.nc and coordinates.nc from Tom
+    /work/thopri/NEMO/SWPacific_ver3.6/INPUTS/bathy_meter.nc
+    /work/thopri/NEMO/SWPacific_ver3.6/INPUTS/coordinates.nc
 
-
-1. Generate new coordinates file
-++++++++++++++++++++++++++++++++
-
-Generate a ``coordinates.nc`` file from a parent NEMO grid at some resolution.
-**Plan:** Use tool ``agrif_create_coordinates.exe`` which reads cutting indices and
-parent grid location from ``namelist.input`` and outputs a new files with new
-resolution grid elements.
-
-.. warning:
-  Using the GRIDGEN/create_coordinates.exe tool runs into a problem for zoom factor
-  >1, since the horizontal spacing metric e.g. e[12]t always match
-  the parent grid. I think that this is a bug. The agrif version works.
-
-Edit namelist::
-
-  cd $TDIR/NESTING
-  vi namelist.input
-
-  &input_output
-      iom_activated = true
-  /
-  &coarse_grid_files
-      parent_coordinate_file = 'coordinates_ORCA_R12.nc'
-  /
-  &bathymetry
-  /
-  &nesting
-      imin = 865
-      imax = 1405
-      jmin = 1116
-      jmax = 1494
-      rho  = 5
-      rhot = 5
-      bathy_update = false
-  /
-  &vertical_grid
-  /
-  &partial_cells
-  /
-  &nemo_coarse_grid
-  /
-  &forcing_files
-  /
-  &interp
-  /
-  &restart
-  /
-  &restart_trc
-  /
-
-Build and execute agrif version of create_coordinates.exe.
-See `build_and_create_coordinates.rst`_
-
-This creates a new coordinatesfile with contents, which is now copied to
-INPUTS::
-
-  cp 1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc
-
-Now we need to generate a bathymetry on this new grid.
+    Otherwise I'd follow the following instuctions.
 
 
 
-2. Generate bathymetry file
-+++++++++++++++++++++++++++
+    1. Generate new coordinates file
+    ++++++++++++++++++++++++++++++++
 
-thopri downloaded some and merged some 1 minute GEBCO data for (-30N :0N , -170E : 145E ).
-Method in ``/work/thopri/NEMO/SWPacific/START_FILES/gebco_lon_convertor.py``
-Copy to ARCHER::
+    Generate a ``coordinates.nc`` file from a parent NEMO grid at some resolution.
+    **Plan:** Use tool ``agrif_create_coordinates.exe`` which reads cutting indices and
+    parent grid location from ``namelist.input`` and outputs a new files with new
+    resolution grid elements.
 
-  livljobs4$ scp /work/thopri/NEMO/SWPacific_ver3.6/START_FILES/GRIDONE_2D_140_-35.0_-165.0_5.0.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
+    .. warning:
+      Using the GRIDGEN/create_coordinates.exe tool runs into a problem for zoom factor
+      >1, since the horizontal spacing metric e.g. e[12]t always match
+      the parent grid. I think that this is a bug. The agrif version works.
 
-Copy namelist for reshaping GEBCO data::
+    Edit namelist::
 
-  cp $START_FILES/namelist_reshape_bilin_gebco $INPUTS/.
+      cd $TDIR/NESTING
+      vi namelist.input
 
-Edit namelist to point to correct input file. Edit lat and lon variable names to
- make sure they match the nc file content (used e.g.
-``ncdump -h GRIDONE_2D_140_-35.0_-165.0_5.0.nc`` to get input
-variable names)::
+      &input_output
+          iom_activated = true
+      /
+      &coarse_grid_files
+          parent_coordinate_file = 'coordinates_ORCA_R12.nc'
+      /
+      &bathymetry
+      /
+      &nesting
+          imin = 865
+          imax = 1405
+          jmin = 1116
+          jmax = 1494
+          rho  = 5
+          rhot = 5
+          bathy_update = false
+      /
+      &vertical_grid
+      /
+      &partial_cells
+      /
+      &nemo_coarse_grid
+      /
+      &forcing_files
+      /
+      &interp
+      /
+      &restart
+      /
+      &restart_trc
+      /
 
-  vi $INPUTS/namelist_reshape_bilin_gebco
-  ...
-  &grid_inputs
-    input_file = 'gebco_in.nc'
-    nemo_file = 'coordinates.nc'
-    ...
-    input_lon = 'lon'
-    input_lat = 'lat'
-    nemo_lon = 'glamt'
-    nemo_lat = 'gphit'
-    ...
+    Build and execute agrif version of create_coordinates.exe.
+    See `build_and_create_coordinates.rst`_
 
-    &interp_inputs
-    input_file = "gebco_in.nc"
-    ...
-    input_name = "elevation"
+    This creates a new coordinatesfile with contents, which is now copied to
+    INPUTS::
+
+      cp 1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc
+
+    Now we need to generate a bathymetry on this new grid.
 
 
-Do some things to 1) flatten out land elevations, 2) make depths positive.
-Have to swap around with the modules to get nco working *(James
-noted a problem with the default nco module)*::
 
-  cd $INPUTS
+    2. Generate bathymetry file
+    +++++++++++++++++++++++++++
 
-  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  module load cray-netcdf cray-hdf5
+    thopri downloaded some and merged some 1 minute GEBCO data for (-30N :0N , -170E : 145E ).
+    Method in ``/work/thopri/NEMO/SWPacific/START_FILES/gebco_lon_convertor.py``
+    Copy to ARCHER::
 
-  module load nco/4.5.0
-  ncap2 -s 'where(elevation > 0) elevation=0' GRIDONE_2D_140_-35.0_-165.0_5.0.nc tmp.nc
-  ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
-  rm tmp.nc
+      livljobs4$ scp /work/thopri/NEMO/SWPacific_ver3.6/START_FILES/GRIDONE_2D_140_-35.0_-165.0_5.0.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
 
-Restore the original parallel modules::
+    Copy namelist for reshaping GEBCO data::
 
-  module unload nco cray-netcdf cray-hdf5
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+      cp $START_FILES/namelist_reshape_bilin_gebco $INPUTS/.
 
-Execute first scrip thing (use old tools - already compiled)::
+    Edit namelist to point to correct input file. Edit lat and lon variable names to
+     make sure they match the nc file content (used e.g.
+    ``ncdump -h GRIDONE_2D_140_-35.0_-165.0_5.0.nc`` to get input
+    variable names)::
 
-  $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
+      vi $INPUTS/namelist_reshape_bilin_gebco
+      ...
+      &grid_inputs
+        input_file = 'gebco_in.nc'
+        nemo_file = 'coordinates.nc'
+        ...
+        input_lon = 'lon'
+        input_lat = 'lat'
+        nemo_lon = 'glamt'
+        nemo_lat = 'gphit'
+        ...
 
-Output files::
+        &interp_inputs
+        input_file = "gebco_in.nc"
+        ...
+        input_name = "elevation"
 
-  remap_nemo_grid_gebco.nc
-  remap_data_grid_gebco.nc
 
-Execute second scip thing (use old tools - already compiled)::
+    Do some things to 1) flatten out land elevations, 2) make depths positive.
+    Have to swap around with the modules to get nco working *(James
+    noted a problem with the default nco module)*::
 
-  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
+      cd $INPUTS
 
-Output files::
+      module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+      module load cray-netcdf cray-hdf5
 
-  data_nemo_bilin_gebco.nc
+      module load nco/4.5.0
+      ncap2 -s 'where(elevation > 0) elevation=0' GRIDONE_2D_140_-35.0_-165.0_5.0.nc tmp.nc
+      ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
+      rm tmp.nc
 
-Execute third scip thing (use old tools - already compiled)::
+    Restore the original parallel modules::
 
-  $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
+      module unload nco cray-netcdf cray-hdf5
+      module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-Output files::
+    Execute first scrip thing (use old tools - already compiled)::
 
-  bathy_meter.nc
+      $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
+
+    Output files::
+
+      remap_nemo_grid_gebco.nc
+      remap_data_grid_gebco.nc
+
+    Execute second scip thing (use old tools - already compiled)::
+
+      $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
+
+    Output files::
+
+      data_nemo_bilin_gebco.nc
+
+    Execute third scip thing (use old tools - already compiled)::
+
+      $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
+
+    Output files::
+
+      bathy_meter.nc
 
 
 3. Generate initial conditions
@@ -426,7 +432,8 @@ Copy essential files into DOMAINcfg directory::
     cp $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
     cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
 
-Edit the template namelist_cfg with only the essenetial domain building stuff::
+Edit the template namelist_cfg with only the essenetial domain building stuff.
+Get the indices from ``ncdump -h coordinates.nc``::
 
   cd $TDIR/DOMAINcfg
   vi namelist_cfg
@@ -454,11 +461,11 @@ Edit the template namelist_cfg with only the essenetial domain building stuff::
      !                       !
      cp_cfg      =  "orca"   !  name of the configuration
      jp_cfg      =       0   !  resolution of the configuration
-     jpidta      =      53   !  1st lateral dimension ( >= jpi )
-     jpjdta      =     109   !  2nd    "         "    ( >= jpj )
+     jpidta      =    1624   !  1st lateral dimension ( >= jpi )
+     jpjdta      =    1138   !  2nd    "         "    ( >= jpj )
      jpkdta      =      51   !  number of levels      ( >= jpk )
-     jpiglo      =      53   !  1st dimension of global domain --> i =jpidta
-     jpjglo      =     109   !  2nd    -                  -    --> j  =jpjdta
+     jpiglo      =    1624   !  1st dimension of global domain --> i =jpidta
+     jpjglo      =    1138   !  2nd    -                  -    --> j  =jpjdta
      jpizoom     =       1   !  left bottom (i,j) indices of the zoom
      jpjzoom     =       1   !  in data domain indices
      jperio      =       0   !  lateral cond. type (between 0 and 6)
@@ -473,7 +480,7 @@ Edit the template namelist_cfg with only the essenetial domain building stuff::
   &namdom        !   space and time domain (bathymetry, mesh, timestep)
   !-----------------------------------------------------------------------
      jphgr_msh   =       0               !  type of horizontal mesh
-  ...
+    ...
 
 .. note:
 
@@ -482,7 +489,7 @@ Edit the template namelist_cfg with only the essenetial domain building stuff::
 
 Build a script to run the executable::
 
-  vi $TDIR/DOMAINcdf/rs
+  vi $TDIR/DOMAINcfg/rs
 
   #!/bin/bash
   #PBS -N domain_cfg
