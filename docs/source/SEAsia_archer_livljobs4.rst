@@ -1043,7 +1043,6 @@ Create symbolic links from EXP directory::
 8. Run the configuration ON ARCHER. Turn on the tides
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-*(16 OCt 17)*
 Get important files into EXP directory. Should already have ``domain_cfg.nc``::
 
 
@@ -1106,7 +1105,7 @@ Create a short queue runscript::
 Edit ``namelist_cfg`` to make sure it is OK
 
 ---
-*PENDING. IF IT WORKS, ARCHIVE namelist_cfg too**
+*IT WORKS. IF IT WORKS, ARCHIVE namelist_cfg too**
 
 No met (missing slp) ``ln_usr=T``. rn_rdt=60s. Output more harmonics (20-30days).
 Run for 30 days::

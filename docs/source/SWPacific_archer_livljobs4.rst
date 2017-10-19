@@ -526,6 +526,7 @@ Try running it::
   cd $TDIR/DOMAINcfg
   qsub -q short rs
 
+**GOT HERE**
 
 Put a copy in $INPUTS for safe keeping::
 
