@@ -42,6 +42,7 @@ On **ARCHER**::
 
 #From the archer login node::
 
+  module load git/1.8.5.2
   git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct
 
 #Compute a compute node::
