@@ -79,8 +79,8 @@ Try it out::
 ----
 
 **ERROR**
-.. warning:
-
+::
+  
   Didn't find a proxy environment variable
   Traceback (most recent call last):
   File "/home/n01/n01/jelt/.conda/envs/nrct_env/bin/pynemo", line 11, in <module>
