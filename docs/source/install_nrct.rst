@@ -79,7 +79,7 @@ Try it out::
 ----
 
 **ERROR**
-
+.. warning:
 
   Didn't find a proxy environment variable
   Traceback (most recent call last):
