@@ -80,9 +80,9 @@ Try it out::
 
 **ERROR**
 
- pynemo -g -s namelist.bdy
-Didn't find a proxy environment variable
-Traceback (most recent call last):
+
+  Didn't find a proxy environment variable
+  Traceback (most recent call last):
   File "/home/n01/n01/jelt/.conda/envs/nrct_env/bin/pynemo", line 11, in <module>
     load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo')()
   File "/home/n01/n01/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pkg_resources/__init__.py", line 570, in load_entry_point
@@ -99,4 +99,4 @@ Traceback (most recent call last):
     from pynemo import pynemo_settings_editor
   File "/home/n01/n01/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_settings_editor.py", line 8, in <module>
     from PyQt4 import QtGui
-ImportError: /usr/lib64/libxcb-xlib.so.0: undefined symbol: _xcb_unlock_io
+  ImportError: /usr/lib64/libxcb-xlib.so.0: undefined symbol: _xcb_unlock_io
