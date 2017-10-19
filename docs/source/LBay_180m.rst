@@ -1,6 +1,6 @@
-============================================================
-Setting up a Liverpool Bay NEMO configuration, inc. livljob4
-============================================================
+=====================================
+Liverpool Bay 180m NEMO configuration
+=====================================
 
 **BUILD LBAY MODEL USING BATHY AND COORDINATES FROM POLCOMS**
 
@@ -12,15 +12,9 @@ URL:: http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html
 
 * Build notes with:: ~/GitLab/NEMO-RELOC/docs$ make html
 
-Originally tried building everything on ARCHER but ran into a java problem with
-NRCT (nee PyNEMO) that they needed to fix. Also MDP can't use ARCHER.
+Notes use a pragmatic combination of livljobs4 and archer. Will run on ARCHER.
 
-Then got it working on a combination of Liverpool machines for setup with
- simulations on ARCHER.
-
-Then tried to update this recipe with the pre-release of NEMOv4, which in
-particular has a new method for handling the domain configuration. For this I use
-the ORCHESTRA realease of the trunk (@r8395)
+For this I use the ORCHESTRA realease of the trunk (@r8395)
 
 The summary procedure:
 #. ARCHER: Get code. Build tools. Generate coordinates, bathymetry, domain_cfg.nc
@@ -61,7 +55,7 @@ Starting on ARCHER::
 
   ssh login.archer.ac.uk
 
-  export CONFIG=LBay
+  export CONFIG=LBay180
   export WORK=/work/n01/n01
   export WDIR=$WORK/$USER/$CONFIG
   export INPUTS=$WDIR/INPUTS
@@ -74,13 +68,15 @@ Starting on ARCHER::
   module swap PrgEnv-cray PrgEnv-intel
   module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-  export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
-  export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
-  export OCDIR=/work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/
+.. note: I copied the paths and modules into a file ~/.set_paths.
+   Execute with . ~/set_paths
+---
 
+Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
+Or just build::
 
-.. note:
- I will remove these links to James' files when I've figured out how to build my own
+  cd $CDIR
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
 ---
 
@@ -89,14 +85,6 @@ Checkout and build XIOS2 @ r1080 `build_XIOS2.html`_::
 Or just link XIOS executable to the EXP directory::
 
   ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
-
----
-
-Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
-Or just build::
-
-  cd $CDIR
-  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
 ---
 
@@ -109,6 +97,9 @@ to compile some of the NEMO TOOLS. NB for some reason GRIDGEN doesn’t like INT
 .. note: These are compiled with XIOS2. However DOMAINcfg has to be compiled
   with XIOS1. There is a README in the $TDIR/DOMAINcfg on what to do.
 
+As a first cut at this domain we will only force with tides. So much of these tools
+are needed. See other recipes for extra tools.
+
 First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
 (see userid and path in variable ``%XIOS_HOME``). Copy from ARCH *store*::
 
@@ -118,20 +109,20 @@ First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
 
 .. note: Check which arch file this is. Surely should be consistent.
-   Though I don't attempt to change the GRIDGEN build
-::
+   Though I think I need any of these
+  ::
 
-  ./maketools -n WEIGHTS -m XC_ARCHER_INTEL_XIOS1
-  ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL_XIOS1
+    ./maketools -n WEIGHTS -m XC_ARCHER_INTEL_XIOS1
+    ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL_XIOS1
 
-  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  module swap PrgEnv-intel PrgEnv-cray
-  module load cray-netcdf cray-hdf5
-  ./maketools -n GRIDGEN -m XC_ARCHER    # This uses acc's XIOS_r474
+    module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+    module swap PrgEnv-intel PrgEnv-cray
+    module load cray-netcdf cray-hdf5
+    ./maketools -n GRIDGEN -m XC_ARCHER    # This uses acc's XIOS_r474
 
-  module unload cray-netcdf cray-hdf5
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+    module unload cray-netcdf cray-hdf5
+    module swap PrgEnv-cray PrgEnv-intel
+    module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
 
 0. Copy bathymetry and coordinates file
@@ -144,195 +135,37 @@ Jason converted old POLCOMS files into NEMO speak::
 
 Copy these files to an EXP directory::
 
-  scp coordinates.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP_180/.
-  scp bathy_meter.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP_180/.
+  livljobs4$
+  cd /9900a/NEMO/jholt/mfiles/POLCOMS_2_NEMO
+  scp coordinates.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/4d_coordinates.nc
+  scp bathy_meter.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/bathy_meter.nc
 
-**ARCHER**
+Back on **ARCHER**
 ::
-  export EXP=$EXP/../EXP_180
-  cp $EXP/coordinates.nc $TDIR/DOMAINcfg/.
-  cp $EXP/bathy_meter.nc $TDIR/DOMAINcfg/.
 
   cd $TDIR/DOMAINcfg
-  ncdump -h coordinates.nc
+  ncdump -h 4d_coordinates.nc
   x = 269 ;
   y = 189 ;
   z = 1 ;
   time = 1 ;
   ...
 
-Edit namelist_cfg for this domain::
+Have to average over the depth and time dimensions to remove redundant dimensions::
 
-  vi namelist_cfg
-  &namcfg
-  ...
-  jpidta      =     269               !  1st lateral dimension ( >= jpi )
-  jpjdta      =     189               !  2nd    "         "    ( >= jpj )
-  jpkdta      =      51               !  number of levels      ( >= jpk )
-  jpiglo      =     269               !  1st dimension of global domain --> i =jpidta
-  jpjglo      =     189               !  2nd    -                  -    --> j  =jpjdta
-  ...
-**GOT THIS FAR**
+    module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+    module load cray-netcdf cray-hdf5
+    module load nco/4.5.0
 
+    ncwa -a time,z 4d_coordinates.nc  coordinates.nc
 
+    module unload nco cray-netcdf cray-hdf5
+    module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
+Copy to EXP::
 
-
-
-
-
-1. Generate new coordinates file
-++++++++++++++++++++++++++++++++
-
-Generate a ``coordinates.nc`` file from a parent NEMO grid at some resolution.
-**Plan:** Use tool ``create_coordinates.exe`` which reads cutting indices and
-parent grid location from ``namelist.input`` and outputs a new files with new
-resolution grid elements.
-
-First we need to figure out the indices for the new domain, from the parent grid.
-Move parent grid into INPUTS::
-
-  cp $START_FILES/coordinates_ORCA_R12.nc $INPUTS/.
-
-Inspect this parent coordinates file to define the boundary indices for the new config.
-
-Note, I used FERRET locally::
-
-  $livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
-  ferret etc
-  shade/i=3385:3392/j=2251:2266 NAV_LAT
-  shade/i=3385:3392/j=2251:2266 NAV_LON
-
-
-Copy namelist file from LH_reef and edit with new indices, retaining use of
-ORCA_R12 as course parent grid *(13 Oct: For ARCHER. Check the path to INPUTS)*::
-
-  cd $TDIR/GRIDGEN
-  cp $START_FILES/namelist_R12 ./
-  vi namelist_R12
-  ...
-  cn_parent_coordinate_file = '../../../INPUTS/coordinates_ORCA_R12.nc'
-  ...
-  nn_imin = 3385
-  nn_imax = 3392
-  nn_jmin = 2251
-  nn_jmax = 2266
-  nn_rhox  = 7
-  nn_rhoy = 7
-
-  ln -s namelist_R12 namelist.input
-  ./create_coordinates.exe
-  cp 1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc
-
-This creates a coordinates.nc file with contents, which are now copied to
-INPUTS::
-
-  dimensions:
-  	x = 57 ;
-  	y = 113 ;
-  	z = 1 ;
-  	time = UNLIMITED ; // (1 currently)
-  variables:
-    float nav_lon(y, x) ;
-    float nav_lat(y, x) ;
-    float nav_lev(z) ;
-    float time(time) ;
-    int time_steps(time) ;
-    double glamt(z, y, x) ;
-    double glamu(z, y, x) ;
-    double glamv(z, y, x) ;
-    double glamf(z, y, x) ;
-    double gphit(z, y, x) ;
-    double gphiu(z, y, x) ;
-    double gphiv(z, y, x) ;
-    double gphif(z, y, x) ;
-    double e1t(z, y, x) ;
-    double e1u(z, y, x) ;
-    double e1v(z, y, x) ;
-    double e1f(z, y, x) ;
-    double e2t(z, y, x) ;
-    double e2u(z, y, x) ;
-    double e2v(z, y, x) ;
-    double e2f(z, y, x) ;
-
-Now we need to generate a bathymetry on this new grid.
-
-
-
-2. Generate bathymetry file
-+++++++++++++++++++++++++++
-
-Download some GEBCO data and copy to ARCHER::
-
-  scp ~/Downloads/RN-5922_1488296787410/GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/.
-
-Copy namelist for reshaping GEBCO data::
-
-  cp $INPUTS/namelist_reshape_bilin_gebco $WDIR/INPUTS/.
-
-Edit namelist to point to correct input file. Edit lat and lon variable names to
- make sure they match the nc file content (used e.g.
-``ncdump -h GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc`` to get input
-variable names)::
-
-  vi $WDIR/INPUTS/namelist_reshape_bilin_gebco
-  ...
-  &grid_inputs
-    input_file = 'gebco_in.nc'
-    nemo_file = 'coordinates.nc'
-    ...
-    input_lon = 'lon'
-    input_lat = 'lat'
-    nemo_lon = 'glamt'
-    nemo_lat = 'gphit'
-    ...
-
-    &interp_inputs
-    input_file = "gebco_in.nc"
-    ...
-    input_name = "elevation"
-
-
-Do some things to 1) flatten out land elevations, 2) make depths positive. *(James
-noted a problem with the default nco module)*::
-
-  cd $WDIR/INPUTS
-  module load nco/4.5.0
-  ncap2 -s 'where(elevation > 0) elevation=0' GEBCO_2014_2D_-4.7361_53.0299_-2.5941_54.4256.nc tmp.nc
-  ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
-  rm tmp.nc
-
-
-Restore the original parallel modules, which were removed to fix tool building issue::
-
-  module unload nco cray-netcdf cray-hdf5
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-
-Execute first scrip thing::
-
-  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
-
-Output files::
-
-  remap_nemo_grid_gebco.nc
-  remap_data_grid_gebco.nc
-
-Execute second scip thing::
-
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
-
-Output files::
-
-  data_nemo_bilin_gebco.nc
-
-Execute third scip thing::
-
-  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
-
-Output files::
-
-  bathy_meter.nc
-
+    cp $TDIR/DOMAINcfg/coordinates.nc $EXP/coordinates.nc
+    cp $TDIR/DOMAINcfg/bathy_meter.nc $EXP/bathy_meter.nc
 
 
 3. Generate a domain configuration file
@@ -345,49 +178,35 @@ grid generating, has been abstracted from the core OPA code and is now done as
 a pre-processing step, and output into an important file ``domain_cfg.nc``.
 
 
-.. warning: This is a bit backwards as I copy in files that I haven't made yet. It will do for now.
 
-::
+Get namelist_cfg from ``working`` LBay experiment. (NB this may have changed).
+Edit namelist_cfg for this domain::
 
-  cd $TDIR
-  cp $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
-  cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
-
-I am not sure how this is going to pan out with the existing namelist_cfg files;
-it may not be up to date enough. So I will save an original for the time being::
-
-  cp /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/namelist_cfg namelist_cdf_LBay
-  cp namelist_cfg_LBay namelist_cfg
-
-
-.. note: It was quite a lot of work to get the v3.6 namelist working as a number
-  of things have been removed and others have been added. In the end I got something
-  working
-
-Tried reversing the ln_read_cfg and ln_write_cfg switches. Put back now::
-
-  !-----------------------------------------------------------------------
-  &namcfg        !   parameters of the configuration
-  !-----------------------------------------------------------------------
-     ln_e3_dep   = .true.    ! This will be obsolete soon. See namelist_ref
-     ln_read_cfg = .true.   !  (=T) read the domain configuration file
-        !                    !  (=F) user defined configuration  ==>>>  see usrdef(_...) modules
-        cn_domcfg = "domain_cfg"         ! domain configuration filename
-        !
-     ln_write_cfg= .false.   !  (=T) create the domain configuration file
+  cp /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg .
+  vi namelist_cfg
+  &namcfg
+  ...
+  jpidta      =     269               !  1st lateral dimension ( >= jpi )
+  jpjdta      =     189               !  2nd    "         "    ( >= jpj )
+  jpkdta      =      51               !  number of levels      ( >= jpk )
+  jpiglo      =     269               !  1st dimension of global domain --> i =jpidta
+  jpjglo      =     189               !  2nd    -                  -    --> j  =jpjdta
+  ...
 
 
-Build a script to run the executable::
+Write a runscript and submit::
 
-  vi $TDIR/DOMAINcdf/rs
+  vi rs
 
   #!/bin/bash
   #PBS -N domain_cfg
-  #PBS -l walltime=00:20:00
+  #PBS -l walltime=00:04:00
   #PBS -l select=1
   #PBS -j oe
   #PBS -A n01-NOCL
-
+  # mail alert at (b)eginning, (e)nd and (a)bortion of execution
+  #PBS -m bea
+  #PBS -M jelt@noc.ac.uk
   #! -----------------------------------------------------------------------------
 
   # Change to the directory that the job was submitted from
@@ -405,37 +224,25 @@ Build a script to run the executable::
   #===============================================================
   echo `date` : Launch Job
   aprun -n 1 -N 1 ./make_domain_cfg.exe >&  stdouterr_cfg
-  #aprun -n 216 -N 24 ./make_domain_cfg.exe >&  stdouterr_cfg
 
   exit
 
+Submit::
 
-Try running it::
+  qsub rs
 
-  cd $TDIR/DOMAINcfg
-  qsub -q short rs
-
-
-
-**10 Oct. This runs and produces ``domain_cfg.nc`` output, though the job has 1 error**
-
-Put a copy in $INPUTS for safe keeping. Put a copy in EXP::
-
-    cp $TDIR/DOMAINcfg/namelist_cfg $INPUTS/namelist_cfg_generateDOMAINcfg_101017
-    cp $TDIR/DOMAINcfg/namelist_cfg $EXP/namelist_cfg
-
-Copy it to the EXP directory (also copy it to the INPUTS directory, which stores
- the bits and bobs for a rebuild)::
+Copy it to the EXP directory::
 
   cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
-  cp $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
-
-
 
 
 4. Generate initial conditions
 ++++++++++++++++++++++++++++++
 
+This is a bit of a pain because PyNEMO wont work until tracers and on. However
+much of the hard work setting up initial T,S conditions was done for a previous LBay
+config using AMM60, so I will copy that recipe here. *(The caveat is that some *
+*of the paths might assume I am working in the LBay not LBay180 config)*
 
 Copy ``make.macro`` file and edit the path if necessary::
 **FIX** to the notes (copied from jdha instead): ``cp $WDIR/INPUTS/make.macro ./``::
@@ -469,14 +276,13 @@ Generate the actual files. Cut them out of something bigger. Use the same indice
 as used in coordinates.nc (note that the nco tools don't like the
 parallel modules)::
 
-----
 
-*(3 March 2017)*
 Insert new method to use AMM60 data for initial conditions.
 /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT
 AMM60_5d_20131013_20131129_grid_T.nc
 
 Find the AMM60 indices using FERRET on the bathy_meter.nc file: ``shade log(Bathymetry[I=540:750, J=520:820])``
+*(This is old. I assume that these coords are for the whole S Irish Sea..)*
 
 Note that the temperature and salinity variables are ``thetao`` and ``so``
 
@@ -533,14 +339,21 @@ Creates::
   so_AMM60-LBay_2013.nc4
 
 
+*15 Oct 2017 - this is where I actually pick up work done in LBay and copy to LBay180*
+.. note: mkdir $INPUTS
+         cd $INPUTS
+         cp $INPUTS/../../LBay/INPUTS/so_AMM60-LBay_2013.nc4 .
+         cp $INPUTS/../../LBay/INPUTS/thetao_AMM60-LBay_2013.nc4 .
+         cp $EXP/coordinates.nc .
+
 Now do interpolation as before. First copy the namelists::
 
-  cp $INPUTS/namelist_reshape_bilin_initcd_votemper $WDIR/INPUTS/.
-  cp $INPUTS/namelist_reshape_bilin_initcd_vosaline $WDIR/INPUTS/.
+  cp $START_FILES/namelist_reshape_bilin_initcd_votemper $INPUTS/.
+  cp $START_FILES/namelist_reshape_bilin_initcd_vosaline $INPUTS/.
 
 Edit the input files::
 
-  vi $WDIR/INPUTS/namelist_reshape_bilin_initcd_votemper
+  vi $INPUTS/namelist_reshape_bilin_initcd_votemper
   &grid_inputs
     input_file = 'thetao_AMM60-LBay_2013.nc4'
   ...
@@ -560,174 +373,28 @@ Simiarly for the *vosaline.nc file::
     input_file = "so_AMM60-LBay_2013.nc4"
   ...
 
+This is where I cheekily use prebuild tools::
+
+ export OLD_TDIR=$WORK/$USER/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
 Produce the remap files::
 
-  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
+  $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
 
 Creates ``remap_nemo_grid_R12.nc`` and ``remap_data_grid_R12.nc``. Then::
 
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
+  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
 
 Creates ``data_nemo_bilin_R12.nc``. Then::
 
-  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
+  $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
 
 Creates ``initcd_votemper.nc``. Then::
 
-  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
+  $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
 
 Creates ``initcd_vosaline.nc``.
 
-
-5. Generate weights for atm forcing
-+++++++++++++++++++++++++++++++++++
-
-Generate cut down drowned precip file (note that the nco tools don't like the
-parallel modules). **HEALTH WARNING** *Cut out files with only one index in that lat direction broke NEMO*::
-
-  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  module load cray-netcdf cray-hdf5
-  module load nco/4.5.0
-  ncks -d lon,355.,360. -d lat,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_precip_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_precip_DFS5.1.1_y2000.nc
-  ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_u10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_u10_DFS5.1.1_y2000.nc
-  ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_v10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_v10_DFS5.1.1_y2000.nc
-  ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_radsw_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_radsw_DFS5.1.1_y2000.nc
-  ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_radlw_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_radlw_DFS5.1.1_y2000.nc
-  ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_t2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_t2_DFS5.1.1_y2000.nc
-  ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_q2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_q2_DFS5.1.1_y2000.nc
-  ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_snow_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_snow_DFS5.1.1_y2000.nc
-
-  module unload nco/4.5.0
-  module unload cray-netcdf cray-hdf5
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-
-Obtain namelist files and data file::
-
-  cp $INPUTS/namelist_reshape_bilin_atmos $WDIR/INPUTS/.
-  cp $INPUTS/namelist_reshape_bicubic_atmos $WDIR/INPUTS/.
-
-Edit namelist to reflect source filenames (just a year change)::
-
-  vi $WDIR/INPUTS/namelist_reshape_bilin_atmos
-  ...
-  &grid_inputs
-      input_file = 'cutdown_drowned_precip_DFS5.1.1_y2000.nc'
-
-  vi $WDIR/INPUTS/namelist_reshape_bicubic_atmos
-  ...
-  &grid_inputs
-    input_file = 'cutdown_drowned_precip_DFS5.1.1_y2000.nc'
-
-
-Setup weights files for the atmospheric forcing::
-
-  cd $WDIR/INPUTS
-  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
-
-Generate  remap files ``remap_nemo_grid_atmos.nc`` and ``remap_data_grid_atmos.nc``. Then::
-
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
-
-Generates ``data_nemo_bilin_atmos.nc``. Then::
-
-  $TDIR/WEIGHTS/scripshape.exe namelist_reshape_bilin_atmos
-
-Generates ``weights_bilinear_atmos.nc``. Then::
-
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bicubic_atmos
-
-Generates ``data_nemo_bicubic_atmos.nc``. Then::
-
-  $TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
-
-Generates ``weights_bicubic_atmos.nc``.
-
-
-.. note:
- With the new DOMAINcfg tools this step of running NEMO for one time step is
- already done. ``mesh_mask.nc`` is superceeded by ``domain_cfg.nc``
-
-  5. Generate mesh and mask files for open boundary conditions
-  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  Run the model to generate the mesh and mask files::
-
-    cd $CDIR
-    cp $INPUTS/cpp_LH_REEF.fcm LBay/cpp_LBay.fcm
-    ln -s $WDIR/INPUTS/bathy_meter.nc $CDIR/LBay/EXP00/bathy_meter.nc
-    ln -s $WDIR/INPUTS/coordinates.nc $CDIR/LBay/EXP00/coordinates.nc
-    cp $INPUTS/runscript $CDIR/LBay/EXP00
-    cp $INPUTS/namelist_cfg $CDIR/LBay/EXP00/namelist_cfg
-    cp $INPUTS/namelist_ref $CDIR/LBay/EXP00/namelist_ref
-    ./makenemo clean
-    ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
-    cd LBay/EXP00
-    ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
-
-  Edit the namelist files for this configuration::
-
-    ncdump -h coordinates.nc
-    x = 57 ;
-    y = 113 ;
-
-    vi namelist.cfg
-    ...
-    cn_exp      =   "LBay"  !  experience name
-    ...
-    !-----------------------------------------------------------------------
-    &namcfg        !   parameters of the configuration
-    !-----------------------------------------------------------------------
-       cp_cfg      =  "lbay"                !  name of the configuration
-       jp_cfg      =     084               !  resolution of the configuration
-       jpidta      =      57               !  1st lateral dimension ( >= jpi )
-       jpjdta      =     113               !  2nd    "         "    ( >= jpj )
-       jpkdta      =      51               !  number of levels      ( >= jpk )
-       jpiglo      =      57               !  1st dimension of global domain --> i =jpidta
-       jpjglo      =     113               !  2nd    -                  -    --> j  =jpjdta
-
-  **ACTION: There are further edits to be made for when the model is actually run**
-  **E.g. other filename instances of Lbay**
-
-  Note that the old LH_REEF has the following
-  | jpidta      =     358               !  1st lateral dimension ( >= jpi )
-  | jpjdta      =     428               !  2nd    "         "    ( >= jpj )
-
-  with the dimensions in the LH_REFF coordinates file as
-  | ncdump -h coordinates.nc
-  | x = 358 ;
-  | y = 428 ;
-
-  Edit the runscript to include modules and the Account name (n01-NOCL)::
-
-    vi runscript
-
-    #!/bin/bash
-    #PBS -N LBay
-    #PBS -l select=5
-    #PBS -l walltime=00:20:00
-    #PBS -A n01-NOCL
-
-    module swap PrgEnv-cray PrgEnv-intel
-    module load cray-netcdf-hdf5parallel
-    module load cray-hdf5-parallel
-    ...
-
-  Submit::
-
-    qsub -q short runscript
-
-
-  *(6 March 2017)*
-
-  If that works, we then need to rebuild the mesh and mask files in to single files for the next step::
-
-    $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_zgr 96
-    $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_hgr 96
-    $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mask 96
-    mv mesh_zgr.nc mesh_hgr.nc mask.nc $WDIR/INPUTS
-    rm mesh_* mask_* LBay_0000*
-    cd $WDIR/INPUTS
 
 
 THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO *(20 Sept 2017)*
@@ -753,7 +420,7 @@ installed then follow through anyway but skip the mkdir / create / install / clo
 
   ssh -Y livljobs4
 
-  export CONFIG=LBay
+  export CONFIG=LBay180
   export WORK=/work
   export WDIR=$WORK/$USER/NEMO/$CONFIG
   export INPUTS=$WDIR/INPUTS
@@ -873,7 +540,7 @@ Actually upated the following with all the Jan 2000 files::
 6b. Generate the namelist.bdy file for PyNEMO / NRCT
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Copy the NRCT template namelist.bdy from the START_FILES::
+Copy the NRCT template namelist.bdy from the START_FILES.::
 
   cd $INPUTS
   cp $START_FILES/namelist.bdy $INPUTS/.
@@ -921,12 +588,24 @@ Using livljobs4
 **Start the process again on livljobs4: LBay_livljobs4.rst**
 
 Need to grab some INPUT files. (File bathy_meter.nc and domain_cfg.nc should be
- there already)::
+ there already). Might need to check that START_FILES is properly populated, or
+  copy from *LBay* version::
 
   cp $START_FILES/namelist.bdy_NNA    $INPUTS/.
   cp $START_FILES/NNA_inputs_src.ncml $INPUTS/.
   cp $START_FILES/inputs_dst.ncml     $INPUTS/.
-  cd $WDIR/INPUTS
+  cd $INPUTS
+
+Get the domain_cfg.nc and bathy_meter.nc if they are not there::
+
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/CONFIG/LBay180/EXP00/coordinates.nc coordinates.nc
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/CONFIG/LBay180/EXP00/bathy_meter.nc bathy_meter.nc
+  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/CONFIG/LBay180/EXP00/domain_cfg.nc  domain_cfg.nc
+
+Get the initial T,S fields if they are not there::
+
+ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/INPUTS/initcd_vosaline.nc $INPUTS/.
+ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/INPUTS/initcd_votemper.nc $INPUTS/.
 
 Make sure the NNA data is available::
 
@@ -936,13 +615,17 @@ Make sure the NNA data is available::
   scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/mask.nc $WDIR/INPUTS/NNA/.
   for file in NNA_*200001*nc ; do scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/$file $WDIR/INPUTS/NNA/. ; done
 
+Or link from existing location::
+
+  ln -s /work/jelt/NEMO/LBay/INPUTS/NNA $INPUTS/NNA
+
 .. note: I have not done this as a clean build with the new domain_cfg.nc files
 
 namelist.bdy_NNA
 ++++++++++++++++
 
 Edit namelist.bdy_NNA to reflect locally stored mesh and mask files. Also
-inputs_dst.ncml. Set the date info back to (Nov?) 1979.
+inputs_dst.ncml. Set the date info back to (Nov?) 1979. Here it is tides only. No T,S.
 
  ::
 
@@ -980,18 +663,18 @@ inputs_dst.ncml. Set the date info back to (Nov?) 1979.
    !-----------------------------------------------------------------------
    !  grid information
    !-----------------------------------------------------------------------
-      sn_src_hgr = '/work/jelt/NEMO/LBay/INPUTS/NNA/mesh_hgr.nc'   !  /grid/
-      sn_src_zgr = '/work/jelt/NEMO/LBay/INPUTS/NNA/mesh_zgr.nc'
+      sn_src_hgr = '/work/jelt/NEMO/LBay180/INPUTS/NNA/mesh_hgr.nc'   !  /grid/
+      sn_src_zgr = '/work/jelt/NEMO/LBay180/INPUTS/NNA/mesh_zgr.nc'
       sn_dst_hgr = './domain_cfg.nc'
       sn_dst_zgr = './inputs_dst.ncml' ! rename output variables
-      sn_src_msk = '/work/jelt/NEMO/LBay/INPUTS/NNA/mask.nc'
+      sn_src_msk = '/work/jelt/NEMO/LBay180/INPUTS/NNA/mask.nc'
       sn_bathy   = './bathy_meter.nc'
 
    !-----------------------------------------------------------------------
    !  I/O
    !-----------------------------------------------------------------------
       sn_src_dir = './NNA_inputs_src.ncml'       ! src_files/'
-      sn_dst_dir = '/work/jelt/NEMO/LBay/INPUTS/'
+      sn_dst_dir = '/work/jelt/NEMO/LBay180/INPUTS/'
       sn_fn      = 'LBay'                 ! prefix for output files
       nn_fv      = -1e20                     !  set fill value for output files
       nn_src_time_adj = 0                                    ! src time adjustment
@@ -1059,6 +742,10 @@ inputs_dst.ncml. Set the date info back to (Nov?) 1979.
        rn_mask_max_depth = 300.0     !  Maximum depth to be ignored for the mask
        rn_mask_shelfbreak_dist = 60    !  Distance from the shelf break
 
+ .. Warning:
+
+    It doesn't quite work with ``ln_tra = .false.``
+
 Also had to check that ``inputs_dst.ncml`` has the correct file name within:
  *Now domain_cfg.nc, formerly mesh_zgr.nc*. Note also that some variables in
   domain_cfg.nc have different names e.g. ``mbathy`` --> ``bottom_level``. Check the mapping
@@ -1086,14 +773,47 @@ Generate the boundary conditions again, with PyNEMO
   cd $INPUTS
   export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
 
-  pynemo -g -s namelist.bdy_NNA
+  pynemo -s namelist.bdy_NNA
 
-Once the area of interest is selected and the close button is clicked, open
-boundary data should be generated in the current directory (NB I dont fiddle
-with the GUI; I just click CLOSE to activiate, if everything is already sorted
-in the input files).
+.. note:
+    IF an optional -g is used then the GUI opens.
+   Once the area of interest is selected and the close button is clicked, open
+   boundary data should be generated in the current directory (NB I dont fiddle
+   with the GUI; I just click CLOSE to activiate, if everything is already sorted
+   in the input files).
 
-The SAVE button only updates the ``namelist.bdy`` file. The CLOSE button activates the process.
+   The SAVE button only updates the ``namelist.bdy*`` file. The CLOSE button activates the process.
+
+::
+
+  pynemo -s namelist.bdy_NNA
+  Didn't find a proxy environment variable
+  INFO:pynemo.profile:START
+  INFO:pynemo.profile:0.0
+  INFO:pynemo.profile:0.0
+  INFO:pynemo.profile:ice = False
+  INFO:pynemo.profile:Done Setup
+  WARNING:pynemo.profile:Using default mask with bathymetry!!!!
+  INFO:pynemo.profile:0.02
+  INFO:pynemo.profile:Done Mask
+  INFO:pynemo.profile:start bdy_t
+  Traceback (most recent call last):
+    File "/login/jelt/.conda/envs/nrct_env/bin/pynemo", line 11, in <module>
+      load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo')()
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_exe.py", line 44, in main
+      profile.process_bdy(setup_file, mask_gui)
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py", line 100, in process_bdy
+      grid_t = gen_grid.Boundary(bdy_msk, settings, 't')
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/nemo_bdy_gen_c.py", line 109, in __init__
+      bdy_i, bdy_r = self._remove_duplicate_points(bdy_i, bdy_r)
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/nemo_bdy_gen_c.py", line 161, in _remove_duplicate_points
+      uniqind = self._unique_rows(bdy_i2)
+    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/nemo_bdy_gen_c.py", line 214, in _unique_rows
+      indx = zip(*sorted([(val, i) for i,val in enumerate(tlist)]))[1]
+  IndexError: list index out of range
+  
+**GOT THIS FAR**
+
 
 This generates::
   ls -1 $INPUTS
