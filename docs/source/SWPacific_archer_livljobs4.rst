@@ -742,6 +742,12 @@ Create a short queue runscript::
 
 Edit ``namelist_cfg`` to make sure it is OK
 
+Blow up at 79 ts
+Use tide_ramp over 1 day.
+
+Blow up after 197 steps (=197 minutes).
+
+Will try lateral diffusion to stabilize.
 ---
 
 Submit::
