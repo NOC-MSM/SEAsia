@@ -752,7 +752,10 @@ Use tide_ramp over 1 day.
 
 Blow up after 197 steps (=197 minutes).
 
-Will try lateral diffusion to stabilize.
+Will try lateral diffusion to stabilize. makes it worse...
+
+Sea level blows up at an island in the rim region. Try decreasing rimwidth to
+accomodate rimwidth=5
 ---
 
 Submit::
