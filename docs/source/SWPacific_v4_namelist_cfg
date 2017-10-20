@@ -592,7 +592,7 @@
     ln_dyn3d_dmp  =.false.                !  open boundary condition for baroclinic velocities
     rn_time_dmp   =  1.                   ! Damping time scale in days
     rn_time_dmp_out =  1.                 ! Outflow damping time scale
-    nn_rimwidth   = 5                    !  width of the relaxation zone
+    nn_rimwidth   = 9                    !  width of the relaxation zone
     ln_vol        = .false.               !  total volume correction (see nn_volctl parameter)
     nn_volctl     = 1                     !  = 0, the total water flux across open boundaries is zero
     nb_jpk_bdy    = -1                    ! number of levels in the bdy data (set < 0 if consistent with planned run)
