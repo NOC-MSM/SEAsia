@@ -110,9 +110,6 @@ First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
 For the generation of bathymetry we need to patch the code (to allow direct
 passing of arguments. NB this code has not been updated in 7 years.)::
 
-<<<<<<< HEAD:docs/source/SWPacific_archer_livljobs4.rst
-**CAN USE NEW TOOL. SEE SEAsia NOTES**
-=======
   cd $TDIR/WEIGHTS/src
   patch -b < $START_FILES/scripinterp_mod.patch
   patch -b < $START_FILES/scripinterp.patch
@@ -122,7 +119,6 @@ passing of arguments. NB this code has not been updated in 7 years.)::
 
   cd $TDIR
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n WEIGHTS
->>>>>>> SEAsia:docs/source/SEAsia_archer_livljobs4.rst
 
 
 
@@ -730,7 +726,7 @@ I have the mesh and mask files ``mask_src.nc  mesh_hgr_src.nc  mesh_zgr_src.nc``
    ls -lh $INPUTS/coordinates.nc
    ls -lh $INPUTS/domain_cfg.nc
 
-Need to generate 3 more files: A ``thredds_namelist.bdy`` which drives PyNEME and which
+Need to generate 3 more files: A ``thredds_namelist.bdy`` which drives PyNEMO and which
 has two input files: ``thredds_inputs_src.ncml`` which points to the data source and
 ``inputs_dst.ncml`` which remaps some variable names.
 
@@ -977,17 +973,17 @@ Also had to check/create ``inputs_dst.ncml``, that it has the correct file name 
 
    vi inputs_dst.ncml
 
-   <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
-     <ns0:aggregation type="union">
-       <ns0:netcdf location="file:domain_cfg.nc">
-       <ns0:variable name="mbathy" orgName="bottom_level" />
-       <ns0:variable name="gdept" orgName="gdept_0" />
-       <ns0:variable name="gdepw" orgName="gdepw_0" />
-       <ns0:variable name="e3u" orgName="e3u_0" />
-       <ns0:variable name="e3v" orgName="e3v_0" />
-       </ns0:netcdf>
-     </ns0:aggregation>
-   </ns0:netcdf>
+ <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+   <ns0:aggregation type="union">
+     <ns0:netcdf location="file:domain_cfg.nc">
+     <ns0:variable name="mbathy" orgName="bottom_level" />
+     <ns0:variable name="gdept" orgName="gdept_0" />
+     <ns0:variable name="gdepw" orgName="gdepw_0" />
+     <ns0:variable name="e3u" orgName="e3u_0" />
+     <ns0:variable name="e3v" orgName="e3v_0" />
+     </ns0:netcdf>
+   </ns0:aggregation>
+ </ns0:netcdf>
 
 .. warning:
   In the actual v4 release domain_cfg.nc  will not have gdept or gdepw. These
@@ -1036,9 +1032,7 @@ Copy the new files back onto ARCHER
   for file in SEAsia*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/. ; done
   scp coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/.
 
-Create symbolic links from EXP directory::
 
-  ln -s $INPUTS $EXP/bdydta
 
 8. Run the configuration ON ARCHER. Turn on the tides
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1051,6 +1045,10 @@ Get important files into EXP directory. Should already have ``domain_cfg.nc``::
   cp $INPUTS/coordinates.nc $EXP/.
   cp $INPUTS/coordinates.bdy.nc $EXP/.
   cp $START_FILES/namelist_cfg $EXP/.
+
+Create symbolic links from EXP directory::
+
+  ln -s $INPUTS $EXP/bdydta
 
 Edit the output to have 1hrly SSH::
 
@@ -1067,6 +1065,7 @@ Edit the output to have 1hrly SSH::
 Create a short queue runscript::
 
   vi runscript
+
   #!/bin/bash
   #PBS -N SEAsia
   #PBS -l select=5
