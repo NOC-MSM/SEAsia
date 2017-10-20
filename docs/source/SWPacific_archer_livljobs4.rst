@@ -437,7 +437,9 @@ Copy essential files into DOMAINcfg directory::
     cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
 
 Edit the template namelist_cfg with only the essenetial domain building stuff.
-Get the indices from ``ncdump -h coordinates.nc``::
+Get the indices from ``ncdump -h coordinates.nc``.
+
+Somewhat arbitrarily I am going to use **5** ``(jpkdta=5)`` levels::
 
   cd $TDIR/DOMAINcfg
   vi namelist_cfg
@@ -467,7 +469,7 @@ Get the indices from ``ncdump -h coordinates.nc``::
      jp_cfg      =       0   !  resolution of the configuration
      jpidta      =    1624   !  1st lateral dimension ( >= jpi )
      jpjdta      =    1138   !  2nd    "         "    ( >= jpj )
-     jpkdta      =      51   !  number of levels      ( >= jpk )
+     jpkdta      =       5   !  number of levels      ( >= jpk )
      jpiglo      =    1624   !  1st dimension of global domain --> i =jpidta
      jpjglo      =    1138   !  2nd    -                  -    --> j  =jpjdta
      jpizoom     =       1   !  left bottom (i,j) indices of the zoom
@@ -530,11 +532,9 @@ Try running it::
   cd $TDIR/DOMAINcfg
   qsub -q short rs
 
-**GOT HERE**
+Put a copy of the namelist_cfg in $INPUTS for safe keeping::
 
-Put a copy in $INPUTS for safe keeping::
-
-    cp $TDIR/DOMAINcfg/namelist_cfg $INPUTS/namelist_cfg_generateDOMAINcfg
+  cp $TDIR/DOMAINcfg/namelist_cfg $INPUTS/namelist_cfg_generateDOMAINcfg
 
 Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores
  the bits and bobs for a rebuild)::
@@ -741,6 +741,11 @@ Create a short queue runscript::
 ---
 
 Edit ``namelist_cfg`` to make sure it is OK
+
+Synchronise the namelist_cfg with the GitLab repo::
+
+  e.g. rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/namelist_cfg SWPacific_v4_namelist_cfg
+
 
 Blow up at 79 ts
 Use tide_ramp over 1 day.
