@@ -755,7 +755,7 @@ Blow up after 197 steps (=197 minutes).
 Will try lateral diffusion to stabilize. makes it worse...
 
 Sea level blows up at an island in the rim region. Try decreasing rimwidth to
-accomodate rimwidth=5
+accomodate rimwidth=5.
 ---
 
 Submit::
