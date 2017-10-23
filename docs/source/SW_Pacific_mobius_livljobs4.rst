@@ -41,7 +41,7 @@ Starting on MOBIUS::
   ssh mobius
 
   export CONFIG=SWPacific
-  export USER=thopri
+  #export USER=thopri
   export WORK=/work/thopri/NEMO
   export WDIR=/work/$USER/NEMO/$CONFIG
   export INPUTS=$WDIR/INPUTS
@@ -55,7 +55,7 @@ Starting on MOBIUS::
   module load shared intel/compiler/64/14.0/2013_sp1.3.174 mvapich2/intel/64/2.0b slurm/14.03.0 cluster-tools/7.0
 
 
-  Collect essential files
+Collect essential files
 =======================
 
 Note you might have to mkdir the odd directory or two...::
@@ -74,13 +74,53 @@ Checkout and build XIOS2 @ r1080 `build_XIOS2.html`_::
 
 Build XIOS::
 
-  ./make_xios --full --prod --arch mobius_intel  --netcdf_lib netcdf4_par --job 8
+  ./make_xios --full --prod --arch mobius_intel  --netcdf_lib netcdf4_par
 
-Results in error with building, have looked at Jeff's arch files for ARCHER and tried modifiying some bits of my configuration file that could be the issue with no luck. However I have found a webpage on the NEMO site that has identified a similar problem::
+Commented out the ``--job 8`` command, just incase.
+Results in error with building::
+
+  ...
+  touch /work/jelt/NEMO/xios-2.0_r1080/flags/LDFLAGS__test.flags
+  touch /work/jelt/NEMO/xios-2.0_r1080/flags/LDFLAGS__test__test_remap.flags
+  touch /work/jelt/NEMO/xios-2.0_r1080/done/mod_wait.done
+  fcm_internal load:F test test_remap.o test_remap.exe
+  ar: creating /work/jelt/NEMO/xios-2.0_r1080/tmp/lib__fcm__test_remap.a
+  mpif90 -nofor-main -o test_remap.exe /work/jelt/NEMO/xios-2.0_r1080/obj/test_remap.o -L/work/jelt/NEMO/xios-2.0_r1080/lib -l__fcm__test_remap -Wl,"--allow-multiple-definition" -L/login/jdha/utils/netcdf_mob_intel/lib -L/login/jdha/utils/hdf5_mob_intel/lib   -lnetcdf -lnetcdff  -lhdf5_hl -lhdf5 -lz -lstdc++
+  /login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_genatt.o): In function `nf_copy_att':
+  /work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_genatt.f90:235: undefined reference to `nc_copy_att'
+  /login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_genatt.o): In function `nf_rename_att':
+  /work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_genatt.f90:270: undefined reference to `nc_rename_att'
+  /login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_genatt.o): In function `nf_del_att':
+  /work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_genatt.f90:300: undefined reference to `nc_del_att'
+  /login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_genvar.o): In function `nf_copy_var':
+  /work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_genvar.f90:380: undefined reference to `nc_copy_var'
+  /login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_def_enum':
+  /work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1161: undefined reference to `nc_def_enum'
+  /login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_insert_enum':
+  /work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1200: undefined reference to `nc_insert_enum'
+  /login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_inq_enum':
+  /work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1232: undefined reference to `nc_inq_enum'
+  /login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_inq_enum_member':
+  /work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1274: undefined reference to `nc_inq_enum_member'
+  /login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_inq_enum_ident':
+  /work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1309: undefined reference to `nc_inq_enum_ident'
+  /login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_def_opaque':
+  /work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1344: undefined reference to `nc_def_opaque'
+  /login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_inq_opaque':
+  /work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1377: undefined reference to `nc_inq_opaque'
+  fcm_internal load failed (256)
+  gmake: *** [test_remap.exe] Error 1
+  gmake -f /work/jelt/NEMO/xios-2.0_r1080/Makefile -j 1 all failed (2) at /work/jelt/NEMO/xios-2.0_r1080/tools/FCM/bin/../lib/Fcm/Build.pm line 597
+  ->Make: 854 seconds
+  ->TOTAL: 878 seconds
+  Build failed on Mon Oct 23 10:16:37 2017.
+
+*(END OF JEFF'S INVESTIGATION)*
+... have looked at Jeff's arch files for ARCHER and tried modifiying some bits of my configuration file that could be the issue with no luck. However I have found a webpage on the NEMO site that has identified a similar problem::
 
   https://forge.ipsl.jussieu.fr/orchidee/wiki/DevelopmentActivities/ORCHIDEE-MICT-IMBALANCE-P/knownissues
 
-This seems to be similar so have tried the fix by modifying the makenemo file and the arch*.path file.
+This seems to be similar so have tried the fix by modifying the make_xios file and the arch*.path file.
 
 I changed a line in the makenemo::
 
