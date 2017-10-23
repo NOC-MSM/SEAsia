@@ -1112,11 +1112,39 @@ Run for 30 days::
  cd $EXP
  qsub -q short runscript
 
-**IT WORKS!**
+**IT WORKS!** Hit wall time of 20mins after ~2 hours
 
-* Tidy up this note. Freeze it. Add met?
+Submit a big job on 2k processors to get through the spin up *(Need to do this efficiently)*::
 
- ---
+  vi runscript
+  #PBS -N SEAsia
+  #PBS -l select=92
+  #PBS -l walltime=00:20:00
+  …
+    echo " ";
+    OCEANCORES=200
+    XIOSCORES=40
+  …
+  aprun -b -n $XIOSCORES -N 5 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
+
+
+Ran for 60 hrs before hitting 20 min wall time. (NB 51 levels)
+use python script to plot SSH animation (NB need to put the python script somewhere better!)::
+
+  % python SEAsia_SSH_anim.py
+
+Creates an animation of hours 35 - 60 in SSH.
+
+---
+
+Next steps
+++++++++++
+
+# Tidy up recipe
+# Freeze it
+
+
+
 
 
 
