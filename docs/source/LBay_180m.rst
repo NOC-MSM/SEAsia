@@ -26,15 +26,7 @@ The summary procedure:
 Issues that arose
 =================
 
-* PyNEMO doesn't yet deal with sigma parent grids.
-* PyNEMO needs a gdept function. DOMAINcfg (will) only store e3t.
-
-Other related recipes (all NEMOv3.6):
-Follow PyNEMO recipe for Lighthouse Reef: ``http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef``
-Follow PyNEMO recipe for Lighthouse Reef: ``http://nemo-reloc.readthedocs.io/en/latest/SEAsia.html``
-Follow PyNEMO recipe for LBay on ARCHER (not complete because PyNEMO java issue): ``http://nemo-reloc.readthedocs.io/en/latest/LBay.html``.
-(Perhaps this other note is superceded by this present one, though the other
-note includes information of using PyNEMO with different data sources).
+* ...
 
 .. note:
 
@@ -55,22 +47,42 @@ Starting on ARCHER::
 
   ssh login.archer.ac.uk
 
-  export CONFIG=LBay180
-  export WORK=/work/n01/n01
-  export WDIR=$WORK/$USER/$CONFIG
-  export INPUTS=$WDIR/INPUTS
-  export START_FILES=$WDIR/START_FILES
-  export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
-  export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
-  export EXP=$CDIR/$CONFIG/EXP_180
+It is quite convenient to define a temporary file with all the path names in.
+The first line defines the configuration name (assuming bash)::
 
+cat > ~/temporary_path_names_for_NEMO_build << EOL
+export CONFIG=LBay180
+export WORK=/work/n01/n01
+export WDIR=\$WORK/$USER/\$CONFIG
+export INPUTS=\$WDIR/INPUTS
+export START_FILES=\$WDIR/START_FILES
+export CDIR=\$WDIR/trunk_NEMOGCM_r8395/CONFIG
+export TDIR=\$WDIR/trunk_NEMOGCM_r8395/TOOLS
+export EXP=\$CDIR/\$CONFIG/EXP00
 
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+module swap PrgEnv-cray PrgEnv-intel
+module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+EOL
 
-.. note: I copied the paths and modules into a file ~/.set_paths.
-   Execute with . ~/set_paths
+Execute path settings::
+
+  . ~/temporary_path_names_for_NEMO_build
+
 ---
+
+Collect essential files
+=======================
+
+Note you might have to mkdir the odd directory or two...::
+
+  mkdir $WDIR
+  mkdir $INPUTS
+  mkdir $START_FILES
+
+If we were building from GEBCO and an ORCA12 grid we would also want::
+
+  cp $WDIR/../LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
+  cp $WDIR/../LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
 
 Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
 Or just build::
@@ -91,14 +103,11 @@ Or just link XIOS executable to the EXP directory::
 Build TOOLS
 ===========
 
-To generate bathymetry, initial conditions and grid information we first need
-to compile some of the NEMO TOOLS. NB for some reason GRIDGEN doesn’t like INTEL
+To generate domain coords and rebuild tools we first need
+to compile some of the NEMO TOOLS.
 
 .. note: These are compiled with XIOS2. However DOMAINcfg has to be compiled
   with XIOS1. There is a README in the $TDIR/DOMAINcfg on what to do.
-
-As a first cut at this domain we will only force with tides. So much of these tools
-are needed. See other recipes for extra tools.
 
 First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
 (see userid and path in variable ``%XIOS_HOME``). Copy from ARCH *store*::
@@ -107,26 +116,31 @@ First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
   cd $TDIR
 
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
+  ./maketools -m XC_ARCHER_INTEL_XIOS1 -n REBUILD_NEMO
 
-.. note: Check which arch file this is. Surely should be consistent.
-   Though I think I need any of these
-  ::
+For the generation of bathymetry and met forcing weights files we need to patch
+the code (to allow direct passing of arguments. NB this code has not been
+updated in 7 years.)::
 
-    ./maketools -n WEIGHTS -m XC_ARCHER_INTEL_XIOS1
-    ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL_XIOS1
+  cd $TDIR/WEIGHTS/src
+  patch -b < $START_FILES/scripinterp_mod.patch
+  patch -b < $START_FILES/scripinterp.patch
+  patch -b < $START_FILES/scrip.patch
+  patch -b < $START_FILES/scripshape.patch
+  patch -b < $START_FILES/scripgrid.patch
 
-    module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-    module swap PrgEnv-intel PrgEnv-cray
-    module load cray-netcdf cray-hdf5
-    ./maketools -n GRIDGEN -m XC_ARCHER    # This uses acc's XIOS_r474
+  cd $TDIR
+  ./maketools -m XC_ARCHER_INTEL_XIOS1 -n WEIGHTS
 
-    module unload cray-netcdf cray-hdf5
-    module swap PrgEnv-cray PrgEnv-intel
-    module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
 
 
 0. Copy bathymetry and coordinates file
 +++++++++++++++++++++++++++++++++++++++
+
+This is slight departure from the normal grid generate because we already have
+target a bathymetry and coordinates file. By the end of the process we end up with
+``bathy_meter.nc`` and ``coordinates.nc`` in the INPUTS directory.
 
 Jason converted old POLCOMS files into NEMO speak::
 
@@ -137,13 +151,13 @@ Copy these files to an EXP directory::
 
   livljobs4$
   cd /9900a/NEMO/jholt/mfiles/POLCOMS_2_NEMO
-  scp coordinates.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/4d_coordinates.nc
-  scp bathy_meter.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/bathy_meter.nc
+  scp coordinates.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/INPUTS/4d_coordinates.nc
+  scp bathy_meter.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay180/INPUTS/bathy_meter.nc
 
 Back on **ARCHER**
 ::
 
-  cd $TDIR/DOMAINcfg
+  cd $INPUTS
   ncdump -h 4d_coordinates.nc
   x = 269 ;
   y = 189 ;
@@ -151,21 +165,26 @@ Back on **ARCHER**
   time = 1 ;
   ...
 
-Have to average over the depth and time dimensions to remove redundant dimensions::
+Have to average over the depth and time dimensions to remove redundant dimensions.
+Fix all the depth value to be postive::
 
     module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
     module load cray-netcdf cray-hdf5
     module load nco/4.5.0
 
     ncwa -a time,z 4d_coordinates.nc  coordinates.nc
+    ncap2 -s 'where(Bathymetry < 0) Bathymetry=0' bathy_meter.nc tmp.nc
 
     module unload nco cray-netcdf cray-hdf5
     module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-Copy to EXP::
+Remove 4d coordinates file::
 
-    cp $TDIR/DOMAINcfg/coordinates.nc $EXP/coordinates.nc
-    cp $TDIR/DOMAINcfg/bathy_meter.nc $EXP/bathy_meter.nc
+  rm -f $INPUTS/4d_coordinates.nc
+
+Overwrite the bathymetry file::
+
+  mv tmp.nc bathy_meter.nc
 
 
 3. Generate a domain configuration file
@@ -177,21 +196,46 @@ get v3.6 running. The reason being that all the non-time stepping stuff, like
 grid generating, has been abstracted from the core OPA code and is now done as
 a pre-processing step, and output into an important file ``domain_cfg.nc``.
 
+Copy essential files into DOMAINcfg directory::
 
+    cp $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
+    cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
+
+Edit the template namelist_cfg with only the essenetial domain building stuff.
+Get the size of the new domain from ``ncdump -h bathy_meter.nc``::
+
+
+
+---
 
 Get namelist_cfg from ``working`` LBay experiment. (NB this may have changed).
 Edit namelist_cfg for this domain::
 
-  cp /work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg .
+  cd $TDIR/DOMAINcfg
   vi namelist_cfg
-  &namcfg
-  ...
-  jpidta      =     269               !  1st lateral dimension ( >= jpi )
-  jpjdta      =     189               !  2nd    "         "    ( >= jpj )
-  jpkdta      =      51               !  number of levels      ( >= jpk )
-  jpiglo      =     269               !  1st dimension of global domain --> i =jpidta
-  jpjglo      =     189               !  2nd    -                  -    --> j  =jpjdta
-  ...
+
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+     !
+     ln_e3_dep   = .false.    ! =T : e3=dk[depth] in discret sens.
+     !                       !      ===>>> will become the only possibility in v4.0
+     !                       ! =F : e3 analytical derivative of depth function
+     !                       !      only there for backward compatibility test with v3.6
+     !                       !
+     cp_cfg      =  "orca"   !  name of the configuration
+     jp_cfg      =       0   !  resolution of the configuration
+     jpidta      =     269               !  1st lateral dimension ( >= jpi )
+     jpjdta      =     189               !  2nd    "         "    ( >= jpj )
+     jpkdta      =      51               !  number of levels      ( >= jpk )
+     jpiglo      =     269               !  1st dimension of global domain --> i =jpidta
+     jpjglo      =     189               !  2nd    -                  -    --> j  =jpjdta
+     ...
+
+.. note:
+
+  No gdept output in the offical v4 release. Though it was acheived here setting
+  ln_e3_dep = F. This is needed for PyNEMO, though could be constructed from e3[tw].
 
 
 Write a runscript and submit::
@@ -227,17 +271,26 @@ Write a runscript and submit::
 
   exit
 
-Submit::
+Try running it::
 
-  qsub rs
+  cd $TDIR/DOMAINcfg
+  qsub -q short rs
 
-Copy it to the EXP directory::
+.. warning: It turns out that there is a problem with the ``domain_cfg.nc`` output.
+  Plotting bottom_level, top_level and e3t_0 fields show strange things are afoot.
+  These need to be resolved before proceeding.
+
+Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores
+ the bits and bobs for a rebuild)::
 
   cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
+  cp $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
 
 
 4. Generate initial conditions
 ++++++++++++++++++++++++++++++
+
+**SKIP THIS FOR NOW**
 
 This is a bit of a pain because PyNEMO wont work until tracers and on. However
 much of the hard work setting up initial T,S conditions was done for a previous LBay
@@ -397,9 +450,347 @@ Creates ``initcd_vosaline.nc``.
 
 
 
-THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO *(20 Sept 2017)*
+THIS IS WHERE START WITH **LIVLJOBS4** to create boundary files with PyNEMO *(20 Sept 2017)*
 If all the files are ready to go jump straight to `7. Generate boundary conditions with PyNEMO: Run PyNEMO`_
 
+Set up directory structure and files in livljobs4
+=================================================
+
+Define paths::
+
+  cat > ~/temporary_path_names_for_NEMO_build << EOL
+  export CONFIG=LBay180
+  export WORK=/work
+  export WDIR=\$WORK/$USER/NEMO/\$CONFIG
+  export INPUTS=\$WDIR/INPUTS
+  export START_FILES=\$WDIR/START_FILES
+  #export CDIR=\$WDIR/trunk_NEMOGCM_r8395/CONFIG
+  #export TDIR=\$WDIR/trunk_NEMOGCM_r8395/TOOLS
+  #export EXP=\$CDIR/\$CONFIG/EXP00
+
+  EOL
+
+Execute path settings::
+
+  . ~/temporary_path_names_for_NEMO_build
+
+Synchronise with key files from ARCHER::
+
+  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/bathy_meter.nc $INPUTS/.
+  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/coordinates.nc $INPUTS/.
+  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/domain_cfg.nc  $INPUTS/.
+
+  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/START_FILES/mask_AMM60.nc  $START_FILES/.
+  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/START_FILES/mesh_zgr_AMM60.nc  $START_FILES/.
+  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/START_FILES/mesh_hgr_AMM60.nc  $START_FILES/.
+
+
+Statement about external forcing
+================================
+
+Uses AMM60 data via a thredds server.
+I have the AMM60 mesh and mask files ``mask_src.nc  mesh_hgr_src.nc  mesh_zgr_src.nc``
+ stored locally.
+
+ Copy necessary files into INPUTS::
+
+   ln -s $START_FILES/mask_AMM60.nc     $INPUTS/mask_src.nc
+   ln -s $START_FILES/mesh_hgr_AMM60.nc $INPUTS/mesh_hgr_src.nc
+   ln -s $START_FILES/mesh_zgr_AMM60.nc $INPUTS/mesh_zgr_src.nc
+
+   ls -lh $INPUTS/bathy_meter.nc
+   ls -lh $INPUTS/coordinates.nc
+   ls -lh $INPUTS/domain_cfg.nc
+
+Need to generate 3 more files: A ``thredds_namelist.bdy`` which drives PyNEMO and which
+has two input files: ``inputs_src.ncml`` which points to the data source and
+``inputs_dst.ncml`` which remaps some variable names in the destination files.
+
+6. Generate boundary conditions with NRCT/PyNEMO: Create netcdf abstraction wrapper
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+First install PyNEMO `install_nrct`_ if not already done so.
+
+
+6a. Generate ncml file that points to the external data
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+This can be done with the automatic generator (*pynemo_ncml_generator*) or manually
+
+Here the object is to generate a ncml file that is read in by PyNEMO as the ``sn_src_dir``
+(in the ``namelist.bdy`` file)
+
+.. note: If using the generator, fill in the Tracer and Dynamics for T,S,U,V,Z
+ tabs: using T,T & U,V,T in the reg expressions e.g. .*T\.nc$. To generate an
+  e.g. ``inputs_src.ncml`` file click  **generate**. Defining the filename seems
+   to work better with the file selector rather than direct typing.
+
+
+Note need to set the time variables and new ``sn_src_dir`` in namelist.bdy.
+ (Note, need the time variables corresponding to simulation window and the time_origin
+ which are set in namelist.bdy)::
+
+  cd $INPUTS
+  vi inputs_src.ncml
+
+  <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+  <ns0:aggregation type="union">
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="temperature" type="joinExisting">
+          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/vol5-public/AMM60/pycnmix/AMM60_5d_20130814_20131012_grid_T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="salinity" type="joinExisting">
+          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/vol5-public/AMM60/pycnmix/AMM60_5d_20130814_20131012_grid_T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="zonal_velocity" type="joinExisting">
+          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/vol5-public/AMM60/pycnmix/AMM60_5d_20130814_20131012_grid_U.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="meridian_velocity" type="joinExisting">
+          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/vol5-public/AMM60/pycnmix/AMM60_5d_20130814_20131012_grid_V.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="sea_surface_height" type="joinExisting">
+          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/vol5-public/AMM60/pycnmix/AMM60_5d_20130814_20131012_grid_T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+  </ns0:aggregation>
+  </ns0:netcdf>
+
+.. note Put these files on the JASMIN NEMO workspace using::
+
+    vpnljobs 6
+    cd /projectsa/FASTNEt/kariho40/AMM60/RUNS/2010_2013/NO_DIFF
+    exec ssh-agent $SHELL
+    ssh-add ~/.ssh/id_rsa_jasmin
+
+    for file in AMM60_5d*grid_[UVT].nc ; do rsync -vrtu $file  jelt@jasmin-xfer1.ceda.ac.uk:/group_workspaces/jasmin2/nemo/vol5/public/AMM60/pycnmix/. ; done
+
+
+
+6b. Generate the namelist.bdy file for PyNEMO / NRCT
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Copy the NRCT template namelist.bdy from the START_FILES::
+
+  cd $INPUTS
+  cp $START_FILES/namelist.bdy $INPUTS/.
+
+Edit namelist.bdy to for the configuration name and ``ncml`` file name. Also edit
+the time variables corresponding to the input variables in ``inputs_src.ncml``::
+
+  vi namelist.bdy
+  ...
+    sn_src_dir = './inputs_src.ncml'       ! src_files/'
+    sn_dst_dir = '/work/n01/n01/jelt/LBay180/INPUTS/'
+    sn_fn      = 'LBay180'                 ! prefix for output files
+  ...
+  !-----------------------------------------------------------------------
+  !  Time information
+  !-----------------------------------------------------------------------
+      nn_year_000     = 2013        !  year start
+      nn_year_end     = 2013        !  year end
+      nn_month_000    = 09          !  month start (default = 1 is years>1)
+      nn_month_end    = 09          !  month end (default = 12 is years>1)
+      sn_dst_calendar = 'gregorian' !  output calendar format
+      nn_base_year    = 1950        !  base year for time counter
+      sn_tide_grid    = '/work/jelt/tpxo7.2/grid_tpxo7.2.nc'
+
+
+Turn off as many things as possible to help it along.
+Turned off ``ln_mask_file``. James said it was for outputting a new mask file
+but it might have given me trouble. *Actually I also turn off all the ORCA inputs*.
+
+Point to the correct source and destination mesh and mask files/variables.
+ ::
+
+   vi namelist.bdy
+
+   !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   !! NEMO/OPA  : namelist for BDY generation tool
+   !!
+   !!             User inputs for generating open boundary conditions
+   !!             employed by the BDY module in NEMO. Boundary data
+   !!             can be set up for v3.2 NEMO and above.
+   !!
+   !!             More info here.....
+   !!
+   !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+   !-----------------------------------------------------------------------
+   !   vertical coordinate
+   !-----------------------------------------------------------------------
+      ln_zco      = .false.   !  z-coordinate - full    steps   (T/F)
+      ln_zps      = .true.    !  z-coordinate - partial steps   (T/F)
+      ln_sco      = .false.   !  s- or hybrid z-s-coordinate    (T/F)
+      rn_hmin     =   -10     !  min depth of the ocean (>0) or
+                              !  min number of ocean level (<0)
+
+   !-----------------------------------------------------------------------
+   !   s-coordinate or hybrid z-s-coordinate
+   !-----------------------------------------------------------------------
+      rn_sbot_min =   10.     !  minimum depth of s-bottom surface (>0) (m)
+      rn_sbot_max = 7000.     !  maximum depth of s-bottom surface
+                              !  (= ocean depth) (>0) (m)
+      ln_s_sigma  = .true.   !  hybrid s-sigma coordinates
+      rn_hc       =  150.0    !  critical depth with s-sigma
+
+   !-----------------------------------------------------------------------
+   !  grid information
+   !-----------------------------------------------------------------------
+      sn_src_hgr = './mesh_hgr_src.nc'   !  parent /grid/
+      sn_src_zgr = './mesh_zgr_src.nc'   !  parent
+      sn_dst_hgr = './domain_cfg.nc'
+      sn_dst_zgr = './inputs_dst.ncml' ! rename output variables
+      sn_src_msk = './mask_src.nc'       ! parent
+      sn_bathy   = './bathy_meter.nc'
+
+   !-----------------------------------------------------------------------
+   !  I/O
+   !-----------------------------------------------------------------------
+      sn_src_dir = './inputs_src.ncml'       ! src_files/'
+      sn_dst_dir = '/work/jelt/NEMO/LBay180/INPUTS/'
+      sn_fn      = 'LBay180'                 ! prefix for output files
+      nn_fv      = -1e20                     !  set fill value for output files
+      nn_src_time_adj = 0                                    ! src time adjustment
+      sn_dst_metainfo = 'metadata info: jelt'
+
+   !-----------------------------------------------------------------------
+   !  unstructured open boundaries
+   !-----------------------------------------------------------------------
+       ln_coords_file = .true.               !  =T : produce bdy coordinates files
+       cn_coords_file = 'coordinates.bdy.nc' !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
+       ln_mask_file   = .false.              !  =T : read mask from file
+       cn_mask_file   = './bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+       ln_dyn2d       = .false.               !  boundary conditions for barotropic fields
+       ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
+       ln_tra         = .false.               !  boundary conditions for T and S
+       ln_ice         = .false.               !  ice boundary condition
+       nn_rimwidth    = 9                    !  width of the relaxation zone
+
+   !-----------------------------------------------------------------------
+   !  unstructured open boundaries tidal parameters
+   !-----------------------------------------------------------------------
+       ln_tide        = .true.               !  =T : produce bdy tidal conditions
+       clname(1)      = 'M2'                 ! constituent name
+       clname(2)      = 'S2'
+       clname(3)      = 'K2'
+       ln_trans       = .false.
+       sn_tide_h     = '/work/jelt/tpxo7.2/h_tpxo7.2.nc'
+       sn_tide_u     = '/work/jelt/tpxo7.2/u_tpxo7.2.nc'
+
+   !-----------------------------------------------------------------------
+   !  Time information
+   !-----------------------------------------------------------------------
+       nn_year_000     = 2013        !  year start
+       nn_year_end     = 2013        !  year end
+       nn_month_000    = 09          !  month start (default = 1 is years>1)
+       nn_month_end    = 09          !  month end (default = 12 is years>1)
+       sn_dst_calendar = 'gregorian' !  output calendar format
+       nn_base_year    = 1950        !  base year for time counter
+       sn_tide_grid    = '/work/jelt/tpxo7.2/grid_tpxo7.2.nc'
+
+   !-----------------------------------------------------------------------
+   !  Additional parameters
+   !-----------------------------------------------------------------------
+       nn_wei  = 1                   !  smoothing filter weights
+       rn_r0   = 0.041666666         !  decorrelation distance use in gauss
+                                     !  smoothing onto dst points. Need to
+                                     !  make this a funct. of dlon
+       sn_history  = 'bdy files produced by jelt from ORCA0083-N01'
+                                     !  history for netcdf file
+       ln_nemo3p4  = .true.          !  else presume v3.2 or v3.3
+       nn_alpha    = 0               !  Euler rotation angle
+       nn_beta     = 0               !  Euler rotation angle
+       nn_gamma    = 0               !  Euler rotation angle
+       rn_mask_max_depth = 300.0     !  Maximum depth to be ignored for the mask
+       rn_mask_shelfbreak_dist = 60    !  Distance from the shelf break
+
+
+ .. warning:
+
+   It doesn't quite work with ``ln_tra = .false.``
+
+
+Also had to check/create ``inputs_dst.ncml``, that it has the correct file name within:
+*Now domain_cfg.nc, formerly mesh_zgr.nc*. Note also that some variables in
+ domain_cfg.nc have different names e.g. ``mbathy`` --> ``bottom_level``. Check the mapping
+ in ``inputs_dst.ncml``::
+
+  vi inputs_dst.ncml
+
+  <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+    <ns0:aggregation type="union">
+      <ns0:netcdf location="file:domain_cfg.nc">
+      <ns0:variable name="mbathy" orgName="bottom_level" />
+      <ns0:variable name="gdept" orgName="gdept_0" />
+      <ns0:variable name="gdepw" orgName="gdepw_0" />
+      <ns0:variable name="e3u" orgName="e3u_0" />
+      <ns0:variable name="e3v" orgName="e3v_0" />
+      </ns0:netcdf>
+    </ns0:aggregation>
+  </ns0:netcdf>
+
+.. warning:
+ In the actual v4 release domain_cfg.nc  will not have gdept or gdepw. These
+ will need to be reconstructed from e3[tw].
+
+
+Run PyNEMO / NRCT to generate boundary conditions
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+First install PyNEMO `install_nrct`_ if not already done so.
+
+Generate the boundary conditions with PyNEMO
+::
+
+ module load anaconda/2.1.0  # Want python2
+ source activate nrct_env
+ cd $INPUTS
+ export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+
+ pynemo -s namelist.bdy
+
+.. note : Can use the ``-g`` option if you want the GUI.
+
+.. note : I actually had to do a fix to get PyNEMO to behave See: https://bitbucket.org/jdha/nrct/issues/22/issue-with-applying-bc-over-the-rim
+
+This generates::
+ ls -1 $INPUTS
+  ...
+
+
+---
+
+Some thing funny going on with the bathymetry and domain_cfg.nc files::
+
+
+        module load nco/gcc/4.4.2.ncwa
+        ncks -v top_level domain_cfg.nc tmp.nc
+        ncrename -h -v top_level,mask tmp.nc bdy_mask.nc
+        rm tmp.nc
+
+        ferret
+        top_level
+        bottom_level
+        e3t_0[k=3]
+
+        are all odd.
+
+
+
+
+
+
+
+
+-----
 
 6. Generate boundary conditions with NRCT/PyNEMO: Create netcdf abstraction wrapper
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -811,7 +1202,7 @@ Generate the boundary conditions again, with PyNEMO
     File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/nemo_bdy_gen_c.py", line 214, in _unique_rows
       indx = zip(*sorted([(val, i) for i,val in enumerate(tlist)]))[1]
   IndexError: list index out of range
-  
+
 **GOT THIS FAR**
 
 

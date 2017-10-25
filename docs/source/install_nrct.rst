@@ -27,6 +27,7 @@ Find java object by doing a which java and then following the trail
 find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print
 ::
 
+  cd $WORK/$USER
   export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
   unset SSH_ASKPASS # Didn't need this on ARCHER...
   git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
@@ -81,7 +82,7 @@ Try it out::
 
 **ERROR**
 ::
-  
+
   Didn't find a proxy environment variable
   Traceback (most recent call last):
   File "/home/n01/n01/jelt/.conda/envs/nrct_env/bin/pynemo", line 11, in <module>

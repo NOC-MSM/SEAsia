@@ -107,8 +107,9 @@ First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n REBUILD_NEMO
 
-For the generation of bathymetry we need to patch the code (to allow direct
-passing of arguments. NB this code has not been updated in 7 years.)::
+For the generation of bathymetry and met forcing weights files we need to patch
+the code (to allow direct passing of arguments. NB this code has not been
+updated in 7 years.)::
 
   cd $TDIR/WEIGHTS/src
   patch -b < $START_FILES/scripinterp_mod.patch
@@ -728,7 +729,7 @@ I have the mesh and mask files ``mask_src.nc  mesh_hgr_src.nc  mesh_zgr_src.nc``
 
 Need to generate 3 more files: A ``thredds_namelist.bdy`` which drives PyNEMO and which
 has two input files: ``thredds_inputs_src.ncml`` which points to the data source and
-``inputs_dst.ncml`` which remaps some variable names.
+``inputs_dst.ncml`` which remaps some variable names in the destination files.
 
 6. Generate boundary conditions with NRCT/PyNEMO: Create netcdf abstraction wrapper
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -841,7 +842,7 @@ Edit namelist.bdy to for the configuration name and ``ncml`` file name::
   sn_fn      = 'SEAsia'                 ! prefix for output files
   ...
 
-Make sure the timestamps correspond to the input data.
+Make sure the timestamps correspond to the input data in ``*_inputs_src.ncml``.
 Turn off as many things as possible to help it along.
 Turned off ``ln_mask_file``. James said it was for outputting a new mask file
 but it might have given me trouble. *Actually I also turn off all the ORCA inputs*.
@@ -973,17 +974,17 @@ Also had to check/create ``inputs_dst.ncml``, that it has the correct file name 
 
    vi inputs_dst.ncml
 
- <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
-   <ns0:aggregation type="union">
-     <ns0:netcdf location="file:domain_cfg.nc">
-     <ns0:variable name="mbathy" orgName="bottom_level" />
-     <ns0:variable name="gdept" orgName="gdept_0" />
-     <ns0:variable name="gdepw" orgName="gdepw_0" />
-     <ns0:variable name="e3u" orgName="e3u_0" />
-     <ns0:variable name="e3v" orgName="e3v_0" />
-     </ns0:netcdf>
-   </ns0:aggregation>
- </ns0:netcdf>
+   <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+     <ns0:aggregation type="union">
+       <ns0:netcdf location="file:domain_cfg.nc">
+       <ns0:variable name="mbathy" orgName="bottom_level" />
+       <ns0:variable name="gdept" orgName="gdept_0" />
+       <ns0:variable name="gdepw" orgName="gdepw_0" />
+       <ns0:variable name="e3u" orgName="e3u_0" />
+       <ns0:variable name="e3v" orgName="e3v_0" />
+       </ns0:netcdf>
+     </ns0:aggregation>
+   </ns0:netcdf>
 
 .. warning:
   In the actual v4 release domain_cfg.nc  will not have gdept or gdepw. These
