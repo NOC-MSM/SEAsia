@@ -232,6 +232,45 @@ Edit namelist_cfg for this domain::
      jpjglo      =     189               !  2nd    -                  -    --> j  =jpjdta
      ...
 
+   !-----------------------------------------------------------------------
+   &namzgr        !   vertical coordinate                                  (default: NO selection)
+   !-----------------------------------------------------------------------
+      ln_zco      = .false.   !  z-coordinate - full    steps
+      ln_zps      = .false.   !  z-coordinate - partial steps
+      ln_sco      = .true.   !  s- or hybrid z-s-coordinate
+      ln_isfcav   = .false.   !  ice shelf cavity
+   !   ln_linssh   = .false.   !  linear free surface
+   /
+   !-----------------------------------------------------------------------
+   &namzgr_sco    !   s-coordinate or hybrid z-s-coordinate
+   !-----------------------------------------------------------------------
+      ln_s_sh94   = .false.    !  Song & Haidvogel 1994 hybrid S-sigma   (T)|
+      ln_s_sf12   = .true.   !  Siddorn & Furner 2012 hybrid S-z-sigma (T)| if both are false the NEMO tanh stretching is applied
+      ln_sigcrit  = .true.    !  use sigma coordinates below critical depth (T) or Z coordinates (F) for Siddorn & Furner stretch
+                              !  stretching coefficients for all functions
+      rn_jpk      =  51       ! Number of S levels
+      ln_eq_taper = .false.   !  Tapering of S coords near equator
+      cn_coord_hgr = 'coordinates.nc'  ! File containing gphit (latitude) coordinate for use if ln_eq_taper=.true.
+      rn_sbot_min =   10.0    !  minimum depth of s-bottom surface (>0) (m)
+      rn_sbot_max = 7000.0    !  maximum depth of s-bottom surface (= ocean depth) (>0) (m)
+      rn_hc       =   50.0    !  critical depth for transition to stretched coordinates
+                           !!!!!!!  Envelop bathymetry
+      rn_rmax     =    0.3    !  maximum cut-off r-value allowed (0<r_max<1)
+                           !!!!!!!  SH94 stretching coefficients  (ln_s_sh94 = .true.)
+      rn_theta    =    6.0    !  surface control parameter (0<=theta<=20)
+      rn_bb       =    0.8    !  stretching with SH94 s-sigma
+                           !!!!!!!  SF12 stretching coefficient  (ln_s_sf12 = .true.)
+      rn_alpha    =    4.4    !  stretching with SF12 s-sigma
+      rn_efold    =    0.0    !  efold length scale for transition to stretched coord
+      rn_zs       =    1.0    !  depth of surface grid box
+                              !  bottom cell depth (Zb) is a linear function of water depth Zb = H*a + b
+      rn_zb_a     =    0.024  !  bathymetry scaling factor for calculating Zb
+      rn_zb_b     =   -0.2    !  offset for calculating Zb
+                           !!!!!!!! Other stretching (not SH94 or SF12) [also uses rn_theta above]
+      rn_thetb    =    1.0    !  bottom control parameter  (0<=thetb<= 1)
+   /
+
+
 .. note:
 
   No gdept output in the offical v4 release. Though it was acheived here setting
