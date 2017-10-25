@@ -31,7 +31,7 @@ scaled by the zoom factor.
 
 Move to the TOOL directory e.g.::
 
-  export TDIR=/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/TOOLS
+  #export TDIR=/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/TOOLS
   cd $TDIR
 
 Copy in the right ARCH file::
@@ -48,7 +48,7 @@ This makes a number of executables in NESTING::
 
 Link in parent coordinates file (from somewhere)::
 
-  ln -s $INPUTS/coordinates_ORCA_R12.nc $TDIR/NESTING/.
+  ln -s $START_FILES/coordinates_ORCA_R12.nc $TDIR/NESTING/.
 
 Write a namelist file::
 
