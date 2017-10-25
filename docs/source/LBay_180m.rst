@@ -678,7 +678,7 @@ Point to the correct source and destination mesh and mask files/variables.
       rn_sbot_max = 7000.     !  maximum depth of s-bottom surface
                               !  (= ocean depth) (>0) (m)
       ln_s_sigma  = .true.   !  hybrid s-sigma coordinates
-      rn_hc       =  150.0    !  critical depth with s-sigma
+      rn_hc       =  50.0    !  critical depth with s-sigma
 
    !-----------------------------------------------------------------------
    !  grid information
@@ -767,7 +767,7 @@ Also had to check/create ``inputs_dst.ncml``, that it has the correct file name 
   <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
     <ns0:aggregation type="union">
       <ns0:netcdf location="file:domain_cfg.nc">
-      <ns0:variable name="mbathy" orgName="bottom_level" />
+      <ns0:variable name="mbathy" orgName="top_level" />
       <ns0:variable name="gdept" orgName="gdept_0" />
       <ns0:variable name="gdepw" orgName="gdepw_0" />
       <ns0:variable name="e3u" orgName="e3u_0" />
@@ -821,6 +821,11 @@ Some thing funny going on with the bathymetry and domain_cfg.nc files::
         e3t_0[k=3]
 
         are all odd.
+
+Things are less odd if I carefully create the domain_cfg.nc files using SIREN tools
+Though there does not appear to be any land masking in the spacing variables but
+there is in the top_levels and bottom_levels variables.
+
 
 
 

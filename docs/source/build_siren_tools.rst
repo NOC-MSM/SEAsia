@@ -120,3 +120,7 @@ This seems to work OK.
   ...
 
 **DOESNT WORK AT THE MO**
+
+Copied variables form AMM60 namelist_cfg and namelist_ref
+
+Created a domain_cfg.nc that looks OK (though the top layer is not at constant depth...)
