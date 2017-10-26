@@ -488,6 +488,31 @@ Somewhat arbitrarily I am going to use **5** ``(jpkdta=5)`` levels::
      jphgr_msh   =       0               !  type of horizontal mesh
     ...
 
+
+Also add in s-coordinate namelist entries. These were copied from AMM60::
+
+  !-----------------------------------------------------------------------
+  &namzgr_sco    !   s-coordinate or hybrid z-s-coordinate
+  !-----------------------------------------------------------------------
+  ln_s_sh94   = .false.   !  Song & Haidvogel 1994 hybrid S-sigma   (T)|
+  ln_s_sf12   = .true.    !  Siddorn & Furner 2012 hybrid S-z-sigma (T)| if both are false the NEMO tanh stretching is applied
+  ln_sigcrit  = .true.    !  use sigma coordinates below critical depth (T) or Z coordinates (F) for Siddorn & Furner stretch
+                          !  stretching coefficients for all functions
+  rn_hc       =   50.0    !  critical depth for transition to stretched coordinates
+  rn_rmax     =    0.1    !  maximum cut-off r-value allowed (0<r_max<1)
+                       !!!!!!!  SF12 stretching coefficient  (ln_s_sf12 = .true.)
+  rn_alpha    =    4.4    !  stretching with SF12 s-sigma
+  rn_efold    =    0.0    !  efold length scale for transition to stretched coord
+  rn_zs       =    1.0    !  depth of surface grid box
+  rn_sbot_min =   10.0    !  minimum depth of s-bottom surface (>0) (m)
+  rn_sbot_max = 7000.0    !  maximum depth of s-bottom surface (= ocean depth) (>0) (m)
+                      !  bottom cell depth (Zb) is a linear function of water depth Zb = H*a + b
+  rn_zb_a     =    0.024  !  bathymetry scaling factor for calculating Zb
+  rn_zb_b     =   -0.2    !  offset for calculating Zb
+/
+
+
+
 .. note:
 
   No gdept output in the offical v4 release. Though it was acheived here setting
@@ -623,6 +648,40 @@ trivial to prevent PyNEMO looking for them.
 
 ----
 
+Set up directory structure and files in livljobs4
+=================================================
+
+Define paths::
+
+cat > ~/temporary_path_names_for_NEMO_build << EOL
+export CONFIG=SWPacific
+export WORK=/work
+export WDIR=\$WORK/$USER/NEMO/\$CONFIG
+export INPUTS=\$WDIR/INPUTS
+export START_FILES=\$WDIR/START_FILES
+#export CDIR=\$WDIR/trunk_NEMOGCM_r8395/CONFIG
+#export TDIR=\$WDIR/trunk_NEMOGCM_r8395/TOOLS
+#export EXP=\$CDIR/\$CONFIG/EXP00
+
+EOL
+
+Execute path settings::
+
+  . ~/temporary_path_names_for_NEMO_build
+
+Synchronise with key files from ARCHER::
+
+  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/bathy_meter.nc $INPUTS/.
+  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/coordinates.nc $INPUTS/.
+  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/domain_cfg.nc  $INPUTS/.
+
+Also need the parent grid mask and mesh files, from ORCA12,  in $START_FILES. (e.g. for AMM60)::
+
+  #rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/START_FILES/mask_AMM60.nc  $START_FILES/.
+  #rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/START_FILES/mesh_zgr_AMM60.nc  $START_FILES/.
+  #rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/START_FILES/mesh_hgr_AMM60.nc  $START_FILES/.
+
+
 Run PyNEMO / NRCT to generate boundary conditions
 +++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -636,11 +695,45 @@ Generate the boundary conditions with PyNEMO
   cd $INPUTS
   export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
 
-  pynemo -s thredds_namelist.bdy
+  pynemo -s namelist.bdy
 
 .. note : Can use the ``-g`` option if you want the GUI.
 
-.. note : I actually had to do a fix to get PyNEMO to behave See: https://bitbucket.org/jdha/nrct/issues/22/issue-with-applying-bc-over-the-rim
+.. note : Previously I actually had to do a fix to get PyNEMO to behave See: https://bitbucket.org/jdha/nrct/issues/22/issue-with-applying-bc-over-the-rim
+
+Now I get the error message::
+
+  ...
+  [1621 1134]
+  [1621 1135]]
+  INFO:pynemo.profile:done  bdy t,u,v,f
+  INFO:pynemo.profile:1.82
+  INFO:pynemo.profile:bdy_ind f (40089, 2) (40089,)
+  INFO:pynemo.profile:bdy_ind u (40125, 2) (40125,)
+  INFO:pynemo.profile:bdy_ind t (40150, 2) (40150,)
+  INFO:pynemo.profile:bdy_ind v (40116, 2) (40116,)
+  INFO:pynemo.profile:done coord gen
+  INFO:pynemo.profile:0.0
+  INFO:pynemo.profile:./domain_cfg.nc
+  INFO:pynemo.profile:done coord pop
+  INFO:pynemo.profile:0.4
+  INFO:pynemo.profile:gather grid info
+  INFO:pynemo.profile:0.01
+  INFO:pynemo.profile:generating depth info
+  INFO:pynemo.reader.ncml:(1, 1138, 1624)
+  INFO:pynemo.reader.ncml:(5,)
+  ERROR:pynemo.reader.ncml:Cannot find the requested variable hbatt
+  Traceback (most recent call last):
+   File "/login/jelt/.conda/envs/nrct_env/bin/pynemo", line 11, in <module>
+     load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo')()
+   File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_exe.py", line 44, in main
+     profile.process_bdy(setup_file, mask_gui)
+   File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py", line 175, in process_bdy
+     z = zgrv.Depth(grid_t.bdy_i, grid_u.bdy_i, grid_v.bdy_i, settings)
+   File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/nemo_bdy_zgrv2.py", line 59, in __init__
+     hbatt[mbathy == 0] = np.NaN
+  TypeError: 'NoneType' object does not support item assignment
+
 
 This generates::
   ls -1 $INPUTS
