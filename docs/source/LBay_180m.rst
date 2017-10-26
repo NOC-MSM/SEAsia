@@ -1248,6 +1248,7 @@ Generate the boundary conditions again, with PyNEMO
   IndexError: list index out of range
 
 **GOT THIS FAR**
+I think that perhaps the TPXO data is too course to be resolved in this small domain..
 
 
 This generates::
