@@ -23,7 +23,7 @@ Install NEMO Relocatable Configuration Tool (NRCT)
   conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
   conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
 
-Find java object by doing a which java and then following the trail
+Find java object by doing a ``which java`` and then following the trail
 find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print
 ::
 
@@ -36,6 +36,35 @@ find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print
   export PYTHONPATH=/login/$USER/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
   python setup.py install --prefix ~/.conda/envs/nrct_env
   cd $INPUTS
+
+---
+
+On **MacOSX**. *(26 Oct 2017)* (conda 4.3.30, python2.7) NB couldn't find ``libgfortran=1.0.0``. I used tcsh so you need to
+switch to bash to get ``source`` working.
+
+::
+  git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct
+  conda create --name nrct_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=3.0.0
+
+  bash
+  source $HOME/anaconda/envs/nrct_env/bin/activate $HOME/anaconda/envs/nrct_env
+  conda install -c conda-forge seawater=3.3.4
+  conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
+  conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
+
+I am not convinced that the following worked properly; not sure that I ironed out
+all the problems with the java virtual machine (which is also trouble for ARCHER).
+Anyway, this is what I did::
+
+  cd nrct/Python
+  export LD_LIBRARY=/opt/local/lib/gcc48/gcj-4.8.2-14/:$LD_LIBRARY_PATH
+  python setup.py build
+  export PYTHONPATH=$HOME/anaconda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
+  python setup.py install --prefix ~/anaconda/envs/nrct_env
+
+  pynemo -s data/namelist.bdy
+
+It looked like it worked though I didn't try it with actualy bathymetry and coords files
 
 ---
 
