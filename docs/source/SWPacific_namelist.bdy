@@ -1,34 +1,34 @@
 !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 !! NEMO/OPA  : namelist for BDY generation tool
-!!            
+!!
 !!             User inputs for generating open boundary conditions
 !!             employed by the BDY module in NEMO. Boundary data
 !!             can be set up for v3.2 NEMO and above.
-!!            
+!!
 !!             More info here.....
-!!            
+!!
 !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 !-----------------------------------------------------------------------
 !   vertical coordinate
 !-----------------------------------------------------------------------
-   ln_zco      = .false   !  z-coordinate - full    steps   (T/F)  
+   ln_zco      = .true   !  z-coordinate - full    steps   (T/F)
    ln_zps      = .false.    !  z-coordinate - partial steps   (T/F)
-   ln_sco      = .true.   !  s- or hybrid z-s-coordinate    (T/F)
-   rn_hmin     =   -5     !  min depth of the ocean (>0) or 
+   ln_sco      = .false.   !  s- or hybrid z-s-coordinate    (T/F)
+   rn_hmin     =   -5     !  min depth of the ocean (>0) or
                            !  min number of ocean level (<0)
 
 !-----------------------------------------------------------------------
 !   s-coordinate or hybrid z-s-coordinate
 !-----------------------------------------------------------------------
    rn_sbot_min =   10.     !  minimum depth of s-bottom surface (>0) (m)
-   rn_sbot_max = 7000.     !  maximum depth of s-bottom surface 
+   rn_sbot_max = 7000.     !  maximum depth of s-bottom surface
                            !  (= ocean depth) (>0) (m)
    ln_s_sigma  = .true.   !  hybrid s-sigma coordinates
    rn_hc       =  50.0    !  critical depth with s-sigma
 
 !-----------------------------------------------------------------------
-!  grid information 
+!  grid information
 !-----------------------------------------------------------------------
    sn_src_hgr = './mesh_hgr_src.nc'   !  parent /grid/
    sn_src_zgr = './mesh_zgr_src.nc'   !  parent
@@ -38,7 +38,7 @@
    sn_bathy   = './bathy_meter.nc'
 
 !-----------------------------------------------------------------------
-!  I/O 
+!  I/O
 !-----------------------------------------------------------------------
    sn_src_dir = './tmp_inputs_src.ncml'       ! src_files/'
    sn_dst_dir = '/work/jelt/NEMO/SWPacific/INPUTS/'
@@ -48,7 +48,7 @@
    sn_dst_metainfo = 'metadata info: jelt'
 
 !-----------------------------------------------------------------------
-!  unstructured open boundaries                         
+!  unstructured open boundaries
 !-----------------------------------------------------------------------
     ln_coords_file = .true.               !  =T : produce bdy coordinates files
     cn_coords_file = 'coordinates.bdy.nc' !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
@@ -57,16 +57,16 @@
     ln_dyn2d       = .false.               !  boundary conditions for barotropic fields
     ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
     ln_tra         = .false.               !  boundary conditions for T and S
-    ln_ice         = .false.               !  ice boundary condition   
+    ln_ice         = .false.               !  ice boundary condition
     nn_rimwidth    = 9                    !  width of the relaxation zone
 
 !-----------------------------------------------------------------------
-!  unstructured open boundaries tidal parameters                        
+!  unstructured open boundaries tidal parameters
 !-----------------------------------------------------------------------
     ln_tide        = .true.               !  =T : produce bdy tidal conditions
     clname(1)      = 'M2'                 ! constituent name
-    clname(2)      = 'S2'         
-    clname(3)      = 'K2'        
+    clname(2)      = 'S2'
+    clname(3)      = 'K2'
     ln_trans       = .false.
     sn_tide_h     = '/work/jelt/tpxo7.2/h_tpxo7.2.nc'
     sn_tide_u     = '/work/jelt/tpxo7.2/u_tpxo7.2.nc'
@@ -85,9 +85,9 @@
 !-----------------------------------------------------------------------
 !  Additional parameters
 !-----------------------------------------------------------------------
-    nn_wei  = 1                   !  smoothing filter weights 
+    nn_wei  = 1                   !  smoothing filter weights
     rn_r0   = 0.041666666         !  decorrelation distance use in gauss
-                                  !  smoothing onto dst points. Need to 
+                                  !  smoothing onto dst points. Need to
                                   !  make this a funct. of dlon
     sn_history  = 'bdy files produced by jelt from ORCA0083-N01'
                                   !  history for netcdf file

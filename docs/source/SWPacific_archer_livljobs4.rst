@@ -675,11 +675,30 @@ Synchronise with key files from ARCHER::
   rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/coordinates.nc $INPUTS/.
   rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/domain_cfg.nc  $INPUTS/.
 
-Also need the parent grid mask and mesh files, from ORCA12,  in $START_FILES. (e.g. for AMM60)::
 
-  #rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/START_FILES/mask_AMM60.nc  $START_FILES/.
-  #rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/START_FILES/mesh_zgr_AMM60.nc  $START_FILES/.
-  #rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/START_FILES/mesh_hgr_AMM60.nc  $START_FILES/.
+Statement about external forcing
+================================
+
+Uses ORCA 1/12 via a thredds server.
+I have the mesh and mask files ``mask_src.nc  mesh_hgr_src.nc  mesh_zgr_src.nc``
+ stored locally (from the lighthouse reef experiment).
+
+ Copy necessary files into INPUTS. (Be careful of symbolic links in PyNEMO).::
+
+   cp $START_FILES/mask_ORCA12.nc     $INPUTS/mask_src.nc
+   cp $START_FILES/mesh_hgr_ORCA12.nc $INPUTS/mesh_hgr_src.nc
+   cp $START_FILES/mesh_zgr_ORCA12.nc $INPUTS/mesh_zgr_src.nc
+
+   ls -lh $INPUTS/bathy_meter.nc
+   ls -lh $INPUTS/coordinates.nc
+   ls -lh $INPUTS/domain_cfg.nc
+
+Need to generate 3 more files: A ``namelist.bdy`` (`SWPacific_namelist.bdy`_)
+which drives PyNEMO and which has two input files: ``thredds_inputs_src.ncml``
+which points to the remote ORCA data source and ``inputs_dst.ncml`` which
+remaps some variable names in the destination files.
+
+.. note: Either copy working namelist.bdy to repo or to $START_FILES. I vote repo
 
 
 Run PyNEMO / NRCT to generate boundary conditions
@@ -734,6 +753,19 @@ Now I get the error message::
      hbatt[mbathy == 0] = np.NaN
   TypeError: 'NoneType' object does not support item assignment
 
+This is because I have tried to get PyNEMO to use s-coordinates. These are not
+needed for a tide only run
+
+.. note PyNEMO does not work for s-coordinates. But to just use it for tidal
+ boundary conditions it doesn't matter what the vertical grid is doing.
+
+
+**PLAN** Change the z-coordinates in PyNEMO and try running again.
+That worked, though I had to hardwire some of the e3u and mbathy variables needed.
+**NEEDS ATTENTION**
+
+---
+
 
 This generates::
   ls -1 $INPUTS
@@ -749,11 +781,6 @@ This generates::
   SWPacific_bdytide_rotT_K2_grid_V.nc
   SWPacific_bdytide_rotT_S2_grid_V.nc
 
-.. note : There is a problem with the processing the other input data, which I am not using*
-  and which results in a pynemo crash::
-
-  File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/nemo_bdy_extr_tm3.py", line 140,
-  dejavu_sorted_index:  [] is emtpy
 
 
 
@@ -855,3 +882,7 @@ Submit::
 
  cd $EXP
  qsub -q short runscript
+
+**SUBMITTED** PENDING. Need to tidy up pynemo edits.
+
+This blows up in two time steps... 
