@@ -16,7 +16,7 @@ configuration.
 * Use ORCHESTRA code, which is near the head of the trunk (@ r8395).
 
 * Caveat: a number of input files are taken from James' existing configuration.
-Though the domain_cdf.nc file was generated from Jame's coordinates and bathy files.
+Though the domain_cfg.nc file was generated from James' coordinates and bathy files.
 
 .. warning:
 
