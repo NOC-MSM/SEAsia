@@ -459,6 +459,11 @@ When the increase in resolution is x1, the size of the coordinates were::
 
 
 Somewhat arbitrarily I am going to use **31** ``(jpkdta=31; rn_jpk=31)`` levels.
+
+
+s-coordinates `SWPacific_DOMAINcfg_namelist_cfg`_ (didn't work)
+-------------
+
  (If I tried 5 levels then the function to compute the depth range breaks).
  Added in s-coordinate settings from AMM60. (There is a function that tapers dz
  near the equation. This is activated in ``domzgr.F90`` and not by a logical flag)::
@@ -537,7 +542,82 @@ Somewhat arbitrarily I am going to use **31** ``(jpkdta=31; rn_jpk=31)`` levels.
   /
 
 
+z-coordinates
+-------------
 
+::
+  cd $TDIR/DOMAINcfg
+  vi namelist_cfg
+
+  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !! NEMO/OPA  Configuration namelist : used to overwrite defaults values defined in SHARED/namelist_ref
+  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     nn_no       =       0   !  job number (no more used...)
+     cn_exp      =  "domaincfg"  !  experience name
+     nn_it000    =       1   !  first time step
+     nn_itend    =      75   !  last  time step (std 5475)
+  /
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+     !
+     ln_e3_dep   = .false.   ! =T : e3=dk[depth] in discret sens.
+     !                       !      ===>>> will become the only possibility in v4.0
+     !                       ! =F : e3 analytical derivative of depth function
+     !                       !      only there for backward compatibility test with v3.6
+     !                       !
+     cp_cfg      =  "orca"   !  name of the configuration
+     jp_cfg      =      12   !  resolution of the configuration
+     jpidta      =     544   !  1st lateral dimension ( >= jpi )
+     jpjdta      =     382   !  2nd    "         "    ( >= jpj )
+     jpkdta      =      31   !  number of levels      ( >= jpk )
+     jpiglo      =     544   !  1st dimension of global domain --> i =jpidta
+     jpjglo      =     382   !  2nd    -                  -    --> j  =jpjdta
+     jpizoom     =       1   !  left bottom (i,j) indices of the zoom
+     jpjzoom     =       1   !  in data domain indices
+     jperio      =       0   !  lateral cond. type (between 0 and 6)
+  /
+  !-----------------------------------------------------------------------
+  &namzgr        !   vertical coordinate
+  !-----------------------------------------------------------------------
+    ln_zco      = .false.   !  z-coordinate - full    steps
+    ln_zps      = .true.   !  z-coordinate - partial steps
+    ln_sco      = .false.   !  s- or hybrid z-s-coordinate
+    ln_isfcav   = .false.   !  ice shelf cavity
+    ln_linssh   = .false.   !  linear free surface
+  /
+  !-----------------------------------------------------------------------
+  &namzgr_sco    !   s-coordinate or hybrid z-s-coordinate
+  !-----------------------------------------------------------------------
+  /
+  !-----------------------------------------------------------------------
+  &namdom        !   space and time domain (bathymetry, mesh, timestep)
+  !-----------------------------------------------------------------------
+     jphgr_msh   =       0               !  type of horizontal mesh
+     ppglam0     =  999999.0             !  longitude of first raw and column T-point (jphgr_msh = 1)
+     ppgphi0     =  999999.0             ! latitude  of first raw and column T-point (jphgr_msh = 1)
+     ppe1_deg    =  999999.0             !  zonal      grid-spacing (degrees)
+     ppe2_deg    =  999999.0             !  meridional grid-spacing (degrees)
+     ppe1_m      =  999999.0             !  zonal      grid-spacing (degrees)
+     ppe2_m      =  999999.0             !  meridional grid-spacing (degrees)
+     ppsur       =   -4762.96143546300   !  ORCA r4, r2 and r05 coefficients
+     ppa0        =     255.58049070440   ! (default coefficients)
+     ppa1        =     245.58132232490   !
+     ppkth       =      21.43336197938   !
+     ppacr       =       3.0             !
+     ppdzmin     =  999999.              !  Minimum vertical spacing
+     pphmax      =  999999.              !  Maximum depth
+     ldbletanh   =  .FALSE.              !  Use/do not use double tanf function for vertical coordinates
+     ppa2        =  999999.              !  Double tanh function parameters
+     ppkth2      =  999999.              !
+     ppacr2      =  999999.              !
+  /
+
+----
 
 
 
@@ -589,7 +669,7 @@ Put a copy of the namelist_cfg in $INPUTS for safe keeping::
 
   cp $TDIR/DOMAINcfg/namelist_cfg $INPUTS/namelist_cfg_generateDOMAINcfg
 
-Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores
+#Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores
  the bits and bobs for a rebuild)::
 
   cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
@@ -803,7 +883,7 @@ are OK as it is only 2D variables::
      rn_sbot_min =   10.     !  minimum depth of s-bottom surface (>0) (m)
      rn_sbot_max = 7000.     !  maximum depth of s-bottom surface
                              !  (= ocean depth) (>0) (m)
-     ln_s_sigma  = .true.   !  hybrid s-sigma coordinates
+     ln_s_sigma  = .false.   !  hybrid s-sigma coordinates
      rn_hc       =  50.0    !  critical depth with s-sigma
 
   !-----------------------------------------------------------------------
@@ -833,9 +913,9 @@ are OK as it is only 2D variables::
   cn_coords_file = 'coordinates.bdy.nc' !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
   ln_mask_file   = .true.              !  =T : read mask from file
   cn_mask_file   = './bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-  ln_dyn2d       = .true.               !  boundary conditions for barotropic fields
+  ln_dyn2d       = .false.               !  boundary conditions for barotropic fields
   ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
-  ln_tra         = .true.               !  boundary conditions for T and S
+  ln_tra         = .false.               !  boundary conditions for T and S
   ln_ice         = .false.               !  ice boundary condition
   nn_rimwidth    = 10                    !  width of the relaxation zone
 
@@ -952,7 +1032,8 @@ Generate the boundary conditions with PyNEMO
 
   pynemo -s namelist.bdy
 
-.. note : Can use the ``-g`` option if you want the GUI.
+.. note : Can use the ``-g`` option if you want the GUI. Sometime problems are
+  circumvented using the "-g" option.
 
 .. note : log revealed:
     ...
@@ -962,7 +1043,10 @@ Generate the boundary conditions with PyNEMO
     ...
     Hmm. Something to look at is it doesn't work.
 
-
+  .. note : Error
+  File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/tide/nemo_bdy_tide3.py", line 50, in nemo_bdy_tpx7p2_rot
+    dst_lon = DC.bdy_lonlat[Grid_U.grid_type]['lon'][Grid_U.bdy_r == 0]
+    As before fixed but commenting out the [Grid_U.bdy_r == 0] subsetting. x 4.
 
 This is because I have tried to get PyNEMO to use s-coordinates. These are not
 needed for a tide only run
@@ -970,7 +1054,7 @@ needed for a tide only run
 .. note PyNEMO does not work for s-coordinates. But to just use it for tidal
  boundary conditions it doesn't matter what the vertical grid is doing.
 
-
+.. note: crashed in the tra routine. A problem with source coordinates zt not working as expected
 
 ---
 
@@ -1096,14 +1180,7 @@ Submit::
  cd $EXP
  qsub -q short runscript
 
-**SUBMITTED** PENDING. Need to tidy up pynemo edits.
-
-This blows up in two time steps...
-
-Take off mask. Still blows up
-Turn off tide_ramp. Change rdt = 12 (scale with dx from SEAsia). Still blows up.
-
-Regenerate a 1/12 version.
+**SUBMITTED** 27 Oct. PENDING. z-coords. Need to archive namelists (especially if it works)...
 
 
 ---
