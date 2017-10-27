@@ -1181,6 +1181,7 @@ Submit::
  qsub -q short runscript
 
 **SUBMITTED** 27 Oct. PENDING. z-coords. Need to archive namelists (especially if it works)...
+Blows up on the southern boundary again....
 
 
 ---
