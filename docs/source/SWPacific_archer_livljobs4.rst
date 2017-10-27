@@ -105,10 +105,11 @@ First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
   cd $TDIR
 
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
-  ./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL_XIOS1
+  ./maketools -m XC_ARCHER_INTEL_XIOS1 -n REBUILD_NEMO
 
-For the generation of bathymetry we need to patch the code (to allow direct
-passing of arguments. NB this code has not been updated in 7 years.)::
+For the generation of bathymetry and met forcing weights files we need to patch
+the code (to allow direct passing of arguments. NB this code has not been
+updated in 7 years.)::
 
   cd $TDIR/WEIGHTS/src
   patch -b < $START_FILES/scripinterp_mod.patch
@@ -119,6 +120,7 @@ passing of arguments. NB this code has not been updated in 7 years.)::
 
   cd $TDIR
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n WEIGHTS
+
 
 
 .. note :
@@ -136,7 +138,8 @@ passing of arguments. NB this code has not been updated in 7 years.)::
 Generate a ``coordinates.nc`` file from a parent NEMO grid at some resolution.
 **Plan:** Use tool ``agrif_create_coordinates.exe`` which reads cutting indices and
 parent grid location from ``namelist.input`` and outputs a new files with new
-resolution grid elements.
+resolution grid elements. Originally we tried to interpolate to a finer grid with
+``rho=rhot=3``. Now keeping resolution at R12 incase it sorts out a stability issue.
 
 .. warning:
   Using the GRIDGEN/create_coordinates.exe tool runs into a problem for zoom factor
@@ -161,8 +164,8 @@ Edit namelist::
       imax = 1405
       jmin = 1116
       jmax = 1494
-      rho  = 5
-      rhot = 5
+      rho  = 1
+      rhot = 1
       bathy_update = false
   /
   &vertical_grid
@@ -247,26 +250,26 @@ Restore the original parallel modules::
   module unload nco cray-netcdf cray-hdf5
   module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-Execute first scrip thing (use old tools - already compiled)::
+Execute first scrip thing::
 
-  $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
+  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
 
 Output files::
 
   remap_nemo_grid_gebco.nc
   remap_data_grid_gebco.nc
 
-Execute second scip thing (use old tools - already compiled)::
+Execute second scip thing::
 
-  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
+  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
 
 Output files::
 
   data_nemo_bilin_gebco.nc
 
-Execute third scip thing (use old tools - already compiled)::
+Execute third scip thing::
 
-  $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
+  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
 
 Output files::
 
@@ -439,7 +442,21 @@ Copy essential files into DOMAINcfg directory::
 Edit the template namelist_cfg with only the essenetial domain building stuff.
 Get the indices from ``ncdump -h coordinates.nc``.
 
-Somewhat arbitrarily I am going to use **5** ``(jpkdta=5)`` levels::
+When the increase in resolution was x3, the size of the coordinate were::
+
+  jpidta      =    1624   !  1st lateral dimension ( >= jpi )
+  jpjdta      =    1138   !  2nd    "         "    ( >= jpj )
+
+When the increase in resolution is x1, the size of the coordinates were::
+
+  jpidta      =    544   !  1st lateral dimension ( >= jpi )
+  jpjdta      =    382   !  2nd    "         "    ( >= jpj )
+
+
+Somewhat arbitrarily I am going to use **31** ``(jpkdta=31; rn_jpk=31)`` levels.
+ (If I tried 5 levels then the function to compute the depth range breaks).
+ Added in s-coordinate settings from AMM60. (There is a function that tapers dz
+ near the equation. This is activated in ``domzgr.F90`` and not by a logical flag)::
 
   cd $TDIR/DOMAINcfg
   vi namelist_cfg
@@ -460,18 +477,18 @@ Somewhat arbitrarily I am going to use **5** ``(jpkdta=5)`` levels::
   &namcfg        !   parameters of the configuration
   !-----------------------------------------------------------------------
      !
-     ln_e3_dep   = .false.    ! =T : e3=dk[depth] in discret sens.
+     ln_e3_dep   = .false.   ! =T : e3=dk[depth] in discret sens.
      !                       !      ===>>> will become the only possibility in v4.0
      !                       ! =F : e3 analytical derivative of depth function
      !                       !      only there for backward compatibility test with v3.6
      !                       !
      cp_cfg      =  "orca"   !  name of the configuration
-     jp_cfg      =       0   !  resolution of the configuration
-     jpidta      =    1624   !  1st lateral dimension ( >= jpi )
-     jpjdta      =    1138   !  2nd    "         "    ( >= jpj )
-     jpkdta      =       5   !  number of levels      ( >= jpk )
-     jpiglo      =    1624   !  1st dimension of global domain --> i =jpidta
-     jpjglo      =    1138   !  2nd    -                  -    --> j  =jpjdta
+     jp_cfg      =      12   !  resolution of the configuration
+     jpidta      =     544   !  1st lateral dimension ( >= jpi )
+     jpjdta      =     382   !  2nd    "         "    ( >= jpj )
+     jpkdta      =      31   !  number of levels      ( >= jpk )
+     jpiglo      =     544   !  1st dimension of global domain --> i =jpidta
+     jpjglo      =     382   !  2nd    -                  -    --> j  =jpjdta
      jpizoom     =       1   !  left bottom (i,j) indices of the zoom
      jpjzoom     =       1   !  in data domain indices
      jperio      =       0   !  lateral cond. type (between 0 and 6)
@@ -479,37 +496,43 @@ Somewhat arbitrarily I am going to use **5** ``(jpkdta=5)`` levels::
   !-----------------------------------------------------------------------
   &namzgr        !   vertical coordinate
   !-----------------------------------------------------------------------
-     ln_sco      = .true.    !  z-coordinate - partial steps
-     ln_linssh   = .false.    !  linear free surface
+    ln_zco      = .false.   !  z-coordinate - full    steps
+    ln_zps      = .false.   !  z-coordinate - partial steps
+    ln_sco      = .true.   !  s- or hybrid z-s-coordinate
+    ln_isfcav   = .false.   !  ice shelf cavity
+    ln_linssh   = .false.   !  linear free surface
   /
-  !-----------------------------------------------------------------------
-  &namdom        !   space and time domain (bathymetry, mesh, timestep)
-  !-----------------------------------------------------------------------
-     jphgr_msh   =       0               !  type of horizontal mesh
-    ...
-
-
-Also add in s-coordinate namelist entries. These were copied from AMM60::
-
   !-----------------------------------------------------------------------
   &namzgr_sco    !   s-coordinate or hybrid z-s-coordinate
   !-----------------------------------------------------------------------
-  ln_s_sh94   = .false.   !  Song & Haidvogel 1994 hybrid S-sigma   (T)|
-  ln_s_sf12   = .true.    !  Siddorn & Furner 2012 hybrid S-z-sigma (T)| if both are false the NEMO tanh stretching is applied
-  ln_sigcrit  = .true.    !  use sigma coordinates below critical depth (T) or Z coordinates (F) for Siddorn & Furner stretch
-                          !  stretching coefficients for all functions
-  rn_hc       =   50.0    !  critical depth for transition to stretched coordinates
-  rn_rmax     =    0.1    !  maximum cut-off r-value allowed (0<r_max<1)
-                       !!!!!!!  SF12 stretching coefficient  (ln_s_sf12 = .true.)
-  rn_alpha    =    4.4    !  stretching with SF12 s-sigma
-  rn_efold    =    0.0    !  efold length scale for transition to stretched coord
-  rn_zs       =    1.0    !  depth of surface grid box
-  rn_sbot_min =   10.0    !  minimum depth of s-bottom surface (>0) (m)
-  rn_sbot_max = 7000.0    !  maximum depth of s-bottom surface (= ocean depth) (>0) (m)
-                      !  bottom cell depth (Zb) is a linear function of water depth Zb = H*a + b
-  rn_zb_a     =    0.024  !  bathymetry scaling factor for calculating Zb
-  rn_zb_b     =   -0.2    !  offset for calculating Zb
-/
+    ln_s_sh94   = .false.    !  Song & Haidvogel 1994 hybrid S-sigma   (T)|
+    ln_s_sf12   = .true.   !  Siddorn & Furner 2012 hybrid S-z-sigma (T)| if both are false the NEMO tanh stretching is applied
+    ln_sigcrit  = .true.    !  use sigma coordinates below critical depth (T) or Z coordinates (F) for Siddorn & Furner stretch
+                            !  stretching coefficients for all functions
+    rn_jpk      =   31       ! Number of S levels
+    !ln_eq_taper = .false.   !  Tapering of S coords near equator
+    cn_coord_hgr = 'coordinates.nc'  ! File containing gphit (latitude) coordinate for use if ln_eq_taper=.true.
+    rn_sbot_min =   10.0    !  minimum depth of s-bottom surface (>0) (m)
+    rn_sbot_max = 7000.0    !  maximum depth of s-bottom surface (= ocean depth) (>0) (m)
+    rn_hc       =   50.0    !  critical depth for transition to stretched coordinates
+                         !!!!!!!  Envelop bathymetry
+    rn_rmax     =    0.3    !  maximum cut-off r-value allowed (0<r_max<1)
+                         !!!!!!!  SH94 stretching coefficients  (ln_s_sh94 = .true.)
+    rn_theta    =    6.0    !  surface control parameter (0<=theta<=20)
+    rn_bb       =    0.8    !  stretching with SH94 s-sigma
+                         !!!!!!!  SF12 stretching coefficient  (ln_s_sf12 = .true.)
+    rn_alpha    =    4.4    !  stretching with SF12 s-sigma
+    rn_efold    =    0.0    !  efold length scale for transition to stretched coord
+    rn_zs       =    1.0    !  depth of surface grid box
+                            !  bottom cell depth (Zb) is a linear function of water depth Zb = H*a + b
+    rn_zb_a     =    0.024  !  bathymetry scaling factor for calculating Zb
+    rn_zb_b     =   -0.2    !  offset for calculating Zb
+                         !!!!!!!! Other stretching (not SH94 or SF12) [also uses rn_theta above]
+    rn_thetb    =    1.0    !  bottom control parameter  (0<=thetb<= 1)
+  /
+
+
+
 
 
 
@@ -676,29 +699,237 @@ Synchronise with key files from ARCHER::
   rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/domain_cfg.nc  $INPUTS/.
 
 
-Statement about external forcing
-================================
+Statement about external forcing and files
+==========================================
 
-Uses ORCA 1/12 via a thredds server.
-I have the mesh and mask files ``mask_src.nc  mesh_hgr_src.nc  mesh_zgr_src.nc``
- stored locally (from the lighthouse reef experiment).
-
+Use ORCA 1/12 data via a thredds server. Also use ORCA 1/12 mesh and mask files
+ via a thredds server.
  Copy necessary files into INPUTS. (Be careful of symbolic links in PyNEMO).::
-
-   cp $START_FILES/mask_ORCA12.nc     $INPUTS/mask_src.nc
-   cp $START_FILES/mesh_hgr_ORCA12.nc $INPUTS/mesh_hgr_src.nc
-   cp $START_FILES/mesh_zgr_ORCA12.nc $INPUTS/mesh_zgr_src.nc
 
    ls -lh $INPUTS/bathy_meter.nc
    ls -lh $INPUTS/coordinates.nc
    ls -lh $INPUTS/domain_cfg.nc
 
-Need to generate 3 more files: A ``namelist.bdy`` (`SWPacific_namelist.bdy`_)
-which drives PyNEMO and which has two input files: ``thredds_inputs_src.ncml``
+Need to generate 6 more files: A ``namelist.bdy`` (archived as `SWPacific_namelist.bdy`_)
+which drives PyNEMO and which has two input files: ``inputs_src.ncml``
 which points to the remote ORCA data source and ``inputs_dst.ncml`` which
-remaps some variable names in the destination files.
+remaps some variable names in the destination files. Then generate ncml files
+to get the mesh and mask files (``mask_src.ncml  mesh_hgr_src.ncml  mesh_zgr_src.ncml``).
 
-.. note: Either copy working namelist.bdy to repo or to $START_FILES. I vote repo
+Create ncml file for ORCA12 source data::
+
+  vi  $INPUTS/inputs_src.ncml
+
+  <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+  <ns0:aggregation type="union">
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="temperature" type="joinExisting">
+          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791206d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="salinity" type="joinExisting">
+          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791206d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="zonal_velocity" type="joinExisting">
+          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791206d05U.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="meridian_velocity" type="joinExisting">
+          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791206d05V.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="sea_surface_height" type="joinExisting">
+          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791206d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+  </ns0:aggregation>
+  </ns0:netcdf>
+
+
+Create NCML file for mapping variables in DESTINATION grid to what PyNEMO expects::
+
+  vi inputs_dst.ncml
+
+  <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+    <ns0:aggregation type="union">
+      <ns0:netcdf location="file:domain_cfg.nc">
+      <ns0:variable name="mbathy" orgName="top_level" />
+      <ns0:variable name="gdept" orgName="gdept_0" />
+      <ns0:variable name="gdepw" orgName="gdepw_0" />
+      <ns0:variable name="e3u" orgName="e3u_0" />
+      <ns0:variable name="e3v" orgName="e3v_0" />
+      </ns0:netcdf>
+    </ns0:aggregation>
+  </ns0:netcdf>
+
+Create a PyNEMO namelist.bdy file. Note this this is tides only and so z-coordinates
+are OK as it is only 2D variables::
+
+  vi namelist.bdy
+
+  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !! NEMO/OPA  : namelist for BDY generation tool
+  !!
+  !!             User inputs for generating open boundary conditions
+  !!             employed by the BDY module in NEMO. Boundary data
+  !!             can be set up for v3.2 NEMO and above.
+  !!
+  !!             More info here.....
+  !!
+  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+  !-----------------------------------------------------------------------
+  !   vertical coordinate
+  !-----------------------------------------------------------------------
+     ln_zco      = .true.   !  z-coordinate - full    steps   (T/F)
+     ln_zps      = .false.    !  z-coordinate - partial steps   (T/F)
+     ln_sco      = .false.   !  s- or hybrid z-s-coordinate    (T/F)
+     rn_hmin     =   -5     !  min depth of the ocean (>0) or
+                             !  min number of ocean level (<0)
+
+  !-----------------------------------------------------------------------
+  !   s-coordinate or hybrid z-s-coordinate
+  !-----------------------------------------------------------------------
+     rn_sbot_min =   10.     !  minimum depth of s-bottom surface (>0) (m)
+     rn_sbot_max = 7000.     !  maximum depth of s-bottom surface
+                             !  (= ocean depth) (>0) (m)
+     ln_s_sigma  = .true.   !  hybrid s-sigma coordinates
+     rn_hc       =  50.0    !  critical depth with s-sigma
+
+  !-----------------------------------------------------------------------
+  !  grid information
+  !-----------------------------------------------------------------------
+     sn_src_hgr = './mesh_hgr_src.nc'   !  parent /grid/
+     sn_src_zgr = './mesh_zgr_src.nc'   !  parent
+     sn_dst_hgr = './domain_cfg.nc'
+     sn_dst_zgr = './inputs_dst.ncml' ! rename output variables
+     sn_src_msk = './mask_src.nc'       ! parent
+     sn_bathy   = './bathy_meter.nc'
+
+  !-----------------------------------------------------------------------
+  !  I/O
+  !-----------------------------------------------------------------------
+     sn_src_dir = './inputs_src.ncml'       ! src_files/'
+     sn_dst_dir = '/work/jelt/NEMO/SWPacific/INPUTS/'
+     sn_fn      = 'SWPacific'                 ! prefix for output files
+     nn_fv      = -1e20                     !  set fill value for output files
+     nn_src_time_adj = 0                                    ! src time adjustment
+     sn_dst_metainfo = 'metadata info: jelt'
+
+  !-----------------------------------------------------------------------
+  !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+  ln_coords_file = .true.               !  =T : produce bdy coordinates files
+  cn_coords_file = 'coordinates.bdy.nc' !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
+  ln_mask_file   = .true.              !  =T : read mask from file
+  cn_mask_file   = './bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+  ln_dyn2d       = .true.               !  boundary conditions for barotropic fields
+  ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
+  ln_tra         = .true.               !  boundary conditions for T and S
+  ln_ice         = .false.               !  ice boundary condition
+  nn_rimwidth    = 10                    !  width of the relaxation zone
+
+  !-----------------------------------------------------------------------
+  !  unstructured open boundaries tidal parameters
+  !-----------------------------------------------------------------------
+  ln_tide        = .true.               !  =T : produce bdy tidal conditions
+  clname(1)      = 'M2'                 ! constituent name
+  clname(2)      = 'S2'
+  clname(3)      = 'K2'
+  ln_trans       = .false.
+  sn_tide_h     = '/work/jelt/tpxo7.2/h_tpxo7.2.nc'
+  sn_tide_u     = '/work/jelt/tpxo7.2/u_tpxo7.2.nc'
+
+  !-----------------------------------------------------------------------
+  !  Time information
+  !-----------------------------------------------------------------------
+  nn_year_000     = 1979        !  year start
+  nn_year_end     = 1979        !  year end
+  nn_month_000    = 11          !  month start (default = 1 is years>1)
+  nn_month_end    = 11          !  month end (default = 12 is years>1)
+  sn_dst_calendar = 'gregorian' !  output calendar format
+  nn_base_year    = 1978        !  base year for time counter
+  sn_tide_grid    = '/work/jelt/tpxo7.2/grid_tpxo7.2.nc'
+
+  !-----------------------------------------------------------------------
+  !  Additional parameters
+  !-----------------------------------------------------------------------
+  nn_wei  = 1                   !  smoothing filter weights
+  rn_r0   = 0.041666666         !  decorrelation distance use in gauss
+                                !  smoothing onto dst points. Need to
+                                !  make this a funct. of dlon
+  sn_history  = 'bdy files produced by jelt from ORCA0083-N01'
+                                !  history for netcdf file
+  ln_nemo3p4  = .true.          !  else presume v3.2 or v3.3
+  nn_alpha    = 0               !  Euler rotation angle
+  nn_beta     = 0               !  Euler rotation angle
+  nn_gamma    = 0               !  Euler rotation angle
+  rn_mask_max_depth = 7000.0    !  Maximum depth to be ignored for the mask
+  rn_mask_shelfbreak_dist = 60    !  Distance from the shelf break
+
+
+Tried to put the mesh and mask files as remote access via ncml files. Failed, so
+downloaded them instead...
+
+.. note:
+
+    Finally, create separate ncml files for each mesh mask file (because I don't know
+    how to join them...) and they are on a thredds server::
+
+      vi mesh_hgr_src.ncml
+
+      <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+      <ns0:aggregation type="union">
+        <ns0:netcdf>
+              <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/domain/mesh_hgr.nc" />
+        </ns0:netcdf>
+      </ns0:aggregation>
+      </ns0:netcdf>
+
+
+      vi mesh_zgr_src.ncml
+
+      <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+      <ns0:aggregation type="union">
+        <ns0:netcdf>
+              <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/domain/mesh_zgr.nc" />
+        </ns0:netcdf>
+      </ns0:aggregation>
+      </ns0:netcdf>
+
+
+      vi mask_src.ncml
+
+      <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+      <ns0:aggregation type="union">
+        <ns0:netcdf>
+              <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/domain/mask.nc" />
+        </ns0:netcdf>
+      </ns0:aggregation>
+      </ns0:netcdf>
+
+Finally I am going to create a boundary mask file (I don't think PyNEMO likes it if you
+don't have one but have a rimwidth>1)::
+
+  module load nco/gcc/4.4.2.ncwa
+  ncks -v top_level domain_cfg.nc tmp.nc
+  ncrename -h -v top_level,mask tmp.nc bdy_mask.nc
+  rm tmp.nc
+
+In ipython::
+
+  import netCDF4
+  dset = netCDF4.Dataset('bdy_mask.nc')
+  dset['mask'][:][dset['mask'][:,0,:] ] = 0 # zero the rim
+  dset['mask'][:][dset['mask'][:,1,0] ] = 0 # zero the rim
+  dset.close() # if you want to write the variable back to disk
+
+.. note: Could copy all these files to START_FILES or the repo...
 
 
 Run PyNEMO / NRCT to generate boundary conditions
@@ -718,40 +949,15 @@ Generate the boundary conditions with PyNEMO
 
 .. note : Can use the ``-g`` option if you want the GUI.
 
-.. note : Previously I actually had to do a fix to get PyNEMO to behave See: https://bitbucket.org/jdha/nrct/issues/22/issue-with-applying-bc-over-the-rim
+.. note : log revealed:
+    ...
+    INFO:pynemo.profile:horizontal grid info
+    ERROR:pynemo.reader.ncml:Cannot find the requested variable glamt
+    ERROR:pynemo.reader.ncml:Cannot find the requested variable gphit
+    ...
+    Hmm. Something to look at is it doesn't work.
 
-Now I get the error message::
 
-  ...
-  [1621 1134]
-  [1621 1135]]
-  INFO:pynemo.profile:done  bdy t,u,v,f
-  INFO:pynemo.profile:1.82
-  INFO:pynemo.profile:bdy_ind f (40089, 2) (40089,)
-  INFO:pynemo.profile:bdy_ind u (40125, 2) (40125,)
-  INFO:pynemo.profile:bdy_ind t (40150, 2) (40150,)
-  INFO:pynemo.profile:bdy_ind v (40116, 2) (40116,)
-  INFO:pynemo.profile:done coord gen
-  INFO:pynemo.profile:0.0
-  INFO:pynemo.profile:./domain_cfg.nc
-  INFO:pynemo.profile:done coord pop
-  INFO:pynemo.profile:0.4
-  INFO:pynemo.profile:gather grid info
-  INFO:pynemo.profile:0.01
-  INFO:pynemo.profile:generating depth info
-  INFO:pynemo.reader.ncml:(1, 1138, 1624)
-  INFO:pynemo.reader.ncml:(5,)
-  ERROR:pynemo.reader.ncml:Cannot find the requested variable hbatt
-  Traceback (most recent call last):
-   File "/login/jelt/.conda/envs/nrct_env/bin/pynemo", line 11, in <module>
-     load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo')()
-   File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_exe.py", line 44, in main
-     profile.process_bdy(setup_file, mask_gui)
-   File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py", line 175, in process_bdy
-     z = zgrv.Depth(grid_t.bdy_i, grid_u.bdy_i, grid_v.bdy_i, settings)
-   File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/nemo_bdy_zgrv2.py", line 59, in __init__
-     hbatt[mbathy == 0] = np.NaN
-  TypeError: 'NoneType' object does not support item assignment
 
 This is because I have tried to get PyNEMO to use s-coordinates. These are not
 needed for a tide only run
@@ -760,9 +966,6 @@ needed for a tide only run
  boundary conditions it doesn't matter what the vertical grid is doing.
 
 
-**PLAN** Change the z-coordinates in PyNEMO and try running again.
-That worked, though I had to hardwire some of the e3u and mbathy variables needed.
-**NEEDS ATTENTION**
 
 ---
 
@@ -796,14 +999,19 @@ Copy the new files back onto ARCHER
 8. Run the configuration ON ARCHER. Turn on the tides
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+Get set up::
+
+  ssh archer
+  . ~/temporary_path_names_for_NEMO_build
+
 Get important files into EXP directory. Should already have ``domain_cfg.nc``::
 
 
   cd $EXP
-  cp $INPUTS/bathy_meter.nc $EXP/.
-  cp $INPUTS/coordinates.nc $EXP/.
-  cp $INPUTS/coordinates.bdy.nc $EXP/.
-  cp $START_FILES/namelist_cfg $EXP/.
+  rsync -tuv $INPUTS/bathy_meter.nc $EXP/.
+  rsync -tuv $INPUTS/coordinates.nc $EXP/.
+  rsync -tuv $INPUTS/coordinates.bdy.nc $EXP/.
+  rsync -tuv $START_FILES/namelist_cfg $EXP/.
 
 Create symbolic links from EXP directory::
 
@@ -889,3 +1097,5 @@ This blows up in two time steps...
 
 Take off mask. Still blows up
 Turn off tide_ramp. Change rdt = 12 (scale with dx from SEAsia). Still blows up.
+
+Regenerate a 1/12 version.
