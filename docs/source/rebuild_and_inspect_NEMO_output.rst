@@ -1,18 +1,42 @@
 Rebuild the output and inspect
 ++++++++++++++++++++++++++++++
 
-Rebuild the SSH files using old tools::
+Rebuild the NEMO output. If you have followed the path definition thing::
+
+  . ~/temporary_path_names_for_NEMO_build
+
+Otherwise do something like::
 
   export WDIR=/work/n01/n01/jelt/LBay/
   export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 Lbay_1h_20000101_20000130_SSH 5
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 Lbay_1d_20000101_20000130_Tides 5
+---
+
+Rebuild the OUTPUT::
+
+  export filehead=Lbay_1h_20000101_20000130
+  export nproc=5
+
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 $filehead_SSH $nproc
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 $filehead_Tides $nproc
 
 Should remove individual processor files once the build is verified::
 
-  rm Lbay_1h_20000101_20000130_SSH_00??.nc
-  rm Lbay_1d_20000101_20000130_Tides_00??.nc
+  rm $filehead_SSH_00??.nc
+  rm $filehead_Tides_00??.nc
+
+---
+
+Rebuild the ABORT files::
+
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 output.abort 96
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 output.abort 96
+
+#Should remove individual processor files once the build is verified::
+
+  rm output.abort_00??.nc
+
+---
 
 Inspect locally e.g.::
 

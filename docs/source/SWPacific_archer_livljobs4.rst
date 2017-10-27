@@ -885,4 +885,7 @@ Submit::
 
 **SUBMITTED** PENDING. Need to tidy up pynemo edits.
 
-This blows up in two time steps... 
+This blows up in two time steps...
+
+Take off mask. Still blows up
+Turn off tide_ramp. Change rdt = 12 (scale with dx from SEAsia). Still blows up.
