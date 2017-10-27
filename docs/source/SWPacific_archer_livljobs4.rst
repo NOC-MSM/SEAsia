@@ -28,7 +28,12 @@ It is a tide only run.
 Issues that arose
 =================
 
-* ...
+* I had real trouble getting this to be stable is s-ccordinates, thought it worked
+for the SEAsia doman. S-coordinates affects the domain_cfg.nc generation and PyNEMO
+process. So I have made "protected" copies of the ``ARCHER:$TIDR/DOMAINcfg/SCO``
+``LIVLJOBS:$INPUTS/SCO`` directories, and tried again with z-coords (following \
+James' examples).
+
 
 .. note: PyNEMO is interchangabably called NRCT (NEMO Relocatable Configuration Tool)
 
@@ -1099,3 +1104,21 @@ Take off mask. Still blows up
 Turn off tide_ramp. Change rdt = 12 (scale with dx from SEAsia). Still blows up.
 
 Regenerate a 1/12 version.
+
+
+---
+
+Backup to repo key files
+========================
+
+::
+
+  cd ~/GitLab/NEMO-RELOC/docs/source
+  # DOMANcfg namelist_cfg for domain_cfg.nc (for s-coordinates)
+  rsync -utv jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg SWPacific_DOMAINcfg_namelist_cfg
+
+  # EXP namelist_cfg (for s-coordinates)
+  rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/namelist_cfg SWPacific_EXP_namelist_cfg
+
+  # PyNEMO namelist.bdy (for s-coordinates)
+  rsync -utv jelt@livljobs4:/work/jelt/NEMO/SWPacific/INPUTS/namelist.bdy SWPacific_namelist.bdy
