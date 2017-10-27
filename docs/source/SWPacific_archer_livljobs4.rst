@@ -917,7 +917,7 @@ are OK as it is only 2D variables::
   ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
   ln_tra         = .false.               !  boundary conditions for T and S
   ln_ice         = .false.               !  ice boundary condition
-  nn_rimwidth    = 10                    !  width of the relaxation zone
+  nn_rimwidth    = 1                    !  width of the relaxation zone
 
   !-----------------------------------------------------------------------
   !  unstructured open boundaries tidal parameters
@@ -1011,6 +1011,7 @@ In ipython::
   import netCDF4
   dset = netCDF4.Dataset('bdy_mask.nc')
   dset['mask'][:][dset['mask'][:,0,:] ] = 0 # zero the rim
+  dset['mask'][:][0,0:4,:] = 0   # Extra rim to remove blow up pt
   dset['mask'][:][dset['mask'][:,1,0] ] = 0 # zero the rim
   dset.close() # if you want to write the variable back to disk
 
@@ -1056,6 +1057,9 @@ needed for a tide only run
 
 .. note: crashed in the tra routine. A problem with source coordinates zt not working as expected
 
+27 Oct. z-ccords. Try rimwidth=1 because I can't get PyNemo to work with wider widths
+(I think that if I'm imposing the same tide over a rim with sloping bathymetry I get problems)
+Then expand the bdy_mask.nc file to inclide the blow-up point
 ---
 
 
@@ -1083,6 +1087,8 @@ Copy the new files back onto ARCHER
   cd $INPUTS
   for file in SWPacific*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/. ; done
   scp coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
+  scp bdy_mask.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/. # variable mask - for pynemo
+  scp bdy_msk.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.  # variable bdy_msk - for nemo
 
 
 8. Run the configuration ON ARCHER. Turn on the tides
@@ -1183,6 +1189,11 @@ Submit::
 **SUBMITTED** 27 Oct. PENDING. z-coords. Need to archive namelists (especially if it works)...
 Blows up on the southern boundary again....
 
+Plan. 1) Go back to rimwidth=1 (perhaps blow up comes from same tide imposed
+over varying bathymetry across the rimwidth).
+Blowup at  kt=   100 max ssh:   10.32    , i j:   172    4
+Then try and edit the mask to remove the bad points. This blew up in the same place
+Check the output.abort files. Mesh hasn't worked as expected...
 
 ---
 
