@@ -568,7 +568,7 @@
     nb_bdy         = 1                    !  number of open boundary sets
     ln_coords_file = .true.               !  =T : read bdy coordinates from file
     cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
-    ln_mask_file   = .false.              !  =T : read mask from file
+    ln_mask_file   = .true.              !  =T : read mask from file
     cn_mask_file   = 'bdydta/bdy_msk.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
     cn_dyn2d       = 'flather'               !
     nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state

@@ -1091,7 +1091,7 @@ Copy the new files back onto ARCHER
   for file in SWPacific*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/. ; done
   scp coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
   scp bdy_mask.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/. # variable mask - for pynemo
-  scp bdy_msk.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.  # variable bdy_msk - for nemo
+  #scp bdy_msk.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.  # variable bdy_msk - for nemo
 
 
 8. Run the configuration ON ARCHER. Turn on the tides
@@ -1206,7 +1206,34 @@ Check the output.abort files. Mesh hasn't worked as expected...
 
 28 Oct. Tried using PyNEMO to generate a 10pt mask. Turned off the mask in the EXP namelist_cfg
 Rimwidth=1.
-**PENDING** 4877760.sdb
+**PENDING** 4877760::
+  stp_ctl : the ssh is larger than 10m
+  =======
+  kt=   410 max ssh:   10.08    , i j:   446   11
+
+Chop out SSH also create mask file ::
+
+
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module load cray-netcdf cray-hdf5
+
+  module load nco/4.5.0
+  ncks -v sossheig output.abort.nc output.abort_ssh.nc
+
+  module unload nco cray-netcdf cray-hdf5
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+It blew up just inside the maks. Apply mask in the EXP run. REsubmit.
+James' examply `bdy_msk.nc` has a variable with the same name.
+
+**livljobs4**::
+
+  cd $INPUTS
+  module load nco/gcc/4.4.2.ncwa
+  ncrename -h -v mask,bdy_msk bdy_mask.nc bdy_msk.nc
+  scp bdy_msk.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
+
+Resubmit: 4877863.sdb **PENDING** Does the mask work? Does it blow up somewhere else?
 
 ---
 
