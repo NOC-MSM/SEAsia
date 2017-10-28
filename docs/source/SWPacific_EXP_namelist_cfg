@@ -83,9 +83,9 @@
 !-----------------------------------------------------------------------
 &namzgr        !   vertical coordinate                                  (default: NO selection)
 !-----------------------------------------------------------------------
-   ln_zco      = .false.   !  z-coordinate - full    steps
+   ln_zco      = .true.   !  z-coordinate - full    steps
    ln_zps      = .false.   !  z-coordinate - partial steps
-   ln_sco      = .true.   !  s- or hybrid z-s-coordinate
+   ln_sco      = .false.   !  s- or hybrid z-s-coordinate
    ln_isfcav   = .false.   !  ice shelf cavity
 !   ln_linssh   = .false.   !  linear free surface
 /
@@ -118,7 +118,7 @@
    nn_msh      =    0      !  create (>0) a mesh file or not (=0)
    rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
    !
-   rn_rdt      =  12.     !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_rdt      =  60.     !  time step for the dynamics (and tracer if nn_acc=0)
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module

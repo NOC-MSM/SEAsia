@@ -34,8 +34,8 @@
 &namzgr        !   vertical coordinate
 !-----------------------------------------------------------------------
   ln_zco      = .false.   !  z-coordinate - full    steps
-  ln_zps      = .false.   !  z-coordinate - partial steps
-  ln_sco      = .true.   !  s- or hybrid z-s-coordinate
+  ln_zps      = .true.   !  z-coordinate - partial steps
+  ln_sco      = .false.   !  s- or hybrid z-s-coordinate
   ln_isfcav   = .false.   !  ice shelf cavity
   ln_linssh   = .false.   !  linear free surface
 /

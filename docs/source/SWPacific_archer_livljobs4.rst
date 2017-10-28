@@ -1059,7 +1059,10 @@ needed for a tide only run
 
 27 Oct. z-ccords. Try rimwidth=1 because I can't get PyNemo to work with wider widths
 (I think that if I'm imposing the same tide over a rim with sloping bathymetry I get problems)
-Then expand the bdy_mask.nc file to inclide the blow-up point
+Then expand the bdy_mask.nc file to inclide the blow-up point.
+
+28 Oct. Fiddle with PyNEMO gui to get a 10pt border. Output to bdy_mask.nc variables:
+nav_lat, nav_lon, mask.
 ---
 
 
@@ -1167,7 +1170,7 @@ Edit ``namelist_cfg`` to make sure it is OK
 
 Synchronise the namelist_cfg with the GitLab repo::
 
-  e.g. rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/namelist_cfg SWPacific_v4_namelist_cfg
+  e.g. rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/namelist_cfg SWPacific_EXP_namelist_cfg
 
 
 Blow up at 79 ts
@@ -1186,7 +1189,7 @@ Submit::
  cd $EXP
  qsub -q short runscript
 
-**SUBMITTED** 27 Oct. PENDING. z-coords. Need to archive namelists (especially if it works)...
+27 Oct. z-coords. Need to archive namelists (especially if it works)...
 Blows up on the southern boundary again....
 
 Plan. 1) Go back to rimwidth=1 (perhaps blow up comes from same tide imposed
@@ -1194,6 +1197,16 @@ over varying bathymetry across the rimwidth).
 Blowup at  kt=   100 max ssh:   10.32    , i j:   172    4
 Then try and edit the mask to remove the bad points. This blew up in the same place
 Check the output.abort files. Mesh hasn't worked as expected...
+
+.. note : I notice that the mask file I created does not have nav_lat or nav_lon.
+  Also there is a time axis in the mask variable. The GUI generated mask file is
+  cleaner: 	float nav_lat(y, x) ;
+	float nav_lon(y, x) ;
+	float mask(y, x) ;
+
+28 Oct. Tried using PyNEMO to generate a 10pt mask. Turned off the mask in the EXP namelist_cfg
+Rimwidth=1.
+**PENDING** 4877760.sdb
 
 ---
 
