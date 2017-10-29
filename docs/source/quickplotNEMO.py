@@ -9,7 +9,47 @@
 from netCDF4 import Dataset
 import numpy as np
 import matplotlib.pyplot as plt  # plotting
+import matplotlib.cm as cm  # colormaps
+import sys # Exit command
 #####%matplotlib inline
+
+# Set path
+dirname = ''#/Users/jeff/Desktop/'
+filename = dirname + 'output.abort.nc'
+
+## Load file and variables
+f = Dataset(filename)
+
+#load lat and lon
+nav_lat = f.variables['nav_lat'][:] # (y,x)
+nav_lon = f.variables['nav_lon'][:] # (y,x)
+zos = f.variables['sossheig'][:].squeeze() # (time_counter, y, x)
+lim = np.max(np.abs(zos[:])) # Find extrema
+
+# Plot data
+cmap = cm.Spectral
+fig = plt.figure()
+plt.rcParams['figure.figsize'] = (10.0, 10.0)
+
+ax = fig.add_subplot(211)
+plt.pcolormesh( zos, cmap=cmap )
+plt.clim([-lim,lim])
+plt.colorbar()
+ax = fig.add_subplot(212)
+plt.pcolormesh( zos, cmap=cmap )
+plt.xlim([159,199])
+plt.ylim([51,91])
+plt.clim([-lim,lim])
+plt.colorbar()
+plt.title('SSH')
+#plt.xlabel('long'); plt.ylabel('lat')
+plt.show()
+
+
+sys.exit("End script")
+
+###############################################################################
+###############################################################################
 
 #var = 'ssh'
 #var = 'tide'

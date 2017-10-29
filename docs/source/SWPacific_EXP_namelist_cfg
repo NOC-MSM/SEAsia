@@ -870,7 +870,7 @@
    !                       !  Type of the operator :
    !                           !  no diffusion: set ln_dynldf_lap=..._blp=F
    ln_dynldf_lap =  .false.    !    laplacian operator
-   ln_dynldf_blp =  .false.    !  bilaplacian operator
+   ln_dynldf_blp =  .true.    !  bilaplacian operator
    !                       !  Direction of action  :
    ln_dynldf_lev =  .true.    !  iso-level
    ln_dynldf_hor =  .false.    !  horizontal (geopotential)

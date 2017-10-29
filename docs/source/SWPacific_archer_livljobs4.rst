@@ -1242,7 +1242,13 @@ Blows up in the corner. But the grids work.
 Try the tideramp=1. Turn off tide_pot too
 
 Does the tideramp slow the blow up? Yes try again with 10 day ramp
-**PENDING**.
+Blows up with checker boarding. Turn on bilaplacian diffusion.
+stp_ctl : the ssh is larger than 10m
+=======
+kt=   103 max ssh:   11.45    , i j:   179   71
+checker board blow up - away from the domain.
+
+**PENDING**
 ---
 
 Backup to repo key files
