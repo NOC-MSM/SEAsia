@@ -1241,8 +1241,8 @@ kt=    33 max ssh:   10.59    , i j:   535   11
 Blows up in the corner. But the grids work.
 Try the tideramp=1. Turn off tide_pot too
 
-**PENDING**. Does the tideramp slow the blow up?
-
+Does the tideramp slow the blow up? Yes try again with 10 day ramp
+**PENDING**.
 ---
 
 Backup to repo key files

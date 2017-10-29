@@ -556,7 +556,7 @@
    ln_tide     = .true.
    ln_tide_pot = .false.    !  use tidal potential forcing
    ln_tide_ramp= .true.   !
-   rdttideramp =    1.     !
+   rdttideramp =    10.     !
    clname(1)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
    clname(2)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
    clname(3)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
