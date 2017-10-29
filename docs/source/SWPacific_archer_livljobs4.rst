@@ -1249,7 +1249,14 @@ kt=   103 max ssh:   11.45    , i j:   179   71
 checker board blow up - away from the domain.
 
 Copy James' bilaplacian coefficients.
-**PENDING**
+stp_ctl : the ssh is larger than 10m
+=======
+kt=    62 max ssh:   12.66    , i j:   507    8
+It still blows up within the rimwidth. Something is not working as I would expect.
+
+
+
+
 ---
 
 Backup to repo key files
@@ -1266,3 +1273,6 @@ Backup to repo key files
 
   # PyNEMO namelist.bdy (for s-coordinates)
   rsync -utv jelt@livljobs4:/work/jelt/NEMO/SWPacific/INPUTS/namelist.bdy SWPacific_namelist.bdy
+
+  # Python quick plot of SSH in the output.abort.nc file
+  rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/quickplotNEMO.py quickplotNEMO.py

@@ -38,6 +38,15 @@ Rebuild the ABORT files::
 
 ---
 
+Inspect on ARCHER::
+
+  cd $EXP
+  module load anaconda
+  python quickplotNEMO.py
+
+
+---
+
 Inspect locally e.g.::
 
   scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/Lbay_1d_20000101_20000130_Tides.nc .
