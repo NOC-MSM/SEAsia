@@ -872,8 +872,8 @@
    ln_dynldf_lap =  .false.    !    laplacian operator
    ln_dynldf_blp =  .true.    !  bilaplacian operator
    !                       !  Direction of action  :
-   ln_dynldf_lev =  .true.    !  iso-level
-   ln_dynldf_hor =  .false.    !  horizontal (geopotential)
+   ln_dynldf_lev =  .false.    !  iso-level
+   ln_dynldf_hor =  .true.    !  horizontal (geopotential)
    ln_dynldf_iso =  .false.    !  iso-neutral
    !                       !  Coefficient
    nn_ahm_ijk_t  = 0           !  space/time variation of eddy coef
@@ -886,9 +886,9 @@
    !                                !  = 31  F(i,j,k)=F(grid spacing and local velocity)
    !                                !  = 32  F(i,j,k)=F(local gridscale and deformation rate)
    ! Caution in 20 and 30 cases the coefficient have to be given for a 1 degree grid (~111km)
-   rn_ahm_0      =  20000.     !  horizontal laplacian eddy viscosity   [m2/s]
+   rn_ahm_0      =  40000.     !  horizontal laplacian eddy viscosity   [m2/s]
    rn_ahm_b      =      0.     !  background eddy viscosity for ldf_iso [m2/s]
-   rn_bhm_0      = 1.e+12      !  horizontal bilaplacian eddy viscosity [m4/s]
+   rn_bhm_0      = -1.e+10      !  horizontal bilaplacian eddy viscosity [m4/s]
    !                       !  Smagorinsky settings (nn_ahm_ijk_t  = 32) :
    rn_csmc       = 3.5         !  Smagorinsky constant of proportionality
    rn_minfac     = 1.0         !  multiplier of theorectical lower limit

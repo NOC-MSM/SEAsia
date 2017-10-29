@@ -1248,6 +1248,7 @@ stp_ctl : the ssh is larger than 10m
 kt=   103 max ssh:   11.45    , i j:   179   71
 checker board blow up - away from the domain.
 
+Copy James' bilaplacian coefficients.
 **PENDING**
 ---
 
