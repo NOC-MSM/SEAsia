@@ -1254,7 +1254,14 @@ stp_ctl : the ssh is larger than 10m
 kt=    62 max ssh:   12.66    , i j:   507    8
 It still blows up within the rimwidth. Something is not working as I would expect.
 
+The rimwidth=1. If I make it larger then the PyNEMO doesn't seem to work. This
+seems to be the best line of pursuit.
+Perhaps PyNEMO needed a mask file with the same rimwidth as the rimwidth variable.
+Could quickly try that.
 
+livljobs4: namelist.bdy
+rimwidth=10
+This breaks. I do not understand why it doesn't work but it seems to be a sticking point.
 
 
 ---

@@ -54,11 +54,11 @@
     cn_coords_file = 'coordinates.bdy.nc' !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
     ln_mask_file   = .true.              !  =T : read mask from file
     cn_mask_file   = './bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-    ln_dyn2d       = .false.               !  boundary conditions for barotropic fields
+    ln_dyn2d       = .true.               !  boundary conditions for barotropic fields
     ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
-    ln_tra         = .false.               !  boundary conditions for T and S
+    ln_tra         = .true.               !  boundary conditions for T and S
     ln_ice         = .false.               !  ice boundary condition   
-    nn_rimwidth    = 1                    !  width of the relaxation zone
+    nn_rimwidth    = 10                    !  width of the relaxation zone
 
 !-----------------------------------------------------------------------
 !  unstructured open boundaries tidal parameters                        
