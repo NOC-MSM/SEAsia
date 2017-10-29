@@ -1234,6 +1234,14 @@ James' examply `bdy_msk.nc` has a variable with the same name.
   scp bdy_msk.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
 
 Resubmit: 4877863.sdb **PENDING** Does the mask work? Does it blow up somewhere else?
+stp_ctl : the ssh is larger than 10m
+=======
+kt=    33 max ssh:   10.59    , i j:   535   11
+
+Blows up in the corner. But the grids work.
+Try the tideramp=1. Turn off tide_pot too
+
+**PENDING**. Does the tideramp slow the blow up?
 
 ---
 
