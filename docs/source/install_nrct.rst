@@ -5,7 +5,7 @@ Install NEMO Relocatable Configuration Tool (NRCT)
 
   ssh -Y livljobs4
 
-  export CONFIG=LBay
+  export CONFIG=SWPacific
   export WORK=/work
   export WDIR=$WORK/$USER/NEMO/$CONFIG
   export INPUTS=$WDIR/INPUTS

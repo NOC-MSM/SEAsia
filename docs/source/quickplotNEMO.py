@@ -13,9 +13,19 @@ import matplotlib.cm as cm  # colormaps
 import sys # Exit command
 #####%matplotlib inline
 
+flag = 0 # Read output.abort
+#flag = 1 # Read SWPacific*nc
+
 # Set path
 dirname = ''#/Users/jeff/Desktop/'
-filename = dirname + 'output.abort.nc'
+if flag == 0:
+	filename = dirname + 'output.abort.nc'
+	var = 'sossheig'
+elif flag == 1:
+	filename = dirname + 'SWPacific_1h_20000101_20000130_SSH.nc'
+	var = 'zos'
+else:
+	print 'Panic!'
 
 ## Load file and variables
 f = Dataset(filename)
@@ -23,8 +33,8 @@ f = Dataset(filename)
 #load lat and lon
 nav_lat = f.variables['nav_lat'][:] # (y,x)
 nav_lon = f.variables['nav_lon'][:] # (y,x)
-zos = f.variables['sossheig'][:].squeeze() # (time_counter, y, x)
-lim = np.max(np.abs(zos[:])) # Find extrema
+zos = f.variables[var][:].squeeze() # (time_counter, y, x)
+lim = np.nanmax(np.abs(zos[:])) # Find extrema
 
 # Plot data
 cmap = cm.Spectral
@@ -32,12 +42,18 @@ fig = plt.figure()
 plt.rcParams['figure.figsize'] = (10.0, 10.0)
 
 ax = fig.add_subplot(211)
-plt.pcolormesh( zos, cmap=cmap )
-plt.clim([-lim,lim])
+if flag == 0:
+	plt.pcolormesh( zos[:,:], cmap=cmap )
+elif flag == 1:
+	plt.pcolormesh( zos[3,:,:], cmap=cmap )
+plt.clim([-lim/10.,lim/10.])
 plt.colorbar()
 ax = fig.add_subplot(212)
-plt.pcolormesh( zos, cmap=cmap )
-plt.xlim([497,517])
+if flag == 0:
+	plt.pcolormesh( zos[:,:], cmap=cmap )
+elif flag == 1:
+	plt.pcolormesh( zos[3,:,:], cmap=cmap )
+plt.xlim([152,192])
 plt.ylim([0,20])
 plt.clim([-lim,lim])
 plt.colorbar()

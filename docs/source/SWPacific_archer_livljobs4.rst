@@ -15,7 +15,7 @@ boundaries.
 
 Build on a combination of livljobs4 and ARCHER.
 
-Uses a prerelease of NEMO v4 (@r8395)
+Uses a pre-release of NEMO v4 (@r8395)
 
 The summary procedure:
 #. ARCHER: Get code. Build tools. Generate coordinates, bathymetry, domain_cfg.nc
@@ -23,7 +23,7 @@ The summary procedure:
 #. LIVLJOBS4: Generate boundary conditions with NRCT/PyNEMO
 #. ARCHER: Run simulation
 
-It is a tide only run.
+It is a tide-only run.
 
 Issues that arose
 =================
@@ -34,6 +34,11 @@ process. So I have made "protected" copies of the ``ARCHER:$TIDR/DOMAINcfg/SCO``
 ``LIVLJOBS:$INPUTS/SCO`` directories, and tried again with z-coords (following \
 James' examples).
 
+* The rimwidth variable is not used for barotropic runs, though it must be consistent between
+PyNEMO and NEMO namelists. The rimwdith determines the relaxation zone for U,V (+T,S?) fields.
+
+* There was a mask fix missing from the NEMO trunk that meant the bdy mask was not imposed
+back on the global mask. This led to near boundary instabilities
 
 .. note: PyNEMO is interchangabably called NRCT (NEMO Relocatable Configuration Tool)
 
@@ -73,6 +78,8 @@ Note you might have to mkdir the odd directory or two...::
   mkdir $WDIR
   mkdir $INPUTS
   mkdir $START_FILES
+  cp $WDIR/../LBay/START_FILES/dommsk.F90 $START_FILES/.
+  cp $WDIR/../LBay/START_FILES/bdyini.F90 $START_FILES/.
   cp $WDIR/../LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
   cp $WDIR/../LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
 
@@ -461,8 +468,10 @@ When the increase in resolution is x1, the size of the coordinates were::
 Somewhat arbitrarily I am going to use **31** ``(jpkdta=31; rn_jpk=31)`` levels.
 
 
-s-coordinates `SWPacific_DOMAINcfg_namelist_cfg`_ (didn't work)
+s-coordinates `SWPacific_DOMAINcfg_namelist_cfg`_
 -------------
+
+(didn't work, though pehaps for reasons nothing to do with the coordinates...)
 
  (If I tried 5 levels then the function to compute the depth range breaks).
  Added in s-coordinate settings from AMM60. (There is a function that tapers dz
@@ -800,6 +809,7 @@ which drives PyNEMO and which has two input files: ``inputs_src.ncml``
 which points to the remote ORCA data source and ``inputs_dst.ncml`` which
 remaps some variable names in the destination files. Then generate ncml files
 to get the mesh and mask files (``mask_src.ncml  mesh_hgr_src.ncml  mesh_zgr_src.ncml``).
+*NB In the end I copied the source mesh and mask files locally.*
 
 Create ncml file for ORCA12 source data::
 
@@ -998,22 +1008,26 @@ downloaded them instead...
       </ns0:aggregation>
       </ns0:netcdf>
 
-Finally I am going to create a boundary mask file (I don't think PyNEMO likes it if you
-don't have one but have a rimwidth>1)::
+Finally I am going to create a boundary mask file. This can also be done with the PyNEMO
+GUI::
 
   module load nco/gcc/4.4.2.ncwa
+  rm -f bdy_mask.nc tmp.nc
   ncks -v top_level domain_cfg.nc tmp.nc
   ncrename -h -v top_level,mask tmp.nc bdy_mask.nc
-  rm tmp.nc
+  rm -f tmp.nc
 
 In ipython::
 
   import netCDF4
-  dset = netCDF4.Dataset('bdy_mask.nc')
-  dset['mask'][:][dset['mask'][:,0,:] ] = 0 # zero the rim
-  dset['mask'][:][0,0:4,:] = 0   # Extra rim to remove blow up pt
-  dset['mask'][:][dset['mask'][:,1,0] ] = 0 # zero the rim
-  dset.close() # if you want to write the variable back to disk
+  dset = netCDF4.Dataset('bdy_mask.nc','a')
+  dset.variables['mask'][:,0:4,:]  = 0
+  dset.variables['mask'][:,-1,:] = 0
+  dset.variables['mask'][:,0,:] = 0
+  dset.variables['mask'][:,:,-1] = 0
+  dset.variables['mask'][:,:,0] = 0
+  dset.close()
+
 
 .. note: Could copy all these files to START_FILES or the repo...
 
@@ -1083,14 +1097,15 @@ This generates::
 
 
 
-Copy the new files back onto ARCHER
+Copy the new files back onto ARCHER. Do not copy the mask files because the key
+variables are embedded in the new output
 ::
 
   livljobs4$
   cd $INPUTS
   for file in SWPacific*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/. ; done
   scp coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
-  scp bdy_mask.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/. # variable mask - for pynemo
+  #scp bdy_mask.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/. # variable mask - for pynemo
   #scp bdy_msk.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.  # variable bdy_msk - for nemo
 
 
@@ -1270,10 +1285,26 @@ stp_ctl : the ssh is larger than 10m
 kt=    62 max ssh:   12.66    , i j:   507    8
 
 
+**Rimwidth variable is for u,v (and maybe T,S) relaxation. It should not affect barotropic tides**
 
+James had extra F90 in MY_SRC::
 
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/dommsk.F90 $CDIR/$CONFIG/MY_SRC/dommsk.F90
 
+Rebuild. Turn off tideramp and resubmit. No tide but stable
 
+Edit namelist_cfg to use bdy_msk from boundary file: SWPacific_bdytide_rotT_M2_grid_T.nc
+Edit namelist.bdy to not use a mask.
+
+stp_ctl : the ssh is larger than 10m
+=======
+kt=   101 max ssh:   10.32    , i j:   172    4
+
+Blows up along bottom boundary. Mask out j=0,1,2,3,4 in PyNEMO: bdy_mask.nc
+**HERE**
+Copy new bdy files and coordinates.bdy.nc to archer.
+Submit
 
 ---
 
