@@ -125,7 +125,9 @@ I have also tried building libraries from scratch but it really shouldn't be nec
 Need to chat to Jeff and will investigate commits at the bitbucket salish repo to see what they modified for XIOS 2.0::
     
     https://bitbucket.org/salishsea/xios-arch/commits/all
-    
+
+**31/10/2017** Ooooooh Spooky! been working here for a year now!
+
 Hmmm there is a new error now, it now no longer has issues with the same function::
 
     /cm/shared/apps/intel/composer_xe/2013_sp1.3.174/compiler/lib/intel64/for_main.o: In function `main':
