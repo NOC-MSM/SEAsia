@@ -1263,6 +1263,17 @@ livljobs4: namelist.bdy
 rimwidth=10
 This breaks. I do not understand why it doesn't work but it seems to be a sticking point.
 
+*31 Oct*
+Turn on tide_pot. This makes no difference. Identical crash point...
+stp_ctl : the ssh is larger than 10m
+=======
+kt=    62 max ssh:   12.66    , i j:   507    8
+
+
+
+
+
+
 
 ---
 
