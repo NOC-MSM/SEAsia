@@ -1028,6 +1028,9 @@ In ipython::
   dset.variables['mask'][:,:,0] = 0
   dset.close()
 
+Copy a version of the mask for NEMO::
+
+  ncrename -h -v mask,bdy_msk bdy_mask.nc bdy_msk.nc
 
 .. note: Could copy all these files to START_FILES or the repo...
 
@@ -1106,7 +1109,7 @@ variables are embedded in the new output
   for file in SWPacific*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/. ; done
   scp coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
   #scp bdy_mask.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/. # variable mask - for pynemo
-  #scp bdy_msk.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.  # variable bdy_msk - for nemo
+  scp bdy_msk.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.  # variable bdy_msk - for nemo
 
 
 8. Run the configuration ON ARCHER. Turn on the tides
@@ -1302,9 +1305,20 @@ stp_ctl : the ssh is larger than 10m
 kt=   101 max ssh:   10.32    , i j:   172    4
 
 Blows up along bottom boundary. Mask out j=0,1,2,3,4 in PyNEMO: bdy_mask.nc
-**HERE**
 Copy new bdy files and coordinates.bdy.nc to archer.
 Submit
+stp_ctl : the ssh is larger than 10m
+=======
+kt=   101 max ssh:   10.32    , i j:   172    4
+
+          output of last fields in numwso
+
+The mask is not working. Manually use the mask the PyNEMO used. ``bdy_msk.nc``
+Submit.
+**It works!** But only did 5k steps.
+
+Double timestep. ``rn_rdt=120`` s and submit again.
+
 
 ---
 
