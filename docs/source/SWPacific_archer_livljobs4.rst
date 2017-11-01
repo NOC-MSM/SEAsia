@@ -10,7 +10,7 @@ URL:: *to add*
 
 * Build notes with:: ~/GitLab/NEMO-RELOC/docs$ make html
 
-Builds a SW Pacific regional tide-only model using GEBCO bathymetry, FES tidal
+Builds a SW Pacific regional tide-only model using GEBCO bathymetry, TPXO tidal
 boundaries.
 
 Build on a combination of livljobs4 and ARCHER.
@@ -32,13 +32,22 @@ Issues that arose
 for the SEAsia doman. S-coordinates affects the domain_cfg.nc generation and PyNEMO
 process. So I have made "protected" copies of the ``ARCHER:$TIDR/DOMAINcfg/SCO``
 ``LIVLJOBS:$INPUTS/SCO`` directories, and tried again with z-coords (following \
-James' examples).
+James' examples). When I got z-coords working I did not go back to see if s-coords
+where also fixed.
+
+* This configuration uses 31 levels. At one point I used 5 levels but it didn't
+work for, perhaps, other reasons. I haven't revisited the number of levels.
 
 * The rimwidth variable is not used for barotropic runs, though it must be consistent between
 PyNEMO and NEMO namelists. The rimwdith determines the relaxation zone for U,V (+T,S?) fields.
 
 * There was a mask fix missing from the NEMO trunk that meant the bdy mask was not imposed
-back on the global mask. This led to near boundary instabilities
+back on the global mask. This led to near boundary instabilities.
+
+* PyNEMO does not expect users to only want tidal output and error trapping is in
+a nascent stage. With the current namelist.bdy (PyNEMO namelist) it crashes after
+generating the tidal boundary conditions while generating the 3D boundary conditions
+that I don't care about. I did not bother to resolve this.
 
 .. note: PyNEMO is interchangabably called NRCT (NEMO Relocatable Configuration Tool)
 
@@ -136,7 +145,8 @@ updated in 7 years.)::
 
 
 .. note :
-  Skip 1 and 2 - COPY bathy_meter.nc and coordinates.nc from Tom
+  Could skip 1 and 2 - COPY bathy_meter.nc and coordinates.nc from Tom with a
+  resolution refinement of x3
     /work/thopri/NEMO/SWPacific_ver3.6/INPUTS/bathy_meter.nc
     /work/thopri/NEMO/SWPacific_ver3.6/INPUTS/coordinates.nc
 
@@ -210,15 +220,15 @@ Now we need to generate a bathymetry on this new grid.
 2. Generate bathymetry file
 +++++++++++++++++++++++++++
 
-thopri downloaded some and merged some 1 minute GEBCO data for (-30N :0N , -170E : 145E ).
+thopri downloaded, by parts, and merged 1 minute GEBCO data for (-30N :0N , -170E : 145E ).
 Method in ``/work/thopri/NEMO/SWPacific/START_FILES/gebco_lon_convertor.py``
-Copy to ARCHER::
+Copy this to ARCHER::
 
-  livljobs4$ scp /work/thopri/NEMO/SWPacific_ver3.6/START_FILES/GRIDONE_2D_140_-35.0_-165.0_5.0.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
+  livljobs4$ rsync -utv /work/thopri/NEMO/SWPacific_ver3.6/START_FILES/GRIDONE_2D_140_-35.0_-165.0_5.0.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
 
 Copy namelist for reshaping GEBCO data::
 
-  cp $START_FILES/namelist_reshape_bilin_gebco $INPUTS/.
+  rsync -utv $START_FILES/namelist_reshape_bilin_gebco $INPUTS/.
 
 Edit namelist to point to correct input file. Edit lat and lon variable names to
  make sure they match the nc file content (used e.g.
@@ -291,149 +301,8 @@ Output files::
 3. Generate initial conditions
 ++++++++++++++++++++++++++++++
 
-.. note : Skip this
+Skip this for a tide-only run.
 
-    Copy ``make.macro`` file and edit the path if necessary::
-    **FIX** to the notes (copied from jdha instead): ``cp $WDIR/INPUTS/make.macro ./``::
-
-      cp /home/n01/n01/jdha/sosie/make.macro /home/n01/n01/jelt/sosie/.
-
-      vi /home/n01/n01/jelt/sosie/make.macro
-      # Directory to install binaries:
-      INSTALL_DIR = /home/n01/n01/jelt/local
-
-    Proceed with Step 6 (of Lighhouse Reef Readthedocs)::
-
-      cd ~
-      mkdir local
-      svn co svn://svn.code.sf.net/p/sosie/code/trunk sosie
-      cd sosie
-
-      make
-      make install
-      export PATH=~/local/bin:$PATH
-      cd $WDIR/INPUTS
-
-
-    Obtain the fields to interpolate. Interpolate AMM60
-    data. Get the namelists::
-
-      cp $START_FILES/initcd_votemper.namelist $INPUTS/.
-      cp $START_FILES/initcd_vosaline.namelist $INPUTS/.
-
-    Generate the actual files. Cut them out of something bigger. Use the same indices
-    as used in coordinates.nc (note that the nco tools don't like the
-    parallel modules)::
-
-    ----
-
-    *(3 March 2017)*
-    Insert new method to use AMM60 data for initial conditions.
-    /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT
-    AMM60_5d_20131013_20131129_grid_T.nc
-
-    Find the AMM60 indices using FERRET on the bathy_meter.nc file: ``shade log(Bathymetry[I=540:750, J=520:820])``
-
-    Note that the temperature and salinity variables are ``thetao`` and ``so``
-
-    ::
-
-      module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-      module load cray-netcdf cray-hdf5
-      module load nco/4.5.0
-      cd $INPUTS
-
-      ncks -d x,560,620 -d y,720,800 /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT/AMM60_5d_20131013_20131129_grid_T.nc $INPUTS/cut_down_20131013_LBay_grid_T.nc
-
-    Average over time and restore the parallel modules::
-
-      ncwa -a time_counter $START_FILES/cut_down_20131013_LBay_grid_T.nc  $INPUTS/cut_down_201310_LBay_grid_T.nc
-
-      module unload nco cray-netcdf cray-hdf5
-      module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-
-
-
-    Edit namelists::
-
-      vi initcd_votemper.namelist
-      cf_in     = 'cut_down_201310_LBay_grid_T.nc'
-      cv_in     = 'thetao'
-      cf_x_in   = 'cut_down_201310_LBay_grid_T.nc'
-      cv_out   = 'thetao'
-      csource  = 'AMM60'
-      ctarget  = 'LBay'
-
-      vi initcd_vosaline.namelist
-      ...
-      cv_out   = 'so'
-      ...
-
-
-
-    Do stuff. I think the intention was for SOSIE to flood fill the land::
-
-      sosie.x -f initcd_votemper.namelist
-
-    Creates::
-
-      thetao_AMM60-LBay_2013.nc4
-      sosie_mapping_AMM60-LBay.nc
-
-    Repeat for salinity::
-
-      sosie.x -f initcd_vosaline.namelist
-
-    Creates::
-
-      so_AMM60-LBay_2013.nc4
-
-
-    Now do interpolation as before. First copy the namelists::
-
-      cp $START_FILES/namelist_reshape_bilin_initcd_votemper $INPUTS/.
-      cp $START_FILES/namelist_reshape_bilin_initcd_vosaline $INPUTS/.
-
-    Edit the input files::
-
-      vi $INPUTS/namelist_reshape_bilin_initcd_votemper
-      &grid_inputs
-        input_file = 'thetao_AMM60-LBay_2013.nc4'
-      ...
-
-      &interp_inputs
-        input_file = "thetao_AMM60-LBay_2013.nc4"
-      ...
-
-    Simiarly for the *vosaline.nc file::
-
-      vi $INPUTS/namelist_reshape_bilin_initcd_vosaline
-      &grid_inputs
-        input_file = 'so_AMM60-LBay_2013.nc4'
-      ...
-
-      &interp_inputs
-        input_file = "so_AMM60-LBay_2013.nc4"
-      ...
-
-
-    Produce the remap files::
-
-      $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
-
-    Creates ``remap_nemo_grid_R12.nc`` and ``remap_data_grid_R12.nc``. Then::
-
-      $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
-
-    Creates ``data_nemo_bilin_R12.nc``. Then::
-
-      $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
-
-    Creates ``initcd_votemper.nc``. Then::
-
-      $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
-
-    Creates ``initcd_vosaline.nc``.
 
 
 
@@ -448,8 +317,8 @@ a pre-processing step, and output into an important file ``domain_cfg.nc``.
 
 Copy essential files into DOMAINcfg directory::
 
-    cp $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
-    cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
+    rsync -uvt $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
+    rsync -uvt $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
 
 Edit the template namelist_cfg with only the essenetial domain building stuff.
 Get the indices from ``ncdump -h coordinates.nc``.
@@ -466,10 +335,17 @@ When the increase in resolution is x1, the size of the coordinates were::
 
 
 Somewhat arbitrarily I am going to use **31** ``(jpkdta=31; rn_jpk=31)`` levels.
+(Earlier I used 5 levels. This config gave me trouble. I've not revisited whether
+the number of levels was a problem).
 
 
 s-coordinates `SWPacific_DOMAINcfg_namelist_cfg`_
 -------------
+
+.. note: At one point I tried to use s-coords but it wasn't working. Perhaps it
+ would work not that the boundary problems are fixed. I did not investigate it
+ though. However I leave these s-coordinate namelist options here because they
+ will be useful when I need s-coordinates to work in v4.
 
 (didn't work, though pehaps for reasons nothing to do with the coordinates...)
 
@@ -681,8 +557,8 @@ Put a copy of the namelist_cfg in $INPUTS for safe keeping::
 #Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores
  the bits and bobs for a rebuild)::
 
-  cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
-  cp $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
+  rsync -uvt $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
+  rsync -uvt $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
 
 
 
@@ -690,76 +566,19 @@ Put a copy of the namelist_cfg in $INPUTS for safe keeping::
 5. Generate weights for atm forcing
 +++++++++++++++++++++++++++++++++++
 
-.. note : skip this for now
+Skip this for a tide-only simulation
 
-  Generate cut down drowned precip file (note that the nco tools don't like the
-  parallel modules). **HEALTH WARNING** *Cut out files with only one index in that lat direction broke NEMO*::
-
-    module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-    module load cray-netcdf cray-hdf5
-    module load nco/4.5.0
-    ncks -d lon,355.,360. -d lat,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_precip_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_precip_DFS5.1.1_y2000.nc
-    ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_u10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_u10_DFS5.1.1_y2000.nc
-    ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_v10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_v10_DFS5.1.1_y2000.nc
-    ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_radsw_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_radsw_DFS5.1.1_y2000.nc
-    ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_radlw_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_radlw_DFS5.1.1_y2000.nc
-    ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_t2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_t2_DFS5.1.1_y2000.nc
-    ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_q2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_q2_DFS5.1.1_y2000.nc
-    ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_snow_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_snow_DFS5.1.1_y2000.nc
-
-    module unload nco/4.5.0
-    module unload cray-netcdf cray-hdf5
-    module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-
-  Obtain namelist files and data file::
-
-    cp $START_FILES/namelist_reshape_bilin_atmos $INPUTS/.
-    cp $START_FILES/namelist_reshape_bicubic_atmos $INPUTS/.
-
-  Edit namelist to reflect source filenames (just a year change)::
-
-    vi $WDIR/INPUTS/namelist_reshape_bilin_atmos
-    ...
-    &grid_inputs
-        input_file = 'cutdown_drowned_precip_DFS5.1.1_y2000.nc'
-
-    vi $WDIR/INPUTS/namelist_reshape_bicubic_atmos
-    ...
-    &grid_inputs
-      input_file = 'cutdown_drowned_precip_DFS5.1.1_y2000.nc'
-
-
-  Setup weights files for the atmospheric forcing::
-
-    cd $INPUTS
-    $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
-
-  Generate  remap files ``remap_nemo_grid_atmos.nc`` and ``remap_data_grid_atmos.nc``. Then::
-
-    $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
-
-  Generates ``data_nemo_bilin_atmos.nc``. Then::
-
-    $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bilin_atmos
-
-  Generates ``weights_bilinear_atmos.nc``. Then::
-
-    $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bicubic_atmos
-
-  Generates ``data_nemo_bicubic_atmos.nc``. Then::
-
-    $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
-
-  Generates ``weights_bicubic_atmos.nc``.
+---
 
 
 
-THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO *(20 Sept 2017)*
+THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO
 If all the files are ready to go jump straight to `7. Generate boundary conditions with PyNEMO: Run PyNEMO`_
 
 ----
 
-Follow SEAsia notes `SEAsia_archer_livljobs4.rst`_ for PyNEMO bit. Changing instances of `SEAsia` for `SWPacific`
+Follow SEAsia notes `SEAsia_archer_livljobs4.rst`_ for PyNEMO bit. Changing
+instances of `SEAsia` for `SWPacific`.
 Note a lot of the files are actually used for a tide-only simulation but it is not
 trivial to prevent PyNEMO looking for them.
 
@@ -796,8 +615,9 @@ Synchronise with key files from ARCHER::
 Statement about external forcing and files
 ==========================================
 
-Use ORCA 1/12 data via a thredds server. Also use ORCA 1/12 mesh and mask files
- via a thredds server.
+Use ORCA 1/12 data via a thredds server. Also use ORCA 1/12 mesh and mask files.
+(Originally tried to get them via a thredds server but gave up trying to figure
+out how to write the NCML file).
  Copy necessary files into INPUTS. (Be careful of symbolic links in PyNEMO).::
 
    ls -lh $INPUTS/bathy_meter.nc
@@ -809,7 +629,8 @@ which drives PyNEMO and which has two input files: ``inputs_src.ncml``
 which points to the remote ORCA data source and ``inputs_dst.ncml`` which
 remaps some variable names in the destination files. Then generate ncml files
 to get the mesh and mask files (``mask_src.ncml  mesh_hgr_src.ncml  mesh_zgr_src.ncml``).
-*NB In the end I copied the source mesh and mask files locally.*
+*NB In the end I copied the source mesh and mask files locally. So obly need to
+generate 3 files*
 
 Create ncml file for ORCA12 source data::
 
@@ -863,7 +684,8 @@ Create NCML file for mapping variables in DESTINATION grid to what PyNEMO expect
   </ns0:netcdf>
 
 Create a PyNEMO namelist.bdy file. Note this this is tides only and so z-coordinates
-are OK as it is only 2D variables::
+are OK as it is only 2D variables. I have archived a working version of this file
+here `SWPacific_namelist.bdy`_::
 
   vi namelist.bdy
 
@@ -969,7 +791,8 @@ are OK as it is only 2D variables::
 
 
 Tried to put the mesh and mask files as remote access via ncml files. Failed, so
-downloaded them instead...
+downloaded them instead. (Perhaps the mesh and mask variables could all go in
+the inputs_src.ncml ?)...
 
 .. note:
 
@@ -1008,8 +831,9 @@ downloaded them instead...
       </ns0:aggregation>
       </ns0:netcdf>
 
-Finally I am going to create a boundary mask file. This can also be done with the PyNEMO
-GUI. The mask file takes values(-1 mask, 1 wet, 0 land)::
+Finally I am going to create a boundary mask file. This can also be done with
+the PyNEMO GUI. The mask variable takes values (-1 mask, 1 wet, 0 land). Get a
+template from domain_cfg.nc and then modify as desired around the boundary::
 
   module load nco/gcc/4.4.2.ncwa
   rm -f bdy_mask.nc tmp[12].nc
@@ -1022,17 +846,12 @@ In ipython::
 
   import netCDF4
   dset = netCDF4.Dataset('bdy_mask.nc','a')
-  dset.variables['mask'][0:4,:]  = -1
-  dset.variables['mask'][-1,:] = -1
-  dset.variables['mask'][:,-4:-1] = -1
-  dset.variables['mask'][:,0] = -1
+  dset.variables['mask'][0:4,:]  = -1     # Southern boundary
+  dset.variables['mask'][-1,:] = -1       # Northern boundary
+  dset.variables['mask'][:,-4:-1] = -1    # Eastern boundary
+  dset.variables['mask'][:,0] = -1        # Western boundary
   dset.close()
 
-Copy a version of the mask for NEMO. *Not needed anymore*::
-
-  #ncrename -h -v mask,bdy_msk bdy_mask.nc bdy_msk.nc
-
-.. note: Could copy all these files to START_FILES or the repo...
 
 
 Run PyNEMO / NRCT to generate boundary conditions
@@ -1050,36 +869,14 @@ Generate the boundary conditions with PyNEMO
 
   pynemo -s namelist.bdy
 
-.. note : Can use the ``-g`` option if you want the GUI. Sometime problems are
-  circumvented using the "-g" option.
-
-.. note : log revealed:
-    ...
-    INFO:pynemo.profile:horizontal grid info
-    ERROR:pynemo.reader.ncml:Cannot find the requested variable glamt
-    ERROR:pynemo.reader.ncml:Cannot find the requested variable gphit
-    ...
-    Hmm. Something to look at is it doesn't work.
-
-  .. note : Error
-  File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/tide/nemo_bdy_tide3.py", line 50, in nemo_bdy_tpx7p2_rot
-    dst_lon = DC.bdy_lonlat[Grid_U.grid_type]['lon'][Grid_U.bdy_r == 0]
-    As before fixed but commenting out the [Grid_U.bdy_r == 0] subsetting. x 4.
-
-This is because I have tried to get PyNEMO to use s-coordinates. These are not
-needed for a tide only run
-
-.. note PyNEMO does not work for s-coordinates. But to just use it for tidal
- boundary conditions it doesn't matter what the vertical grid is doing.
-
-.. note: crashed in the tra routine. A problem with source coordinates zt not working as expected
-
-27 Oct. Switch to z-ccords. Keep rimwidth=1 . Rimwidith != 1 is for non-tidal boundaries
+.. note : Can use the ``-g`` option if you want the GUI.
 
 ---
 
 
-This generates::
+(By the time it crashes on some 3D stuff I am not interested in) this has already
+ generated::
+
   ls -1 $INPUTS
 
   coordinates.bdy.nc
@@ -1094,16 +891,12 @@ This generates::
   SWPacific_bdytide_rotT_S2_grid_V.nc
 
 
-
-
-Copy the new files back onto ARCHER. *Do not copy the mask files because the key
-variables are embedded in the new output*
-::
+Copy the new files back onto ARCHER::
 
   livljobs4$
   cd $INPUTS
-  for file in SWPacific*nc; do rsync -utv $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/$file ; done
-  rsync -utv coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/coordinates.bdy.nc
+  for file in $CONFIG*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
+  rsync -utv coordinates.bdy.nc $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/coordinates.bdy.nc
 
 
 8. Run the configuration ON ARCHER. Turn on the tides
@@ -1139,7 +932,7 @@ Edit the output to have 1hrly SSH::
 
 ---
 
-Create a short queue runscript::
+Create a short queue runscript. (Note: PBS -N jobname, PBS -m email)::
 
   vi runscript
 
@@ -1164,15 +957,11 @@ Create a short queue runscript::
   #
     echo " ";
     OCEANCORES=96
-    XIOCORES=1
   ulimit -c unlimited
   ulimit -s unlimited
 
   rm -f core
-
-  #aprun -n $OCEANCORES -N 24 ./opa
   aprun -b -n 5 -N 5 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
-  #aprun -b -n $XIOCORES -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
 
   exit
 
@@ -1180,20 +969,11 @@ Create a short queue runscript::
 
 Edit ``namelist_cfg`` to make sure it is OK
 
-Synchronise the namelist_cfg with the GitLab repo::
+Synchronise the namelist_cfg with the GitLab repo. (This is also done at the end
+of this repo)::
 
   e.g. rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/namelist_cfg SWPacific_EXP_namelist_cfg
 
-
-Blow up at 79 ts
-Use tide_ramp over 1 day.
-
-Blow up after 197 steps (=197 minutes).
-
-Will try lateral diffusion to stabilize. makes it worse...
-
-Sea level blows up at an island in the rim region. Try decreasing rimwidth to
-accomodate rimwidth=5.
 ---
 
 Submit::
@@ -1201,158 +981,73 @@ Submit::
  cd $EXP
  qsub -q short runscript
 
-27 Oct. z-coords. Need to archive namelists (especially if it works)...
-Blows up on the southern boundary again....
 
-Plan. 1) Go back to rimwidth=1 (perhaps blow up comes from same tide imposed
-over varying bathymetry across the rimwidth).
-Blowup at  kt=   100 max ssh:   10.32    , i j:   172    4
-Then try and edit the mask to remove the bad points. This blew up in the same place
-Check the output.abort files. Mesh hasn't worked as expected...
+.. note : 27 Oct. Switched to z-coords. Need to archive s-coord namelists
 
-.. note : I notice that the mask file I created does not have nav_lat or nav_lon.
-  Also there is a time axis in the mask variable. The GUI generated mask file is
-  cleaner: 	float nav_lat(y, x) ;
-	float nav_lon(y, x) ;
-	float mask(y, x) ;
+Iterative debugging process. Configuration blew up around the boundary
+E.g.::
 
-28 Oct. Tried using PyNEMO to generate a 10pt mask. Turned off the mask in the EXP namelist_cfg
-Rimwidth=1.
-**PENDING** 4877760::
   stp_ctl : the ssh is larger than 10m
   =======
   kt=   410 max ssh:   10.08    , i j:   446   11
 
-Chop out SSH also create mask file ::
-
-
-  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  module load cray-netcdf cray-hdf5
-
-  module load nco/4.5.0
-  ncks -v sossheig output.abort.nc output.abort_ssh.nc
-
-  module unload nco cray-netcdf cray-hdf5
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-
-It blew up just inside the maks. Apply mask in the EXP run. REsubmit.
-James' examply `bdy_msk.nc` has a variable with the same name.
-
-**livljobs4**::
-
-  cd $INPUTS
-  module load nco/gcc/4.4.2.ncwa
-  ncrename -h -v mask,bdy_msk bdy_mask.nc bdy_msk.nc
-  scp bdy_msk.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
-
-Resubmit: 4877863.sdb **PENDING** Does the mask work? Does it blow up somewhere else?
-stp_ctl : the ssh is larger than 10m
-=======
-kt=    33 max ssh:   10.59    , i j:   535   11
-
-Blows up in the corner. But the grids work.
-Try the tideramp=1. Turn off tide_pot too
-
-Does the tideramp slow the blow up? Yes try again with 10 day ramp
-Blows up with checker boarding. Turn on bilaplacian diffusion.
-stp_ctl : the ssh is larger than 10m
-=======
-kt=   103 max ssh:   11.45    , i j:   179   71
-checker board blow up - away from the domain.
-
-Copy James' bilaplacian coefficients.
-stp_ctl : the ssh is larger than 10m
-=======
-kt=    62 max ssh:   12.66    , i j:   507    8
-It still blows up within the rimwidth. Something is not working as I would expect.
-
-The rimwidth=1. If I make it larger then the PyNEMO doesn't seem to work. This
-seems to be the best line of pursuit.
-Perhaps PyNEMO needed a mask file with the same rimwidth as the rimwidth variable.
-Could quickly try that.
-
-livljobs4: namelist.bdy
-rimwidth=10
-This breaks. I do not understand why it doesn't work but it seems to be a sticking point.
-
-*31 Oct*
-Turn on tide_pot. This makes no difference. Identical crash point...
-stp_ctl : the ssh is larger than 10m
-=======
-kt=    62 max ssh:   12.66    , i j:   507    8
-
-
-**Rimwidth variable is for u,v (and maybe T,S) relaxation. It should not affect barotropic tides**
-
-James had extra F90 in MY_SRC::
-
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/dommsk.F90 $CDIR/$CONFIG/MY_SRC/dommsk.F90
-
-Rebuild. Turn off tideramp and resubmit. No tide but stable
-
-Edit namelist_cfg to use bdy_msk from boundary file: SWPacific_bdytide_rotT_M2_grid_T.nc
-Edit namelist.bdy to not use a mask.
-
-**KEEP**::
   stp_ctl : the ssh is larger than 10m
   =======
   kt=   101 max ssh:   10.32    , i j:   172    4
 
-Blows up along bottom boundary. Mask out j=0,1,2,3,4 in PyNEMO: bdy_mask.nc
-Copy new bdy files and coordinates.bdy.nc to archer.
-Submit
-stp_ctl : the ssh is larger than 10m
-=======
-kt=   101 max ssh:   10.32    , i j:   172    4
-
-          output of last fields in numwso
-
-The mask is not working. Manually use the mask the PyNEMO used. ``bdy_msk.nc``
-Submit.
-**It works!** But only did 5k steps.
-
-**KEEP**::
-  Double timestep. ``rn_rdt=120`` s and submit again. (40mins). IO limits speed, not dt.
   stpctl: the zonal velocity is larger than 20 m/s
   ======
   kt=  6374 max abs(U):   21.05    , i j k:   542   57   30
-  Introduce 4 pt mask at eastern wall 544.
 
-Try 60s for 40mins. This completed in 24 mins (only with Southern boundary mask)!
+Edit the bdy_mask.nc file to blank out (-1) the edges with problems. (I blanked them
+out preserving a rectangular grid. This may not be necessary). Rerun PyNEMO to
+generate new boundary forcing.
 
 
-Fix bdy_msk output bug in PyNEMO. Does it work if the mask file has a variable called ``bdy_msk`` and not ``mask``
-Try it. Yes it works.
 
-Try rn_rdt=360. Also try speeding up IO. Double XIOS cores and cores per node::
-  aprun -b -n 10 -N 10 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
-Did 6068 steps in 20mins
+In the end I ran with ``rn_rdt=360`` (6 minutes). I also played with the number of
+processors used to do the XIOS, but I am not sure that it did anything to speed up
+the simulation. (Changed from ``-n 5 -N 5`` to ``-n 20 -N 20``).
 
-20 days at dt=6 minute. Increase XIOS core and cores per node to 15 (or 20)
- (will definately complete if there are no memory issues)::
+I was able to run 20 days in 17 mins on the short queue.
 
-  aprun -b -n 15 -N 15 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
+Then optimising the MPI decomposition (93 processors - saving 3 from land). Competed
+in 18 mins::
 
-Both complete in 17mins
+  aprun -b -n 20 -N 20 ./xios_server.exe : -n 93 -N 24 ./opa
+
+
 
 
 
 MPP decomposition for land suppression
 ++++++++++++++++++++++++++++++++++++++
 
+Before doing long runs it is important to optimise MPP decompositoin by invoking
+ land supression to save redundant ocean processors.
 
-!-----------------------------------------------------------------------
-&nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
-!-----------------------------------------------------------------------
-   cn_mpi_send =  'I'      !  mpi send/recieve type   ='S', 'B', or 'I' for standard send,
-                           !  buffer blocking send or immediate non-blocking sends, resp.
-   nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
-   ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
-   jpni        =  -20       !  jpni   number of processors following i (set automatically if < 1)
-   jpnj        =  -40    !  jpnj   number of processors following j (set automatically if < 1)
-   jpnij       =  -550    !  jpnij  number of local domains (set automatically if < 1)
+In the namelist there is a subsection nammpp. This allows the user to switch on land suppression from the NEMO simulations. Setting jpni, jpnj and jpnij to values less than 1 tells NEMO to decompose the domain into jpni x jpnj processor maps such that jpni x jpnj = total number of requested processors. The user can take a little control by specifying how the x-axis and y-axis are subdivided e.g. by setting jpni=10, jpnj=10 and jpnij=100 the x and y axes are divided up into 10 equal parts for the decomposition. If 40% of the domain happens to be land land suppression can be triggered if jpni x jpni > jpnij. As a first guess we may run with the following jpni=10, jpnj=10 and jpnij=60. To test this run the model for 1time step. Invariably this will fail, but the mode will write out what jpnij it was expecting in the ocean.output file. jpnij can then be updated in the namelist_cfg and the model rerun with the correct jpnij value. This allows the user to run a more efficient setup and speeding up simulations.
 
+When choosing jpni and jpnj bear in mind the following:
+* Ideally you want to keep the decomposition as ‘square’ as possible to minimise communications
+* With NEMO the efficiency drops of if the tile/processor map size is less than 15x15 points
+
+Initially run with the namelist_cfg parameters::
+
+  !-----------------------------------------------------------------------
+  &nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
+  !-----------------------------------------------------------------------
+     cn_mpi_send =  'I'      !  mpi send/recieve type   ='S', 'B', or 'I' for standard send,
+                             !  buffer blocking send or immediate non-blocking sends, resp.
+     nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
+     ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
+     jpni        =  -1       !  jpni   number of processors following i (set automatically if < 1)
+     jpnj        =  -1    !  jpnj   number of processors following j (set automatically if < 1)
+     jpnij       =  -1    !  jpnij  number of local domains (set automatically if < 1)
+
+
+Then inspect ``ocean_output`` to see the ``jpni`` and ``jpnj``.
+ Set ``jpnij < jpni*jpnj`` and run again. E.g.::
 
    !-----------------------------------------------------------------------
    &nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
@@ -1365,16 +1060,14 @@ MPP decomposition for land suppression
       jpnj        =  8    !  jpnj   number of processors following j (set automatically if < 1)
       jpnij       =  1    !  jpnij  number of local domains (set automatically if < 1)
 
-jpnij --> 93
-
-Similarly jpni=8, jpnj=12 --> 93
-Update OCEANCORES in runscript::
+Inspect ``ocean_output`` to find ``jpnij``. In my simulation ``jpni=8, jpnj=12 --> jpnij = 93``
+Update OCEANCORES in runscript (make sure the ``aprun`` statement is as expected too)::
 
   vi runscript
   ...
   OCEANCORES=93
 
-Submit this
+And submit again.
 
 
 

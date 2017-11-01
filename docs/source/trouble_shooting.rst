@@ -2,7 +2,7 @@ Trouble Shooting
 ++++++++++++++++
 ++++++++++++++++
 
-Things to try is your new configuration isn't working
+Things to try if your new configuration isn't working
 
 
 My configuration blows up
@@ -32,5 +32,15 @@ In ipython manually edit the mask locations::
   dset.variables['mask'][:,0] = -1
   dset.close()
 
-Then ``bdy_mask.nc`` can be specified in the ``namelist.bdy`` and the PyNEMO gernerated files
-contain the bdy_msk variable, for use in the NEMO ``namelist_cfg``
+Then ``bdy_mask.nc`` can be specified in the PyNEMO ``namelist.bdy``. The PyNEMO
+ generated files contain the bdy_msk variable, for use in the NEMO ``namelist_cfg``
+
+Run PyNEMO again. Run NEMO again.
+
+---
+
+If the bdy_msk does not appear to be functional. Perhaps missing updates to the
+OPA source::
+
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/dommsk.F90 $CDIR/$CONFIG/MY_SRC/dommsk.F90
