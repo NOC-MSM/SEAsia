@@ -13,9 +13,11 @@ import matplotlib.cm as cm  # colormaps
 import sys # Exit command
 #####%matplotlib inline
 
-flag = 0 # Read output.abort
-#flag = 1 # Read SWPacific*nc
+#flag = 0 # Read output.abort
+flag = 1 # Read SWPacific*nc
 #flag = 2 # bdydta mask
+
+print 'flag =',flag
 
 # Set path
 dirname = ''#/Users/jeff/Desktop/'
@@ -23,7 +25,10 @@ if flag == 0:
 	filename = dirname + 'output.abort.nc'
 	var = 'sossheig'
 elif flag == 1:
-	filename = dirname + 'SWPacific_1h_20000101_20000110_SSH.nc' #'SWPacific_1h_20000101_20000105_SSH.nc' #'SWPacific_1h_20000101_20000130_SSH.nc'
+	#filename = 'SWPacific_1h_20000101_20000110_SSH.nc'
+	filename = 'SWPacific_1h_20000101_20000105_SSH.nc'
+	#filename = 'SWPacific_1h_20000101_20000130_SSH.nc'
+        filename = dirname + filename
 	var = 'zos'
 elif flag == 2:
         filename = '/work/n01/n01/jelt/SWPacific/INPUTS/SWPacific_bdytide_rotT_M2_grid_T.nc'
@@ -52,11 +57,10 @@ if flag == 0 or flag == 2:
 	plt.pcolormesh( zos[:,:], cmap=cmap )
 elif flag == 1:
 	plt.pcolormesh( zos[-2,:,:], cmap=cmap )
-plt.pcolormesh( zos[:,:], cmap=cmap )
 plt.clim([-lim/10.,lim/10.])
 plt.colorbar()
 ax = fig.add_subplot(212)
-if flag == 0 | flag ==2:
+if flag == 0 or flag ==2:
 	plt.pcolormesh( zos[:,:], cmap=cmap )
 elif flag == 1:
 	plt.pcolormesh( zos[-2,:,:], cmap=cmap )

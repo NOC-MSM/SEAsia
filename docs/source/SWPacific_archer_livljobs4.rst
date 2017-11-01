@@ -1074,12 +1074,8 @@ needed for a tide only run
 
 .. note: crashed in the tra routine. A problem with source coordinates zt not working as expected
 
-27 Oct. z-ccords. Try rimwidth=1 because I can't get PyNemo to work with wider widths
-(I think that if I'm imposing the same tide over a rim with sloping bathymetry I get problems)
-Then expand the bdy_mask.nc file to inclide the blow-up point.
+27 Oct. Switch to z-ccords. Keep rimwidth=1 . Rimwidith != 1 is for non-tidal boundaries
 
-28 Oct. Fiddle with PyNEMO gui to get a 10pt border. Output to bdy_mask.nc variables:
-nav_lat, nav_lon, mask.
 ---
 
 
@@ -1100,8 +1096,8 @@ This generates::
 
 
 
-Copy the new files back onto ARCHER. Do not copy the mask files because the key
-variables are embedded in the new output
+Copy the new files back onto ARCHER. *Do not copy the mask files because the key
+variables are embedded in the new output*
 ::
 
   livljobs4$
@@ -1109,7 +1105,7 @@ variables are embedded in the new output
   for file in SWPacific*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/. ; done
   scp coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
   #scp bdy_mask.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/. # variable mask - for pynemo
-  scp bdy_msk.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.  # variable bdy_msk - for nemo
+  #scp bdy_msk.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.  # variable bdy_msk - for nemo
 
 
 8. Run the configuration ON ARCHER. Turn on the tides
@@ -1300,9 +1296,10 @@ Rebuild. Turn off tideramp and resubmit. No tide but stable
 Edit namelist_cfg to use bdy_msk from boundary file: SWPacific_bdytide_rotT_M2_grid_T.nc
 Edit namelist.bdy to not use a mask.
 
-stp_ctl : the ssh is larger than 10m
-=======
-kt=   101 max ssh:   10.32    , i j:   172    4
+**KEEP**::
+  stp_ctl : the ssh is larger than 10m
+  =======
+  kt=   101 max ssh:   10.32    , i j:   172    4
 
 Blows up along bottom boundary. Mask out j=0,1,2,3,4 in PyNEMO: bdy_mask.nc
 Copy new bdy files and coordinates.bdy.nc to archer.
@@ -1328,7 +1325,7 @@ Try 60s for 40mins. This completed in 24 mins (only with Southern boundary mask)
 
 
 Fix bdy_msk output bug in PyNEMO. Does it work if the mask file has a variable called ``bdy_msk`` and not ``mask``
-Try it
+Try it. Yes it works.
 
 ---
 
