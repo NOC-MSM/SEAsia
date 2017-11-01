@@ -1368,7 +1368,13 @@ MPP decomposition for land suppression
 jpnij --> 93
 
 Similarly jpni=8, jpnj=12 --> 93
-Use this
+Update OCEANCORES in runscript::
+
+  vi runscript
+  ...
+  OCEANCORES=93
+
+Submit this
 
 
 
