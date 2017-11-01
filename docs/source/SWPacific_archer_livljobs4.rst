@@ -1317,12 +1317,18 @@ The mask is not working. Manually use the mask the PyNEMO used. ``bdy_msk.nc``
 Submit.
 **It works!** But only did 5k steps.
 
-Double timestep. ``rn_rdt=120`` s and submit again. (40mins). IO limits speed, not dt.
-stpctl: the zonal velocity is larger than 20 m/s
-======
-kt=  6374 max abs(U):   21.05    , i j k:   542   57   30
+**KEEP**::
+  Double timestep. ``rn_rdt=120`` s and submit again. (40mins). IO limits speed, not dt.
+  stpctl: the zonal velocity is larger than 20 m/s
+  ======
+  kt=  6374 max abs(U):   21.05    , i j k:   542   57   30
+  Introduce 4 pt mask at eastern wall 544.
 
-Try 60s for 40mins
+Try 60s for 40mins. This completed in 24 mins (only with Southern boundary mask)!
+
+
+Fix bdy_msk output bug in PyNEMO. Does it work if the mask file has a variable called ``bdy_msk`` and not ``mask``
+Try it
 
 ---
 

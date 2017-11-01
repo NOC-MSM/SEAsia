@@ -13,8 +13,8 @@ import matplotlib.cm as cm  # colormaps
 import sys # Exit command
 #####%matplotlib inline
 
-#flag = 0 # Read output.abort
-flag = 1 # Read SWPacific*nc
+flag = 0 # Read output.abort
+#flag = 1 # Read SWPacific*nc
 #flag = 2 # bdydta mask
 
 # Set path
@@ -23,7 +23,7 @@ if flag == 0:
 	filename = dirname + 'output.abort.nc'
 	var = 'sossheig'
 elif flag == 1:
-	filename = dirname + 'SWPacific_1h_20000101_20000105_SSH.nc' #'SWPacific_1h_20000101_20000130_SSH.nc'
+	filename = dirname + 'SWPacific_1h_20000101_20000110_SSH.nc' #'SWPacific_1h_20000101_20000105_SSH.nc' #'SWPacific_1h_20000101_20000130_SSH.nc'
 	var = 'zos'
 elif flag == 2:
         filename = '/work/n01/n01/jelt/SWPacific/INPUTS/SWPacific_bdytide_rotT_M2_grid_T.nc'
@@ -39,6 +39,8 @@ nav_lat = f.variables['nav_lat'][:] # (y,x)
 nav_lon = f.variables['nav_lon'][:] # (y,x)
 zos = f.variables[var][:].squeeze() # (time_counter, y, x)
 lim = np.nanmax(np.abs(zos[:])) # Find extrema
+print 'max abs(lim)=',lim
+print 'shape zos=',np.shape(zos)
 
 # Plot data
 cmap = cm.Spectral
@@ -46,10 +48,11 @@ fig = plt.figure()
 plt.rcParams['figure.figsize'] = (10.0, 10.0)
 
 ax = fig.add_subplot(211)
-if flag == 0 | flag == 2:
+if flag == 0 or flag == 2:
 	plt.pcolormesh( zos[:,:], cmap=cmap )
 elif flag == 1:
 	plt.pcolormesh( zos[-2,:,:], cmap=cmap )
+plt.pcolormesh( zos[:,:], cmap=cmap )
 plt.clim([-lim/10.,lim/10.])
 plt.colorbar()
 ax = fig.add_subplot(212)
@@ -57,8 +60,8 @@ if flag == 0 | flag ==2:
 	plt.pcolormesh( zos[:,:], cmap=cmap )
 elif flag == 1:
 	plt.pcolormesh( zos[-2,:,:], cmap=cmap )
-plt.xlim([152,192])
-plt.ylim([0,20])
+plt.xlim([522,562])
+plt.ylim([37,77])
 plt.clim([-lim,lim])
 plt.colorbar()
 plt.title('SSH')
