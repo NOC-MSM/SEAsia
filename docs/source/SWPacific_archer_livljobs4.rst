@@ -1009,28 +1009,28 @@ downloaded them instead...
       </ns0:netcdf>
 
 Finally I am going to create a boundary mask file. This can also be done with the PyNEMO
-GUI::
+GUI. The mask file takes values(-1 mask, 1 wet, 0 land)::
 
   module load nco/gcc/4.4.2.ncwa
-  rm -f bdy_mask.nc tmp.nc
-  ncks -v top_level domain_cfg.nc tmp.nc
-  ncrename -h -v top_level,mask tmp.nc bdy_mask.nc
-  rm -f tmp.nc
+  rm -f bdy_mask.nc tmp[12].nc
+  ncks -v top_level domain_cfg.nc tmp1.nc
+  ncrename -h -v top_level,mask tmp1.nc tmp2.nc
+  ncwa -a t tmp2.nc bdy_mask.nc
+  rm -f tmp[12].nc
 
 In ipython::
 
   import netCDF4
   dset = netCDF4.Dataset('bdy_mask.nc','a')
-  dset.variables['mask'][:,0:4,:]  = 0
-  dset.variables['mask'][:,-1,:] = 0
-  dset.variables['mask'][:,0,:] = 0
-  dset.variables['mask'][:,:,-1] = 0
-  dset.variables['mask'][:,:,0] = 0
+  dset.variables['mask'][0:4,:]  = -1
+  dset.variables['mask'][-1,:] = -1
+  dset.variables['mask'][:,-4:-1] = -1
+  dset.variables['mask'][:,0] = -1
   dset.close()
 
-Copy a version of the mask for NEMO::
+Copy a version of the mask for NEMO. *Not needed anymore*::
 
-  ncrename -h -v mask,bdy_msk bdy_mask.nc bdy_msk.nc
+  #ncrename -h -v mask,bdy_msk bdy_mask.nc bdy_msk.nc
 
 .. note: Could copy all these files to START_FILES or the repo...
 
@@ -1102,10 +1102,8 @@ variables are embedded in the new output*
 
   livljobs4$
   cd $INPUTS
-  for file in SWPacific*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/. ; done
-  scp coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
-  #scp bdy_mask.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/. # variable mask - for pynemo
-  #scp bdy_msk.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.  # variable bdy_msk - for nemo
+  for file in SWPacific*nc; do rsync -utv $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/$file ; done
+  rsync -utv coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/coordinates.bdy.nc
 
 
 8. Run the configuration ON ARCHER. Turn on the tides
@@ -1327,7 +1325,55 @@ Try 60s for 40mins. This completed in 24 mins (only with Southern boundary mask)
 Fix bdy_msk output bug in PyNEMO. Does it work if the mask file has a variable called ``bdy_msk`` and not ``mask``
 Try it. Yes it works.
 
+Try rn_rdt=360. Also try speeding up IO. Double XIOS cores and cores per node::
+  aprun -b -n 10 -N 10 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
+Did 6068 steps in 20mins
+
+20 days at dt=6 minute. Increase XIOS core and cores per node to 15 (or 20)
+ (will definately complete if there are no memory issues)::
+
+  aprun -b -n 15 -N 15 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
+
+Both complete in 17mins
+
+
+
+MPP decomposition for land suppression
+++++++++++++++++++++++++++++++++++++++
+
+
+!-----------------------------------------------------------------------
+&nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
+!-----------------------------------------------------------------------
+   cn_mpi_send =  'I'      !  mpi send/recieve type   ='S', 'B', or 'I' for standard send,
+                           !  buffer blocking send or immediate non-blocking sends, resp.
+   nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
+   ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
+   jpni        =  -20       !  jpni   number of processors following i (set automatically if < 1)
+   jpnj        =  -40    !  jpnj   number of processors following j (set automatically if < 1)
+   jpnij       =  -550    !  jpnij  number of local domains (set automatically if < 1)
+
+
+   !-----------------------------------------------------------------------
+   &nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
+   !-----------------------------------------------------------------------
+      cn_mpi_send =  'I'      !  mpi send/recieve type   ='S', 'B', or 'I' for standard send,
+                              !  buffer blocking send or immediate non-blocking sends, resp.
+      nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
+      ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
+      jpni        =  12       !  jpni   number of processors following i (set automatically if < 1)
+      jpnj        =  8    !  jpnj   number of processors following j (set automatically if < 1)
+      jpnij       =  1    !  jpnij  number of local domains (set automatically if < 1)
+
+jpnij --> 93
+
+Similarly jpni=8, jpnj=12 --> 93
+Use this
+
+
+
 ---
+
 
 Backup to repo key files
 ========================
