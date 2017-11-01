@@ -27,7 +27,7 @@
 !-----------------------------------------------------------------------
    cn_exp      =    "SWPacific"  !  experience name
    nn_it000    =     1   !  first time step
-   nn_itend    =  7200 ! 10day=14400   !  last  time step (std 5475)
+   nn_itend    =  4800 ! 10day=14400   !  last  time step (std 5475)
    nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
@@ -44,9 +44,9 @@
    ln_iscpl    = .false.   !  cavity evolution forcing or coupling to ice sheet model
    nn_istate   =       0   !  output the initial state (1) or not (0)
    ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
-   nn_stock    =   7200 ! 14400   !  frequency of creation of a restart file (modulo referenced to 1)
+   nn_stock    =   4800 ! 14400   !  frequency of creation of a restart file (modulo referenced to 1)
    nn_stocklist = 0,0,0,0,0,0,0,0,0,0 ! List of timesteps when a restart file is to be written
-   nn_write    =  7200 ! 14400   !  frequency of write in the output file   (modulo referenced to nn_it000)
+   nn_write    =  4800 ! 14400   !  frequency of write in the output file   (modulo referenced to nn_it000)
    ln_mskland  = .false.   !  mask land points in NetCDF outputs (costly: + ~15%)
    ln_cfmeta   = .false.   !  output additional data to netCDF files required for compliance with the CF metadata standard
    ln_clobber  = .true.    !  clobber (overwrite) an existing file
@@ -118,7 +118,7 @@
    nn_msh      =    0      !  create (>0) a mesh file or not (=0)
    rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
    !
-   rn_rdt      =  60.     !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_rdt      =  360.     !  time step for the dynamics (and tracer if nn_acc=0)
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module
@@ -1126,8 +1126,8 @@
 &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
 !-----------------------------------------------------------------------
     nit000_han = 1         ! First time step used for harmonic analysis
-    nitend_han = 7200 ! 7200      ! Last time step used for harmonic analysis
-    nstep_han  = 5        ! Time step frequency for harmonic analysis
+    nitend_han = 4800 ! 7200      ! Last time step used for harmonic analysis
+    nstep_han  = 1        ! Time step frequency for harmonic analysis
     tname(1)   = 'M2'      ! Name of tidal constituents
     tname(2)   = 'S2'      ! Name of tidal constituents
     tname(3)   = 'K1'      ! Name of tidal constituents
