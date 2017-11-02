@@ -4,6 +4,23 @@ Trouble Shooting
 
 Things to try if your new configuration isn't working
 
+Mysterious fail. Either no clue of XIOS / XML / netcdf hint
+===========================================================
+
+The XML control of I/O, and in particular formatting and content of the
+ ``iodef.xml`` files (and its kin) are **extremely** sensitive to errors.
+  Several times an inconsistency in the xml files, or a typo, can lead to a NEMO failure with little or no debuggin info
+
+
+E.g. top line of iodef.xml. Switching from ::
+
+    <file_definition type="one_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="10d" min_digits="4">
+
+to::
+      <file_definition type="multiple_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="10d" min_digits="4">
+
+Can mean the difference between a nice weekend or a bad one.
+
 
 My configuration blows up
 +++++++++++++++++++++++++
