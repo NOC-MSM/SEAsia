@@ -877,7 +877,6 @@ Generate the boundary conditions with PyNEMO
 
 ---
 
-
 (By the time it crashes on some 3D stuff I am not interested in) this has already
  generated what I need::
 
