@@ -847,12 +847,13 @@ In ipython::
   import netCDF4
   dset = netCDF4.Dataset('bdy_mask.nc','a')
   dset.variables['mask'][0:4,:]  = -1     # Southern boundary
-  dset.variables['mask'][-1,:] = -1       # Northern boundary
+  dset.variables['mask'][-4:-1,:] = -1    # Northern boundary
   dset.variables['mask'][:,-4:-1] = -1    # Eastern boundary
   dset.variables['mask'][:,0] = -1        # Western boundary
   dset.close()
 
-
+.. note : 5 Nov. I haven't run with this thicker North boundary mask implemented.
+  But I just had a crash after 20 days that this should help fix.
 
 Run PyNEMO / NRCT to generate boundary conditions
 +++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1004,6 +1005,10 @@ E.g.::
   stpctl: the zonal velocity is larger than 20 m/s
   ======
   kt=  6374 max abs(U):   21.05    , i j k:   542   57   30
+
+  stpctl: the zonal velocity is larger than 20 m/s
+  ======
+  kt=  6209 max abs(U):   23.41    , i j k:   532  379   10
 
 Edit the bdy_mask.nc file to blank out (-1) the edges with problems. (I blanked them
 out preserving a rectangular grid. This may not be necessary). Rerun PyNEMO to
