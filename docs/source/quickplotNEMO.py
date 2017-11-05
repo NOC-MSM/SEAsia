@@ -16,6 +16,7 @@ import sys # Exit command
 #flag = 0 # Read output.abort
 flag = 1 # Read SWPacific*nc
 #flag = 2 # bdydta mask
+flag = 3 # Tide data
 
 print 'flag =',flag
 
@@ -26,13 +27,16 @@ if flag == 0:
 	var = 'sossheig'
 elif flag == 1:
 	#filename = 'SWPacific_1h_20000101_20000110_SSH.nc'
-	filename = 'SWPacific_1h_20000101_20000105_SSH.nc'
+	filename = 'SWPacific_1h_20000101_20000120_SSH.nc'
 	#filename = 'SWPacific_1h_20000101_20000130_SSH.nc'
         filename = dirname + filename
 	var = 'zos'
 elif flag == 2:
         filename = '/work/n01/n01/jelt/SWPacific/INPUTS/SWPacific_bdytide_rotT_M2_grid_T.nc'
 	var = 'bdy_msk'
+elif flag == 3: # Tides
+	filename = 'SWPacific_5d_20000101_20000120_Tides.nc'
+	var = 'M2x'
 else:
 	print 'Panic!'
 
@@ -40,8 +44,8 @@ else:
 f = Dataset(filename)
 
 #load lat and lon
-nav_lat = f.variables['nav_lat'][:] # (y,x)
-nav_lon = f.variables['nav_lon'][:] # (y,x)
+#nav_lat = f.variables['nav_lat'][:] # (y,x)
+#nav_lon = f.variables['nav_lon'][:] # (y,x)
 zos = f.variables[var][:].squeeze() # (time_counter, y, x)
 lim = np.nanmax(np.abs(zos[:])) # Find extrema
 print 'max abs(lim)=',lim
@@ -53,7 +57,7 @@ fig = plt.figure()
 plt.rcParams['figure.figsize'] = (10.0, 10.0)
 
 ax = fig.add_subplot(211)
-if flag == 0 or flag == 2:
+if flag == 0 or flag == 2 or flag == 3:
 	plt.pcolormesh( zos[:,:], cmap=cmap )
 elif flag == 1:
 	plt.pcolormesh( zos[-2,:,:], cmap=cmap )

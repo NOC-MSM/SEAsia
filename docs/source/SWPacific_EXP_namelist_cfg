@@ -26,27 +26,27 @@
 &namrun        !   parameters of the run
 !-----------------------------------------------------------------------
    cn_exp      =    "SWPacific"  !  experience name
-   nn_it000    =     1   !  first time step
-   nn_itend    =  4800 ! 10day=14400   !  last  time step (std 5475)
+   nn_it000    =  4801   !  first time step
+   nn_itend    =  14400 ! 10day=14400   !  last  time step (std 5475)
    nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
-   ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
+   ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
       nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
-      nn_rstctl   =    0            !  restart control ==> activated only if ln_rstart=T
+      nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
       !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
       !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
       !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
-      cn_ocerst_in    = "SWPacific_00007200_restart_oce_out"   !  suffix of ocean restart name (input)
+      cn_ocerst_in    = "SWPacific_00004800_restart_oce_out"   !  suffix of ocean restart name (input)
       cn_ocerst_indir = "."         !  directory from which to read input ocean restarts
       cn_ocerst_out   = "restart_oce_out"   !  suffix of ocean restart name (output)
       cn_ocerst_outdir= "."         !  directory in which to write output ocean restarts
    ln_iscpl    = .false.   !  cavity evolution forcing or coupling to ice sheet model
    nn_istate   =       0   !  output the initial state (1) or not (0)
    ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
-   nn_stock    =   4800 ! 14400   !  frequency of creation of a restart file (modulo referenced to 1)
+   nn_stock    =   9600 ! 14400   !  frequency of creation of a restart file (modulo referenced to 1)
    nn_stocklist = 0,0,0,0,0,0,0,0,0,0 ! List of timesteps when a restart file is to be written
-   nn_write    =  4800 ! 14400   !  frequency of write in the output file   (modulo referenced to nn_it000)
+   nn_write    =  9600 ! 14400   !  frequency of write in the output file   (modulo referenced to nn_it000)
    ln_mskland  = .false.   !  mask land points in NetCDF outputs (costly: + ~15%)
    ln_cfmeta   = .false.   !  output additional data to netCDF files required for compliance with the CF metadata standard
    ln_clobber  = .true.    !  clobber (overwrite) an existing file
@@ -1020,9 +1020,9 @@
                            !  buffer blocking send or immediate non-blocking sends, resp.
    nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
    ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
-   jpni        =  -20       !  jpni   number of processors following i (set automatically if < 1)
-   jpnj        =  -40    !  jpnj   number of processors following j (set automatically if < 1)
-   jpnij       =  -550    !  jpnij  number of local domains (set automatically if < 1)
+   jpni        =  8       !  jpni   number of processors following i (set automatically if < 1)
+   jpnj        =  12    !  jpnj   number of processors following j (set automatically if < 1)
+   jpnij       =  93    !  jpnij  number of local domains (set automatically if < 1)
 /
 !-----------------------------------------------------------------------
 &namctl        !   Control prints
@@ -1125,8 +1125,8 @@
 !-----------------------------------------------------------------------
 &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
 !-----------------------------------------------------------------------
-    nit000_han = 1         ! First time step used for harmonic analysis
-    nitend_han = 4800 ! 7200      ! Last time step used for harmonic analysis
+    nit000_han = 4801         ! First time step used for harmonic analysis
+    nitend_han = 14400 ! 7200      ! Last time step used for harmonic analysis
     nstep_han  = 1        ! Time step frequency for harmonic analysis
     tname(1)   = 'M2'      ! Name of tidal constituents
     tname(2)   = 'S2'      ! Name of tidal constituents

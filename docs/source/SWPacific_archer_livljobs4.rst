@@ -871,11 +871,14 @@ Generate the boundary conditions with PyNEMO
 
 .. note : Can use the ``-g`` option if you want the GUI.
 
+.. note : I have a PyNEMO mod to use FES tides instead of TPXO tides for these boundary
+  forcing. It is currently a hardwire fix in ``tide/nemo_bdy_tide3.py``
+
 ---
 
 
 (By the time it crashes on some 3D stuff I am not interested in) this has already
- generated::
+ generated what I need::
 
   ls -1 $INPUTS
 
@@ -890,6 +893,9 @@ Generate the boundary conditions with PyNEMO
   SWPacific_bdytide_rotT_K2_grid_V.nc
   SWPacific_bdytide_rotT_S2_grid_V.nc
 
+.. note :
+    with ``ln_tra = .false.`` it crashed earlier (and looks fixable) but still produces the
+    above files. I assume that that is OK too but haven't checked.
 
 Copy the new files back onto ARCHER::
 
@@ -1019,7 +1025,6 @@ in 18 mins::
 
 
 
-
 MPP decomposition for land suppression
 ++++++++++++++++++++++++++++++++++++++
 
@@ -1070,6 +1075,37 @@ Update OCEANCORES in runscript (make sure the ``aprun`` statement is as expected
 And submit again.
 
 
+Restart run
++++++++++++
+
+Rebuild restart file `rebuild_and_inspect_NEMO_output.rst`_
+Modify the namelist_cfg file for a restart (also doubled number of steps to 9600).
+Using nn_restctl = 2 don't have to be too careful about dates in the namelist_cfg
+as it comes from the restart file instead.
+
+
+::
+  vi namelist_cfg
+  ...
+  ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
+  ...
+   nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
+   !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
+  ...
+
+  !-----------------------------------------------------------------------
+  &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
+  !-----------------------------------------------------------------------
+      nit000_han = 4801         ! First time step used for harmonic analysis
+      nitend_han = 14400 ! 7200      ! Last time step used for harmonic analysis
+      nstep_han  = 1        ! Time step frequency for harmonic analysis
+      tname(1)   = 'M2'      ! Name of tidal constituents
+      ...
+
+
+Double the wall time in ``runscript`` (40mins) and submit::
+
+  qsub runscript
 
 ---
 
