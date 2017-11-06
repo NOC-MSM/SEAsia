@@ -37,6 +37,11 @@ find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print
   python setup.py install --prefix ~/.conda/envs/nrct_env
   cd $INPUTS
 
+.. note : 6 Nov. Following git clone you might want to do:
+    git fetch
+    git checkout Generalise-tide-input
+  to get the FES-tides branch
+
 ---
 
 On **MacOSX**. *(26 Oct 2017)* (conda 4.3.30, python2.7) NB couldn't find ``libgfortran=1.0.0``. I used tcsh so you need to
