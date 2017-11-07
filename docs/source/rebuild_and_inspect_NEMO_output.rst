@@ -29,7 +29,7 @@ Should remove individual processor files once the build is verified::
 
 Rebuild the ABORT files::
 
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 output.abort 96
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 output.abort 93
 
 #Should remove individual processor files once the build is verified::
 
@@ -39,11 +39,11 @@ Rebuild the ABORT files::
 
 Rebuild the RESTART files (note 3 processors were recovered / not used because of land)::
 
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 SWPacific_00004800_restart_oce_out 93
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 SWPacific_00004800_restart_tide 93
 
 #Should remove individual processor files once the build is verified::
 
-  rm SWPacific_00004800_restart_oce_out_00??.nc
+  rm SWPacific_00004800_restart_tide_00??.nc
 
 ---
 

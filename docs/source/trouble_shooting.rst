@@ -61,3 +61,11 @@ OPA source::
 
   cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
   cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/dommsk.F90 $CDIR/$CONFIG/MY_SRC/dommsk.F90
+
+---
+
+If the model is blowing up at the boundary and the water is deep. Check the time step. Deepwater waves are fast.
+
+---
+
+If the model is blowing up at the boundary and the water is shallow. Have the tidal transports be mapped from parent to child grid correctly?
