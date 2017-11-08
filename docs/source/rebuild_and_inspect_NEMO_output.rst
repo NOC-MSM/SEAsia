@@ -39,11 +39,14 @@ Rebuild the **ABORT** files::
 
 Rebuild the **RESTART** files (note 3 processors were recovered / not used because of land)::
 
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 SWPacific_00004800_restart_tide 93
+  export nproc=93
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 $CONFIG_00004800_restart_tide $nproc
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 $CONFIG_00004800_restart $nproc
 
 #Should remove individual processor files once the build is verified::
 
-  rm SWPacific_00004800_restart_tide_00??.nc
+  rm $CONFIG_00004800_restart_tide_00??.nc
+  rm $CONFIG_00004800_restart_00??.nc
 
 ---
 
