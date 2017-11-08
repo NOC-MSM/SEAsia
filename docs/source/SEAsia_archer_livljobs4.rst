@@ -1136,63 +1136,58 @@ use python script to plot SSH animation (NB need to put the python script somewh
 
 Creates an animation of hours 35 - 60 in SSH.
 
+
 ---
+
+
+Backup to repo key files
+========================
+
+::
+
+  cd ~/GitLab/NEMO-RELOC/docs/source
+  # DOMANcfg namelist_cfg for domain_cfg.nc (for s-coordinates)
+  rsync -utv jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg SEAsia_DOMAINcfg_namelist_cfg
+
+  # EXP namelist_cfg (for s-coordinates)
+  rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/namelist_cfg SEAsia_EXP_namelist_cfg
+
+  # PyNEMO namelist.bdy (for s-coordinates)
+  rsync -utv jelt@livljobs4:/work/jelt/NEMO/SEAsia/INPUTS/namelist.bdy SEAsia_namelist.bdy
+
+  # Python quick plot of SSH in the output.abort.nc file
+  rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/quickplotNEMO.py quickplotNEMO.py
+
+
+---
+
+
+
+
+
+
+
+
+
+
+Rebuild the output and inspect `rebuild_and_inspect_NEMO_output.rst`_
+++++++++++++++++++++++++++++++
+
+---
+
+
+
+
+
+
+
+
 
 Next steps
 ++++++++++
 
 # Tidy up recipe
 # Freeze it
-
-
-
-
-
-
-
-
-
-
-Rebuild the output and inspect
-++++++++++++++++++++++++++++++
-
-Rebuild the SSH files using old tools::
-
-  export WDIR=/work/n01/n01/jelt/LBay/
-  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 Lbay_1h_20000101_20000130_SSH 5
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 Lbay_1d_20000101_20000130_Tides 5
-
-Should remove individual processor files once the build is verified::
-
-  rm Lbay_1h_20000101_20000130_SSH_00??.nc
-  rm Lbay_1d_20000101_20000130_Tides_00??.nc
-
-Inspect locally e.g.::
-
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/Lbay_1d_20000101_20000130_Tides.nc .
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/Lbay_1h_20000101_20000130_SSH.nc .
-
-  ferret
-  use Lbay_1d_20000101_20000110_Tides.nc
-  plot /i=25/j=70 SOSSHEIG
-
-Use some python to inspection of the domain_cfg.nc file or ssh, Tide output. See::
-
-  cd /Users/jeff/GitLab/NEMO-RELOC/docs/source
-  $ipython
-  >> run quickplotNEMO
-
----
-
-
-
-
-
-
-
-
 
 
 
