@@ -856,8 +856,10 @@ In ipython::
   dset.variables['mask'][:,0] = -1        # Western boundary
   dset.close()
 
-.. note : 5 Nov. I haven't run with this thicker North boundary mask implemented.
-  But I just had a crash after 20 days that this should help fix.
+.. note : 8 Nov. Fiddling with the bdy_msk is probably not such a good idea unless
+  there are clear issues with where the boundary lies E.g. island or other
+  bathymetric or amphidromic features. I now think that the problems I had were
+  dues to T,S boundary issues, which are now set and held constant.
 
 Run PyNEMO / NRCT to generate boundary conditions
 +++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1016,6 +1018,11 @@ E.g.::
 Edit the bdy_mask.nc file to blank out (-1) the edges with problems. (I blanked them
 out preserving a rectangular grid. This may not be necessary). Rerun PyNEMO to
 generate new boundary forcing.
+
+.. note : 8 Nov. Fiddling with the bdy_msk is probably not such a good idea unless
+  there are clear issues with where the boundary lies E.g. island or other
+  bathymetric or amphidromic features. I now think that the problems I had were
+  dues to T,S boundary issues, which are now set and held constant.
 
 
 
