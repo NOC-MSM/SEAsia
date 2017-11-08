@@ -1139,6 +1139,39 @@ Creates an animation of hours 35 - 60 in SSH.
 
 ---
 
+MPP decomposition for land suppression
+++++++++++++++++++++++++++++++++++++++
+
+`MPP_decomp_lanf_suppression.rst`_
+
+Before doing long runs it is important to optimise MPP decompositoin by invoking
+ land supression to save redundant ocean processors.
+Resulting decomposition::
+
+   vi namelist_cfg
+   ...
+   !-----------------------------------------------------------------------
+   &nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
+   !-----------------------------------------------------------------------
+      ...
+      jpni        =  12       !  jpni   number of processors following i (set automatically if < 1)
+      jpnj        =  8    !  jpnj   number of processors following j (set automatically if < 1)
+      jpnij       =  92    !  jpnij  number of local domains (set automatically if < 1)
+
+Inspect ``ocean_output`` to find ``jpnij``. In my simulation ``jpni=12, jpnj=8 --> jpnij = 92``
+Update OCEANCORES in runscript (make sure the ``aprun`` statement is as expected too)::
+
+  vi runscript
+  ...
+  OCEANCORES=92
+
+And submit again.
+
+----
+
+
+
+
 
 Backup to repo key files
 ========================
