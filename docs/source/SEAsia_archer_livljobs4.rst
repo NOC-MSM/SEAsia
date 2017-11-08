@@ -1030,8 +1030,9 @@ Copy the new files back onto ARCHER
 
   livljobs4$
   cd $INPUTS
-  for file in SEAsia*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/. ; done
-  scp coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/.
+  rsync -utv coordinates.bdy.nc $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/coordinates.bdy.nc
+  for file in $CONFIG*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
+
 
 
 
