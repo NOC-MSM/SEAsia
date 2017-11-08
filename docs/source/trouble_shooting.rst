@@ -25,9 +25,51 @@ Can mean the difference between a nice weekend or a bad one.
 My configuration blows up
 +++++++++++++++++++++++++
 
-If the configuration blows up at, or near, the boundary modify the boundary mask to blank it out.
+This can happen for a host of reasons...
+
+#. Probaby the first thing to check is whether it is behaving without all the
+add-on forcings. Is it stable if you turn everything off? Is it stable with
+ clamped initial condition temperature and salinity, and boundary velocities
+It is a good idea to try and 20 day 'initial condition' run to make sure there
+ are no surprises.
+
+Compile with ``usrdef_istate.F90`` and  ``usrdef_sbc.F90`` in ``MY_SRC``. Then
+ edit the ``namelist_cfg`` to turn off forcings (checking there are no inconsistencies)::
+
+  &namsbc        !   Surface Boundary Condition (surface module)
+  !-----------------------------------------------------------------------
+                     ! Type of air-sea fluxes
+     ln_usr      = .true.    !  user defined formulation                  (T => check usrdef_sbc)
+
+  ...
+
+  !-----------------------------------------------------------------------
+  &nam_tide      !   tide parameters
+  !-----------------------------------------------------------------------
+    ln_tide     = .true.
+    ln_tide_pot = .false.    !  use tidal potential forcing
+
+  ...
+
+  &nambdy        !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+     ln_bdy         = .true.              !  Use unstructured open boundaries
+     nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state
+     nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
+     nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
+
+
+#. Tidal models can blow up at, or near, the boundaries. This can happen for a number
+of reasons: Does the domain have amphidromes near the boundary? This can result
+large spatial gradients in velocity that can cause problems.
+
+
+#. If the configuration blows up at, or near, the boundary modify the boundary mask to blank it out.
 This means that new boundary files will need to be generated for the new effective boundary location
 
+**Update**. Modification of the mask is not such good advice. If there is a problem
+with an island or some significant bathymetry feature appearing on the child grid
+ but not in the parent, then this maybe a good idea.
 Note the PyNEMO mask takes three value. One each for mask(-1), wet points (1) and dry points (0).
 E.g. Start with with the land mask from ``domain_cfg.nc`` and introduce boundary masking. First
 create a mask file from a template. (Using **livljobs4**)::
@@ -45,7 +87,7 @@ In ipython manually edit the mask locations::
   dset = netCDF4.Dataset('bdy_mask.nc','a')
   dset.variables['mask'][0:4,:]  = -1
   dset.variables['mask'][-1,:] = -1
-  dset.variables['mask'][:,-4:-1] = -1
+  dset.variables['mask'][:,-1] = -1
   dset.variables['mask'][:,0] = -1
   dset.close()
 
@@ -64,8 +106,10 @@ OPA source::
 
 ---
 
-If the model is blowing up at the boundary and the water is deep. Check the time step. Deepwater waves are fast.
+#. If the model is blowing up at the boundary and the water is deep. Check the time step. Deepwater waves are fast.
 
 ---
 
-If the model is blowing up at the boundary and the water is shallow. Have the tidal transports be mapped from parent to child grid correctly?
+#. If the model is blowing up at the boundary and the water is shallow. Have the tidal transports be mapped from parent to child grid correctly?
+
+---
