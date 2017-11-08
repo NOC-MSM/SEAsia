@@ -49,6 +49,8 @@ a nascent stage. With the current namelist.bdy (PyNEMO namelist) it crashes afte
 generating the tidal boundary conditions while generating the 3D boundary conditions
 that I don't care about. I did not bother to resolve this.
 
+* Trouble shooting issues are covered in `trouble_shooting.rst`_
+
 .. note: PyNEMO is interchangabably called NRCT (NEMO Relocatable Configuration Tool)
 
 
@@ -91,12 +93,12 @@ Note you might have to mkdir the odd directory or two...::
   cp $WDIR/../LBay/START_FILES/bdyini.F90 $START_FILES/.
   cp $WDIR/../LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
   cp $WDIR/../LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
-  print "copy in $START_FILES/usrdef_istate.F90 and $START_FILES/usrdef_sbc.F90"
-
+  cp $WDIR/../SEAsia/START_FILES/usrdef_istate.F90 $START_FILES/.
+  cp $WDIR/../SEAsia/START_FILES/usrdef_sbc.F90    $START_FILES/.
 
 Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
-Or just build (if it is already downloaded). Note here we use userdefine functions
-for the initial state (constant T and S) and surface forcing (zero forcing)::
+Or just build (if it is already downloaded). Note here we use user defined
+ functions for the initial state (constant T and S) and surface forcing (zero forcing)::
 
   cd $CDIR
   cp $START_FILES/usrdef_istate.F90 $CDIR/$CONFIG/MY_SRC/.
@@ -307,7 +309,8 @@ Output files::
 
 Skip this for a tide-only run. Using user defined constant T and S.
 
-
+For constant T and S use the user defined functions in ``$CDIR/$CONFIG/MY_SRC``:
+  ``usrdef_sbc.F90``  and ``usrdef_istate.F90``.
 
 
 4. Generate a domain configuration file
@@ -347,7 +350,7 @@ s-coordinates `SWPacific_DOMAINcfg_namelist_cfg`_
 -------------
 
 .. note: At one point I tried to use s-coords but it wasn't working. Perhaps it
- would work not that the boundary problems are fixed. I did not investigate it
+ would work now that the boundary problems are fixed. I did not investigate it
  though. However I leave these s-coordinate namelist options here because they
  will be useful when I need s-coordinates to work in v4.
 
