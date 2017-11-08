@@ -91,12 +91,16 @@ Note you might have to mkdir the odd directory or two...::
   cp $WDIR/../LBay/START_FILES/bdyini.F90 $START_FILES/.
   cp $WDIR/../LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
   cp $WDIR/../LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
+  print "copy in $START_FILES/usrdef_istate.F90 and $START_FILES/usrdef_sbc.F90"
 
 
 Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
-Or just build (if it is already downloaded)::
+Or just build (if it is already downloaded). Note here we use userdefine functions
+for the initial state (constant T and S) and surface forcing (zero forcing)::
 
   cd $CDIR
+  cp $START_FILES/usrdef_istate.F90 $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/usrdef_sbc.F90    $CDIR/$CONFIG/MY_SRC/.
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
 ---
@@ -301,7 +305,7 @@ Output files::
 3. Generate initial conditions
 ++++++++++++++++++++++++++++++
 
-Skip this for a tide-only run.
+Skip this for a tide-only run. Using user defined constant T and S.
 
 
 
@@ -1085,17 +1089,21 @@ Restart run
 Rebuild restart file `rebuild_and_inspect_NEMO_output.rst`_
 Modify the namelist_cfg file for a restart (also doubled number of steps to 9600).
 Using nn_restctl = 2 don't have to be too careful about dates in the namelist_cfg
-as it comes from the restart file instead.
-
-
+as it comes from the restart file instead. (Though it seems to throw an error if
+you get a mismatch between namelist and restart dates..)
 ::
   vi namelist_cfg
   ...
+  nn_it000    =  14401   !  first time step
+  nn_itend    =  19200 ! 10day=14400   !  last  time step (std 5475)
+  nn_date0    =  20000302   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
   ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
   ...
    nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
    !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
   ...
+  cn_ocerst_in    = "SWPacific_00014400_restart_tide"   !  suffix of ocean restart name (input)
+
 
   !-----------------------------------------------------------------------
   &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")

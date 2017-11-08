@@ -12,7 +12,7 @@ Otherwise do something like::
 
 ---
 
-Rebuild the OUTPUT::
+Rebuild the **OUTPUT**::
 
   export filehead=Lbay_1h_20000101_20000130
   export nproc=5
@@ -27,7 +27,7 @@ Should remove individual processor files once the build is verified::
 
 ---
 
-Rebuild the ABORT files::
+Rebuild the **ABORT** files::
 
   $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 output.abort 93
 
@@ -37,7 +37,7 @@ Rebuild the ABORT files::
 
 ---
 
-Rebuild the RESTART files (note 3 processors were recovered / not used because of land)::
+Rebuild the **RESTART** files (note 3 processors were recovered / not used because of land)::
 
   $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 SWPacific_00004800_restart_tide 93
 

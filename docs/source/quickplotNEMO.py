@@ -13,10 +13,10 @@ import matplotlib.cm as cm  # colormaps
 import sys # Exit command
 #####%matplotlib inline
 
-#flag = 0 # Read output.abort
-flag = 1 # Read SWPacific*nc
+flag = 0 # Read output.abort
+#flag = 1 # Read SWPacific*nc
 #flag = 2 # bdydta mask
-flag = 3 # Tide data
+#flag = 3 # Tide data
 
 print 'flag =',flag
 
@@ -68,8 +68,8 @@ if flag == 0 or flag ==2:
 	plt.pcolormesh( zos[:,:], cmap=cmap )
 elif flag == 1:
 	plt.pcolormesh( zos[-2,:,:], cmap=cmap )
-plt.xlim([522,562])
-plt.ylim([37,77])
+plt.xlim([528,548])
+plt.ylim([366,386])
 plt.clim([-lim,lim])
 plt.colorbar()
 plt.title('SSH')
