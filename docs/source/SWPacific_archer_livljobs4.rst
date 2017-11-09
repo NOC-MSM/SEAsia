@@ -65,19 +65,26 @@ Starting on ARCHER::
 
   ssh login.archer.ac.uk
 
-  export CONFIG=SWPacific
-  export WORK=/work/n01/n01
-  export WDIR=$WORK/$USER/$CONFIG
-  export INPUTS=$WDIR/INPUTS
-  export START_FILES=$WDIR/START_FILES
-  export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
-  export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
-  export OLD_TDIR=$WORK/$USER/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/
-  export EXP=$CDIR/$CONFIG/EXP00
+It is quite convenient to define a temporary file with all the path names in.
+The first line defines the configuration name (assuming bash)::
 
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+cat > ~/temporary_path_names_for_NEMO_build << EOL
+export CONFIG=LBay180
+export WORK=/work/n01/n01
+export WDIR=\$WORK/$USER/\$CONFIG
+export INPUTS=\$WDIR/INPUTS
+export START_FILES=\$WDIR/START_FILES
+export CDIR=\$WDIR/trunk_NEMOGCM_r8395/CONFIG
+export TDIR=\$WDIR/trunk_NEMOGCM_r8395/TOOLS
+export EXP=\$CDIR/\$CONFIG/EXP00
 
+module swap PrgEnv-cray PrgEnv-intel
+module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+EOL
+
+Execute path settings::
+
+  . ~/temporary_path_names_for_NEMO_build
 
 ---
 
@@ -103,6 +110,8 @@ Or just build (if it is already downloaded). Note here we use user defined
   cd $CDIR
   cp $START_FILES/usrdef_istate.F90 $CDIR/$CONFIG/MY_SRC/.
   cp $START_FILES/usrdef_sbc.F90    $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/dommsk.F90 $CDIR/$CONFIG/MY_SRC/.
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
 ---
