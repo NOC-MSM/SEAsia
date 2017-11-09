@@ -19,7 +19,7 @@ There are two README.md files is this project. Their contents are loaded here
     know how to do this in Markdown)* **EDIT** I think a simple pre-"make html"
      command would be needed to paste in the contents of the README files.
 
-I am undecided on whether the Contents should go in the READMEs or here...
+I am undecided on whether the Contents should go in this file or in the READMEs...
 
 
 `Include the root README.md file <../../../README.md>`_

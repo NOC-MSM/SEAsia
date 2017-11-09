@@ -1,3 +1,6 @@
+.. contents:: Table of Contents
+
+
 Trouble Shooting
 ++++++++++++++++
 ++++++++++++++++
@@ -7,23 +10,33 @@ Things to try if your new configuration isn't working
 Mysterious fail. Either no clue of XIOS / XML / netcdf hint
 ===========================================================
 
-The XML control of I/O, and in particular formatting and content of the
- ``iodef.xml`` files (and its kin) are **extremely** sensitive to errors.
-  Several times an inconsistency in the xml files, or a typo, can lead to a NEMO failure with little or no debuggin info
+The XML control of I/O, and in particular formatting and content of the ``iodef.xml`` files (and its kin) are **extremely** sensitive to errors.
 
+Several times an inconsistency in the xml files, or a typo, can lead to a NEMO failure with little or no debugging info.
 
-E.g. top line of iodef.xml. Switching from ::
+E.g. top line of ``iodef.xml``. Switching from ::
 
     <file_definition type="one_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="10d" min_digits="4">
 
-to::
-      <file_definition type="multiple_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="10d" min_digits="4">
+to ::
 
-Can mean the difference between a nice weekend or a bad one.
+    <file_definition type="multiple_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="10d" min_digits="4">
+
+Can mean the difference between a nice weekend or a bad one. It seems that if you decide to use multi XIOS cores, you need 
+to use the second option (**multiple_file**).
+
+
+If a run suddenly stops without any errors in your NEMO **ocean.output** or in the cluster error/output files, it could 
+come from the memory of the XIOS server. A way to pass over this is to use more nodes, and using a single core per node
+to access the full memory of the node. An example for Archer, using 1 core of 12 nodes: ::
+
+   aprun -b -n 12 -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./nemo.exe
+
+
 
 
 My configuration blows up
-+++++++++++++++++++++++++
+=========================
 
 This can happen for a host of reasons...
 
