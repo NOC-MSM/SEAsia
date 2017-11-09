@@ -52,8 +52,9 @@ Author :: jelt</p>
 <p>configuration.</p>
 <ul class="simple">
 <li>Use ORCHESTRA code, which is near the head of the trunk (&#64; r8395).</li>
-<li>Caveat: a number of input files are taken from James&#8217; existing configuration</li>
+<li>Caveat: a number of input files are taken from James&#8217; existing configuration.</li>
 </ul>
+<p>Though the domain_cfg.nc file was generated from James&#8217; coordinates and bathy files.</p>
 </div>
 <div class="section" id="recipe-notes">
 <h2>Recipe Notes<a class="headerlink" href="#recipe-notes" title="Permalink to this headline">¶</a></h2>
@@ -126,7 +127,64 @@ bld::tool::fppkeys key_zdfgls        \
 </div>
 <p><strong>It compiles!!</strong></p>
 <p>&#8212;</p>
-<p>Copy INPUT stuff from James&#8217; simulation:</p>
+<p>Copy:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ln -s $JINPUTS/R12/domain_cfg_R12.nc $EXP/domain_cfg.nc
+</pre></div>
+</div>
+<p><strong>Or</strong> build or copy a domain_cfg.nc file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR/DOMAINcfg
+</pre></div>
+</div>
+<p>Copy in the coordinates and bathymetry files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $JINPUTS/R12/coordinates_E-AFRICA_R12.nc $TDIR/DOMAINcfg/coordinates.nc
+cp $JINPUTS/R12/bathymetry_E-AFRICA_R12.nc  $TDIR/DOMAINcfg/bathy_meter.nc
+</pre></div>
+</div>
+<p>Edit namelist_cfg (v3.6 version) for this configuration:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist_cfg
+
+!-----------------------------------------------------------------------
+&amp;namcfg        !   parameters of the configuration
+!-----------------------------------------------------------------------
+   !
+   ln_e3_dep   = .true.    ! =T : e3=dk[depth] in discret sens.
+   !                       !      ===&gt;&gt;&gt; will become the only possibility in v4.0
+   !                       ! =F : e3 analytical derivative of depth function
+   !                       !      only there for backward compatibility test with v3.6
+   !                       !
+   cp_cfg      =  &quot;orca&quot;   !  name of the configuration
+   jp_cfg      =       2   !  resolution of the configuration
+   jpidta      =     303   !  1st lateral dimension ( &gt;= jpi )
+   jpjdta      =     517   !  2nd    &quot;         &quot;    ( &gt;= jpj )
+   jpkdta      =      75   !  number of levels      ( &gt;= jpk )
+   jpiglo      =     303   !  1st dimension of global domain --&gt; i =jpidta
+   jpjglo      =     517   !  2nd    -                  -    --&gt; j  =jpjdta
+   jpizoom     =       1   !  left bottom (i,j) indices of the zoom
+   jpjzoom     =       1   !  in data domain indices
+   jperio      =       0   !  lateral cond. type (between 0 and 6)
+/
+!-----------------------------------------------------------------------
+&amp;namzgr        !   vertical coordinate
+!-----------------------------------------------------------------------
+   ln_zps      = .true.    !  z-coordinate - partial steps
+   ln_linssh   = .false.    !  linear free surface
+/
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Submit the run script. Use tools compiled</dt>
+<dd><p class="first">already <code class="docutils literal"><span class="pre">/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/TOOLS</span></code>:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">qsub</span> <span class="o">-</span><span class="n">q</span> <span class="n">short</span> <span class="n">rs</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Copy / link new file into the EXP directory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ln -s $TDIR/DOMAINcfg/domain_cfg.nc $EXP/domain_cfg.nc
+</pre></div>
+</div>
+<p>&#8212;</p>
+<p>Copy other INPUT stuff from James&#8217; simulation:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>mkdir $EXP
 
 cp $JEXP/namelist_cfg_R12 $EXP/namelist_cfg   # copy namelist_cfg
@@ -144,7 +202,6 @@ jpnij       =  -550    !  jpnij  number of local domains (set automatically if &
 <p>Link other setup and forcing files:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>ln -s $JINPUTS/R12/coordinates_E-AFRICA_R12.bdy.nc $EXP/coordinates.bdy.nc
 ln -s $JINPUTS/R12/bdy_mask_E-AFRICA_R12.nc $EXP/bdy_mask.nc
-ln -s $JINPUTS/R12/domain_cfg_R12.nc $EXP/domain_cfg.nc
 ln -s $JINPUTS/R12/TIDES $EXP/TIDES
 </pre></div>
 </div>
@@ -185,6 +242,9 @@ cp $JEXP/../../AMM12/EXP00/file_def_nemo-opa.xml $EXP/.
 #PBS -A n01-NOCL
 #PBS -j oe
 #PBS -r n
+# mail alert at (b)eginning, (e)nd and (a)bortion of execution
+#PBS -m bea
+#PBS -M jelt@noc.ac.uk
 
 module swap PrgEnv-cray PrgEnv-intel
 module load cray-netcdf-hdf5parallel

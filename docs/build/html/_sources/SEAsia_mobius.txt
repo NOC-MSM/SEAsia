@@ -47,6 +47,7 @@ CDIR, TDIR and INPUTS do not currently exist. Lets make them!::
         cp /work/thopti/NEMO/INPUTS.tar.gz $START_FILES #copy Jeff's Inputs to STart files
         tar xvfz INPUTS.tar.gz
         cp $START_FILES/INPUTS/* $START_FILES #move inputs file up a directory (not best way I am sure!)
+        cp INPUTS/namelist_reshape_bilin_gebco $START_FILES
         rm INPUTS #remove untarred directory
         rm INPUTS.tar.gz #remove tar file
 
@@ -128,20 +129,19 @@ passing of arguments). **For some reason GRIDGEN doesn’t like INTEL.**
   ssh livljobs4
 
 Copy PATHS again:: #I added some paths here and changed some to match the ones used in MOBIUS.
-
-<<<<<<< HEAD
+Tom ::
   export CONFIG=SEAsia
   export WDIR=/work/$USER/NEMO/$CONFIG
   export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
   export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
   export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
   export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-=======
+
+Jeff::
 	export WDIR=/work/$USER/NEMO/$CONFIG
 	export INPUTS=/work/$USER/NEMO/INPUTS
   export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
 	export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
->>>>>>> 69fc51a12695a427a9afa3cc6cdf5b9a3f201d1b
 
 Apply patches::
 
@@ -155,12 +155,9 @@ Apply patches::
 Setup for PGI modules and compile::
 
   cd $TDIR
-<<<<<<< HEAD
   cp $START_FILES/arch-pgf90_linux_jb.fcm $CDIR/../ARCH/arch-pgf90_linux_jb.fcm
   #get arch file from Jeff's workspace first
-=======
   cp $START_FILES/arch-pgf90_linux_jb.fcm $TDIR/../ARCH/arch-pgf90_linux_jb.fcm
->>>>>>> 69fc51a12695a427a9afa3cc6cdf5b9a3f201d1b
 
   module add netcdf/gcc/4.1.3
   module add pgi/15.4
@@ -241,9 +238,11 @@ Conclusion. Plot the proposed domain::
 
 Use indices  **i=50:730 j=1250:1800**
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> 8d8cc495e0d0d6b3e203f1472532f42d6ddd7a6c
 ---
-
 
 Copy namelist file from INPUTS and edit with new indices, retaining use of
 ORCA_R12 as course parent grid. Keep same grid ie. 1/12 degree, so scale factors are unitary. (Still on livljobs4)::
@@ -252,16 +251,13 @@ ORCA_R12 as course parent grid. Keep same grid ie. 1/12 degree, so scale factors
   cp $START_FILES/namelist_R12 ./
   vi namelist_R12
   ...
-<<<<<<< HEAD
+
   JEFF::
   cn_parent_coordinate_file = '../../../../INPUTS/coordinates_ORCA_R12.nc'
 
   TOM::
   cn_parent_coordinate_file = '../../../../START_FILES/coordinates_ORCA_R12.nc'
 
-=======
-  cn_parent_coordinate_file = '../../../../START_FILES/coordinates_ORCA_R12.nc'
->>>>>>> 69fc51a12695a427a9afa3cc6cdf5b9a3f201d1b
   ...
   nn_imin = 50
   nn_imax = 730
@@ -455,10 +451,12 @@ for atm forcing**
 Run the model to generate the mesh and mask files.
 *(It should look like this when all the files are in place. Structure copied from ARCHER)*::
 
+For ARCHER::
+
   cd $CDIR
   ln -s $INPUTS/bathy_meter.nc $EXP/bathy_meter.nc
   ln -s $INPUTS/coordinates.nc $EXP/coordinates.nc
-  cp $START_FILES/runscript $EXP/.
+  cp $START_FILES/runscript.pbs $EXP/.
   cp $START_FILES/namelist_cfg $EXP/namelist_cfg
   cp $START_FILES/namelist_ref $EXP/namelist_ref
   ./makenemo -n LBay -m XC_ARCHER_INTEL -j 10 clean
@@ -471,15 +469,51 @@ Then submit job::
 
   qsub -q short runscript
 
-However I want to run this configuration on ARCHER so I am continuing to work
-`there <SEAsia.html>`_
+For MOBIUS::
+  ssh MOBIUS
+  module purge
+  module load shared intel/compiler/64/14.0/2013_sp1.3.174 mvapich2/intel/64/2.0b slurm/14.03.0 cluster-tools/7.0
+  export CONFIG=SEAsia
+  export WDIR=/work/$USER/NEMO/$CONFIG
+  export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
+  export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
+  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+  export EXP=$CDIR/$CONFIG/EXP00
+  cd $CDIR
+  ln -s $INPUTS/bathy_meter.nc $EXP/bathy_meter.nc
+  ln -s $INPUTS/coordinates.nc $EXP/coordinates.nc
+  cp $START_FILES/runscript.pbs $EXP/.
+  cp $START_FILES/namelist_cfg $EXP/namelist_cfg
+  cp $START_FILES/namelist_ref $EXP/namelist_ref
+  ./makenemo -n SEAsia -m mobius_intel -j 10 clean
+  ./makenemo -n SEAsia -m mobius_intel -j 10
+  cd $EXP
+  ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
+  sed 's/rn_ahm_0_lap/rn_ahm_0/' namelist_cfg > tmp; mv tmp namelist_cfg
 
+Then submit job::
 
+  sbatch runscript.pbs
 
+REsults in 9 mesh_mask.nc files these need to be rebuilt into one nc file for the next step::
 
+  ssh livljobs4
+  export CONFIG=SEAsia
+  export WDIR=/work/$USER/NEMO/$CONFIG
+  export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
+  export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
+  export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+  export EXP=$CDIR/$CONFIG/EXP00
 
+  module add netcdf/gcc/4.1.3
+  module add pgi/15.4
 
-
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_mask 96
+  #mv mesh_mask.nc $WDIR/INPUTS
+  #rm mesh_* mask_* LBay_0000*
+  #cd $INPUTS
 
 
 

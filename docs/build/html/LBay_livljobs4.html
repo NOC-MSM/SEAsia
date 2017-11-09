@@ -41,35 +41,40 @@
             
   <div class="section" id="setting-up-a-liverpool-bay-nemo-configuration-inc-livljob4">
 <h1>Setting up a Liverpool Bay NEMO configuration, inc. livljob4<a class="headerlink" href="#setting-up-a-liverpool-bay-nemo-configuration-inc-livljob4" title="Permalink to this headline">¶</a></h1>
-<p>URL:: <a class="reference external" href="http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html">http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html</a></p>
+<p><strong>BUILD LBAY MODEL USING BATHY AND COORDINATES FROM POLCOMS</strong></p>
+<p>This was taken from the ORCHESTRA branch</p>
+<p>URL:: <a class="reference external" href="http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html">http://nemo-reloc.readthedocs.io/en/latest/LBay_livljobs4.html</a>
+<em>Actually I&#8217;ve taken this off readthedocs as it is internal. However writing in</em>
+<em>ReStrucTed text means it is trivial to deploy anywhere with whatever style</em></p>
 <ul class="simple">
 <li>Build notes with:: ~/GitLab/NEMO-RELOC/docs$ make html</li>
 </ul>
-<p>Originally tried building everything on ARCHER but ran into a java problem with PyNEMO that they needed to fix. Also MDP can&#8217;t use ARCHER.</p>
+<p>Originally tried building everything on ARCHER but ran into a java problem with
+NRCT (nee PyNEMO) that they needed to fix. Also MDP can&#8217;t use ARCHER.</p>
+<dl class="docutils">
+<dt>Then got it working on a combination of Liverpool machines for setup with</dt>
+<dd>simulations on ARCHER.</dd>
+</dl>
+<p>Then tried to update this recipe with the pre-release of NEMOv4, which in
+particular has a new method for handling the domain configuration. For this I use
+the ORCHESTRA realease of the trunk (&#64;r8395)</p>
 <p>The summary procedure:
-1) start with running NEMO on a new domain to generate grid files
-2) generate boundary forcings (e.g. tides, T,S,U,V) from a parent grid / model
-3) run the new configuration</p>
-<p>Step 2 was done on livljobs4. The other steps were on ARCHER.</p>
-<ul class="simple">
-<li>5 Oct 2017 - started migrating to the ORCHESTRA codebase. (Trunk &#64;r8395)</li>
-</ul>
+#. ARCHER: Get code. Build tools. Generate coordinates, bathymetry, domain_cfg.nc
+#. ARCHER: Generate initial conditions and atmospheric forcings
+#. LIVLJOBS4: Generate boundary conditions with NRCT/PyNEMO
+#. ARCHER: Run simulation</p>
 <div class="section" id="issues-that-arose">
 <h2>Issues that arose<a class="headerlink" href="#issues-that-arose" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>PyNEMO doesn&#8217;t yet deal with sigma parent grids.</li>
+<li>PyNEMO needs a gdept function. DOMAINcfg (will) only store e3t.</li>
 </ul>
-<p>Other related recipes:
+<p>Other related recipes (all NEMOv3.6):
 Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://pynemo.readthedocs.io/en/latest/examples.html#example-2-lighthouse-reef</span></code>
 Follow PyNEMO recipe for Lighthouse Reef: <code class="docutils literal"><span class="pre">http://nemo-reloc.readthedocs.io/en/latest/SEAsia.html</span></code>
 Follow PyNEMO recipe for LBay on ARCHER (not complete because PyNEMO java issue): <code class="docutils literal"><span class="pre">http://nemo-reloc.readthedocs.io/en/latest/LBay.html</span></code>.
 (Perhaps this other note is superceded by this present one, though the other
 note includes information of using PyNEMO with different data sources).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">It is very easy to break the code with bad edits to the iodef.xml file. Don&#8217;t
-change the iodef.xml file at the same time as something else.</p>
-</div>
 </div>
 <hr class="docutils" />
 <div class="section" id="recipe-notes">
@@ -82,10 +87,11 @@ Starting on ARCHER:</p>
 export CONFIG=LBay
 export WORK=/work/n01/n01
 export WDIR=$WORK/$USER/$CONFIG
-export INPUTS=$WORK/$USER/$CONFIG/INPUTS
+export INPUTS=$WDIR/INPUTS
+export START_FILES=$WDIR/START_FILES
 export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
 export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
-export EXP=$CDIR/$CONFIG/EXP00
+export EXP=$CDIR/$CONFIG/EXP_180
 
 
 module swap PrgEnv-cray PrgEnv-intel
@@ -93,6 +99,7 @@ module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
 export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
 export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
+export OCDIR=/work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/
 </pre></div>
 </div>
 <p>&#8212;</p>
@@ -113,84 +120,68 @@ Or just build:</p>
 <div class="section" id="build-tools">
 <h2>Build TOOLS<a class="headerlink" href="#build-tools" title="Permalink to this headline">¶</a></h2>
 <p>To generate bathymetry, initial conditions and grid information we first need
-to compile some of the NEMO TOOLS. NB for some reason GRIDGEN doesn’t like INTEL:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR
-./maketools -n WEIGHTS -m XC_ARCHER_INTEL
-./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL
-
-module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-module swap PrgEnv-intel PrgEnv-cray
-module load cray-netcdf cray-hdf5
-./maketools -n GRIDGEN -m XC_ARCHER
-
-module unload cray-netcdf cray-hdf5
-module swap PrgEnv-cray PrgEnv-intel
-module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-</pre></div>
-</div>
-<p>Finally build DOMAINcfg (which is relatively new). Use my XIOS1 file
-(see userid and path in variable <code class="docutils literal"><span class="pre">%XIOS_HOME</span></code>). Copy from <em>store</em>:</p>
+to compile some of the NEMO TOOLS. NB for some reason GRIDGEN doesn’t like INTEL</p>
+<p>First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
+(see userid and path in variable <code class="docutils literal"><span class="pre">%XIOS_HOME</span></code>). Copy from ARCH <em>store</em>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cp $WORK/$USER/ARCH/arch-XC_ARCHER_INTEL_XIOS1.fcm $CDIR/../ARCH/.
+cd $TDIR
 
 ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
 </pre></div>
 </div>
-<p>The general idea is that you have to copy the <code class="docutils literal"><span class="pre">namelist_cfg</span></code> file into the <code class="docutils literal"><span class="pre">DOMAINcfg</span></code>
-directory along with all the inputs files that would have previously been needed
-get v3.6 running. The reason being that all the non-time stepping stuff, like
-grid generating, has been abstracted from the core OPA code and is now done as
-a pre-processing step, and output into an important file <code class="docutils literal"><span class="pre">domain_cfg.nc</span></code>.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR
-cp $INPUTS/coordinates.nc DOMAINcfg/.
-cp $INPUTS/bathy_meter.nc DOMAINcfg/.
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">maketools</span> <span class="o">-</span><span class="n">n</span> <span class="n">WEIGHTS</span> <span class="o">-</span><span class="n">m</span> <span class="n">XC_ARCHER_INTEL_XIOS1</span>
+<span class="o">./</span><span class="n">maketools</span> <span class="o">-</span><span class="n">n</span> <span class="n">REBUILD_NEMO</span> <span class="o">-</span><span class="n">m</span> <span class="n">XC_ARCHER_INTEL_XIOS1</span>
+
+<span class="n">module</span> <span class="n">unload</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+<span class="n">module</span> <span class="n">swap</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">intel</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">cray</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span>
+<span class="o">./</span><span class="n">maketools</span> <span class="o">-</span><span class="n">n</span> <span class="n">GRIDGEN</span> <span class="o">-</span><span class="n">m</span> <span class="n">XC_ARCHER</span>    <span class="c1"># This uses acc&#39;s XIOS_r474</span>
+
+<span class="n">module</span> <span class="n">unload</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span>
+<span class="n">module</span> <span class="n">swap</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">cray</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">intel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
 </pre></div>
 </div>
-<p>I am not sure how this is going to pan out with the existing namelist_cfg files;
-it may not be up to date enough. So I will save an original for the time being:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">trunk_NEMOGCM_r8395</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">EXP00</span><span class="o">/</span><span class="n">namelist_cfg</span> <span class="n">namelist_cdf_LBay</span>
-<span class="n">cp</span> <span class="n">namelist_cfg_LBay</span> <span class="n">namelist_cfg</span>
+<div class="section" id="copy-bathymetry-and-coordinates-file">
+<h3>0. Copy bathymetry and coordinates file<a class="headerlink" href="#copy-bathymetry-and-coordinates-file" title="Permalink to this headline">¶</a></h3>
+<p>Jason converted old POLCOMS files into NEMO speak:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ls</span> <span class="o">/</span><span class="mi">9900</span><span class="n">a</span><span class="o">/</span><span class="n">NEMO</span><span class="o">/</span><span class="n">jholt</span><span class="o">/</span><span class="n">mfiles</span><span class="o">/</span><span class="n">POLCOMS_2_NEMO</span>
+<span class="n">bathy_meter</span><span class="o">.</span><span class="n">nc</span>  <span class="n">bathy</span><span class="o">.</span><span class="n">png</span>  <span class="n">coordinates</span><span class="o">.</span><span class="n">nc</span>  <span class="n">plocoms_2_nemo</span><span class="o">.</span><span class="n">m</span>  <span class="n">polcoms2nemo_func</span><span class="o">.</span><span class="n">m</span>
 </pre></div>
 </div>
-<p>Build a script to run the executable:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>vi $TDIR/DOMAINcdf/rs
-
-#!/bin/bash
-#PBS -N domain_cfg
-#PBS -l walltime=00:20:00
-#PBS -l select=1
-#PBS -j oe
-#PBS -A n01-NOCL
-
-#! -----------------------------------------------------------------------------
-
-# Change to the direcotry that the job was submitted from
-cd $PBS_O_WORKDIR
-
-# Set the number of threads to 1
-#   This prevents any system libraries from automatically
-#   using threading.
-export OMP_NUM_THREADS=1
-# Change to the directory that the job was submitted from
-ulimit -s unlimited
-
-#===============================================================
-# LAUNCH JOB
-#===============================================================
-echo `date` : Launch Job
-aprun -n 1 -N 1 ./make_domain_cfg.exe &gt;&amp;  stdouterr_cfg
-#aprun -n 216 -N 24 ./make_domain_cfg.exe &gt;&amp;  stdouterr_cfg
-
-exit
+<p>Copy these files to an EXP directory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scp</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">nc</span> <span class="n">jelt</span><span class="nd">@login</span><span class="o">.</span><span class="n">archer</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">uk</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">trunk_NEMOGCM_r8395</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">EXP_180</span><span class="o">/.</span>
+<span class="n">scp</span> <span class="n">bathy_meter</span><span class="o">.</span><span class="n">nc</span> <span class="n">jelt</span><span class="nd">@login</span><span class="o">.</span><span class="n">archer</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">uk</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">trunk_NEMOGCM_r8395</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">EXP_180</span><span class="o">/.</span>
 </pre></div>
 </div>
-<p>Try running it:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR/DOMAINcfg
-qsub -q short rs
+<p><strong>ARCHER</strong></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export EXP=$EXP/../EXP_180
+cp $EXP/coordinates.nc $TDIR/DOMAINcfg/.
+cp $EXP/bathy_meter.nc $TDIR/DOMAINcfg/.
+
+cd $TDIR/DOMAINcfg
+ncdump -h coordinates.nc
+x = 269 ;
+y = 189 ;
+z = 1 ;
+time = 1 ;
+...
 </pre></div>
 </div>
-<p>This probably wont work as there are some major differences with the namelist_cfg files.
-Actually diff-ing the files shows nothing very major.</p>
-<p><strong>PENDING (5 Oct) Does the DOMAINcfg THING RUN?</strong></p>
+<p>Edit namelist_cfg for this domain:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist_cfg
+&amp;namcfg
+...
+jpidta      =     269               !  1st lateral dimension ( &gt;= jpi )
+jpjdta      =     189               !  2nd    &quot;         &quot;    ( &gt;= jpj )
+jpkdta      =      51               !  number of levels      ( &gt;= jpk )
+jpiglo      =     269               !  1st dimension of global domain --&gt; i =jpidta
+jpjglo      =     189               !  2nd    -                  -    --&gt; j  =jpjdta
+...
+</pre></div>
+</div>
+<p><strong>GOT THIS FAR</strong></p>
+</div>
 <div class="section" id="generate-new-coordinates-file">
 <h3>1. Generate new coordinates file<a class="headerlink" href="#generate-new-coordinates-file" title="Permalink to this headline">¶</a></h3>
 <p>Generate a <code class="docutils literal"><span class="pre">coordinates.nc</span></code> file from a parent NEMO grid at some resolution.
@@ -199,7 +190,7 @@ parent grid location from <code class="docutils literal"><span class="pre">namel
 resolution grid elements.</p>
 <p>First we need to figure out the indices for the new domain, from the parent grid.
 Move parent grid into INPUTS:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/coordinates_ORCA_R12.nc $WDIR/INPUTS/.
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/coordinates_ORCA_R12.nc $INPUTS/.
 </pre></div>
 </div>
 <p>Inspect this parent coordinates file to define the boundary indices for the new config.</p>
@@ -211,12 +202,12 @@ shade/i=3385:3392/j=2251:2266 NAV_LON
 </pre></div>
 </div>
 <p>Copy namelist file from LH_reef and edit with new indices, retaining use of
-ORCA_R12 as course parent grid:</p>
+ORCA_R12 as course parent grid <em>(13 Oct: For ARCHER. Check the path to INPUTS)</em>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR/GRIDGEN
-cp $INPUTS/namelist_R12 ./
+cp $START_FILES/namelist_R12 ./
 vi namelist_R12
 ...
-cn_parent_coordinate_file = &#39;../../../../INPUTS/coordinates_ORCA_R12.nc&#39;
+cn_parent_coordinate_file = &#39;../../../INPUTS/coordinates_ORCA_R12.nc&#39;
 ...
 nn_imin = 3385
 nn_imax = 3392
@@ -227,7 +218,7 @@ nn_rhoy = 7
 
 ln -s namelist_R12 namelist.input
 ./create_coordinates.exe
-cp 1_coordinates_ORCA_R12.nc $WDIR/INPUTS/coordinates.nc
+cp 1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc
 </pre></div>
 </div>
 <p>This creates a coordinates.nc file with contents, which are now copied to
@@ -337,8 +328,91 @@ rm tmp.nc
 </pre></div>
 </div>
 </div>
+</div>
+<div class="section" id="generate-a-domain-configuration-file">
+<h2>3. Generate a domain configuration file<a class="headerlink" href="#generate-a-domain-configuration-file" title="Permalink to this headline">¶</a></h2>
+<p>The general idea is that you have to copy the <code class="docutils literal"><span class="pre">namelist_cfg</span></code> file into the <code class="docutils literal"><span class="pre">DOMAINcfg</span></code>
+directory along with all the inputs files that would have previously been needed
+get v3.6 running. The reason being that all the non-time stepping stuff, like
+grid generating, has been abstracted from the core OPA code and is now done as
+a pre-processing step, and output into an important file <code class="docutils literal"><span class="pre">domain_cfg.nc</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR
+cp $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
+cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
+</pre></div>
+</div>
+<p>I am not sure how this is going to pan out with the existing namelist_cfg files;
+it may not be up to date enough. So I will save an original for the time being:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">trunk_NEMOGCM_r8395</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">EXP00</span><span class="o">/</span><span class="n">namelist_cfg</span> <span class="n">namelist_cdf_LBay</span>
+<span class="n">cp</span> <span class="n">namelist_cfg_LBay</span> <span class="n">namelist_cfg</span>
+</pre></div>
+</div>
+<p>Tried reversing the ln_read_cfg and ln_write_cfg switches. Put back now:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;namcfg        !   parameters of the configuration
+!-----------------------------------------------------------------------
+   ln_e3_dep   = .true.    ! This will be obsolete soon. See namelist_ref
+   ln_read_cfg = .true.   !  (=T) read the domain configuration file
+      !                    !  (=F) user defined configuration  ==&gt;&gt;&gt;  see usrdef(_...) modules
+      cn_domcfg = &quot;domain_cfg&quot;         ! domain configuration filename
+      !
+   ln_write_cfg= .false.   !  (=T) create the domain configuration file
+</pre></div>
+</div>
+<p>Build a script to run the executable:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $TDIR/DOMAINcdf/rs
+
+#!/bin/bash
+#PBS -N domain_cfg
+#PBS -l walltime=00:20:00
+#PBS -l select=1
+#PBS -j oe
+#PBS -A n01-NOCL
+
+#! -----------------------------------------------------------------------------
+
+# Change to the directory that the job was submitted from
+cd $PBS_O_WORKDIR
+
+# Set the number of threads to 1
+#   This prevents any system libraries from automatically
+#   using threading.
+export OMP_NUM_THREADS=1
+# Change to the directory that the job was submitted from
+ulimit -s unlimited
+
+#===============================================================
+# LAUNCH JOB
+#===============================================================
+echo `date` : Launch Job
+aprun -n 1 -N 1 ./make_domain_cfg.exe &gt;&amp;  stdouterr_cfg
+#aprun -n 216 -N 24 ./make_domain_cfg.exe &gt;&amp;  stdouterr_cfg
+
+exit
+</pre></div>
+</div>
+<p>Try running it:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR/DOMAINcfg
+qsub -q short rs
+</pre></div>
+</div>
+<p><strong>10 Oct. This runs and produces ``domain_cfg.nc`` output, though the job has 1 error</strong></p>
+<p>Put a copy in $INPUTS for safe keeping. Put a copy in EXP:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $TDIR/DOMAINcfg/namelist_cfg $INPUTS/namelist_cfg_generateDOMAINcfg_101017
+cp $TDIR/DOMAINcfg/namelist_cfg $EXP/namelist_cfg
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Copy it to the EXP directory (also copy it to the INPUTS directory, which stores</dt>
+<dd><p class="first">the bits and bobs for a rebuild):</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span>cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
+cp $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
+</pre></div>
+</div>
+</dd>
+</dl>
 <div class="section" id="generate-initial-conditions">
-<h3>3. Generate initial conditions<a class="headerlink" href="#generate-initial-conditions" title="Permalink to this headline">¶</a></h3>
+<h3>4. Generate initial conditions<a class="headerlink" href="#generate-initial-conditions" title="Permalink to this headline">¶</a></h3>
 <p>Copy <code class="docutils literal"><span class="pre">make.macro</span></code> file and edit the path if necessary::
 <strong>FIX</strong> to the notes (copied from jdha instead): <code class="docutils literal"><span class="pre">cp</span> <span class="pre">$WDIR/INPUTS/make.macro</span> <span class="pre">./</span></code>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jdha</span><span class="o">/</span><span class="n">sosie</span><span class="o">/</span><span class="n">make</span><span class="o">.</span><span class="n">macro</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">sosie</span><span class="o">/.</span>
@@ -348,7 +422,7 @@ rm tmp.nc
 <span class="n">INSTALL_DIR</span> <span class="o">=</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">local</span>
 </pre></div>
 </div>
-<p>Proceed with Step 6:</p>
+<p>Proceed with Step 6 (of Lighhouse Reef Readthedocs):</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cd ~
 mkdir local
 svn co svn://svn.code.sf.net/p/sosie/code/trunk sosie
@@ -471,7 +545,7 @@ cp $INPUTS/namelist_reshape_bilin_initcd_vosaline $WDIR/INPUTS/.
 <p>Creates <code class="docutils literal"><span class="pre">initcd_vosaline.nc</span></code>.</p>
 </div>
 <div class="section" id="generate-weights-for-atm-forcing">
-<h3>4. Generate weights for atm forcing<a class="headerlink" href="#generate-weights-for-atm-forcing" title="Permalink to this headline">¶</a></h3>
+<h3>5. Generate weights for atm forcing<a class="headerlink" href="#generate-weights-for-atm-forcing" title="Permalink to this headline">¶</a></h3>
 <p>Generate cut down drowned precip file (note that the nco tools don&#8217;t like the
 parallel modules). <strong>HEALTH WARNING</strong> <em>Cut out files with only one index in that lat direction broke NEMO</em>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
@@ -530,107 +604,45 @@ $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
 </pre></div>
 </div>
 <p>Generates <code class="docutils literal"><span class="pre">weights_bicubic_atmos.nc</span></code>.</p>
+<p>THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO <em>(20 Sept 2017)</em>
+If all the files are ready to go jump straight to <a class="reference internal" href="#generate-boundary-conditions-with-pynemo-run-pynemo">7. Generate boundary conditions with PyNEMO: Run PyNEMO</a></p>
 </div>
-<div class="section" id="generate-mesh-and-mask-files-for-open-boundary-conditions">
-<h3>5. Generate mesh and mask files for open boundary conditions<a class="headerlink" href="#generate-mesh-and-mask-files-for-open-boundary-conditions" title="Permalink to this headline">¶</a></h3>
-<p>Run the model to generate the mesh and mask files:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR
-cp $INPUTS/cpp_LH_REEF.fcm LBay/cpp_LBay.fcm
-ln -s $WDIR/INPUTS/bathy_meter.nc $CDIR/LBay/EXP00/bathy_meter.nc
-ln -s $WDIR/INPUTS/coordinates.nc $CDIR/LBay/EXP00/coordinates.nc
-cp $INPUTS/runscript $CDIR/LBay/EXP00
-cp $INPUTS/namelist_cfg $CDIR/LBay/EXP00/namelist_cfg
-cp $INPUTS/namelist_ref $CDIR/LBay/EXP00/namelist_ref
-./makenemo clean
-./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
-cd LBay/EXP00
-ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
-</pre></div>
-</div>
-<p>Edit the namelist files for this configuration:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>ncdump -h coordinates.nc
-x = 57 ;
-y = 113 ;
-
-vi namelist.cfg
-...
-cn_exp      =   &quot;LBay&quot;  !  experience name
-...
-!-----------------------------------------------------------------------
-&amp;namcfg        !   parameters of the configuration
-!-----------------------------------------------------------------------
-   cp_cfg      =  &quot;lbay&quot;                !  name of the configuration
-   jp_cfg      =     084               !  resolution of the configuration
-   jpidta      =      57               !  1st lateral dimension ( &gt;= jpi )
-   jpjdta      =     113               !  2nd    &quot;         &quot;    ( &gt;= jpj )
-   jpkdta      =      51               !  number of levels      ( &gt;= jpk )
-   jpiglo      =      57               !  1st dimension of global domain --&gt; i =jpidta
-   jpjglo      =     113               !  2nd    -                  -    --&gt; j  =jpjdta
-</pre></div>
-</div>
-<p><strong>ACTION: There are further edits to be made for when the model is actually run</strong>
-<strong>E.g. other filename instances of Lbay</strong></p>
-<p>Note that the old LH_REEF has the following
-| jpidta      =     358               !  1st lateral dimension ( &gt;= jpi )
-| jpjdta      =     428               !  2nd    &#8221;         &#8221;    ( &gt;= jpj )</p>
-<p>with the dimensions in the LH_REFF coordinates file as
-| ncdump -h coordinates.nc
-| x = 358 ;
-| y = 428 ;</p>
-<p>Edit the runscript to include modules and the Account name (n01-NOCL):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">runscript</span>
-
-<span class="c1">#!/bin/bash</span>
-<span class="c1">#PBS -N LBay</span>
-<span class="c1">#PBS -l select=5</span>
-<span class="c1">#PBS -l walltime=00:20:00</span>
-<span class="c1">#PBS -A n01-NOCL</span>
-
-<span class="n">module</span> <span class="n">swap</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">cray</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">intel</span>
-<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span>
-<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
-<span class="o">...</span>
-</pre></div>
-</div>
-<p>Submit:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">qsub</span> <span class="o">-</span><span class="n">q</span> <span class="n">short</span> <span class="n">runscript</span>
-</pre></div>
-</div>
-<p><em>(6 March 2017)</em></p>
-<p>If that works, we then need to rebuild the mesh and mask files in to single files for the next step:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_zgr 96
-$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_hgr 96
-$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mask 96
-mv mesh_zgr.nc mesh_hgr.nc mask.nc $WDIR/INPUTS
-rm mesh_* mask_* LBay_0000*
-cd $WDIR/INPUTS
-</pre></div>
-</div>
-<p>THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO <em>(20 Sept 2017)</em></p>
-</div>
-<div class="section" id="generate-boundary-conditions-with-pynemo-create-netcdf-abstraction-wrapper">
-<h3>6. Generate boundary conditions with PyNEMO: Create netcdf abstraction wrapper<a class="headerlink" href="#generate-boundary-conditions-with-pynemo-create-netcdf-abstraction-wrapper" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="generate-boundary-conditions-with-nrct-pynemo-create-netcdf-abstraction-wrapper">
+<h3>6. Generate boundary conditions with NRCT/PyNEMO: Create netcdf abstraction wrapper<a class="headerlink" href="#generate-boundary-conditions-with-nrct-pynemo-create-netcdf-abstraction-wrapper" title="Permalink to this headline">¶</a></h3>
 <p>In this section there are two stages.
 * generate a ncml file which describes the files needed to create boundary conditions
 * generate a namelist.bdy file which controls the actual boundary condition generation.</p>
 <p>For each parent data set a new pair of (<code class="docutils literal"><span class="pre">*.ncml</span></code>, <code class="docutils literal"><span class="pre">namelist.bdy</span></code>) are needed.
-Here I attempt to use parent data from:
-* AMM60 local data (doesn&#8217;t yet work because of the sigma levels)
-* thredds server (as in the LH_REEF example)
+Here I attempt to use parent data from NNA. I could use data from:
+* AMM60 local data (might not yet work because of the sigma levels)
+* thredds server (as in the LH_REEF example, though this is turned off!)
 * NNA local data (easiest ?)</p>
-<p>First install PyNEMO if not already done so. Full description:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ssh</span> <span class="o">-</span><span class="n">Y</span> <span class="n">livljobs4</span>
-<span class="n">cd</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">jelt</span>
-<span class="n">mkdir</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">NEMO</span><span class="o">/</span><span class="n">LBay</span>
-<span class="n">export</span> <span class="n">WDIR</span><span class="o">=/</span><span class="n">work</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">NEMO</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span>
-<span class="n">module</span> <span class="n">load</span> <span class="n">anaconda</span><span class="o">/</span><span class="mf">2.1</span><span class="o">.</span><span class="mi">0</span>  <span class="c1"># Want python2</span>
-<span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">nrct_env</span> <span class="n">scipy</span><span class="o">=</span><span class="mf">0.16</span><span class="o">.</span><span class="mi">0</span> <span class="n">numpy</span> <span class="n">matplotlib</span><span class="o">=</span><span class="mf">1.5</span><span class="o">.</span><span class="mi">1</span> <span class="n">basemap</span> <span class="n">netcdf4</span> <span class="n">libgfortran</span><span class="o">=</span><span class="mf">1.0</span><span class="o">.</span><span class="mi">0</span>
-<span class="n">source</span> <span class="n">activate</span> <span class="n">nrct_env</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">seawater</span><span class="o">=</span><span class="mf">3.3</span><span class="o">.</span><span class="mi">4</span> <span class="c1"># Note had to add https path</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">srikanthnagella</span> <span class="n">thredds_crawler</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">srikanthnagella</span> <span class="n">pyjnius</span>
+<p>First install PyNEMO if not already done so. Full description (If this is already
+installed then follow through anyway but skip the mkdir / create / install / clone</p>
+<blockquote>
+<div><p>and build commands):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ssh -Y livljobs4
+
+export CONFIG=LBay
+export WORK=/work
+export WDIR=$WORK/$USER/NEMO/$CONFIG
+export INPUTS=$WDIR/INPUTS
+export START_FILES=$WDIR/START_FILES
+#export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+#export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+#export EXP=$CDIR/$CONFIG/EXP00
+
+cd $WORK/$USER
+mkdir $WDIR
+module load anaconda/2.1.0  # Want python2
+conda create --name nrct_env scipy=0.16.0 numpy matplotlib=1.5.1 basemap netcdf4 libgfortran=1.0.0
+source activate nrct_env
+conda install -c https://conda.anaconda.org/conda-forge seawater=3.3.4 # Note had to add https path
+conda install -c https://conda.anaconda.org/srikanthnagella thredds_crawler
+conda install -c https://conda.anaconda.org/srikanthnagella pyjnius
 </pre></div>
 </div>
+</div></blockquote>
 <p>Find java object by doing a which java and then following the trail
 find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
@@ -638,9 +650,9 @@ unset SSH_ASKPASS # Didn&#39;t need this on ARCHER...
 git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
 cd nrct/Python
 python setup.py build
-export PYTHONPATH=/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
+export PYTHONPATH=/login/$USER/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
 python setup.py install --prefix ~/.conda/envs/nrct_env
-cd $WDIR/INPUTS
+cd $INPUTS
 </pre></div>
 </div>
 <dl class="docutils">
@@ -648,8 +660,8 @@ cd $WDIR/INPUTS
 <dd>A fresh <code class="docutils literal"><span class="pre">ncml</span></code> file can be generated automatically or an existing one can be edited.</dd>
 </dl>
 </div>
-<div class="section" id="a-generate-ncml-files-not-tested-on-livljobs4">
-<h3>6a. Generate ncml files (Not tested on livljobs4)<a class="headerlink" href="#a-generate-ncml-files-not-tested-on-livljobs4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="a-generate-ncml-files">
+<h3>6a. Generate ncml files<a class="headerlink" href="#a-generate-ncml-files" title="Permalink to this headline">¶</a></h3>
 <p>Activate generator:</p>
 <p>Start up pynemo and generate boundary conditions. First we need to create a
 few ncml files to gather input data and map variable names. Then using pynemo
@@ -670,16 +682,17 @@ pynemo_ncml_generator
 expressions e.g. .*T.nc$
 To generate a e.g. <code class="docutils literal"><span class="pre">inputs_src.ncml</span></code> file click  <strong>generate</strong>. Defining the
 filename seems to work better with the file selector rather than direct typing.</p>
-<p>In the following I have three ncml files.
+<p>In <code class="docutils literal"><span class="pre">$INPUTS</span></code> I have three ncml files.
 * One for using the thredds server to get remote ORCA12 data.
 * One for using local AMM60 data, with ackward s-sigma levels
 * One for using local NNA data</p>
+<p>The first two are work in progress / templates. The latter is used here.</p>
 </div>
 <div class="section" id="nna-inputs-src-ncml">
 <h3>NNA_inputs_src.ncml<a class="headerlink" href="#nna-inputs-src-ncml" title="Permalink to this headline">¶</a></h3>
 <p>Note need to set the time variables and new <code class="docutils literal"><span class="pre">sn_src_dir</span></code> in namelist.bdy.
 Actually upated the following with all the Jan 2000 files:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/INPUTS
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $INPUTS
 vi NNA_inputs_src.ncml
 
 &lt;ns0:netcdf xmlns:ns0=&quot;http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2&quot; title=&quot;NEMO aggregation&quot;&gt;
@@ -714,11 +727,11 @@ vi NNA_inputs_src.ncml
 </pre></div>
 </div>
 </div>
-<div class="section" id="b-generate-the-namelist-bdy-file-for-pynemo">
-<h3>6b. Generate the namelist.bdy file for PyNEMO<a class="headerlink" href="#b-generate-the-namelist-bdy-file-for-pynemo" title="Permalink to this headline">¶</a></h3>
-<p>Copy the PyNEMO template namelist.bdy from the lighthouse project:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/INPUTS
-cp $INPUTS/namelist.bdy $WDIR/INPUTS/.
+<div class="section" id="b-generate-the-namelist-bdy-file-for-pynemo-nrct">
+<h3>6b. Generate the namelist.bdy file for PyNEMO / NRCT<a class="headerlink" href="#b-generate-the-namelist-bdy-file-for-pynemo-nrct" title="Permalink to this headline">¶</a></h3>
+<p>Copy the NRCT template namelist.bdy from the START_FILES:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $INPUTS
+cp $START_FILES/namelist.bdy $INPUTS/.
 </pre></div>
 </div>
 <p>Edit namelist.bdy to for the configuration name and <code class="docutils literal"><span class="pre">ncml</span></code> file name. <strong>Note
@@ -752,13 +765,17 @@ but it might have given me trouble.</p>
 <p>Using livljobs4</p>
 <p><em>(20/21 Sept 2017)</em></p>
 <p><strong>Start the process again on livljobs4: LBay_livljobs4.rst</strong></p>
-<p>Need to grab some INPUT files from ARCHER because I am not building them with livljobs4:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/namelist.bdy $WDIR/INPUTS/.
-scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/bathy_meter.nc $WDIR/INPUTS/.
-rsync -uartv jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/ $WDIR/INPUTS
+<dl class="docutils">
+<dt>Need to grab some INPUT files. (File bathy_meter.nc and domain_cfg.nc should be</dt>
+<dd><p class="first">there already):</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/namelist.bdy_NNA    $INPUTS/.
+cp $START_FILES/NNA_inputs_src.ncml $INPUTS/.
+cp $START_FILES/inputs_dst.ncml     $INPUTS/.
 cd $WDIR/INPUTS
 </pre></div>
 </div>
+</dd>
+</dl>
 <p>Make sure the NNA data is available:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>mkdir $WDIR/INPUTS/NNA
 scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/mesh_hgr.nc $WDIR/INPUTS/NNA/.
@@ -767,16 +784,11 @@ scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/mask.nc $WDIR/INP
 for file in NNA_*200001*nc ; do scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/NNA/$file $WDIR/INPUTS/NNA/. ; done
 </pre></div>
 </div>
-<p>Make sure the destination meshes exist. These were generated by running the new config for a timestep:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/mesh_zgr.nc $WDIR/INPUTS/.
-scp jelt@login.archer.ac.uk:/work/n01/n01/jdha/LBay/INPUTS/mesh_hgr.nc $WDIR/INPUTS/.
-</pre></div>
-</div>
 </div>
 <div class="section" id="namelist-bdy-nna">
 <h3>namelist.bdy_NNA<a class="headerlink" href="#namelist-bdy-nna" title="Permalink to this headline">¶</a></h3>
-<p>Edit namelist.bdy to reflect locally stored mesh and mask files. Also
-NNA_inputs_src.ncml. Set the date info back to (Nov?) 1979.</p>
+<p>Edit namelist.bdy_NNA to reflect locally stored mesh and mask files. Also
+inputs_dst.ncml. Set the date info back to (Nov?) 1979.</p>
 <blockquote>
 <div><div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist.bdy_NNA
 
@@ -814,7 +826,7 @@ NNA_inputs_src.ncml. Set the date info back to (Nov?) 1979.</p>
 !-----------------------------------------------------------------------
    sn_src_hgr = &#39;/work/jelt/NEMO/LBay/INPUTS/NNA/mesh_hgr.nc&#39;   !  /grid/
    sn_src_zgr = &#39;/work/jelt/NEMO/LBay/INPUTS/NNA/mesh_zgr.nc&#39;
-   sn_dst_hgr = &#39;./mesh_hgr.nc&#39;
+   sn_dst_hgr = &#39;./domain_cfg.nc&#39;
    sn_dst_zgr = &#39;./inputs_dst.ncml&#39; ! rename output variables
    sn_src_msk = &#39;/work/jelt/NEMO/LBay/INPUTS/NNA/mask.nc&#39;
    sn_bathy   = &#39;./bathy_meter.nc&#39;
@@ -846,9 +858,19 @@ NNA_inputs_src.ncml. Set the date info back to (Nov?) 1979.</p>
 !  unstructured open boundaries tidal parameters
 !-----------------------------------------------------------------------
     ln_tide        = .true.               !  =T : produce bdy tidal conditions
-    clname(1)      = &#39;M2&#39;                 ! constituent name
+    clname(1)      = &#39;M2&#39;                  ! constituent name
     clname(2)      = &#39;S2&#39;
-    clname(3)      = &#39;K2&#39;
+    clname(3)      = &#39;N2&#39;
+    clname(4)      = &#39;K2&#39;
+    clname(5)      = &#39;K1&#39;
+    clname(6)      = &#39;O1&#39;
+    clname(7)      = &#39;P1&#39;
+    clname(8)      = &#39;Q1&#39;
+    clname(9)      = &#39;MF&#39;
+    clname(10)     = &#39;MM&#39;
+    clname(11)     = &#39;M4&#39;
+    clname(12)     = &#39;MS4&#39;
+    clname(13)     = &#39;MN4&#39;
     ln_trans       = .false.
     sn_tide_h     = &#39;/work/jelt/tpxo7.2/h_tpxo7.2.nc&#39;
     sn_tide_u     = &#39;/work/jelt/tpxo7.2/u_tpxo7.2.nc&#39;
@@ -883,175 +905,994 @@ NNA_inputs_src.ncml. Set the date info back to (Nov?) 1979.</p>
 </pre></div>
 </div>
 </div></blockquote>
+<dl class="docutils">
+<dt>Also had to check that <code class="docutils literal"><span class="pre">inputs_dst.ncml</span></code> has the correct file name within:</dt>
+<dd><dl class="first last docutils">
+<dt><em>Now domain_cfg.nc, formerly mesh_zgr.nc</em>. Note also that some variables in</dt>
+<dd><p class="first">domain_cfg.nc have different names e.g. <code class="docutils literal"><span class="pre">mbathy</span></code> &#8211;&gt; <code class="docutils literal"><span class="pre">bottom_level</span></code>. Check the mapping
+in <code class="docutils literal"><span class="pre">inputs_dst.ncml</span></code>:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">inputs_dst</span><span class="o">.</span><span class="n">ncml</span>
+
+<span class="o">&lt;</span><span class="n">ns0</span><span class="p">:</span><span class="n">netcdf</span> <span class="n">xmlns</span><span class="p">:</span><span class="n">ns0</span><span class="o">=</span><span class="s2">&quot;http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2&quot;</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;NEMO aggregation&quot;</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">ns0</span><span class="p">:</span><span class="n">aggregation</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;union&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">ns0</span><span class="p">:</span><span class="n">netcdf</span> <span class="n">location</span><span class="o">=</span><span class="s2">&quot;file:domain_cfg.nc&quot;</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">ns0</span><span class="p">:</span><span class="n">variable</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;mbathy&quot;</span> <span class="n">orgName</span><span class="o">=</span><span class="s2">&quot;bottom_level&quot;</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="n">ns0</span><span class="p">:</span><span class="n">variable</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;gdept&quot;</span> <span class="n">orgName</span><span class="o">=</span><span class="s2">&quot;gdept_0&quot;</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="n">ns0</span><span class="p">:</span><span class="n">variable</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;gdepw&quot;</span> <span class="n">orgName</span><span class="o">=</span><span class="s2">&quot;gdepw_0&quot;</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="n">ns0</span><span class="p">:</span><span class="n">variable</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;e3u&quot;</span> <span class="n">orgName</span><span class="o">=</span><span class="s2">&quot;e3u_0&quot;</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="n">ns0</span><span class="p">:</span><span class="n">variable</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;e3v&quot;</span> <span class="n">orgName</span><span class="o">=</span><span class="s2">&quot;e3v_0&quot;</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;/</span><span class="n">ns0</span><span class="p">:</span><span class="n">netcdf</span><span class="o">&gt;</span>
+  <span class="o">&lt;/</span><span class="n">ns0</span><span class="p">:</span><span class="n">aggregation</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">ns0</span><span class="p">:</span><span class="n">netcdf</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd>
+</dl>
 <p>Generate the boundary conditions again, with PyNEMO</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>module load anaconda/2.1.0  # Want python2
 source activate nrct_env
-export WDIR=/work/jelt/NEMO/LBay/
-cd $WDIR/INPUTS
+cd $INPUTS
 export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
 
 pynemo -g -s namelist.bdy_NNA
 </pre></div>
 </div>
 <p>Once the area of interest is selected and the close button is clicked, open
-boundary data should be generated in $WDIR/OUTPUT</p>
+boundary data should be generated in the current directory (NB I dont fiddle
+with the GUI; I just click CLOSE to activiate, if everything is already sorted
+in the input files).</p>
 <p>The SAVE button only updates the <code class="docutils literal"><span class="pre">namelist.bdy</span></code> file. The CLOSE button activates the process.</p>
 <dl class="docutils">
 <dt>This generates::</dt>
-<dd><p class="first">ls -1 /work/n01/n01/jelt/LBay/OUTPUT</p>
+<dd><p class="first">ls -1 $INPUTS</p>
 <p class="last">coordinates.bdy.nc
+LBay_bdytide_rotT_M4_grid_T.nc
+LBay_bdytide_rotT_MM_grid_T.nc
+LBay_bdytide_rotT_MN4_grid_T.nc
+LBay_bdytide_rotT_MS4_grid_T.nc
 LBay_bdytide_rotT_M2_grid_T.nc
-LBay_bdytide_rotT_K2_grid_T.nc
+LBay_bdytide_rotT_N2_grid_T.nc
 LBay_bdytide_rotT_S2_grid_T.nc
+LBay_bdytide_rotT_K1_grid_T.nc
+LBay_bdytide_rotT_K2_grid_T.nc
+LBay_bdytide_rotT_P1_grid_T.nc
+LBay_bdytide_rotT_O1_grid_T.nc
+LBay_bdytide_rotT_MF_grid_T.nc
+LBay_bdytide_rotT_Q1_grid_T.nc
+LBay_bdytide_rotT_M4_grid_U.nc
+LBay_bdytide_rotT_MM_grid_U.nc
+LBay_bdytide_rotT_MN4_grid_U.nc
+LBay_bdytide_rotT_MS4_grid_U.nc
 LBay_bdytide_rotT_M2_grid_U.nc
-LBay_bdytide_rotT_K2_grid_U.nc
+LBay_bdytide_rotT_N2_grid_U.nc
 LBay_bdytide_rotT_S2_grid_U.nc
+LBay_bdytide_rotT_K1_grid_U.nc
+LBay_bdytide_rotT_K2_grid_U.nc
+LBay_bdytide_rotT_P1_grid_U.nc
+LBay_bdytide_rotT_O1_grid_U.nc
+LBay_bdytide_rotT_MF_grid_U.nc
+LBay_bdytide_rotT_Q1_grid_U.nc
+LBay_bdytide_rotT_M4_grid_V.nc
+LBay_bdytide_rotT_MM_grid_V.nc
+LBay_bdytide_rotT_MN4_grid_V.nc
+LBay_bdytide_rotT_MS4_grid_V.nc
 LBay_bdytide_rotT_M2_grid_V.nc
-LBay_bdytide_rotT_K2_grid_V.nc
+LBay_bdytide_rotT_N2_grid_V.nc
 LBay_bdytide_rotT_S2_grid_V.nc
+LBay_bdytide_rotT_K1_grid_V.nc
+LBay_bdytide_rotT_K2_grid_V.nc
+LBay_bdytide_rotT_P1_grid_V.nc
+LBay_bdytide_rotT_O1_grid_V.nc
+LBay_bdytide_rotT_MF_grid_V.nc
+LBay_bdytide_rotT_Q1_grid_V.nc
 LBay_bdyT_y2000m01.nc
 LBay_bt_bdyT_y2000m01.nc
 LBay_bdyU_y2000m01.nc
 LBay_bdyV_y2000m01.nc</p>
 </dd>
 </dl>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p>Though it doesn&#8217;t quite work with <code class="docutils literal"><span class="pre">ln_tra</span> <span class="pre">=</span> <span class="pre">.false.</span></code></p>
-<p>This wont work because variable <code class="docutils literal"><span class="pre">ft</span></code> which deals with the number of time steps
-if only defined using the T fields, but needed for the velocity bcs. Wont work
-with ln_dyn3d = .true. either
-See e.g.:</p>
-<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">File</span> <span class="s2">&quot;/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">435</span><span class="p">,</span> <span class="ow">in</span> <span class="n">process_bdy</span>
- <span class="n">ft</span><span class="p">,</span> <span class="n">num_bdy</span><span class="p">,</span> <span class="n">time_counter</span><span class="p">,</span> <span class="n">unit_origin</span><span class="p">)</span>
- <span class="ne">UnboundLocalError</span><span class="p">:</span> <span class="n">local</span> <span class="n">variable</span> <span class="s1">&#39;ft&#39;</span> <span class="n">referenced</span> <span class="n">before</span> <span class="n">assignment</span>
+<p>Prepare the boundary files (need to fix some variable names):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $INPUTS
+
+module load nco/gcc/4.4.2.ncwa
+
+ncrename -v depthu,gdepu LBay_bdyU_y2000m01.nc
+ncrename -v depthv,gdepv LBay_bdyV_y2000m01.nc
+ncrename -v deptht,gdept initcd_votemper.nc
+ncrename -v deptht,gdept initcd_vosaline.nc
+module unload nco
 </pre></div>
 </div>
+<p>Copy the new files back onto ARCHER</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>livljobs4$
+cd $INPUTS
+for file in LBay*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/. ; done
+for file in initcd_vo*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/. ; done
+scp coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/.
+</pre></div>
 </div>
 </div>
 <div class="section" id="run-the-configuration-on-archer-turn-on-the-tides">
 <h3>8. Run the configuration ON ARCHER. Turn on the tides<a class="headerlink" href="#run-the-configuration-on-archer-turn-on-the-tides" title="Permalink to this headline">¶</a></h3>
-<p><em>(21 Sept 2017)</em></p>
-<p>When I&#8217;ve got all the bdy files need to fix some variable names.
-Copy the new files back onto ARCHER</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>livljobs4$
-cd /work/jelt/NEMO/LBay/INPUTS
-for file in LBay*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/. ; done
-</pre></div>
-</div>
-<p>Open a terminal on ARCHER.</p>
-<p>Compile code with new flags (not sure if I need the module commands). Note in particular,
-<code class="docutils literal"><span class="pre">key_gen_IC</span></code> and <code class="docutils literal"><span class="pre">key_tide</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>module swap PrgEnv-cray PrgEnv-intel
-module load cray-netcdf-hdf5parallel
-module load cray-hdf5-parallel
-export WDIR=/work/n01/n01/jelt/LBay/
-export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+<p><em>(21 Sept 2017 / 6 Oct 17)</em></p>
+<p>Open a terminal on <strong>ARCHER</strong>. Redefine PATHS. Reload modules:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export CONFIG=LBay
+export WORK=/work/n01/n01
+export WDIR=$WORK/$USER/$CONFIG
+export INPUTS=$WORK/$USER/$CONFIG/INPUTS
+export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+export EXP=$CDIR/$CONFIG/EXP00
 
-vi $CDIR/LBay/cpp_LBay.fcm
-bld::tool::fppkeys   key_dynspg_ts key_ldfslp  key_zdfgls  key_vvl key_mpp_mpi key_netcdf4 key_nosignedzero  key_iomput key_gen_IC key_bdy key_tide
-
-
-cd $CDIR
-./makenemo -n LBay -m XC_ARCHER_INTEL -j 10 clean
-./makenemo -n LBay -m XC_ARCHER_INTEL -j 10
-</pre></div>
-</div>
-<p>Prepare the boundary files (need to fix some variable names):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/LBay/
-export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
-
-cd $WDIR/INPUTS
-
-module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-module load nco/4.5.0
-ncrename -v deptht,gdept LBay_bdyT_y2000m01.nc
-ncrename -v depthu,gdepu LBay_bdyU_y2000m01.nc
-ncrename -v depthv,gdepv LBay_bdyV_y2000m01.nc
-
-ncrename -v deptht,gdept initcd_votemper.nc
-module unload nco
+module swap PrgEnv-cray PrgEnv-intel
 module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 </pre></div>
 </div>
-<p>Link the boundary data to the EXP direcory and update the namelist_cfg for
-running, not mesh generation:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR/LBay/EXP00
-ln -s $WDIR/INPUTS/coordinates.bdy.nc $CDIR/LBay/EXP00/coordinates.bdy.nc
-ln -s $WDIR/INPUTS/LBay_bdyT_y2000m01.nc $CDIR/LBay/EXP00/LBay_bdyT_y2000m01.nc
-ln -s $WDIR/INPUTS/LBay_bdyU_y2000m01.nc    $CDIR/LBay/EXP00/LBay_bdyU_y2000m01.nc
-ln -s $WDIR/INPUTS/LBay_bdyV_y2000m01.nc    $CDIR/LBay/EXP00/LBay_bdyV_y2000m01.nc
-ln -s $WDIR/INPUTS/LBay_bt_bdyT_y2000m01.nc  $CDIR/LBay/EXP00/LBay_bt_bdyT_y2000m01.nc
-ln -s $WDIR/INPUTS $CDIR/LBay/EXP00/bdydta
-sed -e &#39;s/nn_msh      =    3/nn_msh      =    0/&#39; namelist_cfg &gt; tmp
-sed -e &#39;s/nn_itend    =      1/nn_itend    =       1440 /&#39; tmp &gt; namelist_cfg
+<p>OPA and XIOS are already built.</p>
+<p>Link the boundary data to the EXP direcory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $EXP
+ln -s $INPUTS/coordinates.bdy.nc       $EXP/coordinates.bdy.nc
+ln -s $INPUTS/LBay_bdyT_y2000m01.nc    $EXP/LBay_bdyT_y2000m01.nc
+ln -s $INPUTS/LBay_bdyU_y2000m01.nc    $EXP/LBay_bdyU_y2000m01.nc
+ln -s $INPUTS/LBay_bdyV_y2000m01.nc    $EXP/LBay_bdyV_y2000m01.nc
+ln -s $INPUTS/LBay_bt_bdyT_y2000m01.nc $EXP/LBay_bt_bdyT_y2000m01.nc
+ln -s $INPUTS                          $EXP/bdydta
 </pre></div>
 </div>
-<p>Edit the link to the tidal boundary files to fix file names:</p>
+<p>There was a problem running with the namelist_cfg fresh from DOMAINcfg. First with
+with namcfg group. So I cut it back to just reading the cfg file:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist_cfg
+
+!-----------------------------------------------------------------------
+&amp;namcfg        !   parameters of the configuration
+!-----------------------------------------------------------------------
+   ln_read_cfg = .true.   !  (=T) read the domain configuration file
+   cn_domcfg = &quot;domain_cfg&quot;         ! domain configuration filename
+</pre></div>
+</div>
+<p>Then there was an extra variable in namdom. Comment out ldbletanh (which was essential in DOMAINcfg):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;namdom        !   space and time domain (bathymetry, mesh, timestep)
+!-----------------------------------------------------------------------
 ...
-!-----------------------------------------------------------------------
-&amp;nambdy_tide     ! tidal forcing at open boundaries
-!-----------------------------------------------------------------------
-  filtide      = &#39;bdydta/LBay_bdytide_rotT_&#39;         !  file name root of tidal forcing files
+!    ldbletanh   =    .false.             !  Use/do not use double tanf function for vertical coordinates
 </pre></div>
 </div>
-<p>Change flag so that boundary data is read in. Spotted <code class="docutils literal"><span class="pre">nn_dyn2d_dta</span> <span class="pre">=</span> <span class="pre">3</span></code> in AMM60 run.
-Switch from 1 to 3. I.e.:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>&amp;nambdy        !  unstructured open boundaries                          (&quot;key_bdy&quot;)
-    nb_bdy         = 1                    !  number of open boundary sets
-    ln_coords_file = .true.               !  =T : read bdy coordinates from file
-    cn_coords_file = &#39;coordinates.bdy.nc&#39; !  bdy coordinates files
-    ln_mask_file   = .true.              !  =T : read mask from file
-    cn_mask_file   = &#39;../../../../../INPUTS/LBay_bdyT_y2000m01.nc&#39;                   !  name of mask file (if ln_mask_file=.TRUE.)
-    cn_dyn2d       = &#39;flather&#39;               !
-    nn_dyn2d_dta   =  3                   !  = 0, bdy data are equal to the initial state
-                                          !  = 1, bdy data are read in &#39;bdydata   .nc&#39; files
-                                          !  = 2, use tidal harmonic forcing data from files
-                                          !  = 3, use external data AND tidal harmonic forcing
-</pre></div>
-</div>
+<p>Also noted that the sbc namelist variables have changed. Now use <code class="docutils literal"><span class="pre">ln_blk</span></code> and <code class="docutils literal"><span class="pre">ln_COARE_3p5=</span> <span class="pre">.true.</span></code>
+instead of <code class="docutils literal"><span class="pre">ln_blk_core</span></code></p>
 <dl class="docutils">
 <dt>Also need to make sure the harmonic tidal boundary files are consistent with the</dt>
 <dd><p class="first">harmonics expected e.g.:</p>
 <div class="last highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
 &amp;nam_tide      !   tide parameters (#ifdef key_tide)
 !-----------------------------------------------------------------------
-    clname(1) = &#39;K2&#39;
-    clname(2) = &#39;M2&#39;
-    clname(3) = &#39;S2&#39;
+clname(1)    = &#39;Q1&#39;   !  name of constituent - all tidal components must be set in namelist_cfg
+clname(2)    = &#39;O1&#39;   !  name of constituent - all tidal components must be set in namelist_cfg
+clname(3)    = &#39;P1&#39;   !  name of constituent - all tidal components must be set in namelist_cfg
+clname(4)    = &#39;K1&#39;   !  name of constituent - all tidal components must be set in namelist_cfg
+clname(5)    = &#39;N2&#39;   !  name of constituent - all tidal components must be set in namelist_cfg
+clname(6)   =  &#39;M2&#39;   !  name of constituent - all tidal components must be set in namelist_cfg
+clname(7)   = &#39;S2&#39;   !  name of constituent - all tidal components must be set in namelist_cfg
+clname(8)   = &#39;K2&#39;   !  name of constituent - all tidal components must be set in namelist_cfg
+clname(9)   = &#39;M4&#39;   !  name of constituent - all tidal components must be set in namelist_cfg
 </pre></div>
 </div>
 </dd>
 </dl>
-<p>Should also check the xml files. There was something <strong>fishy</strong> with the
-<code class="docutils literal"><span class="pre">field_def.xml</span></code> and <code class="docutils literal"><span class="pre">iodef.xml</span></code> files where variables were not defined in
-the NEMO checkout. Copy these files from lighthouse reef:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cp /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LH_REEF/EXP00/iodef.xml  $CDIR/LBay/EXP00/iodef.xml
-cp /work/n01/n01/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/SHARED/field_def.xml  $CDIR/SHARED/field_def.xml
-</pre></div>
-</div>
 <p>Edit the output to have 1hrly SSH:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>vi $CDIR/LBay/EXP00/iodef.xml
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi file_def_nemo.xml
 ...
+&lt;file_group id=&quot;1h&quot; output_freq=&quot;1h&quot;  output_level=&quot;10&quot; enabled=&quot;.TRUE.&quot;&gt; &lt;!-- 1h files --&gt;
+ &lt;file id=&quot;file19&quot; name_suffix=&quot;_SSH&quot; description=&quot;ocean T grid variables&quot; &gt;
+   &lt;field field_ref=&quot;ssh&quot;          name=&quot;zos&quot;   /&gt;
+ &lt;/file&gt;
+&lt;/file_group&gt;
 </pre></div>
 </div>
-<p>Edit runscript: Increase the number of XIOS cores used:</p>
+<p>Create a short queue runscript:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>vi runscript
-...
+#!/bin/bash
+#PBS -N LBay
+#PBS -l select=5
+#PBS -l walltime=00:20:00
+#PBS -A n01-NOCL
+# mail alert at (b)eginning, (e)nd and (a)bortion of execution
+#PBS -m bea
+#PBS -M jelt@noc.ac.uk
+
+
+module swap PrgEnv-cray PrgEnv-intel
+module load cray-netcdf-hdf5parallel
+module load cray-hdf5-parallel
+
+export PBS_O_WORKDIR=$(readlink -f $PBS_O_WORKDIR)
+#  echo $(readlink -f $PBS_O_WORKDIR)
+# export OMP_NUM_THREADS=1
+
+cd $PBS_O_WORKDIR
+#
+  echo &quot; &quot;;
+  OCEANCORES=96
+  XIOCORES=1
+ulimit -c unlimited
+ulimit -s unlimited
+
+rm -f core
+
+#aprun -n $OCEANCORES -N 24 ./opa
 aprun -b -n 5 -N 5 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
 #aprun -b -n $XIOCORES -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
+
+exit
 </pre></div>
 </div>
 <p>Then submit:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR/LBay/EXP00
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $EXP
 qsub -q short runscript
 
 4806706.sdb
 </pre></div>
 </div>
-<p><em>(26 Sept 2017)</em></p>
-<p>Rebuild the files:</p>
+<p>&#8212;</p>
+<p><strong>ERROR</strong>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">Error</span> <span class="p">[</span><span class="n">CAttributeMap</span><span class="p">::</span><span class="n">operator</span><span class="p">[](</span><span class="n">const</span> <span class="n">StdString</span><span class="o">&amp;</span> <span class="n">key</span><span class="p">)]</span> <span class="p">:</span> <span class="n">In</span> <span class="n">file</span> <span class="s1">&#39;/work/n01/n01/jelt/xios-2.0_r1080/src/attribute_m</span>
+<span class="n">ap</span><span class="o">.</span><span class="n">cpp</span><span class="s1">&#39;, line 56 -&gt; [ key = time_origin] key not found !</span>
+<span class="o">&gt;</span> <span class="n">Error</span> <span class="p">[</span><span class="n">CAttributeMap</span><span class="p">::</span><span class="n">operator</span><span class="p">[](</span><span class="n">const</span> <span class="n">StdString</span><span class="o">&amp;</span> <span class="n">key</span><span class="p">)]</span> <span class="p">:</span> <span class="n">In</span> <span class="n">file</span> <span class="s1">&#39;/work/n01/n01/jelt/xios-2.0_r1080/src/attribute_m</span>
+<span class="n">ap</span><span class="o">.</span><span class="n">cpp</span><span class="s1">&#39;, line 56 -&gt; [ key = time_origin] key not found !</span>
+<span class="o">&gt;</span> <span class="n">Error</span> <span class="p">[</span><span class="n">CAttributeMap</span><span class="p">::</span><span class="n">operator</span><span class="p">[](</span><span class="n">const</span> <span class="n">StdString</span><span class="o">&amp;</span> <span class="n">key</span><span class="p">)]</span> <span class="p">:</span> <span class="n">In</span> <span class="n">file</span> <span class="s1">&#39;/work/n01/n01/jelt/xios-2.0_r1080/src/attribute_m</span>
+<span class="n">ap</span><span class="o">.</span><span class="n">cpp</span><span class="s1">&#39;, line 56 -&gt; [ key = time_origin] key not found !</span>
+</pre></div>
+</div>
+<p>&#8212;</p>
+<p>Looks like a XML problem. Copy working XML files from EAfrica</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export CONFIG=LBay
+export WORK=/work/n01/n01
+export WDIR=$WORK/$USER/$CONFIG
+export INPUTS=$WORK/$USER/$CONFIG/INPUTS
+export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+export EXP=$CDIR/$CONFIG/EXP00
+
+
+module swap PrgEnv-cray PrgEnv-intel
+module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+export JINPUTS=/work/n01/n01/jdha/2017/INPUTS/ODA/E-AFRICA
+export JEXP=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/
+</pre></div>
+</div>
+<p>&#8212;</p>
+<p>Copy working XML files from EAfrica:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $EXP
+mv *.xml XML/.
+cp /work/n01/n01/jelt/ACCORD/trunk_NEMOGCM_r8395/CONFIG/ACCORD/EXP_EAFRICA/*xml .
+</pre></div>
+</div>
+<p>This works. Highlights missing EOS choice in namelist_cfg. Add in:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist_cfg
+
+!-----------------------------------------------------------------------
+&amp;nameos        !   ocean physical parameters
+!-----------------------------------------------------------------------
+ln_teos10   = .false.         !  = Use TEOS-10 equation of state
+ln_eos80    = .true.         !  = Use EOS80 equation of state
+ln_seos     = .false.         !  = Use simplified equation of state (S-EOS)
+                             !
+!                     ! S-EOS coefficients (ln_seos=T):
+!                             !  rd(T,S,Z)*rau0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
+rn_a0       =  1.6550e-1      !  thermal expension coefficient
+rn_b0       =  7.6554e-1      !  saline  expension coefficient
+rn_lambda1  =  5.9520e-2      !  cabbeling coeff in T^2  (=0 for linear eos)
+rn_lambda2  =  7.4914e-4      !  cabbeling coeff in S^2  (=0 for linear eos)
+rn_mu1      =  1.4970e-4      !  thermobaric coeff. in T (=0 for linear eos)
+rn_mu2      =  1.1090e-5      !  thermobaric coeff. in S (=0 for linear eos)
+rn_nu       =  2.4341e-3      !  cabbeling coeff in T*S  (=0 for linear eos)
+</pre></div>
+</div>
+<p>Odd conflict in notation between namelist_ref in my new build and in JAmes&#8217;
+Copy James&#8217; here:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/EXP00/namelist_ref $EXP/namelist_ref
+
+
+vi namelist_ref
+!-----------------------------------------------------------------------
+&amp;nameos        !   ocean physical parameters
+!-----------------------------------------------------------------------
+   ln_teos10   = .false.         !  = Use TEOS-10 equation of state
+   ln_eos80    = .false.         !  = Use EOS80 equation of state
+   ln_seos     = .false.         !  = Use simplified equation of state (S-EOS)
+</pre></div>
+</div>
+<p>(Other other format had integers to choose the scheme.)</p>
+<p>Problem in namdom</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">IOIPSL</span> <span class="n">calendar</span> <span class="ow">is</span> <span class="s2">&quot;gregorian&quot;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">leap</span> <span class="n">year</span>
+
+<span class="o">===&gt;&gt;&gt;</span> <span class="p">:</span> <span class="n">E</span> <span class="n">R</span> <span class="n">R</span> <span class="n">O</span> <span class="n">R</span>
+     <span class="o">===========</span>
+
+<span class="n">misspelled</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">namelist</span> <span class="n">namdom</span> <span class="ow">in</span> <span class="n">configuration</span> <span class="n">namelist</span> <span class="n">iostat</span> <span class="o">=</span>    <span class="mi">19</span>
+
+<span class="n">Namelist</span> <span class="n">namdom</span> <span class="p">:</span> <span class="n">space</span> <span class="o">&amp;</span> <span class="n">time</span> <span class="n">domain</span>
+   <span class="n">linear</span> <span class="n">free</span> <span class="n">surface</span> <span class="p">(</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>              <span class="n">ln_linssh</span>  <span class="o">=</span>  <span class="n">F</span>
+   <span class="n">suppression</span> <span class="n">of</span> <span class="n">closed</span> <span class="n">seas</span> <span class="p">(</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>       <span class="n">nn_closea</span>  <span class="o">=</span>            <span class="mi">0</span>
+   <span class="n">create</span> <span class="n">mesh</span><span class="o">/</span><span class="n">mask</span> <span class="n">file</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>              <span class="n">nn_msh</span>     <span class="o">=</span>            <span class="mi">0</span>
+        <span class="o">=</span> <span class="mi">0</span>   <span class="n">no</span> <span class="n">file</span> <span class="n">created</span>
+        <span class="o">=</span> <span class="mi">1</span>   <span class="n">mesh_mask</span>
+        <span class="o">=</span> <span class="mi">2</span>   <span class="n">mesh</span> <span class="ow">and</span> <span class="n">mask</span>
+        <span class="o">=</span> <span class="mi">3</span>   <span class="n">mesh_hgr</span><span class="p">,</span> <span class="n">msh_zgr</span> <span class="ow">and</span> <span class="n">mask</span>
+   <span class="n">treshold</span> <span class="n">to</span> <span class="nb">open</span> <span class="n">the</span> <span class="n">isf</span> <span class="n">cavity</span>       <span class="n">rn_isfhmin</span> <span class="o">=</span>
+<span class="mf">1.00000000000000</span>       <span class="p">(</span><span class="n">m</span><span class="p">)</span>
+   <span class="n">ocean</span> <span class="n">time</span> <span class="n">step</span>                       <span class="n">rn_rdt</span>     <span class="o">=</span>
+<span class="mf">60.0000000000000</span>
+   <span class="n">asselin</span> <span class="n">time</span> <span class="nb">filter</span> <span class="n">parameter</span>         <span class="n">rn_atfp</span>    <span class="o">=</span>
+<span class="mf">0.100000000000000</span>
+   <span class="n">online</span> <span class="n">coarsening</span> <span class="n">of</span> <span class="n">dynamical</span> <span class="n">fields</span> <span class="n">ln_crs</span>     <span class="o">=</span>  <span class="n">F</span>
+</pre></div>
+</div>
+<p>Try the new format:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;namdom        !   space and time domain (bathymetry, mesh, timestep)
+!-----------------------------------------------------------------------
+ ln_linssh   = .false.   !  =T  linear free surface  ==&gt;&gt;  model level are fixed in time
+ nn_closea   =    0      !  remove (=0) or keep (=1) closed seas and lakes (ORCA)
+ !
+ nn_msh      =    0      !  create (&gt;0) a mesh file or not (=0)
+ rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
+ !
+ rn_rdt      =  60.     !  time step for the dynamics (and tracer if nn_acc=0)
+ rn_atfp     =    0.1    !  asselin time filter parameter
+ !
+ ln_crs      = .false.   !  Logical switch for coarsening module
+</pre></div>
+</div>
+<p>The vertical coordintes choice thing seems to have disappeared in the new build:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;namzgr        !   vertical coordinate
+!-----------------------------------------------------------------------
+   ln_zps      = .false.   !  z-coordinate - partial steps   (T/F)
+   ln_sco      = .true.    !  s- or hybrid z-s-coordinate    (T/F)
+/
+!-----------------------------------------------------------------------
+&amp;namzgr_sco    !   s-coordinate or hybrid z-s-coordinate
+!-----------------------------------------------------------------------
+   ln_s_sh94   = .false.   !  Song &amp; Haidvogel 1994 hybrid S-sigma   (T)|
+   ln_s_sf12   = .true.    !  Siddorn &amp; Furner 2012 hybrid S-z-sigma (T)| if both are false the NEMO tanh stretching is applied
+   ln_sigcrit  = .true.    !  use sigma coordinates below critical depth (T) or Z coordinates (F) for Siddorn &amp; Furner stretch
+                           !  stretching coefficients for all functions
+   rn_hc       =   50.0    !  critical depth for transition to stretched coordinates
+</pre></div>
+</div>
+<p>There are a few references to s-coordinates in the HPG and later diffusion variables.</p>
+<p>Hmm. Try the other way around start with James&#8217; namelist_cfg_R12 and change bits to
+match my LBay (old working) example</p>
+<p>Update boundary mask file name:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>/
+!-----------------------------------------------------------------------
+&amp;nambdy        !  unstructured open boundaries
+!-----------------------------------------------------------------------
+    ln_bdy         = .true.              !  Use unstructured open boundaries
+    nb_bdy         = 1                    !  number of open boundary sets
+    ln_coords_file = .true.               !  =T : read bdy coordinates from file
+    cn_coords_file = &#39;coordinates.bdy.nc&#39; !  bdy coordinates files
+    ln_mask_file   = .true.              !  =T : read mask from file
+    cn_mask_file   = &#39;bdydta/LBay_bdyT_y2000m01.nc&#39;     !  name of mask file (if ln_mask_file=.TRUE.)
+    cn_dyn2d       = &#39;flather&#39;               !
+</pre></div>
+</div>
+<p>Automatically set the processor decomposition (not sure if it is used):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>&amp;nammpp        !   Massively Parallel Processing                        (&quot;key_mpp_mpi)
+</pre></div>
+</div>
+<p>Switch the vertical grid thing off. Comment it out as the default is .true. BTW
+the run really doesn&#8217;t work without this action:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist_cfg
+...
+!-----------------------------------------------------------------------
+&amp;namcfg        !   parameters of the configuration
+!-----------------------------------------------------------------------
+!   ln_e3_dep   = .false.    ! This will be obsolete soon. See namelist_ref
+</pre></div>
+</div>
+<p>Change some lateral diffusion settings:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;namtra_ldf    !   lateral diffusion scheme for tracers                 (default: NO diffusion)
+!-----------------------------------------------------------------------
+   !                       !  Operator type:
+   !                           !  no diffusion: set ln_traldf_lap=..._blp=F
+   ln_traldf_lap   =  .true.  !    laplacian operator
+   ln_traldf_blp   =  .false.  !  bilaplacian operator
+   !
+   !                       !  Direction of action:
+   ln_traldf_lev   =  .false.  !  iso-level
+   ln_traldf_hor   =  .false.  !  horizontal (geopotential)
+   ln_traldf_iso   =  .true.  !  iso-neutral (standard operator)
+</pre></div>
+</div>
+<p>Gets further. Now the ocean.output ends with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dia_25h_init</span> <span class="p">:</span> <span class="n">Output</span> <span class="mi">25</span> <span class="n">hour</span> <span class="n">mean</span> <span class="n">diagnostics</span>
+<span class="o">~~~~~~~~~~~~</span>
+<span class="n">Namelist</span> <span class="n">nam_dia25h</span> <span class="p">:</span> <span class="nb">set</span> <span class="mi">25</span><span class="n">h</span> <span class="n">outputs</span>
+<span class="n">Switch</span> <span class="k">for</span> <span class="mi">25</span><span class="n">h</span> <span class="n">diagnostics</span> <span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">F</span><span class="p">)</span>  <span class="n">ln_dia25h</span>  <span class="o">=</span>  <span class="n">F</span>
+
+<span class="n">AAAAAAAA</span>
+
+
+<span class="n">sbc_tide</span> <span class="p">:</span> <span class="n">Update</span> <span class="n">of</span> <span class="n">the</span> <span class="n">components</span> <span class="ow">and</span> <span class="p">(</span><span class="n">re</span><span class="p">)</span><span class="n">Init</span><span class="o">.</span> <span class="n">the</span> <span class="n">potential</span> <span class="n">at</span> <span class="n">kt</span><span class="o">=</span>
+          <span class="mi">1</span>
+<span class="o">~~~~~~~~</span>
+<span class="n">Q1</span>    <span class="o">-</span><span class="mf">12.3894431662406</span>       <span class="mf">0.908086877990601</span>      <span class="o">-</span><span class="mf">0.702799902800797</span>
+ <span class="mf">6.495854101908828E-005</span>
+<span class="n">O1</span>    <span class="o">-</span><span class="mf">12.3894431662406</span>       <span class="mf">0.908086877990601</span>        <span class="mf">1.76695796869312</span>
+ <span class="mf">6.759774402887834E-005</span>
+<span class="n">P1</span>    <span class="mf">0.000000000000000E+000</span>   <span class="mf">1.00000000000000</span>      <span class="o">-</span><span class="mf">0.189080734230733</span>
+ <span class="mf">7.252294578606445E-005</span>
+<span class="n">S1</span>    <span class="mf">0.000000000000000E+000</span>   <span class="mf">1.00000000000000</span>        <span class="mf">3.14377431515479</span>
+ <span class="mf">7.272205216643040E-005</span>
+<span class="n">K1</span>   <span class="o">-</span><span class="mf">0.138134509178184</span>       <span class="mf">0.943678543708499</span>        <span class="mf">6.47662936454030</span>
+ <span class="mf">7.292115854679635E-005</span>
+<span class="mi">2</span><span class="n">N2</span>   <span class="o">-</span><span class="mf">12.5967638158724</span>        <span class="mf">1.02169282172100</span>        <span class="mf">3.30407159024559</span>
+ <span class="mf">1.352404965560946E-004</span>
+<span class="n">MU2</span>   <span class="o">-</span><span class="mf">12.5967638158724</span>        <span class="mf">1.02169282172100</span>        <span class="mf">10.1996260361573</span>
+ <span class="mf">1.355937008184885E-004</span>
+<span class="n">N2</span>    <span class="o">-</span><span class="mf">12.5967638158724</span>        <span class="mf">1.02169282172100</span>        <span class="mf">5.77382946173951</span>
+ <span class="mf">1.378796995658846E-004</span>
+<span class="n">NU2</span>   <span class="o">-</span><span class="mf">12.5967638158724</span>        <span class="mf">1.02169282172100</span>        <span class="mf">12.6693839076512</span>
+ <span class="mf">1.382329038282786E-004</span>
+<span class="n">M2</span>    <span class="o">-</span><span class="mf">12.5967638158724</span>        <span class="mf">1.02169282172100</span>        <span class="mf">8.24358733323342</span>
+ <span class="mf">1.405189025756747E-004</span>
+<span class="n">L2</span>    <span class="o">-</span><span class="mf">12.5967638158724</span>        <span class="mf">1.19824874449528</span>        <span class="mf">13.8549378583171</span>
+ <span class="mf">1.431581055854647E-004</span>
+<span class="n">T2</span>    <span class="mf">0.000000000000000E+000</span>   <span class="mf">1.00000000000000</span>        <span class="mf">6.32212956235245</span>
+ <span class="mf">1.452450074605893E-004</span>
+<span class="n">S2</span>    <span class="mf">0.000000000000000E+000</span>   <span class="mf">1.00000000000000</span>        <span class="mf">6.28754863030957</span>
+ <span class="mf">1.454441043328608E-004</span>
+<span class="n">K2</span>   <span class="o">-</span><span class="mf">0.264695210962853</span>       <span class="mf">0.854177079157964</span>        <span class="mf">16.0948513826704</span>
+ <span class="mf">1.458423170935927E-004</span>
+<span class="n">M4</span>    <span class="o">-</span><span class="mf">25.1935276317449</span>        <span class="mf">1.04385622195621</span>        <span class="mf">16.4871746664668</span>
+ <span class="mf">2.810378051513493E-004</span>
+</pre></div>
+</div>
+<p>Try setting tides to false:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+</pre></div>
+</div>
+<p>&amp;nam_tide      !   tide parameters
+!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
+<blockquote>
+<div>ln_tide     = .false.
+ln_tide_pot = .false.    !  use tidal potential forcing</div></blockquote>
+<p>Caused problems with Flather bc etc.
+Turned ln_tide = .true., keep tidal potential off. Simulation terminates with
+same output (above), having listed the harmonic components. Hmmm</p>
+<p>Tide forcing directory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;nambdy_tide     ! tidal forcing at open boundaries
+!-----------------------------------------------------------------------
+   filtide      = &#39;bdydta/LBay_bdytide_rotT_&#39;         !  file name root of tidal forcing files
+</pre></div>
+</div>
+<p>Turned ln_tide_pot = .true. (I think that the tidal boundary files are way more
+likely to give trouble than tidal potential forcing)</p>
+<p>Added some more constituents to the TPXO forcing list. Regenerated with PyNEMO.
+Not sure about which constituents to include under key_tide in the OPA namelist_cfg
+Not sure because some of the constituent names differ. Is it looking for TPXO files
+of this name, or is it setting the internal harmonic frequencies. On reflection I guess
+the harmonic analyisis is entirely separate and will only pick out freq requested
+in the harm namelist.</p>
+<p>Submit:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">qsub</span> <span class="n">runscript</span>  <span class="c1"># changed to a 4 minute walltime request</span>
+<span class="mf">4834214.</span><span class="n">sdb</span>
+</pre></div>
+</div>
+<p><strong>SAME ERROR / NON ERROR AS ABOVE. What next. How to get past this point....?</strong></p>
+<p><em>Fixed lots of stuff. Mostly putting in missing stuff into namelist_cfg</em></p>
+<p>&#8212;</p>
+<p><em>10 Oct 2017</em></p>
+<p>Fail</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sbc_tide</span> <span class="p">:</span> <span class="n">Update</span> <span class="n">of</span> <span class="n">the</span> <span class="n">components</span> <span class="ow">and</span> <span class="p">(</span><span class="n">re</span><span class="p">)</span><span class="n">Init</span><span class="o">.</span> <span class="n">the</span> <span class="n">potential</span> <span class="n">at</span> <span class="n">kt</span><span class="o">=</span>
+          <span class="mi">1</span>
+<span class="o">~~~~~~~~</span>
+<span class="n">Q1</span>    <span class="o">-</span><span class="mf">12.3894431662406</span>       <span class="mf">0.908086877990601</span>      <span class="o">-</span><span class="mf">0.702799902800797</span>
+ <span class="mf">6.495854101908828E-005</span>
+<span class="n">O1</span>    <span class="o">-</span><span class="mf">12.3894431662406</span>       <span class="mf">0.908086877990601</span>        <span class="mf">1.76695796869312</span>
+ <span class="mf">6.759774402887834E-005</span>
+<span class="n">P1</span>    <span class="mf">0.000000000000000E+000</span>   <span class="mf">1.00000000000000</span>      <span class="o">-</span><span class="mf">0.189080734230733</span>
+ <span class="mf">7.252294578606445E-005</span>
+<span class="n">K1</span>   <span class="o">-</span><span class="mf">0.138134509178184</span>       <span class="mf">0.943678543708499</span>        <span class="mf">6.47662936454030</span>
+ <span class="mf">7.292115854679635E-005</span>
+<span class="n">N2</span>    <span class="o">-</span><span class="mf">12.5967638158724</span>        <span class="mf">1.02169282172100</span>        <span class="mf">5.77382946173951</span>
+ <span class="mf">1.378796995658846E-004</span>
+<span class="n">M2</span>    <span class="o">-</span><span class="mf">12.5967638158724</span>        <span class="mf">1.02169282172100</span>        <span class="mf">8.24358733323342</span>
+ <span class="mf">1.405189025756747E-004</span>
+<span class="n">S2</span>    <span class="mf">0.000000000000000E+000</span>   <span class="mf">1.00000000000000</span>        <span class="mf">6.28754863030957</span>
+ <span class="mf">1.454441043328608E-004</span>
+<span class="n">K2</span>   <span class="o">-</span><span class="mf">0.264695210962853</span>       <span class="mf">0.854177079157964</span>        <span class="mf">16.0948513826704</span>
+ <span class="mf">1.458423170935927E-004</span>
+<span class="n">M4</span>    <span class="o">-</span><span class="mf">25.1935276317449</span>        <span class="mf">1.04385622195621</span>        <span class="mf">16.4871746664668</span>
+ <span class="mf">2.810378051513493E-004</span>
+                    <span class="n">iom_nf90_open</span> <span class="o">~~~</span> <span class="nb">open</span> <span class="n">existing</span> <span class="n">file</span><span class="p">:</span> <span class="o">../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">cu</span>
+<span class="n">tdown_drowned_u10_DFS5</span><span class="o">.</span><span class="mf">1.1</span><span class="n">_y2000</span><span class="o">.</span><span class="n">nc</span> <span class="ow">in</span> <span class="n">READ</span> <span class="n">mode</span>
+                   <span class="o">---&gt;</span> <span class="o">../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">cutdown_drowned_u10_DFS5</span><span class="o">.</span><span class="mf">1.1</span><span class="n">_y2000</span><span class="o">.</span><span class="n">n</span>
+<span class="n">c</span> <span class="n">OK</span>
+                    <span class="n">iom_nf90_open</span> <span class="o">~~~</span> <span class="nb">open</span> <span class="n">existing</span> <span class="n">file</span><span class="p">:</span> <span class="o">../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">cu</span>
+<span class="n">tdown_drowned_u10_DFS5</span><span class="o">.</span><span class="mf">1.1</span><span class="n">_y2000</span><span class="o">.</span><span class="n">nc</span> <span class="ow">in</span> <span class="n">READ</span> <span class="n">mode</span>
+                   <span class="o">---&gt;</span> <span class="o">../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">cutdown_drowned_u10_DFS5</span><span class="o">.</span><span class="mf">1.1</span><span class="n">_y2000</span><span class="o">.</span><span class="n">n</span>
+<span class="n">c</span> <span class="n">OK</span>
+                    <span class="n">iom_close</span> <span class="o">~~~</span> <span class="n">close</span> <span class="n">file</span><span class="p">:</span> <span class="o">../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">cutdown_drowne</span>
+<span class="n">d_u10_DFS5</span><span class="o">.</span><span class="mf">1.1</span><span class="n">_y2000</span><span class="o">.</span><span class="n">nc</span> <span class="n">ok</span>
+                    <span class="n">iom_nf90_open</span> <span class="o">~~~</span> <span class="nb">open</span> <span class="n">existing</span> <span class="n">file</span><span class="p">:</span> <span class="o">../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">we</span>
+<span class="n">ights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="ow">in</span> <span class="n">READ</span> <span class="n">mode</span>
+                   <span class="o">---&gt;</span> <span class="o">../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">weights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="n">OK</span>
+          <span class="n">read</span> <span class="n">src01</span> <span class="p">(</span><span class="n">rec</span><span class="p">:</span>      <span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="o">../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">weights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="n">ok</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Inspection of v3.6 ocean.output suggests there is a problem with</dt>
+<dd><p class="first">weight_bicublic_atmos.nc. The output would have continued as:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">ls</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">dev_r4621_NOC4_BDY_VERT_INTERP</span><span class="o">/</span><span class="n">NEMOGCM</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">EXP00</span><span class="o">/</span><span class="n">ocean</span><span class="o">.</span><span class="n">output</span>
+<span class="o">...</span>
+
+<span class="n">iom_nf90_open</span> <span class="o">~~~</span> <span class="nb">open</span> <span class="n">existing</span> <span class="n">file</span><span class="p">:</span> <span class="o">../../../../../</span><span class="n">INPUTS</span>
+<span class="o">/</span><span class="n">cutdown_drowned_u10_DFS5</span><span class="o">.</span><span class="mf">1.1</span><span class="n">_y2000</span><span class="o">.</span><span class="n">nc</span> <span class="ow">in</span> <span class="n">READ</span> <span class="n">mode</span>
+<span class="o">---&gt;</span> <span class="o">../../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">cutdown_drowned_u10_DFS5</span><span class="o">.</span><span class="mf">1.1</span><span class="n">_y200</span>
+<span class="mf">0.</span><span class="n">nc</span> <span class="n">OK</span>
+<span class="n">iom_close</span> <span class="o">~~~</span> <span class="n">close</span> <span class="n">file</span><span class="p">:</span> <span class="o">../../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">cutdown_dro</span>
+<span class="n">wned_u10_DFS5</span><span class="o">.</span><span class="mf">1.1</span><span class="n">_y2000</span><span class="o">.</span><span class="n">nc</span> <span class="n">ok</span>
+<span class="n">iom_nf90_open</span> <span class="o">~~~</span> <span class="nb">open</span> <span class="n">existing</span> <span class="n">file</span><span class="p">:</span> <span class="o">../../../../../</span><span class="n">INPUTS</span>
+<span class="o">/</span><span class="n">weights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="ow">in</span> <span class="n">READ</span> <span class="n">mode</span>
+<span class="o">---&gt;</span> <span class="o">../../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">weights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="n">OK</span>
+<span class="n">read</span> <span class="n">src01</span> <span class="p">(</span><span class="n">rec</span><span class="p">:</span>      <span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="o">../../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">weights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="n">ok</span>
+<span class="n">read</span> <span class="n">src02</span> <span class="p">(</span><span class="n">rec</span><span class="p">:</span>      <span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="o">../../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">weights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="n">ok</span>
+<span class="n">read</span> <span class="n">src03</span> <span class="p">(</span><span class="n">rec</span><span class="p">:</span>      <span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="o">../../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">weights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="n">ok</span>
+<span class="n">read</span> <span class="n">src04</span> <span class="p">(</span><span class="n">rec</span><span class="p">:</span>      <span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="o">../../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">weights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="n">ok</span>
+<span class="n">read</span> <span class="n">wgt01</span> <span class="p">(</span><span class="n">rec</span><span class="p">:</span>      <span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="o">../../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">weights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="n">ok</span>
+<span class="n">read</span> <span class="n">wgt02</span> <span class="p">(</span><span class="n">rec</span><span class="p">:</span>      <span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="o">../../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">weights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="n">ok</span>
+<span class="n">read</span> <span class="n">wgt03</span> <span class="p">(</span><span class="n">rec</span><span class="p">:</span>      <span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="o">../../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">weights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="n">ok</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Try switch to CORE v3.0 ln_COARE_3p0
+No joy. Try and check what comes next. Is this reading in the right file or should it be looking for tide data?</p>
+<p>ln_COARE_3p0= .true.   ! &#8220;COARE 3.0&#8221; algorithm   (Fairall et al. 2003)
+ln_COARE_3p5= .false.   ! &#8220;COARE 3.5&#8221; algorithm   (Edson et al. 2013)
+&#8211;&gt; both as true in ocean.output</p>
+<p>namelist_cfg:   ln_COARE_3p0= .false.   ! &#8220;COARE 3.0&#8221; algorithm   (Fairall et al. 2003)
+namelist_cfg:   ln_COARE_3p5= .true.   ! &#8220;COARE 3.5&#8221; algorithm   (Edson et al. 2013)
+&#8211;&gt; both false in ocean.output</p>
+<p>Typo in sbcblk.F90 line 251/ Logical flag pointing to wrong variable. See:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">WRITE</span><span class="p">(</span><span class="n">numout</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s1">&#39;      &quot;COARE 3.5&quot; algorithm   (Edson et al. 2013)         ln_COARE_3p5 = &#39;</span><span class="p">,</span> <span class="n">ln_COARE_3p0</span>
+</pre></div>
+</div>
+<p>Try ln_NCAR instead...
+<em>(10 Oct 2017)</em></p>
+<p>Change: nn_dyn2d_data = 2 —&gt; 3. This just means that the &#8216;LBay_bt_bdyT etc in
+&amp;nambdy_dta are read in:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>&amp;nambdy        !  unstructured open boundaries
+!-----------------------------------------------------------------------
+    ln_bdy         = .true.              !  Use unstructured open boundaries
+    ...
+    nn_dyn2d_dta   =  3                   !  = 0, bdy data are equal to the initial state
+                                          !  = 1, bdy data are read in &#39;bdydata   .nc&#39; files
+                                          !  = 2, use tidal harmonic forcing data from files
+                                          !  = 3, use external data AND tidal harmonic forcing
+</pre></div>
+</div>
+<p><strong>Does it work?</strong></p>
+<p>Waiting for standard queue to proces, I note that</p>
+<p>There are a number of differences in the tidal boundary conditions between James’ ORCHESTRA run and my LBay simulations.</p>
+<p>Check nambdy:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jdha</span><span class="o">/</span><span class="mi">2017</span><span class="o">/</span><span class="n">nemo</span><span class="o">/</span><span class="n">trunk</span><span class="o">/</span><span class="n">NEMOGCM</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">ORCHESTRA</span><span class="o">/</span><span class="n">EXP00</span><span class="o">/</span><span class="n">namelist_cfg</span>
+<span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">trunk_NEMOGCM_r8395</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">EXP00</span><span class="o">/</span><span class="n">namelist_cfg</span>
+</pre></div>
+</div>
+<p><strong>PENDING</strong></p>
+<p>Need to keep a track of differences between namelist_cfg in EXP and DOMAINcfg</p>
+<p>&#8212;</p>
+<p><em>(11 Oct 2017)</em></p>
+<p>Update the mask file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;nambdy        !  unstructured open boundaries
+!-----------------------------------------------------------------------
+    ln_bdy         = .true.              !  Use unstructured open boundaries
+    nb_bdy         = 1                    !  number of open boundary sets
+    ln_coords_file = .true.               !  =T : read bdy coordinates from file
+    cn_coords_file = &#39;coordinates.bdy.nc&#39; !  bdy coordinates files
+    ln_mask_file   = .false.              !  =T : read mask from file
+    cn_mask_file   = &#39;domain_cfg.nc&#39;                   !  name of mask file (if ln_mask_file=.TRUE.)
+</pre></div>
+</div>
+<p>Make some changes in the open boundary files. Originally:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;nambdy_dta    !  open boundaries - external data
+!-----------------------------------------------------------------------
+!              !  file name      ! frequency (hours) ! variable  ! time interp.!  clim   ! &#39;yearly&#39;/ ! weights  ! rotation ! land/sea mask !
+!              !                 !  (if &lt;0  months)  !   name    !  (logical)  !  (T/F ) ! &#39;monthly&#39; ! filename ! pairing  ! filename      !
+   bn_ssh      = &#39;Tbdy&#39;,                   -1        , &#39;sossheig&#39;,    .false.   , .true. ,  &#39;yearly&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+   bn_u2d      = &#39;Ubdy&#39;,                   -1        , &#39;vobtcrtx&#39;,    .false.   , .true. ,  &#39;yearly&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+   bn_v2d      = &#39;Vbdy&#39;,                   -1        , &#39;vobtcrty&#39;,    .false.   , .true. ,  &#39;yearly&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+   bn_u3d      = &#39;amm12_bdyU_u3d&#39;,         24        , &#39;vozocrtx&#39;,    .true.   , .false. ,  &#39;daily&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+   bn_v3d      = &#39;amm12_bdyV_u3d&#39;,         24        , &#39;vomecrty&#39;,    .true.   , .false. ,  &#39;daily&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+   bn_tem      = &#39;amm12_bdyT_tra&#39;,         24        , &#39;votemper&#39;,    .true.   , .false. ,  &#39;daily&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+   bn_sal      = &#39;amm12_bdyT_tra&#39;,         24        , &#39;vosaline&#39;,    .true.   , .false. ,  &#39;daily&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+</pre></div>
+</div>
+<p>Change to:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;nambdy_dta    !  open boundaries - external data
+!-----------------------------------------------------------------------
+!              !  file name      ! frequency (hours) ! variable  ! time interp.!  clim   ! &#39;yearly&#39;/ ! weights  ! rotation ! land/sea mask !
+!              !                 !  (if &lt;0  months)  !   name    !  (logical)  !  (T/F ) ! &#39;monthly&#39; ! filename ! pairing  ! filename      !
+bn_ssh      = &#39;LBay_bt_bdyT&#39;, 24      , &#39;sossheig&#39;,    .true.   , .false. ,  &#39;monthly&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+bn_u2d      = &#39;LBay_bdyU&#39;,  24        , &#39;vobtcrtx&#39;,    .true.   , .false. ,  &#39;monthly&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+bn_v2d      = &#39;LBay_bdyV&#39;,  24        , &#39;vobtcrty&#39;,    .true.   , .false. ,  &#39;monthly&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+bn_u3d      = &#39;LBay_bdyU&#39;   24        , &#39;vozocrtx&#39;,    .true.   , .false. ,  &#39;monthly&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+bn_v3d      = &#39;LBay_bdyV&#39;   24        , &#39;vomecrty&#39;,    .true.   , .false. ,  &#39;monthly&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+bn_tem      = &#39;LBay_bdyT&#39;   24        , &#39;votemper&#39;,    .true.   , .false. ,  &#39;monthly&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+bn_sal      = &#39;LBay_bdyT&#39;   24        , &#39;vosaline&#39;,    .true.   , .false. ,  &#39;monthly&#39;  ,    &#39;&#39;    ,   &#39;&#39;     ,     &#39;&#39;
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Though I need to check that these contain the correct variables. In particular</dt>
+<dd>the 2D and 3D currents are in the same file?</dd>
+</dl>
+<p>Though I don’t use the 3D data - other than setting it to the initial state.</p>
+<p>Observation.
+Boundary 2D tides looks suspiciously like something I want to switch on. Currently:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+</pre></div>
+</div>
+<p>&amp;nambdy_tide   !  tidal forcing at open boundaries
+!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
+<blockquote>
+<div>filtide      = &#8216;bdydta/<a href="#id9"><span class="problematic" id="id10">LBay_bdytide_rotT_</span></a>&#8216;         !  file name root of tidal forcing files
+ln_bdytide_2ddta = .false.                   !
+ln_bdytide_conj  = .false.                   !</div></blockquote>
+<p>Things now look like they fail with the bulk forcing. Only read in one variable
+from weights_bicubic_atmos.nc whereaas in the old code I read in ten or so...</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tail</span> <span class="n">ocean</span><span class="o">.</span><span class="n">output</span>
+                     <span class="n">iom_nf90_open</span> <span class="o">~~~</span> <span class="nb">open</span> <span class="n">existing</span> <span class="n">file</span><span class="p">:</span> <span class="o">../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">we</span>
+<span class="n">ights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="ow">in</span> <span class="n">READ</span> <span class="n">mode</span>
+                 <span class="o">---&gt;</span> <span class="o">../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">weights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="n">OK</span>
+        <span class="n">read</span> <span class="n">src01</span> <span class="p">(</span><span class="n">rec</span><span class="p">:</span>      <span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="o">../../../../</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">weights_bicubic_atmos</span><span class="o">.</span><span class="n">nc</span> <span class="n">ok</span>
+</pre></div>
+</div>
+<p>&#8212;</p>
+<dl class="docutils">
+<dt>Instead copy the usrdef_sbc.F90 file to impose zero surface forcing::</dt>
+<dd>rm $EXP/../MY_SRC/*
+cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ODA_E-AFRICA/MY_SRC/usrdef_sbc.F90 $EXP/../MY_SRC/.</dd>
+</dl>
+<p>Rebuild works. Edit namelist:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist_cfg
+&amp;namsbc
+  ln_usr      = .true.
+  ln_blk      = .false.    !  Bulk formulation                          (T =&gt; fill namsbc_blk )
+
+
+
+&amp;nambdy
+  ln_bdy         = .false.
+  nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state
+                                          !  = 1, bdy data are read in &#39;bdydata   .nc&#39; files
+                                          !  = 2, use tidal harmonic forcing data from files
+                                          !  = 3, use external data AND tidal harmonic forcing
+</pre></div>
+</div>
+<div class="section" id="resubmit">
+<h4>Resubmit<a class="headerlink" href="#resubmit" title="Permalink to this headline">¶</a></h4>
+<p>Trying turning on tidal forcing at boundaries in namelist (Though James had this set false)</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>&amp;nambdy_tide   !  tidal forcing at open boundaries
+!-----------------------------------------------------------------------
+   filtide      = &#39;bdydta/LBay_bdytide_rotT_&#39;         !  file name root of tidal forcing files
+   ln_bdytide_2ddta = .true.                   !
+</pre></div>
+</div>
+<p>This seems to do nothing. Keep it <strong>FALSE</strong></p>
+<dl class="docutils">
+<dt>Try::</dt>
+<dd><blockquote class="first">
+<div>!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</div></blockquote>
+<p>&amp;nambdy        !  unstructured open boundaries
+!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
+<blockquote class="last">
+<div>ln_bdy         = .true.              !  Use unstructured open boundaries
+nb_bdy         = 1                    !  number of open boundary sets
+ln_coords_file = .true.               !  =T : read bdy coordinates from file
+cn_coords_file = &#8216;coordinates.bdy.nc&#8217; !  bdy coordinates files
+ln_mask_file   = .false.              !  =T : read mask from file
+cn_mask_file   = &#8216;domain_cfg.nc&#8217;                   !  name of mask file (if ln_mask_file=.TRUE.)
+cn_dyn2d       = &#8216;flather&#8217;               !
+nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state</div></blockquote>
+</dd>
+</dl>
+<p>Error. Seg fault.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tail</span> <span class="n">ocean</span><span class="o">.</span><span class="n">output</span>
+
+<span class="n">M2</span>    <span class="o">-</span><span class="mf">12.5967638158724</span>        <span class="mf">1.02169282172100</span>        <span class="mf">8.24358733323342</span>
+ <span class="mf">1.405189025756747E-004</span>
+<span class="n">S2</span>    <span class="mf">0.000000000000000E+000</span>   <span class="mf">1.00000000000000</span>        <span class="mf">6.28754863030957</span>
+ <span class="mf">1.454441043328608E-004</span>
+<span class="n">K2</span>   <span class="o">-</span><span class="mf">0.264695210962853</span>       <span class="mf">0.854177079157964</span>        <span class="mf">16.0948513826704</span>
+ <span class="mf">1.458423170935927E-004</span>
+<span class="n">M4</span>    <span class="o">-</span><span class="mf">25.1935276317449</span>        <span class="mf">1.04385622195621</span>        <span class="mf">16.4871746664668</span>
+ <span class="mf">2.810378051513493E-004</span>
+ <span class="n">usr_sbc</span> <span class="p">:</span> <span class="n">WAD_TEST_CASES</span> <span class="n">case</span><span class="p">:</span> <span class="n">NO</span> <span class="n">surface</span> <span class="n">forcing</span>
+ <span class="o">~~~~~~~~~~~</span>   <span class="n">utau</span> <span class="o">=</span> <span class="n">vtau</span> <span class="o">=</span> <span class="n">taum</span> <span class="o">=</span> <span class="n">wndm</span> <span class="o">=</span> <span class="n">qns</span> <span class="o">=</span> <span class="n">qsr</span> <span class="o">=</span> <span class="n">emp</span> <span class="o">=</span> <span class="n">sfx</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>Try:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;nambdy        !  unstructured open boundaries
+!-----------------------------------------------------------------------
+    ln_bdy         = .true.              !  Use unstructured open boundaries
+    nb_bdy         = 1                    !  number of open boundary sets
+    ln_coords_file = .true.               !  =T : read bdy coordinates from file
+    cn_coords_file = &#39;coordinates.bdy.nc&#39; !  bdy coordinates files
+    ln_mask_file   = .false.              !  =T : read mask from file
+    cn_mask_file   = &#39;domain_cfg.nc&#39;                   !  name of mask file (if ln_mask_file=.TRUE.)
+    cn_dyn2d       = &#39;flather&#39;               !
+    nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
+                                          !  = 1, bdy data are read in &#39;bdydata   .nc&#39; files
+                                          !  = 2, use tidal harmonic forcing data from files
+</pre></div>
+</div>
+<p>Same Error. Seg fault. Though ran for 40s:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span> <span class="n">tail</span> <span class="n">ocean</span><span class="o">.</span><span class="n">output</span>
+
+ <span class="n">M2</span>    <span class="o">-</span><span class="mf">12.5967638158724</span>        <span class="mf">1.02169282172100</span>        <span class="mf">8.24358733323342</span>
+<span class="mf">1.405189025756747E-004</span>
+ <span class="n">S2</span>    <span class="mf">0.000000000000000E+000</span>   <span class="mf">1.00000000000000</span>        <span class="mf">6.28754863030957</span>
+  <span class="mf">1.454441043328608E-004</span>
+ <span class="n">K2</span>   <span class="o">-</span><span class="mf">0.264695210962853</span>       <span class="mf">0.854177079157964</span>        <span class="mf">16.0948513826704</span>
+  <span class="mf">1.458423170935927E-004</span>
+ <span class="n">M4</span>    <span class="o">-</span><span class="mf">25.1935276317449</span>        <span class="mf">1.04385622195621</span>        <span class="mf">16.4871746664668</span>
+  <span class="mf">2.810378051513493E-004</span>
+  <span class="n">usr_sbc</span> <span class="p">:</span> <span class="n">WAD_TEST_CASES</span> <span class="n">case</span><span class="p">:</span> <span class="n">NO</span> <span class="n">surface</span> <span class="n">forcing</span>
+  <span class="o">~~~~~~~~~~~</span>   <span class="n">utau</span> <span class="o">=</span> <span class="n">vtau</span> <span class="o">=</span> <span class="n">taum</span> <span class="o">=</span> <span class="n">wndm</span> <span class="o">=</span> <span class="n">qns</span> <span class="o">=</span> <span class="n">qsr</span> <span class="o">=</span> <span class="n">emp</span> <span class="o">=</span> <span class="n">sfx</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>Try reducing the timestep for 60s to 10s:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>&amp;namdom
+  rn_rdt      =  10.     !  time step for the dynamics (and tracer if nn_acc=0)
+</pre></div>
+</div>
+<p>Same problem. The timestep does not seem to have any effect.
+Looking at an abort file that was generated when <code class="docutils literal"><span class="pre">ln_bdy=.false.</span></code> and the
+velocities blew up showed that it was apparent that a coastal point was blowing up in velocity.
+ocean.output abort message (ln_bdy = false):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="mf">1.458423170935927E-004</span>
+<span class="n">M4</span>    <span class="o">-</span><span class="mf">25.1935276193127</span>        <span class="mf">1.04385624018260</span>        <span class="mf">16.4795866457279</span>
+<span class="mf">2.810378051513493E-004</span>
+<span class="n">usr_sbc</span> <span class="p">:</span> <span class="n">WAD_TEST_CASES</span> <span class="n">case</span><span class="p">:</span> <span class="n">NO</span> <span class="n">surface</span> <span class="n">forcing</span>
+<span class="o">~~~~~~~~~~~</span>   <span class="n">utau</span> <span class="o">=</span> <span class="n">vtau</span> <span class="o">=</span> <span class="n">taum</span> <span class="o">=</span> <span class="n">wndm</span> <span class="o">=</span> <span class="n">qns</span> <span class="o">=</span> <span class="n">qsr</span> <span class="o">=</span> <span class="n">emp</span> <span class="o">=</span> <span class="n">sfx</span> <span class="o">=</span> <span class="mi">0</span>
+         <span class="n">nit000</span><span class="o">-</span><span class="mi">1</span> <span class="n">surface</span> <span class="n">forcing</span> <span class="n">fields</span> <span class="nb">set</span> <span class="n">to</span> <span class="n">nit000</span>
+
+<span class="n">zdf_evd</span> <span class="p">:</span> <span class="n">Enhanced</span> <span class="n">Vertical</span> <span class="n">Diffusion</span> <span class="p">(</span><span class="n">evd</span><span class="p">)</span>
+<span class="o">~~~~~~~</span>
+
+
+<span class="n">zdf_mxl</span> <span class="p">:</span> <span class="n">mixed</span> <span class="n">layer</span> <span class="n">depth</span>
+<span class="o">~~~~~~~</span>
+
+<span class="n">ssh_nxt</span> <span class="p">:</span> <span class="n">after</span> <span class="n">sea</span> <span class="n">surface</span> <span class="n">height</span>
+<span class="o">~~~~~~~</span>
+
+<span class="n">div_hor</span> <span class="p">:</span> <span class="n">horizontal</span> <span class="n">velocity</span> <span class="n">divergence</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>This test highlights the next output step that is missing when ln_bdy=T:
+``           nit000-1 surface forcing fields set to nit000``. This must be in
+an sbc module (<code class="docutils literal"><span class="pre">sbcmod.F90</span></code>). It is not clear why ln_bdy would break that...</p>
+<ul class="simple">
+<li>James has a bdy_mask.nc file. This looks like top_level in domain_cfg.nc</li>
+</ul>
+<p>I can make a bdy_mask.nc file (I am not confident which modules to load to get
+working on ARCHER so I&#8217;ll do it on livljobs4):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>livljobs$
+cd Desktop
+scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/domain_cfg.nc  .
+
+module load nco/gcc/4.4.2.ncwa
+ncks -v top_level,nav_lat,nav_lon  domain_cfg.nc tmp.nc
+ncrename -v top_level,bdy_msk tmp.nc
+ncwa -a t tmp.nc bdy_mask.nc
+
+livmap$
+scp jelt@livljobs4:Desktop/bdy_mask.nc ~/Desktop/.
+ferret
+use bdy_mask.nc
+shade bdy_msk
+</pre></div>
+</div>
+<p>However I notice that the (wet) western boundary is masked out by this mask. Is
+that true in James&#8217; mask? Yes it appears so.</p>
+<p>Copy new file into EXP directory (having copied it into $INPUTS):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/bdy_mask.nc $EXP/.
+</pre></div>
+</div>
+<p>Then edit the namelist_cfg.nc to include this new file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;nambdy        !  unstructured open boundaries
+!-----------------------------------------------------------------------
+    ln_bdy         = .true.              !  Use unstructured open boundaries
+    nb_bdy         = 1                    !  number of open boundary sets
+    ln_coords_file = .true.               !  =T : read bdy coordinates from file
+    cn_coords_file = &#39;coordinates.bdy.nc&#39; !  bdy coordinates files
+    ln_mask_file   = .true.              !  =T : read mask from file
+    cn_mask_file   = &#39;bdy_mask.nc&#39;
+</pre></div>
+</div>
+<p>This still dies in the same place:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tail</span> <span class="n">ocean</span><span class="o">.</span><span class="n">output</span>
+<span class="o">...</span>
+<span class="n">M4</span>    <span class="o">-</span><span class="mf">25.1935276193127</span>        <span class="mf">1.04385624018260</span>        <span class="mf">16.4795866457279</span>
+ <span class="mf">2.810378051513493E-004</span>
+ <span class="n">usr_sbc</span> <span class="p">:</span> <span class="n">WAD_TEST_CASES</span> <span class="n">case</span><span class="p">:</span> <span class="n">NO</span> <span class="n">surface</span> <span class="n">forcing</span>
+ <span class="o">~~~~~~~~~~~</span>   <span class="n">utau</span> <span class="o">=</span> <span class="n">vtau</span> <span class="o">=</span> <span class="n">taum</span> <span class="o">=</span> <span class="n">wndm</span> <span class="o">=</span> <span class="n">qns</span> <span class="o">=</span> <span class="n">qsr</span> <span class="o">=</span> <span class="n">emp</span> <span class="o">=</span> <span class="n">sfx</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>Inspection of <code class="docutils literal"><span class="pre">sbcmod.F90</span></code> shows that thing might be different if it is a restart.
+Copy a restart from old code base. Update namelist_cfg for a restart and resubmit</p>
+<dl class="docutils">
+<dt>::</dt>
+<dd>&amp;namrun
+nn_date0    =  20000106   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
+cn_ocerst_out   = &#8220;restart_oce_out&#8221;   !  suffix of ocean restart name (output)
+nrstdt = 0</dd>
+</dl>
+<p>It turns out that the restart file is missing e3t and has a wrong variable name for time.
+Perhaps easier to create a new restart from a single timestep...?</p>
+<p>no even with one timestep there is a seg fault problem.</p>
+<p>&#8212;</p>
+<p>change initialisation to false for T and S
+ln_tsd_init   = .false.   !  Initialisation of ocean T &amp; S with T &amp;S input data (T) or not (F)</p>
+<p>Test. Turn off tides:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;nam_tide      !   tide parameters
+!-----------------------------------------------------------------------
+   ln_tide     = .false.
+   ln_tide_pot = .false.    !  use tidal potential forcing
+
+&amp;nambdy
+     nn_dyn2d_dta   =  0  ! was 2
+</pre></div>
+</div>
+<p>Didn&#8217;t change the simulation crash point.</p>
+<p>Change rimwidth. It is different in the boundary files to namelist_cfg:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>&amp;nambdy
+nn_rimwidth   = 9                    !  width of the relaxation zone
+</pre></div>
+</div>
+<p>(though the bdy fields, I think, are turned off).</p>
+<p>Oh the rimwidth variable matching the boundary files seem to fix the problem. Next turn things back on.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>&amp;nam_tide      !   tide parameters
+!-----------------------------------------------------------------------
+   ln_tide     = .true.
+   ln_tide_pot = .true.
+
+&amp;nambdy        !  unstructured open boundaries
+   nn_dyn2d_dta   =  1                   !  = 0, bdy data are equal to the initial state
+</pre></div>
+</div>
+<p>This runs but blows up in momentum. Try nn_dyn2d_dta = 2 (like James)
+Still blows up.</p>
+<p>Try tiny time step  rn_rdt=5. No.</p>
+<p>Try nn_dyn_dta = 3. Stabilize with boundary velocities? No</p>
+<p>Update bottom friction to match old LBay run (rather than James&#8217; E-Africa run).
+THis means changing to nonlinear friction, with a coeff 2.5E-3, log layer and
+bottom roughness as follows</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;nambfr        !   bottom friction
+!-----------------------------------------------------------------------
+   nn_bfr      =    2      !  type of bottom friction :   = 0 : free slip,  = 1 : linear friction
+                           !                              = 2 : nonlinear friction
+   rn_bfri2    =    2.5e-3 !  bottom drag coefficient (non linear case)
+   rn_bfeb2    =    0.0e0  !  bottom turbulent kinetic energy background  (m2/s2)
+   ln_loglayer =    .true. !  loglayer bottom friction (only effect when nn_bfr = 2)
+   rn_bfrz0    =    0.003  !  bottom roughness (only effect when ln_loglayer = .true.)
+/
+</pre></div>
+</div>
+<p>I also changed the rn_bfeb2 = 2.5e-3 to zero. This would depend on the tke scheme.
+Though I don&#8217;t have an idea of what it should be.</p>
+<p>Turn off time splitting: ln_bt_nn_auto=.false.,
+I think this has moved to a new namelist group &amp;namdyn_spg
+Instead turn it off there: ln_bt_auto    = .false.</p>
+<p>This makes the run go further. 9 time steps...
+Try and manually fix barotropic time step scale. nn_baro=1 (not 30)
+This blew up in 5 steps. Revert to nn_baro=30</p>
+<p>Switch bilaplacian to laplacian to see if it suddenly works</p>
+<p>It works better - 19 steps.</p>
+<p>Output every 3 steps and inspect. Didn&#8217;t output.</p>
+<p>Try and use ramp_tide to ramp up tides over 1 day.
+(checked that rdttideramp corresponds to the number of ramping days.)</p>
+<p><strong>It worked!!</strong> 1 day in 40s. Extend to 5 days to run in 5 mins</p>
+<p>Switch from Laplacian to Bilapacian diffusion for momentum.</p>
+<p>No motion
+try n_dyn2d_dta   =  2</p>
+<p>Take that boundary mask off: ln_mask_file   = .false.
+Didn&#8217;t help.</p>
+<p>Perhaps it is an issue with the XML files. Define a shortcut:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">EEXP</span><span class="o">=/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">ACCORD</span><span class="o">/</span><span class="n">trunk_NEMOGCM_r8395</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">ACCORD</span><span class="o">/</span><span class="n">EXP_EAFRICA</span>
+</pre></div>
+</div>
+<p>Hmm couldn&#8217;t spot any differences wih the E-Africa XML files - they are identical</p>
+<p>Try the tideramp = 0.5</p>
+<p>No joy.
+Try a restart.
+Bad filename. Check and try again.</p>
+<p>Take off the tideramp and it blows up (this is probably not to do with the restart)</p>
+<p>There is a variable nb_harmo=0 in the ocean.output. It is not being defined properly.</p>
+<p>Tried and changed the frequency of the boundary data: e..g bn_ssh      = &#8216;LBay_bt_bdyT&#8217;, -1   (was 24)</p>
+<p>This blows up again. On the first time step.</p>
+<p>It looks like the ramp is too severe. If it blows up in 19 steps = 19mins, with
+a 1 day ramp. Maybe a 10 ramp would be better.</p>
+<p>Do a cold start. With a 10 sim. (ramp can not exceed simulation time)
+Signal dies out within a day. (Min SSS&#8211;&gt; 100)</p>
+<p>Switch off both laplacian and bilaplacian diffusion. Output info every hr:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ln_dynldf_lap =  .false.    !    laplacian operator
+ln_dynldf_blp =  .false.    !  bilaplacian operator
+nn_write    =   24
+</pre></div>
+</div>
+<p>Dies fast. Misinterpreted how the ramp worked. Never had a non-zero simulation with
+the ramp. Make it smaller not larger: ``   rdttideramp =    1.     ``</p>
+<p>SSH blows up:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>            <span class="mi">1</span>  <span class="n">ssh</span> <span class="nb">max</span><span class="p">:</span>  <span class="mf">1.311225785606566E-004</span>
+<span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>           <span class="mi">61</span>  <span class="nb">abs</span><span class="p">(</span><span class="n">U</span><span class="p">)</span> <span class="nb">max</span><span class="p">:</span>   <span class="mf">9.365770301892096E-002</span>
+<span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>           <span class="mi">61</span>  <span class="n">SSS</span> <span class="nb">min</span><span class="p">:</span>   <span class="mf">36.8418750679304</span>
+<span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>           <span class="mi">61</span>  <span class="n">ssh</span> <span class="nb">max</span><span class="p">:</span>  <span class="mf">6.350050976376775E-002</span>
+<span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>          <span class="mi">121</span>  <span class="nb">abs</span><span class="p">(</span><span class="n">U</span><span class="p">)</span> <span class="nb">max</span><span class="p">:</span>   <span class="mf">0.120795267289029</span>
+<span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>          <span class="mi">121</span>  <span class="n">SSS</span> <span class="nb">min</span><span class="p">:</span>   <span class="mf">36.8414750346018</span>
+<span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>          <span class="mi">121</span>  <span class="n">ssh</span> <span class="nb">max</span><span class="p">:</span>  <span class="mf">0.113158707022428</span>
+
+<span class="o">===&gt;&gt;&gt;</span> <span class="p">:</span> <span class="n">E</span> <span class="n">R</span> <span class="n">R</span> <span class="n">O</span> <span class="n">R</span>
+       <span class="o">===========</span>
+
+<span class="n">stp_ctl</span> <span class="p">:</span> <span class="n">the</span> <span class="n">ssh</span> <span class="ow">is</span> <span class="n">larger</span> <span class="n">than</span> <span class="mi">10</span><span class="n">m</span>
+<span class="o">=======</span>
+<span class="n">kt</span><span class="o">=</span>   <span class="mi">154</span> <span class="nb">max</span> <span class="n">ssh</span><span class="p">:</span>    <span class="n">Infinity</span><span class="p">,</span> <span class="n">i</span> <span class="n">j</span><span class="p">:</span>    <span class="mi">32</span>   <span class="mi">90</span>
+</pre></div>
+</div>
+<p>Reduce harmonic to just M2. Blows up in SSH in the same way.</p>
+<p>Reduce the timestep rn_rdt=6.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>         <span class="mi">1321</span>  <span class="n">ssh</span> <span class="nb">max</span><span class="p">:</span>  <span class="mf">0.111035814265442</span>
+<span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>         <span class="mi">1381</span>  <span class="nb">abs</span><span class="p">(</span><span class="n">U</span><span class="p">)</span> <span class="nb">max</span><span class="p">:</span>   <span class="mf">0.117910378601910</span>
+<span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>         <span class="mi">1381</span>  <span class="n">SSS</span> <span class="nb">min</span><span class="p">:</span>   <span class="mf">36.8413812872391</span>
+<span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>         <span class="mi">1381</span>  <span class="n">ssh</span> <span class="nb">max</span><span class="p">:</span>  <span class="mf">0.112485247560570</span>
+<span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>         <span class="mi">1441</span>  <span class="nb">abs</span><span class="p">(</span><span class="n">U</span><span class="p">)</span> <span class="nb">max</span><span class="p">:</span>   <span class="mf">0.116803563870784</span>
+<span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>         <span class="mi">1441</span>  <span class="n">SSS</span> <span class="nb">min</span><span class="p">:</span>   <span class="mf">36.8413491215503</span>
+<span class="o">==&gt;&gt;</span> <span class="n">time</span><span class="o">-</span><span class="n">step</span><span class="o">=</span>         <span class="mi">1441</span>  <span class="n">ssh</span> <span class="nb">max</span><span class="p">:</span>  <span class="mf">0.113826565377745</span>
+
+<span class="o">===&gt;&gt;&gt;</span> <span class="p">:</span> <span class="n">E</span> <span class="n">R</span> <span class="n">R</span> <span class="n">O</span> <span class="n">R</span>
+       <span class="o">===========</span>
+
+<span class="n">stpctl</span><span class="p">:</span> <span class="n">the</span> <span class="n">zonal</span> <span class="n">velocity</span> <span class="ow">is</span> <span class="n">larger</span> <span class="n">than</span> <span class="mi">20</span> <span class="n">m</span><span class="o">/</span><span class="n">s</span>
+<span class="o">======</span>
+<span class="n">kt</span><span class="o">=</span>  <span class="mi">1489</span> <span class="nb">max</span> <span class="nb">abs</span><span class="p">(</span><span class="n">U</span><span class="p">):</span>   <span class="mf">22.29</span>    <span class="p">,</span> <span class="n">i</span> <span class="n">j</span> <span class="n">k</span><span class="p">:</span>    <span class="mi">32</span>  <span class="mi">104</span>   <span class="mi">21</span>
+</pre></div>
+</div>
+<p>Ran for 2.5 hours instead of about 2hrs.</p>
+<p>Need to look at some fields. Output initial conditions and evolving fields
+Check CFL. Grid is about 1.3km x 0.7km
+Therefore a 60s timestep 700m/60s &gt; 10m/s &gt;&gt; u. Is OK
+cp = sqrt(g.h) = sqrt(10*50) = 22 m/s.</p>
+<p>Inspection of the domain_cfg.nc file shows that the e1x and e2x variables are wrong.
+See: cd /Users/jeff/GitLab/NEMO-RELOC/docs/source
+$ipython
+&gt;&gt; run quickplotNEMO</p>
+<p><strong>PENDING</strong></p>
+</div>
+</div>
+<div class="section" id="rebuild-the-output-and-inspect">
+<h3>Rebuild the output and inspect<a class="headerlink" href="#rebuild-the-output-and-inspect" title="Permalink to this headline">¶</a></h3>
+<p>Rebuild the SSH files using old tools:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/LBay/
 export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
 
@@ -1073,112 +1914,8 @@ $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_W 5
 <span class="n">plot</span> <span class="o">/</span><span class="n">i</span><span class="o">=</span><span class="mi">25</span><span class="o">/</span><span class="n">j</span><span class="o">=</span><span class="mi">70</span> <span class="n">SOSSHEIG</span>
 </pre></div>
 </div>
+<p><strong>Is there a semi-diurnal SSH signal?</strong></p>
 <p>&#8212;</p>
-<p><strong>Whoo hoo! It works! With a semi-diurnal SSH signal</strong></p>
-<p>At this point I&#8217;ll move onto the SE Asia configuration.</p>
-<hr class="docutils" />
-<p><em>(4 Oct 2017)</em></p>
-</div>
-<div class="section" id="compile-and-test-in-orchestra-code-base">
-<h3>Compile and test in ORCHESTRA code base<a class="headerlink" href="#compile-and-test-in-orchestra-code-base" title="Permalink to this headline">¶</a></h3>
-<p>This may not work straight off as the new code needs different namelist, and other configuration management files
-.. note:</p>
-<blockquote>
-<div><p>I made a <em>store</em> of architecure files in work, for compiling NEMO</p>
-<p>mkdir /work/n01/n01/jelt/ARCH
-cp /work/n01/n01/jelt/ACCORD/trunk_NEMOGCM_r8395/ARCH/arch-XC_ARCHER_INTEL.fcm /work/n01/n01/jelt/ARCH/.
-echo &#8220;arch-XC_ARCHER_INTEL.fcm is for compiling OPA on ARCHER with my XIOS2&#8221; &gt; /work/n01/n01/jelt/ARCH/README_arch-XC_ARCHER_INTEL.fcm
-vi /work/n01/n01/jelt/ARCH/arch-XC_ARCHER_INTEL.fcm
-...
-%XIOS_HOME           /work/n01/n01/jelt/XIOS</p>
-</div></blockquote>
-<p>Load paths and modules:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>export CONFIG=LBay
-export WDIR=/work/n01/n01/jelt/$CONFIG
-export INPUTS=$WDIR/INPUTS
-export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
-export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
-export EXP=$CDIR/$CONFIG/EXP00
-
-module swap PrgEnv-cray PrgEnv-intel
-module load cray-netcdf-hdf5parallel
-module load cray-hdf5-parallel
-</pre></div>
-</div>
-<p>Build NEMO ORCHESTRA trunk &#64; r8395:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
-svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
-</pre></div>
-</div>
-<p>Use my XIOS file (see <code class="docutils literal"><span class="pre">%XIOS_HOME</span></code>). Copy from <em>store</em>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cp /work/n01/n01/$USER/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
-</pre></div>
-</div>
-<p>Make a new config directory structure:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR
-./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10 clean
-</pre></div>
-</div>
-<p>Edit the CPP flags:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>vi $CONFIG/cpp_$CONFIG.fcm
-
-bld::tool::fppkeys key_zdfgls        \
-                 key_diaharm       \
-                 key_mpp_mpi       \
-                 key_iomput        \
-                 key_nosignedzero
-</pre></div>
-</div>
-<p>Build opa:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
-</pre></div>
-</div>
-<p>It compiles.</p>
-<p>Link XIOS2 executable to the EXP directory:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>ln -s  /work/n01/n01/$USER/XIOS/bin/xios_server.exe $EXP/xios_server.exe
-</pre></div>
-</div>
-<hr class="docutils" />
-<p>Copy all the EXP files from the working experiment into this EXP directory:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cp  /work/n01/n01/jelt/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/LBay/EXP00/* $EXP/.
-ln -s /work/n01/n01/jelt/LBay/INPUTS $EXP/bdydta
-</pre></div>
-</div>
-<dl class="docutils">
-<dt>Fix the links with the xios and opa exectutables (incase they were broken by the cp)::</dt>
-<dd>ln -s  /work/n01/n01/$USER/XIOS/bin/xios_server.exe $EXP/xios_server.exe
-ln -s $CDIR/$CONFIG/BLD/bin/nemo.exe $EXP/opa</dd>
-<dt>Submit::</dt>
-<dd>cd $EXP
-qsub -q short runscript</dd>
-</dl>
-<p><strong>Does it work?</strong></p>
-<p>No. Problem with the coordinates file. But this was sort of expected.</p>
-<p>&#8212;</p>
-</div>
-<div class="section" id="rebuild-the-output-and-inspect">
-<h3>Rebuild the output and inspect<a class="headerlink" href="#rebuild-the-output-and-inspect" title="Permalink to this headline">¶</a></h3>
-<p>Rebuild the SSH files using old tools:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/LBay/
-export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-
-cd $EXP
-$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 LBay_1h_20000102_20000106_grid_T 5
-</pre></div>
-</div>
-<p>Should remove individual processor files once the build is verified:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>rm LBay_1h_20000102_20000106_grid_?_*nc
-</pre></div>
-</div>
-<p>Inspect locally e.g.:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>scp jelt@login.archer.ac.uk:$EXP/LBay_1h_20000102_20000106_grid_T.nc .
-
-ferret
-use LBay_1h_20000102_20000106_grid_T.nc
-plot /i=25/j=70 SOSSHEIG
-</pre></div>
-</div>
-<p><strong>Does it work?</strong></p>
 <p>&#8212;</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1222,19 +1959,24 @@ tname(9)     =   &#8216;M4&#8217;</div></blockquote>
 <li><a class="reference internal" href="#issues-that-arose">Issues that arose</a></li>
 <li><a class="reference internal" href="#recipe-notes">Recipe Notes</a></li>
 <li><a class="reference internal" href="#build-tools">Build TOOLS</a><ul>
+<li><a class="reference internal" href="#copy-bathymetry-and-coordinates-file">0. Copy bathymetry and coordinates file</a></li>
 <li><a class="reference internal" href="#generate-new-coordinates-file">1. Generate new coordinates file</a></li>
 <li><a class="reference internal" href="#generate-bathymetry-file">2. Generate bathymetry file</a></li>
-<li><a class="reference internal" href="#generate-initial-conditions">3. Generate initial conditions</a></li>
-<li><a class="reference internal" href="#generate-weights-for-atm-forcing">4. Generate weights for atm forcing</a></li>
-<li><a class="reference internal" href="#generate-mesh-and-mask-files-for-open-boundary-conditions">5. Generate mesh and mask files for open boundary conditions</a></li>
-<li><a class="reference internal" href="#generate-boundary-conditions-with-pynemo-create-netcdf-abstraction-wrapper">6. Generate boundary conditions with PyNEMO: Create netcdf abstraction wrapper</a></li>
-<li><a class="reference internal" href="#a-generate-ncml-files-not-tested-on-livljobs4">6a. Generate ncml files (Not tested on livljobs4)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#generate-a-domain-configuration-file">3. Generate a domain configuration file</a><ul>
+<li><a class="reference internal" href="#generate-initial-conditions">4. Generate initial conditions</a></li>
+<li><a class="reference internal" href="#generate-weights-for-atm-forcing">5. Generate weights for atm forcing</a></li>
+<li><a class="reference internal" href="#generate-boundary-conditions-with-nrct-pynemo-create-netcdf-abstraction-wrapper">6. Generate boundary conditions with NRCT/PyNEMO: Create netcdf abstraction wrapper</a></li>
+<li><a class="reference internal" href="#a-generate-ncml-files">6a. Generate ncml files</a></li>
 <li><a class="reference internal" href="#nna-inputs-src-ncml">NNA_inputs_src.ncml</a></li>
-<li><a class="reference internal" href="#b-generate-the-namelist-bdy-file-for-pynemo">6b. Generate the namelist.bdy file for PyNEMO</a></li>
+<li><a class="reference internal" href="#b-generate-the-namelist-bdy-file-for-pynemo-nrct">6b. Generate the namelist.bdy file for PyNEMO / NRCT</a></li>
 <li><a class="reference internal" href="#generate-boundary-conditions-with-pynemo-run-pynemo">7. Generate boundary conditions with PyNEMO: Run PyNEMO</a></li>
 <li><a class="reference internal" href="#namelist-bdy-nna">namelist.bdy_NNA</a></li>
-<li><a class="reference internal" href="#run-the-configuration-on-archer-turn-on-the-tides">8. Run the configuration ON ARCHER. Turn on the tides</a></li>
-<li><a class="reference internal" href="#compile-and-test-in-orchestra-code-base">Compile and test in ORCHESTRA code base</a></li>
+<li><a class="reference internal" href="#run-the-configuration-on-archer-turn-on-the-tides">8. Run the configuration ON ARCHER. Turn on the tides</a><ul>
+<li><a class="reference internal" href="#resubmit">Resubmit</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#rebuild-the-output-and-inspect">Rebuild the output and inspect</a></li>
 </ul>
 </li>

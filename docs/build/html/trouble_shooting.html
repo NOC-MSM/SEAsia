@@ -1,0 +1,215 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Trouble Shooting &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="trouble-shooting">
+<h1>Trouble Shooting<a class="headerlink" href="#trouble-shooting" title="Permalink to this headline">¶</a></h1>
+<hr class="docutils" />
+<p>Things to try if your new configuration isn&#8217;t working</p>
+<div class="section" id="mysterious-fail-either-no-clue-of-xios-xml-netcdf-hint">
+<h2>Mysterious fail. Either no clue of XIOS / XML / netcdf hint<a class="headerlink" href="#mysterious-fail-either-no-clue-of-xios-xml-netcdf-hint" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>The XML control of I/O, and in particular formatting and content of the</dt>
+<dd><dl class="first last docutils">
+<dt><code class="docutils literal"><span class="pre">iodef.xml</span></code> files (and its kin) are <strong>extremely</strong> sensitive to errors.</dt>
+<dd>Several times an inconsistency in the xml files, or a typo, can lead to a NEMO failure with little or no debuggin info</dd>
+</dl>
+</dd>
+</dl>
+<p>E.g. top line of iodef.xml. Switching from</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">file_definition</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;one_file&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;@expname@_@freq@_@startdate@_@enddate@&quot;</span> <span class="n">sync_freq</span><span class="o">=</span><span class="s2">&quot;10d&quot;</span> <span class="n">min_digits</span><span class="o">=</span><span class="s2">&quot;4&quot;</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>to::</dt>
+<dd>&lt;file_definition type=&#8221;multiple_file&#8221; name=&#8221;&#64;expname&#64;_&#64;freq&#64;_&#64;startdate&#64;_&#64;enddate&#64;&#8221; sync_freq=&#8221;10d&#8221; min_digits=&#8221;4&#8221;&gt;</dd>
+</dl>
+<p>Can mean the difference between a nice weekend or a bad one.</p>
+</div>
+</div>
+<div class="section" id="my-configuration-blows-up">
+<h1>My configuration blows up<a class="headerlink" href="#my-configuration-blows-up" title="Permalink to this headline">¶</a></h1>
+<p>This can happen for a host of reasons...</p>
+<p>#. Probaby the first thing to check is whether it is behaving without all the
+add-on forcings. Is it stable if you turn everything off? Is it stable with</p>
+<blockquote>
+<div>clamped initial condition temperature and salinity, and boundary velocities</div></blockquote>
+<dl class="docutils">
+<dt>It is a good idea to try and 20 day &#8216;initial condition&#8217; run to make sure there</dt>
+<dd>are no surprises.</dd>
+<dt>Compile with <code class="docutils literal"><span class="pre">usrdef_istate.F90</span></code> and  <code class="docutils literal"><span class="pre">usrdef_sbc.F90</span></code> in <code class="docutils literal"><span class="pre">MY_SRC</span></code>. Then</dt>
+<dd><p class="first">edit the <code class="docutils literal"><span class="pre">namelist_cfg</span></code> to turn off forcings (checking there are no inconsistencies):</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span>&amp;namsbc        !   Surface Boundary Condition (surface module)
+!-----------------------------------------------------------------------
+                   ! Type of air-sea fluxes
+   ln_usr      = .true.    !  user defined formulation                  (T =&gt; check usrdef_sbc)
+
+...
+
+!-----------------------------------------------------------------------
+&amp;nam_tide      !   tide parameters
+!-----------------------------------------------------------------------
+  ln_tide     = .true.
+  ln_tide_pot = .false.    !  use tidal potential forcing
+
+...
+
+&amp;nambdy        !  unstructured open boundaries
+!-----------------------------------------------------------------------
+   ln_bdy         = .true.              !  Use unstructured open boundaries
+   nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state
+   nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
+   nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>#. Tidal models can blow up at, or near, the boundaries. This can happen for a number
+of reasons: Does the domain have amphidromes near the boundary? This can result
+large spatial gradients in velocity that can cause problems.</p>
+<p>#. If the configuration blows up at, or near, the boundary modify the boundary mask to blank it out.
+This means that new boundary files will need to be generated for the new effective boundary location</p>
+<p><strong>Update</strong>. Modification of the mask is not such good advice. If there is a problem
+with an island or some significant bathymetry feature appearing on the child grid</p>
+<blockquote>
+<div>but not in the parent, then this maybe a good idea.</div></blockquote>
+<p>Note the PyNEMO mask takes three value. One each for mask(-1), wet points (1) and dry points (0).
+E.g. Start with with the land mask from <code class="docutils literal"><span class="pre">domain_cfg.nc</span></code> and introduce boundary masking. First
+create a mask file from a template. (Using <strong>livljobs4</strong>):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">load</span> <span class="n">nco</span><span class="o">/</span><span class="n">gcc</span><span class="o">/</span><span class="mf">4.4</span><span class="o">.</span><span class="mf">2.</span><span class="n">ncwa</span>
+<span class="n">rm</span> <span class="o">-</span><span class="n">f</span> <span class="n">bdy_mask</span><span class="o">.</span><span class="n">nc</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncks</span> <span class="o">-</span><span class="n">v</span> <span class="n">top_level</span> <span class="n">domain_cfg</span><span class="o">.</span><span class="n">nc</span> <span class="n">tmp1</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncrename</span> <span class="o">-</span><span class="n">h</span> <span class="o">-</span><span class="n">v</span> <span class="n">top_level</span><span class="p">,</span><span class="n">mask</span> <span class="n">tmp1</span><span class="o">.</span><span class="n">nc</span> <span class="n">tmp2</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncwa</span> <span class="o">-</span><span class="n">a</span> <span class="n">t</span> <span class="n">tmp2</span><span class="o">.</span><span class="n">nc</span> <span class="n">bdy_mask</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">rm</span> <span class="o">-</span><span class="n">f</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>In ipython manually edit the mask locations:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">netCDF4</span>
+<span class="n">dset</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="s1">&#39;bdy_mask.nc&#39;</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">,:]</span>  <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">][:,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">][:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Then <code class="docutils literal"><span class="pre">bdy_mask.nc</span></code> can be specified in the PyNEMO <code class="docutils literal"><span class="pre">namelist.bdy</span></code>. The PyNEMO</dt>
+<dd>generated files contain the bdy_msk variable, for use in the NEMO <code class="docutils literal"><span class="pre">namelist_cfg</span></code></dd>
+</dl>
+<p>Run PyNEMO again. Run NEMO again.</p>
+<p>&#8212;</p>
+<p>If the bdy_msk does not appear to be functional. Perhaps missing updates to the
+OPA source:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
+cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/dommsk.F90 $CDIR/$CONFIG/MY_SRC/dommsk.F90
+</pre></div>
+</div>
+<p>&#8212;</p>
+<ol class="arabic simple">
+<li>If the model is blowing up at the boundary and the water is deep. Check the time step. Deepwater waves are fast.</li>
+</ol>
+<p>&#8212;</p>
+<ol class="arabic simple">
+<li>If the model is blowing up at the boundary and the water is shallow. Have the tidal transports be mapped from parent to child grid correctly?</li>
+</ol>
+<p>&#8212;</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Trouble Shooting</a><ul>
+<li><a class="reference internal" href="#mysterious-fail-either-no-clue-of-xios-xml-netcdf-hint">Mysterious fail. Either no clue of XIOS / XML / netcdf hint</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#my-configuration-blows-up">My configuration blows up</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/trouble_shooting.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/trouble_shooting.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -6,7 +6,7 @@ Build XIOS2 @ r1080
   cd $WORK/$USER
   svn co -r1080 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0_r1080
   cd xios-2.0_r1080
-  cp ../LBay/xios-2.0/arch/arch-XC30_ARCHER* arch/.
+  cp $WORK/$USER/ARCH/arch-XC30_ARCHER* arch/.
 
 Implement make command::
 
