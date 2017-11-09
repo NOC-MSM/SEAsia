@@ -37,20 +37,23 @@ When a new note file is created manually add it to this list to aid finding it.
    EAfrica
 
 
-Modules:
-========
+Common Modules:
+===============
+
 .. toctree::
   :maxdepth: 1
 
-  install_nrct
+  build_opa_orchestra
+
+  build_XIOS2
 
   build_and_create_coordinates
 
-  build_opa_orchestra
-
   build_siren_tools
 
-  build_XIOS2
+  install_nrct
+
+  anatomy_namelist_bdy
 
   MPP_decomp_land_suppression
 
@@ -60,8 +63,8 @@ Modules:
 Tools:
 ======
 
-.. toctree::
-  :maxdepth: 1
+  Not sure how to do this currently have a few repo python scripts that might
+   be useful:
 
   quickplotNEMO.py
 
@@ -76,7 +79,6 @@ WIP:
 
   Solent
 
-  todo
 
 
 
