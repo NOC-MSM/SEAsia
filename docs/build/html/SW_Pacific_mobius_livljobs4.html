@@ -1,0 +1,341 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Setting up a SW Pacific NEMO v4 configuration &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="setting-up-a-sw-pacific-nemo-v4-configuration">
+<h1>Setting up a SW Pacific NEMO v4 configuration<a class="headerlink" href="#setting-up-a-sw-pacific-nemo-v4-configuration" title="Permalink to this headline">¶</a></h1>
+<p>Machines: livljobs4, MOBIUS</p>
+<ul class="simple">
+<li>Build notes with:: ~/GitLab/NEMO-RELOC/docs$ make html</li>
+</ul>
+<p>Builds a SW Pacific regional tide-only model using GEBCO bathymetry, FES tidal
+boundaries.</p>
+<p>Build on a combination of livljobs4 and MOBIUS.</p>
+<p>Uses a prerelease of NEMO v4 (&#64;r8395)</p>
+<p>The summary procedure:
+#. MOBIUS: Get code. Build tools. Generate coordinates, bathymetry, domain_cfg.nc
+#. MOBIUS: Generate initial conditions and atmospheric forcings
+#. LIVLJOBS4: Generate boundary conditions with NRCT/PyNEMO
+#. MOBIUS: Run simulation</p>
+<p>It is a tide only run.</p>
+<div class="section" id="issues-that-arose">
+<h2>Issues that arose<a class="headerlink" href="#issues-that-arose" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>...</li>
+</ul>
+</div>
+<hr class="docutils" />
+<div class="section" id="recipe-notes">
+<h2>Recipe Notes<a class="headerlink" href="#recipe-notes" title="Permalink to this headline">¶</a></h2>
+<p>In the following I build most stuff on MOBIUS but the PyNEMO bits are done on livljobs4.</p>
+<p>Starting on MOBIUS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ssh mobius
+
+export CONFIG=SWPacific
+#export USER=thopri
+export WORK=/work/thopri/NEMO
+export WDIR=/work/$USER/NEMO/$CONFIG
+export INPUTS=$WDIR/INPUTS
+export START_FILES=$WDIR/START_FILES
+export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+export OLD_TDIR=$WORK/$USER/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/
+export EXP=$CDIR/$CONFIG/EXP00
+
+module purge
+module load shared intel/compiler/64/14.0/2013_sp1.3.174 mvapich2/intel/64/2.0b slurm/14.03.0 cluster-tools/7.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="collect-essential-files">
+<h2>Collect essential files<a class="headerlink" href="#collect-essential-files" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>Note you might have to mkdir the odd directory or two...::</dt>
+<dd>mkdir $WDIR
+cd $WDIR
+mkdir $START_FILES
+cp $WORK/../LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
+cp $WORK/../LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.</dd>
+</dl>
+<p>Checkout and build XIOS2 &#64; r1080 <a href="#id1"><span class="problematic" id="id2">`build_XIOS2.html`_</span></a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WORK
+svn co -r1080 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0_r1080
+cd xios-2.0_r1080
+cp $WORK/Mobius/arch* arch/.
+</pre></div>
+</div>
+<p>Build XIOS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">make_xios</span> <span class="o">--</span><span class="n">full</span> <span class="o">--</span><span class="n">prod</span> <span class="o">--</span><span class="n">arch</span> <span class="n">mobius_intel</span>  <span class="o">--</span><span class="n">netcdf_lib</span> <span class="n">netcdf4_par</span>
+</pre></div>
+</div>
+<p>Commented out the <code class="docutils literal"><span class="pre">--job</span> <span class="pre">8</span></code> command, just incase.
+Results in error with building:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>...
+touch /work/jelt/NEMO/xios-2.0_r1080/flags/LDFLAGS__test.flags
+touch /work/jelt/NEMO/xios-2.0_r1080/flags/LDFLAGS__test__test_remap.flags
+touch /work/jelt/NEMO/xios-2.0_r1080/done/mod_wait.done
+fcm_internal load:F test test_remap.o test_remap.exe
+ar: creating /work/jelt/NEMO/xios-2.0_r1080/tmp/lib__fcm__test_remap.a
+mpif90 -nofor-main -o test_remap.exe /work/jelt/NEMO/xios-2.0_r1080/obj/test_remap.o -L/work/jelt/NEMO/xios-2.0_r1080/lib -l__fcm__test_remap -Wl,&quot;--allow-multiple-definition&quot; -L/login/jdha/utils/netcdf_mob_intel/lib -L/login/jdha/utils/hdf5_mob_intel/lib   -lnetcdf -lnetcdff  -lhdf5_hl -lhdf5 -lz -lstdc++
+/login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_genatt.o): In function `nf_copy_att&#39;:
+/work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_genatt.f90:235: undefined reference to `nc_copy_att&#39;
+/login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_genatt.o): In function `nf_rename_att&#39;:
+/work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_genatt.f90:270: undefined reference to `nc_rename_att&#39;
+/login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_genatt.o): In function `nf_del_att&#39;:
+/work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_genatt.f90:300: undefined reference to `nc_del_att&#39;
+/login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_genvar.o): In function `nf_copy_var&#39;:
+/work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_genvar.f90:380: undefined reference to `nc_copy_var&#39;
+/login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_def_enum&#39;:
+/work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1161: undefined reference to `nc_def_enum&#39;
+/login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_insert_enum&#39;:
+/work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1200: undefined reference to `nc_insert_enum&#39;
+/login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_inq_enum&#39;:
+/work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1232: undefined reference to `nc_inq_enum&#39;
+/login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_inq_enum_member&#39;:
+/work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1274: undefined reference to `nc_inq_enum_member&#39;
+/login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_inq_enum_ident&#39;:
+/work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1309: undefined reference to `nc_inq_enum_ident&#39;
+/login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_def_opaque&#39;:
+/work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1344: undefined reference to `nc_def_opaque&#39;
+/login/jdha/utils/netcdf_mob_intel/lib/libnetcdff.a(nf_nc4.o): In function `nf_inq_opaque&#39;:
+/work/jdha/TOSORT/utils/netcdf-fortran/fortran/nf_nc4.f90:1377: undefined reference to `nc_inq_opaque&#39;
+fcm_internal load failed (256)
+gmake: *** [test_remap.exe] Error 1
+gmake -f /work/jelt/NEMO/xios-2.0_r1080/Makefile -j 1 all failed (2) at /work/jelt/NEMO/xios-2.0_r1080/tools/FCM/bin/../lib/Fcm/Build.pm line 597
+-&gt;Make: 854 seconds
+-&gt;TOTAL: 878 seconds
+Build failed on Mon Oct 23 10:16:37 2017.
+</pre></div>
+</div>
+<p><em>(END OF JEFF&#8217;S INVESTIGATION)</em>
+... have looked at Jeff&#8217;s arch files for ARCHER and tried modifiying some bits of my configuration file that could be the issue with no luck. However I have found a webpage on the NEMO site that has identified a similar problem:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">forge</span><span class="o">.</span><span class="n">ipsl</span><span class="o">.</span><span class="n">jussieu</span><span class="o">.</span><span class="n">fr</span><span class="o">/</span><span class="n">orchidee</span><span class="o">/</span><span class="n">wiki</span><span class="o">/</span><span class="n">DevelopmentActivities</span><span class="o">/</span><span class="n">ORCHIDEE</span><span class="o">-</span><span class="n">MICT</span><span class="o">-</span><span class="n">IMBALANCE</span><span class="o">-</span><span class="n">P</span><span class="o">/</span><span class="n">knownissues</span>
+</pre></div>
+</div>
+<p>This seems to be similar so have tried the fix by modifying the make_xios file and the arch*.path file.</p>
+<p>I changed a line in the makenemo:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">From</span><span class="p">:</span> <span class="n">XIOS_LIB</span><span class="o">=</span><span class="s2">&quot;$XIOS_LIB $NETCDF_LIBDIR $HDF5_LIBDIR $MPI_LIBDIR $NETCDF_LIB $HDF5_LIB $MPI_LIB&quot;</span>
+<span class="n">To</span><span class="p">:</span>   <span class="n">XIOS_LIB</span><span class="o">=</span><span class="s2">&quot;$XIOS_LIB $NETCDF_LIBDIR $HDF5_LIBDIR $MPI_LIBDIR $NETCDF_LIB $HDF5_LIB -L$MPI_LIB -lnetcdff&quot;</span>
+</pre></div>
+</div>
+<p>And changes the HDF5_LIB line in the .path file too:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">HDF5_LIB</span><span class="o">=</span><span class="s2">&quot;-lhdf5_hl -lhdf5 -lhdf5 -lz -lcurl&quot;</span>
+</pre></div>
+</div>
+<p>However this produced an error with lcurl so was removed resulting in</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">HDF5_LIB</span><span class="o">=</span><span class="s2">&quot;-lhdf5_hl -lhdf5 -lhdf5 -lz&quot;</span>
+</pre></div>
+</div>
+<p>Still doesn&#8217;t work. Hmmmmmmm sure its something simple but what? Current error message is as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fcm_internal</span> <span class="n">load</span> <span class="n">failed</span> <span class="p">(</span><span class="mi">256</span><span class="p">)</span>
+<span class="n">gmake</span><span class="p">:</span> <span class="o">***</span> <span class="p">[</span><span class="n">test_remap</span><span class="o">.</span><span class="n">exe</span><span class="p">]</span> <span class="n">Error</span> <span class="mi">1</span>
+<span class="n">gmake</span> <span class="o">-</span><span class="n">f</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">thopri</span><span class="o">/</span><span class="n">NEMO</span><span class="o">/</span><span class="n">xios</span><span class="o">-</span><span class="mf">2.0</span><span class="n">_r1080</span><span class="o">/</span><span class="n">Makefile</span> <span class="o">-</span><span class="n">j</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">failed</span> <span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="n">at</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">thopri</span><span class="o">/</span><span class="n">NEMO</span><span class="o">/</span><span class="n">xios</span><span class="o">-</span><span class="mf">2.0</span><span class="n">_r1080</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">FCM</span><span class="o">/</span><span class="nb">bin</span><span class="o">/../</span><span class="n">lib</span><span class="o">/</span><span class="n">Fcm</span><span class="o">/</span><span class="n">Build</span><span class="o">.</span><span class="n">pm</span> <span class="n">line</span> <span class="mi">597</span>
+<span class="o">-&gt;</span><span class="n">Make</span><span class="p">:</span> <span class="mi">867</span> <span class="n">seconds</span>
+<span class="o">-&gt;</span><span class="n">TOTAL</span><span class="p">:</span> <span class="mi">891</span> <span class="n">seconds</span>
+<span class="n">Build</span> <span class="n">failed</span> <span class="n">on</span> <span class="n">Fri</span> <span class="n">Oct</span> <span class="mi">20</span> <span class="mi">15</span><span class="p">:</span><span class="mi">14</span><span class="p">:</span><span class="mi">40</span> <span class="mf">2017.</span>
+</pre></div>
+</div>
+<p>Have found James Harle documentation on how to run NEMO on mobius which is helpful if I need to remake arch files. but am trying to build XIOS again, have downloaded NEMO code as well as it may be required to build XIOS (downloading NEMO comes first in many guides).</p>
+<p>I think the issue is with the libraries that James has put together, they work for XIOS1 but the errors relate to undefined references in these libraries so I don&#8217;t think they are compatable with XIOS2.</p>
+<p>Link the xios-2.0_r1080 to a generic XIOS directory name:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ln -s  $WORK/xios-2.0_r108  $WORK/XIOS
+</pre></div>
+</div>
+<p>ARCH file needs to be modifed to point to correct XIOS instance:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $CDIR/../ARCH/arch-mobius_intel.fcm
+</pre></div>
+</div>
+<p>Checkout and build NEMO (ORCHESTRA) trunk &#64; r8395 <a href="#id3"><span class="problematic" id="id4">`build_opa_orchestra.html`_</span></a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
+svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
+cp $WORK/Mobius/1arch-mobius_intel.fcm $CDIR/../ARCH/arch-mobius_intel.fcm
+</pre></div>
+</div>
+<p>Then build:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR
+./makenemo -n $CONFIG -m mobius_intel -j 10 clean
+say yes to OPA_SRC no to everything else
+</pre></div>
+</div>
+<p>&#8212;</p>
+</div>
+<div class="section" id="build-tools">
+<h2>Build TOOLS<a class="headerlink" href="#build-tools" title="Permalink to this headline">¶</a></h2>
+<p>To generate domain coords and rebuild tools we first need
+to compile some of the NEMO TOOLS.</p>
+<p>First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
+(see userid and path in variable <code class="docutils literal"><span class="pre">%XIOS_HOME</span></code>). Copy from ARCH <em>store</em>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $WORK/$USER/ARCH/arch-XC_ARCHER_INTEL_XIOS1.fcm $CDIR/../ARCH/.
+cd $TDIR
+
+./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
+./maketools -n REBUILD_NEMO -m XC_ARCHER_INTEL_XIOS1
+</pre></div>
+</div>
+<p>For the generation of bathymetry: I actually use some old WEIGHTS tools that I
+patched and have previously compiled.
+I have not reproduced the compilation here (need to keep if the source needs patching
+again). If it didn&#8217;t need patching:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#./maketools -n WEIGHTS -m XC_ARCHER_INTEL_XIOS1</span>
+</pre></div>
+</div>
+<p>Otherwise we will use the weights tool in:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export OLD_TDIR=$WORK/$USER/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/
+</pre></div>
+</div>
+<div class="section" id="generate-new-coordinates-file">
+<h3>1. Generate new coordinates file<a class="headerlink" href="#generate-new-coordinates-file" title="Permalink to this headline">¶</a></h3>
+<p>Generate a <code class="docutils literal"><span class="pre">coordinates.nc</span></code> file from a parent NEMO grid at some resolution.
+<strong>Plan:</strong> Use tool <code class="docutils literal"><span class="pre">agrif_create_coordinates.exe</span></code> which reads cutting indices and
+parent grid location from <code class="docutils literal"><span class="pre">namelist.input</span></code> and outputs a new files with new
+resolution grid elements.</p>
+<p>Edit namelist:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR/NESTING
+vi namelist.input
+
+&amp;input_output
+    iom_activated = true
+/
+&amp;coarse_grid_files
+    parent_coordinate_file = &#39;coordinates_ORCA_R12.nc&#39;
+/
+&amp;bathymetry
+/
+&amp;nesting
+    imin = 865
+    imax = 1405
+    jmin = 1116
+    jmax = 1494
+    rho  = 5
+    rhot = 5
+    bathy_update = false
+/
+&amp;vertical_grid
+/
+&amp;partial_cells
+/
+&amp;nemo_coarse_grid
+/
+&amp;forcing_files
+/
+&amp;interp
+/
+&amp;restart
+/
+&amp;restart_trc
+/
+</pre></div>
+</div>
+<p>Build and execute agrif version of create_coordinates.exe.
+See <a href="#id5"><span class="problematic" id="id6">`build_and_create_coordinates.rst`_</span></a></p>
+<p>This creates a new coordinatesfile with contents, which is now copied to
+INPUTS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp 1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc
+</pre></div>
+</div>
+<p>Now we need to generate a bathymetry on this new grid.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Setting up a SW Pacific NEMO v4 configuration</a><ul>
+<li><a class="reference internal" href="#issues-that-arose">Issues that arose</a></li>
+<li><a class="reference internal" href="#recipe-notes">Recipe Notes</a></li>
+<li><a class="reference internal" href="#collect-essential-files">Collect essential files</a></li>
+<li><a class="reference internal" href="#build-tools">Build TOOLS</a><ul>
+<li><a class="reference internal" href="#generate-new-coordinates-file">1. Generate new coordinates file</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/SW_Pacific_mobius_livljobs4.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/SW_Pacific_mobius_livljobs4.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

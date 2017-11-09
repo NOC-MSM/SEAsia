@@ -1,0 +1,631 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Grid generation and inputs files using Liverpool machine. Application SE Asia &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="grid-generation-and-inputs-files-using-liverpool-machine-application-se-asia">
+<h1>Grid generation and inputs files using Liverpool machine. Application SE Asia<a class="headerlink" href="#grid-generation-and-inputs-files-using-liverpool-machine-application-se-asia" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li>Port of LBay.rst, which was written for ARCHER. This is for liverpool machines</li>
+<li>Concerned here with generating grids, bathymetry and forcing files for a new config</li>
+<li>Aim is to run this anywhere (ARCHER), but generate setup locally.</li>
+</ul>
+<div class="section" id="recipe-notes">
+<h2>Recipe Notes<a class="headerlink" href="#recipe-notes" title="Permalink to this headline">¶</a></h2>
+<p><em>(27/09/2017)</em></p>
+<p>Build NEMO on Mobius:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ssh</span> <span class="n">mobius</span>
+</pre></div>
+</div>
+<p>Step One:-</p>
+<p>Define working and other directory, load relevent modules:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export CONFIG=LBay
+export WDIR=/work/$USER/NEMO/$CONFIG
+export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
+      export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
+export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+      export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+module purge
+      module load shared intel/compiler/64/14.0/2013_sp1.3.174 mvapich2/intel/64/2.0b slurm/14.03.0 cluster-tools/7.0
+</pre></div>
+</div>
+<p>CDIR, TDIR and INPUTS do not currently exist. Lets make them!:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>mkdir $WDIR
+mkdir $START_FILES # Untar start_files.tar if it is complete
+</pre></div>
+</div>
+<p>Checkout NEMO and XIOS paynote to revision number:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
+svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2014/dev_r4621_NOC4_BDY_VERT_INTERP@5709
+svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
+</pre></div>
+</div>
+<p>Need to get arch files. NB These point to jdha utils paths:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/xios-1.0
+cp $START_FILES/arch* ./arch
+</pre></div>
+</div>
+<p>I think XIOS is needed to make NEMO run, which I need to generate mesh files.
+Compile XIOS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">make_xios</span> <span class="o">--</span><span class="n">full</span> <span class="o">--</span><span class="n">prod</span> <span class="o">--</span><span class="n">arch</span> <span class="n">mobius_intel</span>  <span class="o">--</span><span class="n">netcdf_lib</span> <span class="n">netcdf4_par</span> <span class="o">--</span><span class="n">jobs</span> <span class="mi">6</span>
+</pre></div>
+</div>
+<p>Step two. Obtain and apply patches:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>      export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+      export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+      cd $CDIR/../NEMO/OPA_SRC/SBC
+      patch -b &lt; $START_FILES/fldread.patch
+      cd ../DOM
+      patch -b &lt; $START_FILES/dommsk.patch
+      cd ../BDY
+      patch -b &lt; $START_FILES/bdyini.patch
+      cd $CDIR
+      rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
+cp $START_FILES/1arch-mobius_intel.fcm $CDIR/../ARCH/arch-mobius_intel.fcm
+</pre></div>
+</div>
+<p>Edit XIOS path in arch file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $CDIR/../ARCH/arch-mobius_intel.fcm
+...
+%XIOS_HOME           /work/thopri/NEMO/LBay/xios-1.0
+...
+</pre></div>
+</div>
+<div class="section" id="blind-bake-a-fresh-nemo-config">
+<h3>Blind bake a fresh NEMO config<a class="headerlink" href="#blind-bake-a-fresh-nemo-config" title="Permalink to this headline">¶</a></h3>
+<p>Create new config. Select only OPA_SRC option:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>./makenemo -n $CONFIG -m mobius_intel -j 10 clean
+</pre></div>
+</div>
+<p>Create / Edit new cpp keys file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>echo &quot;bld::tool::fppkeys   key_dynspg_ts key_ldfslp key_zdfgls key_vvl key_mpp_mpi key_netcdf4 key_nosignedzero key_iomput key_gen_IC key_bdy&quot; &gt; $CDIR/$CONFIG/cpp_$CONFIG.fcm
+</pre></div>
+</div>
+<p>Add a F90 file that handles initial conditions to MY_SRC:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/dtatsd.F90 $CDIR/$CONFIG/MY_SRC/
+</pre></div>
+</div>
+<p>Compile NEMO:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>./makenemo -n $CONFIG -m mobius_intel -j 10
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="build-tools-on-livljobs4">
+<h2>Build tools on livljobs4<a class="headerlink" href="#build-tools-on-livljobs4" title="Permalink to this headline">¶</a></h2>
+<p>To generate bathymetry, initial conditions and grid information we first need
+to compile some of the NEMO TOOLS (after a small bugfix - and to allow direct
+passing of arguments). <strong>For some reason GRIDGEN doesn’t like INTEL.</strong>
+<strong>Do this on livljobs4</strong>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ssh</span> <span class="n">livljobs4</span>
+</pre></div>
+</div>
+<p>Copy PATHS again:: #I added some paths here and changed some to match the ones used in MOBIUS.</p>
+<blockquote>
+<div>export CONFIG=LBay
+export WDIR=/work/$USER/NEMO/$CONFIG
+export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
+export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
+export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS</div></blockquote>
+<p>Apply patches:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR/WEIGHTS/src
+patch -b &lt; $START_FILES/scripinterp_mod.patch
+patch -b &lt; $START_FILES/scripinterp.patch
+patch -b &lt; $START_FILES/scrip.patch
+patch -b &lt; $START_FILES/scripshape.patch
+patch -b &lt; $START_FILES/scripgrid.patch
+</pre></div>
+</div>
+<p>Setup for PGI modules and compile:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR
+cp $START_FILES/arch-pgf90_linux_jb.fcm $CDIR/../ARCH/arch-pgf90_linux_jb.fcm
+#get arch file from Jeff&#39;s workspace first
+cp $START_FILES/arch-pgf90_linux_jb.fcm $TDIR/../ARCH/arch-pgf90_linux_jb.fcm
+
+module add netcdf/gcc/4.1.3
+module add pgi/15.4
+
+./maketools -n WEIGHTS -m pgf90_linux_jb
+./maketools -n REBUILD_NEMO -m pgf90_linux_jb
+./maketools -n GRIDGEN -m pgf90_linux_jb
+</pre></div>
+</div>
+<p>Next we use these tools.</p>
+<div class="section" id="generate-new-coordinates-file">
+<h3>1. Generate new coordinates file<a class="headerlink" href="#generate-new-coordinates-file" title="Permalink to this headline">¶</a></h3>
+<p>Generate a <code class="docutils literal"><span class="pre">coordinates.nc</span></code> file from a parent NEMO grid at some resolution.
+<strong>Plan:</strong> Use tool <code class="docutils literal"><span class="pre">create_coordinates.exe</span></code> which reads cutting indices and
+parent grid location from <code class="docutils literal"><span class="pre">namelist.input</span></code> and outputs a new files with new
+resolution grid elements.</p>
+<p>First we need to figure out the indices for the new domain, from the parent grid.
+It is from global NEMO 1/12, and in INPUTS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ls -lh $START_FILES/coordinates_ORCA_R12.nc
+</pre></div>
+</div>
+<p>Inspect this parent coordinates file to define the boundary indices for the new config.</p>
+<p>Use indices  <strong>i=3385:3392 j=2251:2266</strong></p>
+<p>&#8212;</p>
+<p>Copy namelist file from INPUTS and edit with new indices, retaining use of
+ORCA_R12 as course parent grid. Keep same grid ie. 1/12 degree, so scale factors are unitary. (Still on livljobs4):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR/GRIDGEN
+cp $START_FILES/namelist_R12 ./
+vi namelist_R12
+...
+
+JEFF::
+cn_parent_coordinate_file = &#39;../../../../INPUTS/coordinates_ORCA_R12.nc&#39;
+
+TOM::
+cn_parent_coordinate_file = &#39;../../../../START_FILES/coordinates_ORCA_R12.nc&#39;
+cn_parent_coordinate_file = &#39;../../../../START_FILES/coordinates_ORCA_R12.nc&#39;
+
+...
+nn_imin = 3385
+nn_imax = 3392
+nn_jmin = 2251
+nn_jmax = 2266
+
+#the next two parameters define the scale factor of the output grid 1 being the same resolution. Higher integers results in a finer grid. i.e. 2 = two times finer etc.
+nn_rhox  = 2
+nn_rhoy = 2
+
+ln -s namelist_R12 namelist.input
+./create_coordinates.exe
+</pre></div>
+</div>
+<p>This generates <code class="docutils literal"><span class="pre">1_coordinates_ORCA_R12.nc</span></code>,</p>
+<p>Collect built items specific to the new configuration in INPUTS.
+Move this coords file there as <a href="#id1"><span class="problematic" id="id2">``</span></a>coordinates.nc:</p>
+<dl class="docutils">
+<dt>TOM::</dt>
+<dd>cd $WDIR
+mkdir INPUTS
+mv $TDIR/GRIDGEN/1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc</dd>
+</dl>
+<p>File summary:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ncdump -h $WDIR/INPUTS/coordinates.nc
+</pre></div>
+</div>
+<p>netcdf coordinates {
+dimensions:</p>
+<blockquote>
+<div>x = 10 ;
+y = 18 ;
+z = 1 ;
+time = UNLIMITED ; // (1 currently)</div></blockquote>
+<dl class="docutils">
+<dt>variables:</dt>
+<dd><dl class="first last docutils">
+<dt>float nav_lon(y, x) ;</dt>
+<dd>nav_lon:units = &#8220;degrees_east&#8221; ;
+nav_lon:valid_min = -3.666563f ;
+nav_lon:valid_max = -2.68825f ;
+nav_lon:long_name = &#8220;Longitude&#8221; ;</dd>
+<dt>float nav_lat(y, x) ;</dt>
+<dd>nav_lat:units = &#8220;degrees_north&#8221; ;
+nav_lat:valid_min = 53.04568f ;
+nav_lat:valid_max = 53.98522f ;
+nav_lat:long_name = &#8220;Latitude&#8221; ;</dd>
+<dt>float nav_lev(z) ;</dt>
+<dd>nav_lev:units = &#8220;model_levels&#8221; ;
+nav_lev:valid_min = 0.f ;
+nav_lev:valid_max = 0.f ;
+nav_lev:long_name = &#8220;Model levels&#8221; ;</dd>
+<dt>float time(time) ;</dt>
+<dd>time:units = &#8220;seconds since 0000-01-01 00:00:00&#8221; ;
+time:long_name = &#8220;Time axis&#8221; ;
+time:calendar = &#8220;gregorian&#8221; ;
+time:title = &#8220;Time&#8221; ;
+time:time_origin = &#8221; 0000-JAN-01 00:00:00&#8221; ;</dd>
+<dt>int time_steps(time) ;</dt>
+<dd>time_steps:units = &#8220;timesteps since 0000-01-01 00:00:00&#8221; ;
+time_steps:long_name = &#8220;Time step axis&#8221; ;
+time_steps:title = &#8220;Time steps&#8221; ;
+time_steps:time_origin = &#8221; 0000-JAN-01 00:00:00&#8221; ;
+time_steps:tstep_sec = 0.f ;</dd>
+<dt>double glamt(z, y, x) ;</dt>
+<dd>glamt:missing_value = 1.e+20f ;</dd>
+<dt>double glamu(z, y, x) ;</dt>
+<dd>glamu:missing_value = 1.e+20f ;</dd>
+<dt>double glamv(z, y, x) ;</dt>
+<dd>glamv:missing_value = 1.e+20f ;</dd>
+<dt>double glamf(z, y, x) ;</dt>
+<dd>glamf:missing_value = 1.e+20f ;</dd>
+<dt>double gphit(z, y, x) ;</dt>
+<dd>gphit:missing_value = 1.e+20f ;</dd>
+<dt>double gphiu(z, y, x) ;</dt>
+<dd>gphiu:missing_value = 1.e+20f ;</dd>
+<dt>double gphiv(z, y, x) ;</dt>
+<dd>gphiv:missing_value = 1.e+20f ;</dd>
+<dt>double gphif(z, y, x) ;</dt>
+<dd>gphif:missing_value = 1.e+20f ;</dd>
+<dt>double e1t(z, y, x) ;</dt>
+<dd>e1t:missing_value = 1.e+20f ;</dd>
+<dt>double e1u(z, y, x) ;</dt>
+<dd>e1u:missing_value = 1.e+20f ;</dd>
+<dt>double e1v(z, y, x) ;</dt>
+<dd>e1v:missing_value = 1.e+20f ;</dd>
+<dt>double e1f(z, y, x) ;</dt>
+<dd>e1f:missing_value = 1.e+20f ;</dd>
+<dt>double e2t(z, y, x) ;</dt>
+<dd>e2t:missing_value = 1.e+20f ;</dd>
+<dt>double e2u(z, y, x) ;</dt>
+<dd>e2u:missing_value = 1.e+20f ;</dd>
+<dt>double e2v(z, y, x) ;</dt>
+<dd>e2v:missing_value = 1.e+20f ;</dd>
+<dt>double e2f(z, y, x) ;</dt>
+<dd>e2f:missing_value = 1.e+20f ;</dd>
+</dl>
+</dd>
+</dl>
+<p>Now we need to generate a bathymetry on this new grid.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="generate-bathymetry-file">
+<h3>2. Generate bathymetry file<a class="headerlink" href="#generate-bathymetry-file" title="Permalink to this headline">¶</a></h3>
+<p>Download some GEBCO 2014 data (-4E,53N,-2E,54N) and copy to $INPUTS:</p>
+<p>Tom:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">File</span> <span class="kn">from</span> <span class="nn">BODC</span><span class="p">:</span> <span class="n">GEBCO_2014_2D_</span><span class="o">-</span><span class="mf">4.0</span><span class="n">_53</span><span class="o">.</span><span class="mi">0</span><span class="n">_</span><span class="o">-</span><span class="mf">2.0</span><span class="n">_54</span><span class="o">.</span><span class="mf">0.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>Jeff:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>livmaf$ scp ~/Downloads/RN-9621_1506544326915/GEBCO_2014_2D_75.0_-21.0_134.0_25.0.nc jelt@livljobs4.nerc-liv.ac.uk:$INPUTS/GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc
+</pre></div>
+</div>
+<p>Copy namelist for reshaping GEBCO data:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/namelist_reshape_bilin_gebco $INPUTS/.
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Edit namelist to point to correct input file. Edit lat and lon variable names to</dt>
+<dd>make sure they match the nc file content (used e.g.</dd>
+</dl>
+<p><code class="docutils literal"><span class="pre">ncdump</span> <span class="pre">-h</span> <span class="pre">GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc</span></code> to get input
+variable names):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $INPUTS/namelist_reshape_bilin_gebco
+...
+&amp;grid_inputs
+  input_file = &#39;gebco_in.nc&#39;
+  nemo_file = &#39;coordinates.nc&#39;
+  ...
+  input_lon = &#39;lon&#39;
+  input_lat = &#39;lat&#39;
+  nemo_lon = &#39;glamt&#39;
+  nemo_lat = &#39;gphit&#39;
+  ...
+
+  &amp;interp_inputs
+  input_file = &quot;gebco_in.nc&quot;
+  ...
+  input_name = &quot;elevation&quot;
+</pre></div>
+</div>
+<p>Do some things to 1) flatten out land elevations, 2) make depths positive. <em>(James
+noted a problem with the default nco module)</em>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $INPUTS
+module load nco/gcc/4.4.2.ncwa
+ncap2 -s &#39;where(elevation &gt; 0) elevation=0&#39; GEBCO_2014_2D_-4.0_53.0_-3.0_54.0.nc tmp.nc
+ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
+rm tmp.nc
+</pre></div>
+</div>
+<p>Restore the original modules for building tools, which were tampered with to fix a bathy building issue:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">purge</span>
+<span class="n">module</span> <span class="n">add</span> <span class="n">netcdf</span><span class="o">/</span><span class="n">gcc</span><span class="o">/</span><span class="mf">4.1</span><span class="o">.</span><span class="mi">3</span>
+<span class="n">module</span> <span class="n">add</span> <span class="n">pgi</span><span class="o">/</span><span class="mf">15.4</span>
+</pre></div>
+</div>
+<p>Execute first scrip thing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
+</pre></div>
+</div>
+<p>Output files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">remap_nemo_grid_gebco</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">remap_data_grid_gebco</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p><em>(28 Sept 2017)</em></p>
+<p>Execute second scrip thing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
+</pre></div>
+</div>
+<p>Output files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">data_nemo_bilin_gebco</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>Execute third scip thing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
+</pre></div>
+</div>
+<p>Output files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bathy_meter</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="generate-mesh-and-mask-files-for-open-boundary-conditions">
+<h3>3. Generate mesh and mask files for open boundary conditions<a class="headerlink" href="#generate-mesh-and-mask-files-for-open-boundary-conditions" title="Permalink to this headline">¶</a></h3>
+<p>Run the model to generate the mesh and mask files.
+<em>(I should look like this when all the files are in place. Structure copied from ARCHER)</em>
+The instructions below are for running the model on mobius:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ssh mobius
+
+export CONFIG=LBay
+export WDIR=/work/$USER/NEMO/$CONFIG
+export START_FILES=$WDIR/START_FILES # generic stuff for making more stuff. Mostly code.
+export INPUTS=$WDIR/INPUTS         # config specific stuff that gets made and is for running NEMO
+export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+export EXP=$CDIR/$CONFIG/EXP00
+
+module purge
+module load shared intel/compiler/64/14.0/2013_sp1.3.174 mvapich2/intel/64/2.0b slurm/14.03.0 cluster-tools/7.0
+
+cd $CDIR
+ln -s $INPUTS/bathy_meter.nc $EXP/bathy_meter.nc
+ln -s $INPUTS/coordinates.nc $EXP/coordinates.nc
+cp $START_FILES/runscript.pbs $EXP/.
+cp $START_FILES/namelist_cfg $EXP/namelist_cfg
+cp $START_FILES/namelist_ref $EXP/namelist_ref
+./makenemo -n LBay -m mobius_intel -j 10 clean
+./makenemo -n LBay -m mobius_intel -j 10
+cd $EXP
+ln -s $WDIR/xios-1.0/bin/xios_server.exe xios_server.exe
+sed &#39;s/rn_ahm_0_lap/rn_ahm_0/&#39; namelist_cfg &gt; tmp; mv tmp namelist_cfg
+</pre></div>
+</div>
+<p>Then submit job:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sbatch</span> <span class="n">runscript</span><span class="o">.</span><span class="n">pbs</span>
+</pre></div>
+</div>
+<p>Get an error and failed run on Mobius but has generated the mesh nc files which is what we needed.</p>
+<p><strong>Update 03/10/2017</strong> Turns out it hasn&#8217;t worked as we need more than just mesh nc files. This addressed later on.</p>
+<dl class="docutils">
+<dt>The mesh_mask.nc files need to be rebuild using NEMO tools as follows::</dt>
+<dd>ssh livljobs4
+module purge
+module add netcdf/gcc/4.1.3
+module add pgi/15.4
+$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 mesh_mask 9</dd>
+</dl>
+<p><strong>Update 11/10/2017 have been trying to rebuild the mesh filesand switching to SEAsia config but still haveing issues</strong></p>
+</div>
+<div class="section" id="generate-boundary-conditions-with-pynemo-create-netcdf-abstraction-wrapper">
+<h3>6. Generate boundary conditions with PyNEMO: Create netcdf abstraction wrapper<a class="headerlink" href="#generate-boundary-conditions-with-pynemo-create-netcdf-abstraction-wrapper" title="Permalink to this headline">¶</a></h3>
+<p>In this section there are two stages.</p>
+<ul class="simple">
+<li>generate a ncml file which describes the files needed to create boundary conditions</li>
+<li>generate a namelist.bdy file which controls the actual boundary condition generation.</li>
+</ul>
+<p>For each parent data set a new pair of (<a href="#id3"><span class="problematic" id="id4">*</span></a>.ncml, namelist.bdy) are needed.
+Here I attempt to use parent data from:</p>
+<ul class="simple">
+<li>AMM60 local data (doesn&#8217;t yet work because of the sigma levels)</li>
+<li>thredds server (as in the LH_REEF example)</li>
+<li>NNA local data (easiest ?)</li>
+</ul>
+<p>First install PyNEMO if not already done so. Full description:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ssh</span> <span class="o">-</span><span class="n">Y</span> <span class="n">livljobs4</span>
+<span class="n">cd</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">jelt</span>
+<span class="n">mkdir</span> <span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">NEMO</span><span class="o">/</span><span class="n">LBay</span>
+<span class="n">export</span> <span class="n">WDIR</span><span class="o">=/</span><span class="n">work</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">NEMO</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">anaconda</span><span class="o">/</span><span class="mf">2.1</span><span class="o">.</span><span class="mi">0</span>  <span class="c1"># Want python2</span>
+<span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">nrct_env</span> <span class="n">scipy</span><span class="o">=</span><span class="mf">0.16</span><span class="o">.</span><span class="mi">0</span> <span class="n">numpy</span> <span class="n">matplotlib</span><span class="o">=</span><span class="mf">1.5</span><span class="o">.</span><span class="mi">1</span> <span class="n">basemap</span> <span class="n">netcdf4</span> <span class="n">libgfortran</span><span class="o">=</span><span class="mf">1.0</span><span class="o">.</span><span class="mi">0</span>
+<span class="n">source</span> <span class="n">activate</span> <span class="n">nrct_env</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">seawater</span><span class="o">=</span><span class="mf">3.3</span><span class="o">.</span><span class="mi">4</span> <span class="c1"># Note had to add https path</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">srikanthnagella</span> <span class="n">thredds_crawler</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">srikanthnagella</span> <span class="n">pyjnius</span>
+</pre></div>
+</div>
+<p>Find java object by doing a which java and then following the trail
+find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+unset SSH_ASKPASS # Didn&#39;t need this on ARCHER...
+git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
+#didn&#39;t bother asking Jeff for password or access and just downloaded from his workspace.
+cd nrct/Python
+python setup.py build
+export PYTHONPATH=/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
+python setup.py install --prefix ~/.conda/envs/nrct_env
+cd $WDIR/INPUTS
+</pre></div>
+</div>
+<p>I suggest managing the namelist.bdy file after the ncml file is generated.
+A fresh ncml file can be generated automatically or an existing one can be edited.</p>
+</div>
+<div class="section" id="generate-ncml-files">
+<h3>7. Generate ncml files<a class="headerlink" href="#generate-ncml-files" title="Permalink to this headline">¶</a></h3>
+<p>Activate generator:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pynemo_ncml_generator</span>
+</pre></div>
+</div>
+<p>Here the object is to generate a ncml file that is read in by PyNEMO as the sn_src_dir
+(in the namelist.bdy file)</p>
+<p>For each of the tracer and dynamics variables enter the following URL as the source directory:</p>
+<p><a class="reference external" href="http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data">http://esurgeod.noc.soton.ac.uk:8080/thredds/dodsC/PyNEMO/data</a></p>
+<p>Add a regular expression for each (Temperature, Salinity and Sea Surface Height each use: .*T.nc$ and the velocities use .*U.nc$ and .*V.nc$) After each entry click the Add button. Finally fill in the output file including directory path (this should match sn_src_dir).Defining the filename seems to work better with the file selector rather than direct typing. Once this is complete click on the generate button and an ncml file should be written to $WDIR.</p>
+<p>In the following I have three ncml files.
+* One for using the thredds server to get remote ORCA12 data.
+* One for using local AMM60 data, with ackward s-sigma levels
+* One for using local NNA data</p>
+<p>Thredds server did not work for me so have downloaded 2000 NNA data from Jeff and will use this instead. Will make ncml file using it as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/INPUTS
+vi NNA_inputs_src.ncml
+
+&lt;ns0:netcdf xmlns:ns0=&quot;http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2&quot; title=&quot;NEMO aggregation&quot;&gt;
+  &lt;ns0:aggregation type=&quot;union&quot;&gt;
+    &lt;ns0:netcdf&gt;
+      &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;votemper&quot; type=&quot;joinExisting&quot;&gt;
+        &lt;ns0:scan location=&quot;file://work/thopri/NEMO/LBay/INPUTS/NNA&quot; regExp=&quot;.*T\.nc$&quot; /&gt;
+      &lt;/ns0:aggregation&gt;
+    &lt;/ns0:netcdf&gt;
+    &lt;ns0:netcdf&gt;
+      &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;vosaline&quot; type=&quot;joinExisting&quot;&gt;
+        &lt;ns0:scan location=&quot;file://work/thopri/NEMO/LBay/INPUTS/NNA&quot; regExp=&quot;.*T\.nc$&quot; /&gt;
+      &lt;/ns0:aggregation&gt;
+    &lt;/ns0:netcdf&gt;
+    &lt;ns0:netcdf&gt;
+      &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;vozocrtx&quot; type=&quot;joinExisting&quot;&gt;
+        &lt;ns0:scan location=&quot;file://work/thopri/NEMO/LBay/INPUTS/NNA&quot; regExp=&quot;.*U\.nc$&quot; /&gt;
+      &lt;/ns0:aggregation&gt;
+    &lt;/ns0:netcdf&gt;
+    &lt;ns0:netcdf&gt;
+      &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;vomecrty&quot; type=&quot;joinExisting&quot;&gt;
+        &lt;ns0:scan location=&quot;file://work/thopri/NEMO/LBay/INPUTS/NNA&quot; regExp=&quot;.*V\.nc$&quot; /&gt;
+      &lt;/ns0:aggregation&gt;
+    &lt;/ns0:netcdf&gt;
+    &lt;ns0:netcdf&gt;
+      &lt;ns0:aggregation dimName=&quot;time_counter&quot; name=&quot;sossheig&quot; type=&quot;joinExisting&quot;&gt;
+        &lt;ns0:scan location=&quot;file://work/thopri/NEMO/LBay/INPUTS/NNA&quot; regExp=&quot;.*T\.nc$&quot; /&gt;
+      &lt;/ns0:aggregation&gt;
+    &lt;/ns0:netcdf&gt;
+  &lt;/ns0:aggregation&gt;
+&lt;/ns0:netcdf&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="generate-the-namelist-bdy-file-for-pynemo">
+<h3>8. Generate the namelist.bdy file for PyNEMO<a class="headerlink" href="#generate-the-namelist-bdy-file-for-pynemo" title="Permalink to this headline">¶</a></h3>
+<p>Copy the PyNEMO template namelist.bdy from the start files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/INPUTS
+cp $START_FILES/namelist.bdy $WDIR/INPUTS/.
+</pre></div>
+</div>
+<p>Edit namelist.bdy to for the configuration name and ncml file name. Note
+need the slash following OUTPUT:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist.bdy
+sn_src_dir = &#39;./inputs_src.ncml&#39;       ! src_files/&#39;
+sn_dst_dir = &#39;/work/n01/n01/jelt/LBay/OUTPUT/&#39;
+sn_fn      = &#39;LBay&#39;                 ! prefix for output files
+...
+cn_mask_file   = &#39;./mask.nc&#39;                   !  name of mask file (if ln_mask_file=.TRUE.)
+</pre></div>
+</div>
+</div>
+<div class="section" id="generate-boundary-conditions-with-pynemo-rn-pynemo">
+<h3>9. Generate boundary conditions with PyNEMO: Rn PyNEMO<a class="headerlink" href="#generate-boundary-conditions-with-pynemo-rn-pynemo" title="Permalink to this headline">¶</a></h3>
+<p>Using livljobs4</p>
+<p>Make sure the NNA data is available:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>I got it from Jeff&#39;s workspace /work/jelt/NEMO/LBay/INPUTS/NNA
+cp $START_FILES/NNA/. $INPUTS/.
+</pre></div>
+</div>
+<p>Make sure the destination meshes exist. These were generated by running the new config for a timestep:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">See</span> <span class="n">section</span> <span class="mi">3</span>
+<span class="o">**</span><span class="n">UPDATE</span><span class="o">**</span> <span class="n">Only</span> <span class="n">mesh_mask</span><span class="o">.</span><span class="n">nc</span> <span class="n">files</span> <span class="n">present</span> <span class="n">rather</span> <span class="n">than</span> <span class="n">mesh_zgr</span> <span class="ow">and</span> <span class="n">mesh_hgr</span> <span class="n">so</span> <span class="n">will</span> <span class="n">investigate</span> <span class="n">this</span> <span class="n">issue</span><span class="o">.</span>
+</pre></div>
+</div>
+<p><strong>PROGRESS TO DATE 03/10/2017</strong> Need to sort GRIDGEN and get mesh files from NEMO. Jeff uses 7 for nn_rhoy and nn_rhox which results in segmentation fault for me. using 1 works but think it may cause issues with running NEMO.</p>
+<p><strong>AT END OF PROCESS NEED TO BUILD A start_files.tar BALL</strong></p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Grid generation and inputs files using Liverpool machine. Application SE Asia</a><ul>
+<li><a class="reference internal" href="#recipe-notes">Recipe Notes</a><ul>
+<li><a class="reference internal" href="#blind-bake-a-fresh-nemo-config">Blind bake a fresh NEMO config</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#build-tools-on-livljobs4">Build tools on livljobs4</a><ul>
+<li><a class="reference internal" href="#generate-new-coordinates-file">1. Generate new coordinates file</a></li>
+<li><a class="reference internal" href="#generate-bathymetry-file">2. Generate bathymetry file</a></li>
+<li><a class="reference internal" href="#generate-mesh-and-mask-files-for-open-boundary-conditions">3. Generate mesh and mask files for open boundary conditions</a></li>
+<li><a class="reference internal" href="#generate-boundary-conditions-with-pynemo-create-netcdf-abstraction-wrapper">6. Generate boundary conditions with PyNEMO: Create netcdf abstraction wrapper</a></li>
+<li><a class="reference internal" href="#generate-ncml-files">7. Generate ncml files</a></li>
+<li><a class="reference internal" href="#generate-the-namelist-bdy-file-for-pynemo">8. Generate the namelist.bdy file for PyNEMO</a></li>
+<li><a class="reference internal" href="#generate-boundary-conditions-with-pynemo-rn-pynemo">9. Generate boundary conditions with PyNEMO: Rn PyNEMO</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/LBay_config.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/LBay_config.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
