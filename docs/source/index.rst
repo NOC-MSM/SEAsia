@@ -16,22 +16,80 @@ There are two README.md files is this project. Their contents are loaded here an
 Note however that the markdown in the README.md files is not converted into html with the ``make html`` rendering command.
 
 
-Contents:
-=========
+Complete Recipes:
+=================
 
 When a new note file is created manually add it to this list to aid finding it.
 
 .. toctree::
-   :maxdepth: 2
-
-   todo
+   :maxdepth: 1
 
    template
 
-   SEAsia
+   LBay_archer_livljobs4
 
-   LBay
-   
+   LBay_180m
+
+   SEAsia_archer_livljobs4
+
+   SWPacific_archer_livljobs4
+
+   EAfrica
+
+
+Modules:
+========
+.. toctree::
+  :maxdepth: 1
+
+  install_nrct
+
+  build_and_create_coordinates
+
+  build_opa_orchestra
+
+  build_siren_tools
+
+  build_XIOS2
+
+  MPP_decomp_land_suppression
+
+  rebuild_and_inspect_NEMO_output
+
+
+Tools:
+======
+
+.. toctree::
+  :maxdepth: 1
+
+  quickplotNEMO.py
+
+  SEAsia_SSH_anim.py
+
+
+WIP:
+====
+
+.. toctree::
+  :maxdepth: 1
+
+  Solent
+
+  todo
+
+
+
+
+Trouble Shooting:
+=================
+.. toctree::
+  :maxdepth: 2
+
+  trouble_shooting
+
+  updating_namelist_cfg_from_v3.6_to_v4
+
 
 Indices and tables
 ==================

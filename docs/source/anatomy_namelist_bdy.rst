@@ -1,5 +1,5 @@
-Anatomy of the namelist.bdy
-+++++++++++++++++++++++++++
+Anatomy of the NRCT namelist.bdy
+++++++++++++++++++++++++++++++++
 
 This is a brief introduction to the content and use of the ``namelist.bdy`` file
 which controls the Nemo Relocatable Configuration Tool [NRCT] nee PyNEMO.
