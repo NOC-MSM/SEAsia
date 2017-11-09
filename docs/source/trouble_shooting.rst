@@ -1,9 +1,8 @@
 .. contents:: Table of Contents
 
-
+*****
 Trouble Shooting
-++++++++++++++++
-++++++++++++++++
+*****
 
 Things to try if your new configuration isn't working
 
@@ -27,12 +26,11 @@ to use the second option (**multiple_file**).
 
 
 If a run suddenly stops without any errors in your NEMO **ocean.output** or in the cluster error/output files, it could 
-come from the memory of the XIOS server. A way to pass over this is to use more nodes, and using a single core per node
-to access the full memory of the node. An example for Archer, using 1 core of 12 nodes: ::
+come from the memory of the XIOS server (you probably get in the error file something like "OOM killer terminated this process."). 
+A way to pass over this is to use more nodes, and using a single core per node to access the full memory of the node. 
+An example for Archer, using 1 core of 12 nodes: ::
 
    aprun -b -n 12 -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./nemo.exe
-
-
 
 
 My configuration blows up
@@ -126,3 +124,20 @@ OPA source::
 #. If the model is blowing up at the boundary and the water is shallow. Have the tidal transports be mapped from parent to child grid correctly?
 
 ---
+
+
+Memory error for combining outputs (ARCHER)
+===========================================
+
+If your configuration becomes massive, combining the output might bring memory issues on **ARCHER** login nodes.
+A solution is to submit on the post-processing node. However post-processing nodes and computing nodes have different
+architecture and you need to recompile your tools for it. Basically on those node the compiler shortcuts (ftn, CC, ...) 
+are not recognized so you need to alter them depending on the compiler. for example with intel, **ftn** becomes **ifort**.
+
+More details can be find on the ARCHER documentation :
+   http://www.archer.ac.uk/documentation/user-guide/development.php#sec-4.7
+
+
+
+
+
