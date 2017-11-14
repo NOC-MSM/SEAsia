@@ -239,7 +239,7 @@ thopri downloaded, by parts, and merged 1 minute GEBCO data for (-30N :0N , -170
 Method in ``/work/thopri/NEMO/SWPacific/START_FILES/gebco_lon_convertor.py``
 Copy this to ARCHER::
 
-  livljobs4$ rsync -utv /work/thopri/NEMO/SWPacific_ver3.6/START_FILES/GRIDONE_2D_140_-35.0_-165.0_5.0.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
+  livljobs4$ rsync -utv /work/thopri/NEMO/SWPacific_ver3.6/START_FILES/GRIDONE_2D_140_-35.0_-165.0_5.0.nc $USER@login.archer.ac.uk:/work/n01/n01/$USER/SWPacific/INPUTS/.
 
 Copy namelist for reshaping GEBCO data::
 
@@ -996,7 +996,7 @@ Edit ``namelist_cfg`` to make sure it is OK
 Synchronise the namelist_cfg with the GitLab repo. (This is also done at the end
 of this repo)::
 
-  e.g. rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/namelist_cfg SWPacific_EXP_namelist_cfg
+  e.g. rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/namelist_cfg SWPacific_EXP_namelist_cfg
 
 ---
 
@@ -1127,13 +1127,13 @@ Backup to repo key files
 
   cd ~/GitLab/NEMO-RELOC/docs/source
   # DOMANcfg namelist_cfg for domain_cfg.nc (for s-coordinates)
-  rsync -utv jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg SWPacific_DOMAINcfg_namelist_cfg
+  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/SWPacific/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg SWPacific_DOMAINcfg_namelist_cfg
 
   # EXP namelist_cfg (for s-coordinates)
-  rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/namelist_cfg SWPacific_EXP_namelist_cfg
+  rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/namelist_cfg SWPacific_EXP_namelist_cfg
 
   # PyNEMO namelist.bdy (for s-coordinates)
-  rsync -utv jelt@livljobs4:/work/jelt/NEMO/SWPacific/INPUTS/namelist.bdy SWPacific_namelist.bdy
+  rsync -utv $USER@livljobs4:/work/$USER/NEMO/SWPacific/INPUTS/namelist.bdy SWPacific_namelist.bdy
 
   # Python quick plot of SSH in the output.abort.nc file
-  rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/quickplotNEMO.py quickplotNEMO.py
+  rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/quickplotNEMO.py quickplotNEMO.py

@@ -157,7 +157,7 @@ Inspect this parent coordinates file to define the boundary indices for the new 
 
 Note, I used FERRET locally::
 
-  $livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
+  $livljobs2$ scp $USER@login.archer.ac.uk:/work/n01/n01/$USER/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
   ferret etc
   shade/i=3385:3392/j=2251:2266 NAV_LAT
   shade/i=3385:3392/j=2251:2266 NAV_LON
@@ -214,7 +214,7 @@ Inspect TPXO harmonic amplitudes to find a good cut off location for boundaries:
 
 Conclusion. Plot the proposed domain::
 
-  $livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
+  $livljobs2$ scp $USER@login.archer.ac.uk:/work/n01/n01/$USER/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
 
   ferret
   use coordinates_ORCA_R12.nc
@@ -297,7 +297,7 @@ data is too large to process and needs some spatial filtering. BODC also host a
 
 Download some GEBCO 2014 and 2008 data (75E,-21N,134E,25N) and copy to $INPUTS::
 
- scp GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/.
+ scp GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/INPUTS/.
 
 .. note: Copying to livljobs4
 
@@ -1368,16 +1368,16 @@ Backup to repo key files
 
   cd ~/GitLab/NEMO-RELOC/docs/source
   # DOMANcfg namelist_cfg for domain_cfg.nc (for s-coordinates)
-  rsync -utv jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg SEAsia_DOMAINcfg_namelist_cfg
+  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg SEAsia_DOMAINcfg_namelist_cfg
 
   # EXP namelist_cfg (for s-coordinates)
-  rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/namelist_cfg SEAsia_EXP_namelist_cfg
+  rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/namelist_cfg SEAsia_EXP_namelist_cfg
 
   # PyNEMO namelist.bdy (for s-coordinates)
-  rsync -utv jelt@livljobs4:/work/jelt/NEMO/SEAsia/INPUTS/namelist.bdy SEAsia_namelist.bdy
+  rsync -utv $USER@livljobs4:/work/$USER/NEMO/SEAsia/INPUTS/namelist.bdy SEAsia_namelist.bdy
 
   # Python quick plot of SSH in the output.abort.nc file
-  rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/quickplotNEMO.py quickplotNEMO.py
+  rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/quickplotNEMO.py quickplotNEMO.py
 
 
 ---
