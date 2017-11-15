@@ -1005,6 +1005,12 @@ Submit::
  cd $EXP
  qsub -q short runscript
 
+ **WOO HOO THIS WORKS. THE FOLLOWING ARE LIVE NOTES THAT MAY OR MAY NOT BE INTERESTING**
+
+
+
+Live note (Probably best to skip this section)
+================================================
 
 .. note : 27 Oct. Switched to z-coords. Need to archive s-coord namelists
 
