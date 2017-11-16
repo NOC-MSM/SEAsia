@@ -1075,7 +1075,7 @@ Point to the correct source and destination mesh and mask files/variables.
         ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
         ln_tra         = .false.               !  boundary conditions for T and S
         ln_ice         = .false.               !  ice boundary condition
-        nn_rimwidth    = 9                    !  width of the relaxation zone
+        nn_rimwidth    = 1                     !  width of the relaxation zone
 
    !-----------------------------------------------------------------------
    !  unstructured open boundaries tidal parameters
