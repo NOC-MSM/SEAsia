@@ -358,6 +358,8 @@ the number of levels was a problem).
 s-coordinates `SWPacific_DOMAINcfg_namelist_cfg`_
 -------------
 
+skip this and jump to the z-coordinates heading
+
 .. note: At one point I tried to use s-coords but it wasn't working. Perhaps it
  would work now that the boundary problems are fixed. I did not investigate it
  though. However I leave these s-coordinate namelist options here because they
@@ -571,8 +573,10 @@ Put a copy of the namelist_cfg in $INPUTS for safe keeping::
   cp $TDIR/DOMAINcfg/namelist_cfg $INPUTS/namelist_cfg_generateDOMAINcfg
 
 #Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores
- the bits and bobs for a rebuild)::
+ the bits and bobs for a rebuild). Also fix the permission as it seems they are
+ not readable by team members otherwise::
 
+  chmod a+rx $TDIR/DOMAINcfg/domain_cfg.nc
   rsync -uvt $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
   rsync -uvt $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
 
@@ -596,7 +600,7 @@ If all the files are ready to go jump straight to `7. Generate boundary conditio
 Follow SEAsia notes `SEAsia_archer_livljobs4.rst`_ for PyNEMO bit. Changing
 instances of `SEAsia` for `SWPacific`.
 Note a lot of the files are actually used for a tide-only simulation but it is not
-trivial to prevent PyNEMO looking for them.
+trivial to prevent PyNEMO looking for them. *Update 16Nov17: I think the following is now stand alone)*
 
 ----
 
@@ -1009,7 +1013,7 @@ Submit::
 
 
 
-Live note (Probably best to skip this section)
+Live notes (Probably best to skip this section)
 ================================================
 
 .. note : 27 Oct. Switched to z-coords. Need to archive s-coord namelists
@@ -1129,7 +1133,8 @@ Double the wall time in ``runscript`` (40mins) and submit::
 Backup to repo key files
 ========================
 
-::
+When I make changes I backup version of the key files in the repo to keep a track
+of what has changed::
 
   cd ~/GitLab/NEMO-RELOC/docs/source
   # DOMANcfg namelist_cfg for domain_cfg.nc (for s-coordinates)
