@@ -40,7 +40,6 @@ Starting on MOBIUS::
 
       ssh mobius
 
-      export CONFIG=SWPacific
       export USER=thopri
       export WORK=/work/thopri/NEMO
       export WDIR=/work/$USER/NEMO/$CONFIG
@@ -141,6 +140,10 @@ Hmmm there is a new error now, it now no longer has issues with the same functio
     
 There seems to be some issue with an undefined reference to `MAIN__' hopefully I can figure this out. 
 
+
+Ok I am trying to produce new libraries for netcdf and hdf 5 to see if the bug noted for netcdf 4.3.2 is what is causing the issue. I haven't been able to find out what version is in the libraries James created.
+
+Ash has suggested that I get the intel compiler on mobius updated so I have put the request into IT hopefully they can do that early next week. I am also trying to build the netcdf library but am having issues with HDF5. with the tests failing with 8 errors. Will try to resolve next week as well. 
 
 
 
