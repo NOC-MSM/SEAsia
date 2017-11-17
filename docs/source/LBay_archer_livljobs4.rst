@@ -85,6 +85,7 @@ Starting on ARCHER::
 
 
 .. note:
+
  I will remove these links to James' files when I've figured out how to build my own
 
 ---

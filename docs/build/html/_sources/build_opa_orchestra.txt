@@ -24,6 +24,11 @@ Edit the CPP flags::
                    key_iomput        \
                    key_nosignedzero
 
+Add a fix to the mask variables, from the bdy mask variable::
+
+  cp $START_FILES/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/dommsk.F90 $CDIR/$CONFIG/MY_SRC/.
+
 Build opa::
 
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10

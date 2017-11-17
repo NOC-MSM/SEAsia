@@ -10,8 +10,8 @@ URL:: *to add*
 
 * Build notes with:: ~/GitLab/NEMO-RELOC/docs$ make html
 
-Builds a SE Asia regional tide-only model using GEBCO bathymetry, FES tidal
-boundaries.
+Builds a SE Asia regional tide-only model using GEBCO bathymetry, TPXO(later FES?)
+ tidal boundaries.
 
 Build on a combination of livljobs4 and ARCHER.
 
@@ -68,14 +68,22 @@ Note you might have to mkdir the odd directory or two...::
   mkdir $WDIR
   mkdir $INPUTS
   mkdir $START_FILES
+
+  cp $WDIR/../LBay/START_FILES/dommsk.F90 $START_FILES/.
+  cp $WDIR/../LBay/START_FILES/bdyini.F90 $START_FILES/.
   cp $WDIR/../LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
   cp $WDIR/../LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
+  cp $WDIR/../SWPacific/START_FILES/usrdef_istate.F90 $START_FILES/.
+  cp $WDIR/../SWPacific/START_FILES/usrdef_sbc.F90    $START_FILES/.
 
 
 Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
-Or just build (if it is already downloaded)::
+Or just build (if it is already downloaded). Note here we use user defined
+ functions for the initial state (constant T and S) and surface forcing (zero forcing)::
 
   cd $CDIR
+  cp $START_FILES/usrdef_istate.F90 $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/usrdef_sbc.F90    $CDIR/$CONFIG/MY_SRC/.
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
 ---
@@ -149,7 +157,7 @@ Inspect this parent coordinates file to define the boundary indices for the new 
 
 Note, I used FERRET locally::
 
-  $livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
+  $livljobs2$ scp $USER@login.archer.ac.uk:/work/n01/n01/$USER/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
   ferret etc
   shade/i=3385:3392/j=2251:2266 NAV_LAT
   shade/i=3385:3392/j=2251:2266 NAV_LON
@@ -206,7 +214,7 @@ Inspect TPXO harmonic amplitudes to find a good cut off location for boundaries:
 
 Conclusion. Plot the proposed domain::
 
-  $livljobs2$ scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
+  $livljobs2$ scp $USER@login.archer.ac.uk:/work/n01/n01/$USER/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
 
   ferret
   use coordinates_ORCA_R12.nc
@@ -289,7 +297,7 @@ data is too large to process and needs some spatial filtering. BODC also host a
 
 Download some GEBCO 2014 and 2008 data (75E,-21N,134E,25N) and copy to $INPUTS::
 
- scp GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/.
+ scp GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/INPUTS/.
 
 .. note: Copying to livljobs4
 
@@ -343,7 +351,7 @@ Restore the original parallel modules::
   module unload nco cray-netcdf cray-hdf5
   module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-Execute first scrip thing (use old tools - already compiled)::
+Execute first scrip thing::
 
   $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
 
@@ -352,7 +360,7 @@ Output files::
   remap_nemo_grid_gebco.nc
   remap_data_grid_gebco.nc
 
-Execute second scip thing (use old tools - already compiled)::
+Execute second scip thing::
 
   $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
 
@@ -360,7 +368,7 @@ Output files::
 
   data_nemo_bilin_gebco.nc
 
-Execute third scip thing (use old tools - already compiled)::
+Execute third scip thing::
 
   $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
 
@@ -376,6 +384,13 @@ Output files::
 
 3. Generate initial conditions
 ++++++++++++++++++++++++++++++
+
+Skip this first time round. First test for stability with constant T and S.
+Then try with tides.
+Then try with initial conditions.
+
+For constant T and S use the user defined functions in ``$CDIR/$CONFIG/MY_SRC``:
+  ``usrdef_sbc.F90``  and ``usrdef_istate.F90``.
 
 
 .. note: Skip this for now.
@@ -593,6 +608,135 @@ Get the size of the new domain from ``ncdump -h bathy_meter.nc``::
   No gdept output in the offical v4 release. Though it was acheived here setting
   ln_e3_dep = F. This is needed for PyNEMO, though could be constructed from e3[tw].
 
+
+---
+
+*8 Nov 17* Revisit this DOMAINcfg generation since I am not sure that the present
+settings are the most suitable.
+
+As a starting point iterate knowledge from SWPacific dev:
+
+
+.. note: At one point I tried to use s-coords but it wasn't working. Perhaps it
+ would work now that the boundary problems are fixed. I did not investigate it
+ though. However I leave these s-coordinate namelist options here because they
+ will be useful when I need s-coordinates to work in v4.
+
+(didn't work, though pehaps for reasons nothing to do with the coordinates...)
+
+ (If I tried 5 levels then the function to compute the depth range breaks).
+ Added in s-coordinate settings from AMM60. (There is a function that tapers dz
+ near the equation. This is activated in ``domzgr.F90`` and not by a logical flag).
+
+How about::
+
+  cd $TDIR/DOMAINcfg
+  vi namelist_cfg
+
+  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !! NEMO/OPA  Configuration namelist : used to overwrite defaults values defined in SHARED/namelist_ref
+  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     nn_no       =       0   !  job number (no more used...)
+     cn_exp      =  "domaincfg"  !  experience name
+     nn_it000    =       1   !  first time step
+     nn_itend    =      75   !  last  time step (std 5475)
+  /
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+     !
+     ln_e3_dep   = .false.   ! =T : e3=dk[depth] in discret sens.
+     !                       !      ===>>> will become the only possibility in v4.0
+     !                       ! =F : e3 analytical derivative of depth function
+     !                       !      only there for backward compatibility test with v3.6
+     !                       !
+     cp_cfg      =  "orca"   !  name of the configuration
+     jp_cfg      =      12   !  resolution of the configuration
+     jpidta      =     684   !  1st lateral dimension ( >= jpi )
+     jpjdta      =     554   !  2nd    "         "    ( >= jpj )
+     jpkdta      =      31   !  number of levels      ( >= jpk )
+     jpiglo      =     684   !  1st dimension of global domain --> i =jpidta
+     jpjglo      =     554   !  2nd    -                  -    --> j  =jpjdta
+     jpizoom     =       1   !  left bottom (i,j) indices of the zoom
+     jpjzoom     =       1   !  in data domain indices
+     jperio      =       0   !  lateral cond. type (between 0 and 6)
+  /
+  !-----------------------------------------------------------------------
+  &namzgr        !   vertical coordinate
+  !-----------------------------------------------------------------------
+    ln_zco      = .false.   !  z-coordinate - full    steps
+    ln_zps      = .false.   !  z-coordinate - partial steps
+    ln_sco      = .true.   !  s- or hybrid z-s-coordinate
+    ln_isfcav   = .false.   !  ice shelf cavity
+    ln_linssh   = .false.   !  linear free surface
+  /
+  !-----------------------------------------------------------------------
+  &namzgr_sco    !   s-coordinate or hybrid z-s-coordinate
+  !-----------------------------------------------------------------------
+    ln_s_sh94   = .false.    !  Song & Haidvogel 1994 hybrid S-sigma   (T)|
+    ln_s_sf12   = .true.   !  Siddorn & Furner 2012 hybrid S-z-sigma (T)| if both are false the NEMO tanh stretching is applied
+    ln_sigcrit  = .true.    !  use sigma coordinates below critical depth (T) or Z coordinates (F) for Siddorn & Furner stretch
+                            !  stretching coefficients for all functions
+    rn_jpk      =   51       ! Number of S levels
+    !ln_eq_taper = .false.   !  Tapering of S coords near equator
+    cn_coord_hgr = 'coordinates.nc'  ! File containing gphit (latitude) coordinate for use if ln_eq_taper=.true.
+    rn_sbot_min =   10.0    !  minimum depth of s-bottom surface (>0) (m)
+    rn_sbot_max = 7000.0    !  maximum depth of s-bottom surface (= ocean depth) (>0) (m)
+    rn_hc       =   50.0    !  critical depth for transition to stretched coordinates
+                         !!!!!!!  Envelop bathymetry
+    rn_rmax     =    0.3    !  maximum cut-off r-value allowed (0<r_max<1)
+                         !!!!!!!  SH94 stretching coefficients  (ln_s_sh94 = .true.)
+    rn_theta    =    6.0    !  surface control parameter (0<=theta<=20)
+    rn_bb       =    0.8    !  stretching with SH94 s-sigma
+                         !!!!!!!  SF12 stretching coefficient  (ln_s_sf12 = .true.)
+    rn_alpha    =    4.4    !  stretching with SF12 s-sigma
+    rn_efold    =    0.0    !  efold length scale for transition to stretched coord
+    rn_zs       =    1.0    !  depth of surface grid box
+                            !  bottom cell depth (Zb) is a linear function of water depth Zb = H*a + b
+    rn_zb_a     =    0.024  !  bathymetry scaling factor for calculating Zb
+    rn_zb_b     =   -0.2    !  offset for calculating Zb
+                         !!!!!!!! Other stretching (not SH94 or SF12) [also uses rn_theta above]
+    rn_thetb    =    1.0    !  bottom control parameter  (0<=thetb<= 1)
+  /
+
+This worked (once the levels were consistent). Copy locally and inspect.
+
+.. note :
+    Alternatively try and just copy the AMM60 namelist_cfg::
+
+      cp /work/n01/n01/jelt/NEMO/NEMOGCM/CONFIG/AMM60smago/EXP_NSea/namelist_cfg .
+
+    Then edit for the new grid size and removal all the processor decomposition
+     stuff (we are just generating the mesh and mask info)::
+
+       diff $TDIR/DOMAINcfg/namelist_cfg diff /work/n01/n01/jelt/NEMO/NEMOGCM/CONFIG/AMM60smago/EXP_NSea/namelist_cfg
+
+      <    jpidta      =     684   !  1st lateral dimension ( >= jpi )
+      <    jpjdta      =     554   !  2nd    "         "    ( >= jpj )
+      ---
+      >    jpidta      =     1120               !  1st lateral dimension ( >= jpi )
+      >    jpjdta      =     1440               !  2nd    "         "    ( >= jpj )
+      33,34c33,34
+      <    jpiglo      =     684               !  1st dimension of global domain --> i =jpidta
+      <    jpjglo      =     554              !  2nd    -                  -    --> j  =jpjdta
+      ---
+      >    jpiglo      =     1120               !  1st dimension of global domain --> i =jpidta
+      >    jpjglo      =     1440              !  2nd    -                  -    --> j  =jpjdta
+      499a500,506
+      >    cn_mpi_send =  'I'      !  mpi send/recieve type   ='S', 'B', or 'I' for standard send,
+      >                            !  buffer blocking send or immediate non-blocking sends, resp.
+      >    nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
+      >    ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
+      >    jpni        =   40       !  jpni   number of processors following i (set automatically if < 1)
+      >    jpnj        =   50     !  jpnj   number of processors following j (set automatically if < 1)
+      >    jpnij       =   2000     !  jpnij  number of local domains (set automatically if < 1)
+
+---
+
 Build a script to run the executable::
 
   vi $TDIR/DOMAINcdf/rs
@@ -638,11 +782,30 @@ Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, w
   cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
   cp $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
 
+.. mote :  should check the difference between the homemade sco version the AMM60
+  verison did:      ``diff namelist_cfg_sco_WIP namelist_cfg_AMM60``
 
+.. note : alternativly should check the difference between the AMM60 and local
+  output.namelist.dyn: ``diff output.namelist.dyn /work/n01/n01/jelt/NEMO/NEMOGCM/CONFIG/AMM60smago/EXP_NSea/output.namelist.dyn``
+  I notice that rmax is different.
 
+.. note : There are a lot of unknown parameters in these settings. And I don't
+  want to find i made some naive error in six months. Looking at the domain there
+  are some serious trenches near land. S-coords will not work well there. Conversely,
+  ODA is all abount the near-coastal environment. There is a strong case for using
+  hybrid s-z coordinates a la NNA...
+
+  James noted that high resolution neat the bed caused significant difficulty in
+  deep water stability. Whereas you want it on the shelf. Hence regular stretched
+  s-coords wont really work.
+
+  PyNEMO outputs boundary conditions on the parent z-grid. This can be interpolated
+  at run-time to the child grid.
 
 5. Generate weights for atm forcing
 +++++++++++++++++++++++++++++++++++
+
+Initially use zero atm forcing. Specified in usr defined functions in MY_SRC.
 
 .. note: Comment out weight for atm forcing
 
@@ -912,7 +1075,7 @@ Point to the correct source and destination mesh and mask files/variables.
         ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
         ln_tra         = .false.               !  boundary conditions for T and S
         ln_ice         = .false.               !  ice boundary condition
-        nn_rimwidth    = 9                    !  width of the relaxation zone
+        nn_rimwidth    = 1                     !  width of the relaxation zone
 
    !-----------------------------------------------------------------------
    !  unstructured open boundaries tidal parameters
@@ -1004,11 +1167,12 @@ Generate the boundary conditions with PyNEMO
   cd $INPUTS
   export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
 
-  pynemo -s thredds_namelist.bdy
+  pynemo -s namelist.bdy
 
 .. note : Can use the ``-g`` option if you want the GUI.
 
-.. note : I actually had to do a fix to get PyNEMO to behave See: https://bitbucket.org/jdha/nrct/issues/22/issue-with-applying-bc-over-the-rim
+.. note : I have a PyNEMO mod to use FES tides instead of TPXO tides for these boundary
+  forcing. It is currently a hardwire fix in ``tide/nemo_bdy_tide3.py``
 
 This generates::
   ls -1 $INPUTS
@@ -1030,8 +1194,9 @@ Copy the new files back onto ARCHER
 
   livljobs4$
   cd $INPUTS
-  for file in SEAsia*nc; do scp $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/. ; done
-  scp coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/.
+  rsync -utv coordinates.bdy.nc $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/coordinates.bdy.nc
+  for file in $CONFIG*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
+
 
 
 
@@ -1136,236 +1301,114 @@ use python script to plot SSH animation (NB need to put the python script somewh
 
 Creates an animation of hours 35 - 60 in SSH.
 
+
 ---
+
+MPP decomposition for land suppression
+++++++++++++++++++++++++++++++++++++++
+
+`MPP_decomp_lanf_suppression.rst`_
+
+Before doing long runs it is important to optimise MPP decompositoin by invoking
+ land supression to save redundant ocean processors.
+Resulting decomposition::
+
+   vi namelist_cfg
+   ...
+   !-----------------------------------------------------------------------
+   &nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
+   !-----------------------------------------------------------------------
+      ...
+      jpni        =  12       !  jpni   number of processors following i (set automatically if < 1)
+      jpnj        =  8    !  jpnj   number of processors following j (set automatically if < 1)
+      jpnij       =  92    !  jpnij  number of local domains (set automatically if < 1)
+
+Inspect ``ocean_output`` to find ``jpnij``. In my simulation ``jpni=12, jpnj=8 --> jpnij = 92``
+Update OCEANCORES in runscript (make sure the ``aprun`` statement is as expected too)::
+
+  vi runscript
+  ...
+  OCEANCORES=92
+
+And submit again.
+
+----
+
+2074 timesteps ~ 34 hours with dt=1 min
+
+Not much point using more processors as the tiles are already quite small. Instead
+need more walltime.
+
+With dt=60, 1 day = 1440 steps. Run one day on the short queue to see what is
+happening with SSH etc.
+
+Do I need to a run with constant T, S? **YES**
+
+
+
+
+
+Note about timestep
+===================
+
+This domain has some very deep water ~7km and large areas with 6km bathymetry.
+This should limit the timestep quite considerably:
+A deep water wave would travel across a 1/12 degree model cell in
+``110000/12 / sqrt(7000*9.8) ~ 35 seconds``...
+Consequently a timestep of 1 minute might be as far as I can push it.
+
+
+
+
+
+Backup to repo key files
+========================
+
+::
+
+  cd ~/GitLab/NEMO-RELOC/docs/source
+  # DOMANcfg namelist_cfg for domain_cfg.nc (for s-coordinates)
+  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg SEAsia_DOMAINcfg_namelist_cfg
+
+  # EXP namelist_cfg (for s-coordinates)
+  rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/namelist_cfg SEAsia_EXP_namelist_cfg
+
+  # PyNEMO namelist.bdy (for s-coordinates)
+  rsync -utv $USER@livljobs4:/work/$USER/NEMO/SEAsia/INPUTS/namelist.bdy SEAsia_namelist.bdy
+
+  # Python quick plot of SSH in the output.abort.nc file
+  rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/quickplotNEMO.py quickplotNEMO.py
+
+
+---
+
+
+
+
+
+
+
+
+
+
+Rebuild the output and inspect `rebuild_and_inspect_NEMO_output.rst`_
+++++++++++++++++++++++++++++++
+
+---
+
+
+
+
+
+
+
+
 
 Next steps
 ++++++++++
 
 # Tidy up recipe
 # Freeze it
-
-
-
-
-
-
-
-Note about changes to the namelist_cfg
-======================================
-
-In order to make a simulation with the new v4 namelist_cfg,  a number of
-changes appear with its format. Some of these are noted below. But since they are
-a cut down from a debug log they may not be exhaustive.
-
-I might have added some tidal harmonic constituent names to the template::
-
-  !-----------------------------------------------------------------------
-  &nam_tide      !   tide parameters (#ifdef key_tide)
-  !-----------------------------------------------------------------------
-  clname(1)    = 'Q1'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(2)    = 'O1'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(3)    = 'P1'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(4)    = 'K1'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(5)    = 'N2'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(6)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(7)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(8)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
-  clname(9)   = 'M4'   !  name of constituent - all tidal components must be set in namelist_cfg
-
-
-Also noted that the sbc namelist variables have changed. Now use ``ln_blk`` and
- ``ln_COARE_3p5= .true.`` instead of ``ln_blk_core``. *(Except that I use*
- *ln_blk=F because I don't have a SLP variable for the COARE algorithm to work...)*
-
-There was an extra variable in namdom. Comment out ldbletanh (which was essential in DOMAINcfg)::
-
-  !-----------------------------------------------------------------------
-  &namdom        !   space and time domain (bathymetry, mesh, timestep)
-  !-----------------------------------------------------------------------
-  ...
-  !    ldbletanh   =    .false.             !  Use/do not use double tanf function for vertical coordinates
-
-
-
-The configuration namelist variable is simplified with the new domain_cfg.nc file::
-
-  !-----------------------------------------------------------------------
-  &namcfg        !   parameters of the configuration
-  !-----------------------------------------------------------------------
-     ln_read_cfg = .true.   !  (=T) read the domain configuration file
-        !                   !  (=F) user defined configuration  ==>>>  see usrdef(_...) modules
-        cn_domcfg = "domain_cfg"         ! domain configuration filename
-        !
-     ln_write_cfg= .false.   !  (=T) create the domain configuration file
-        cn_domcfg_out = "domain_cfg_out" ! newly created domain configuration filename
-        !
-     ln_use_jattr = .false.  !  use (T) the file attribute: open_ocean_jstart, if present
-     !                       !  in netcdf input files, as the start j-row for reading
-  /
-
-
-Equation of state needed fixing::
-
-  !-----------------------------------------------------------------------
-  &nameos        !   ocean physical parameters
-  !-----------------------------------------------------------------------
-     ln_teos10   = .false.         !  = Use TEOS-10 equation of state
-     ln_eos80    = .true.         !  = Use EOS80 equation of state
-     ln_seos     = .false.         !  = Use simplified equation of state (S-EOS)
-
-
-``&namdom`` has a new format (I think)::
-
-  !-----------------------------------------------------------------------
-  &namdom        !   space and time domain (bathymetry, mesh, timestep)
-  !-----------------------------------------------------------------------
-   ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
-   nn_closea   =    0      !  remove (=0) or keep (=1) closed seas and lakes (ORCA)
-   !
-   nn_msh      =    0      !  create (>0) a mesh file or not (=0)
-   rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
-   !
-   rn_rdt      =  60.     !  time step for the dynamics (and tracer if nn_acc=0)
-   rn_atfp     =    0.1    !  asselin time filter parameter
-   !
-   ln_crs      = .false.   !  Logical switch for coarsening module
-
-
-Note ``ln_linssh`` seems to have moved to ``&namdom``. (I think it was in ``&namzgr_sco``
- before)
-
-I added in s-coordinate option and which seemed to have vanished from the default
-namelist_cfg template::
-
-  !-----------------------------------------------------------------------
-  &namzgr        !   vertical coordinate                                  (default: NO selection)
-  !-----------------------------------------------------------------------
-     ln_zco      = .false.   !  z-coordinate - full    steps
-     ln_zps      = .false.   !  z-coordinate - partial steps
-     ln_sco      = .true.   !  s- or hybrid z-s-coordinate
-     ln_isfcav   = .false.   !  ice shelf cavity
-  /
-  !-----------------------------------------------------------------------
-  &namzgr_sco
-  !-----------------------------------------------------------------------
-     ln_s_sf12=.true.,
-     ln_s_sh94=.false.,
-     ln_sigcrit=.true.,
-     rn_alpha=4.4,
-     rn_bb=0.8,
-     rn_efold=0.0,
-     rn_hc=10000.0,
-     rn_rmax=1.0,
-     rn_sbot_max=10000.0,
-     rn_sbot_min=1.0e-5,
-     rn_theta=6.0,
-     rn_thetb=1.0,
-     rn_zb_a=0.024,
-     rn_zb_b=-0.2,
-     rn_zs=1.0,
-  /
-
-
-Though the fields are set up (except for SLP field), no met forcing is used::
-
-  !-----------------------------------------------------------------------
-  &namsbc        !   Surface Boundary Condition (surface module)
-  !-----------------------------------------------------------------------
-     ln_usr      = .true.    !  user defined formulation                  (T => check usrdef_sbc)
-     ln_flx      = .false.   !  flux formulation                          (T => fill namsbc_flx )
-     ln_blk      = .false.    !  Bulk formulation                          (T => fill namsbc_blk )
-
-Though the fields are ready to go I have not used inital T,S conditions::
-
-  !-----------------------------------------------------------------------
-  &namtsd        !   data : Temperature  & Salinity
-  !-----------------------------------------------------------------------
-  !              !  file name                 ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
-  !              !                            !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
-     sn_tem  = 'initcd_votemper',         -1        ,'votemper' ,    .false.    , .true. , 'yearly'   , ''       ,   ''    ,    ''
-     sn_sal  = 'initcd_vosaline',         -1        ,'vosaline' ,    .false.    , .true. , 'yearly'   , ''       ,   ''    ,    ''
-     !
-     cn_dir        = '../../../../INPUTS/'     !  root directory for the location of the runoff files
-     ln_tsd_init   = .false.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
-     ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
-
-No lateral diffusion in momentum::
-
-  ln_dynldf_lap =  .false.    !    laplacian operator
-  ln_dynldf_blp =  .false.    !  bilaplacian operator
-
-Don't need a boundaries mask file. But the rimwidth must match that used in the
- PyNEMO process::
-
-  !-----------------------------------------------------------------------
-  &nambdy        !  unstructured open boundaries
-  !-----------------------------------------------------------------------
-    ...
-    ln_mask_file   = .false.              !  =T : read mask from file
-    cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-    ...
-    nn_rimwidth   = 9                    !  width of the relaxation zone
-
-Quadratic bottom friction - This means changing to nonlinear friction, with a coeff 2.5E-3, log layer and
-bottom roughness as follows
-::
-  !-----------------------------------------------------------------------
-  &nambfr        !   bottom friction
-  !-----------------------------------------------------------------------
-     nn_bfr      =    2      !  type of bottom friction :   = 0 : free slip,  = 1 : linear friction
-                             !                              = 2 : nonlinear friction
-     rn_bfri2    =    2.5e-3 !  bottom drag coefficient (non linear case)
-     rn_bfeb2    =    0.0e0  !  bottom turbulent kinetic energy background  (m2/s2)
-     ln_loglayer =    .true. !  loglayer bottom friction (only effect when nn_bfr = 2)
-     rn_bfrz0    =    0.003  !  bottom roughness (only effect when ln_loglayer = .true.)
-  /
-
-I also changed the rn_bfeb2 = 2.5e-3 to zero. This would depend on the tke scheme.
-I am not sure what it should be...
-
-
-
-
-Rebuild the output and inspect
-++++++++++++++++++++++++++++++
-
-Rebuild the SSH files using old tools::
-
-  export WDIR=/work/n01/n01/jelt/LBay/
-  export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 Lbay_1h_20000101_20000130_SSH 5
-  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 Lbay_1d_20000101_20000130_Tides 5
-
-Should remove individual processor files once the build is verified::
-
-  rm Lbay_1h_20000101_20000130_SSH_00??.nc
-  rm Lbay_1d_20000101_20000130_Tides_00??.nc
-
-Inspect locally e.g.::
-
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/Lbay_1d_20000101_20000130_Tides.nc .
-  scp jelt@login.archer.ac.uk:/work/n01/n01/jelt/LBay/trunk_NEMOGCM_r8395/CONFIG/LBay/EXP00/Lbay_1h_20000101_20000130_SSH.nc .
-
-  ferret
-  use Lbay_1d_20000101_20000110_Tides.nc
-  plot /i=25/j=70 SOSSHEIG
-
-Use some python to inspection of the domain_cfg.nc file or ssh, Tide output. See::
-
-  cd /Users/jeff/GitLab/NEMO-RELOC/docs/source
-  $ipython
-  >> run quickplotNEMO
-
----
-
-
-
-
-
-
-
-
 
 
 

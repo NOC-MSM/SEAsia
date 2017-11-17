@@ -64,6 +64,11 @@ bld::tool::fppkeys key_zdfgls        \
                  key_nosignedzero
 </pre></div>
 </div>
+<p>Add a fix to the mask variables, from the bdy mask variable:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/dommsk.F90 $CDIR/$CONFIG/MY_SRC/.
+</pre></div>
+</div>
 <p>Build opa:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 </pre></div>
