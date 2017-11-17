@@ -1047,12 +1047,23 @@ Create a short queue runscript::
 
   exit
 
+Change the notification email to your own address::
+
+  sed -i "s/xxx@noc/$USER@noc/g" runscript
+
 ---
 
 Edit ``namelist_cfg`` to make sure it is OK
 
 ---
 *IT WORKS. IF IT WORKS, ARCHIVE namelist_cfg too**
+
+---
+*(17 Nov 17)* build new 75 level hybrid z-s coordinates. Submitted cold start
+ 20 min job.
+**PENING** 4921502.sdb. DID IT WORK?
+
+----
 
 No met (missing slp) ``ln_usr=T``. rn_rdt=60s. Output more harmonics (20-30days).
 Run for 30 days::
