@@ -1125,7 +1125,11 @@ DID IT WORK? Yes. (Just completed the 1440 steps in 20mins)
 With rn_rdt=60 this is only 1 day of simulation.
 Try increasing the timestep.
 
-rn_rdt = 360 and resubmit. **PENDING** 4922962.sdb
+rn_rdt = 360 and resubmit. Completes in 20min 30days
+
+
+105 mins (1h 45). . nt = 7200. rn_rdt=360. for 30 days
+4923010.sdb **PENDING**
 
 ----
 
