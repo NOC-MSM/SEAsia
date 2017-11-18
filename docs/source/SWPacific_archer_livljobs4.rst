@@ -993,6 +993,10 @@ Create a short queue runscript. (Note: PBS -N jobname, PBS -m email)::
 
   exit
 
+Change the notification email to your own address::
+
+  sed -i "s/xxx@noc/$USER@noc/g" runscript
+
 ---
 
 Edit ``namelist_cfg`` to make sure it is OK
