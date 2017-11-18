@@ -557,9 +557,22 @@
    ln_tide_pot = .true.    !  use tidal potential forcing
    ln_tide_ramp= .false.   !
    rdttideramp =    1.     !
-   clname(1)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
-   clname(2)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
-   clname(3)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
+!   clname(1)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
+!   clname(2)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
+!   clname(3)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
+    clname(1) =  'M2'
+    clname(2) =  'S2'
+    clname(3) =  'N2'
+    clname(4) =  'K2'
+    clname(5) =  'K1'
+    clname(6) =  'O1'
+    clname(7) =  'P1'
+    clname(8) =  'Q1'
+!    clname(9) =  'MF'
+!    clname(10) = 'MM'
+    clname(9) = 'M4'
+!    clname(12) = 'Ms4'
+!    clname(13) = 'Mn4'
 /
 !-----------------------------------------------------------------------
 &nambdy        !  unstructured open boundaries
@@ -592,7 +605,7 @@
     ln_dyn3d_dmp  =.false.                !  open boundary condition for baroclinic velocities
     rn_time_dmp   =  1.                   ! Damping time scale in days
     rn_time_dmp_out =  1.                 ! Outflow damping time scale
-    nn_rimwidth   = 9                    !  width of the relaxation zone
+    nn_rimwidth   = 1                    !  width of the relaxation zone
     ln_vol        = .false.               !  total volume correction (see nn_volctl parameter)
     nn_volctl     = 1                     !  = 0, the total water flux across open boundaries is zero
     nb_jpk_bdy    = -1                    ! number of levels in the bdy data (set < 0 if consistent with planned run)
@@ -1132,6 +1145,13 @@
     tname(2)   = 'S2'      ! Name of tidal constituents
     tname(3)   = 'K1'      ! Name of tidal constituents
     tname(4)   = 'O1'      ! Name of tidal constituents
+    tname(5)   = 'N2'      ! Name of tidal constituents
+    tname(6)   = 'K2'      ! Name of tidal constituents
+    tname(7)   = 'P1'     ! Name of tidal constituents
+    tname(8)   = 'Q1'      ! Name of tidal constituents
+    tname(9)   = 'M4'      ! Name of tidal constituents
+    tname(10)  = 'Mm'      ! Name of tidal constituents
+    tname(11)  = 'Mf'      ! Name of tidal constituents
 /
 !-----------------------------------------------------------------------
 &namdct        ! transports through some sections                        ("key_diadct")

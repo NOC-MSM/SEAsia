@@ -58,15 +58,21 @@
     ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
     ln_tra         = .false.               !  boundary conditions for T and S
     ln_ice         = .false.               !  ice boundary condition   
-    nn_rimwidth    = 9                    !  width of the relaxation zone
+    nn_rimwidth    = 1                    !  width of the relaxation zone
 
 !-----------------------------------------------------------------------
 !  unstructured open boundaries tidal parameters                        
 !-----------------------------------------------------------------------
     ln_tide        = .true.               !  =T : produce bdy tidal conditions
-    clname(1)      = 'M2'                 ! constituent name
-    clname(2)      = 'S2'         
-    clname(3)      = 'K2'        
+    clname(1) =  'M2'
+    clname(2) =  'S2'
+    clname(3) =  'N2'
+    clname(4) =  'K2'
+    clname(5) =  'K1'
+    clname(6) =  'O1'
+    clname(7) =  'P1'
+    clname(8) =  'Q1'
+    clname(9) =  'M4'
     ln_trans       = .false.
     sn_tide_h     = '/work/jelt/tpxo7.2/h_tpxo7.2.nc'
     sn_tide_u     = '/work/jelt/tpxo7.2/u_tpxo7.2.nc'

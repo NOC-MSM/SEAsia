@@ -863,9 +863,15 @@ Point to the correct source and destination mesh and mask files/variables.
    !  unstructured open boundaries tidal parameters
    !-----------------------------------------------------------------------
        ln_tide        = .true.               !  =T : produce bdy tidal conditions
-       clname(1)      = 'M2'                 ! constituent name
-       clname(2)      = 'S2'
-       clname(3)      = 'K2'
+       clname(1) =  'M2'
+       clname(2) =  'S2'
+       clname(3) =  'N2'
+       clname(4) =  'K2'
+       clname(5) =  'K1'
+       clname(6) =  'O1'
+       clname(7) =  'P1'
+       clname(8) =  'Q1'
+       clname(9) =  'M4'
        ln_trans       = .false.
        sn_tide_h     = '/work/jelt/tpxo7.2/h_tpxo7.2.nc'
        sn_tide_u     = '/work/jelt/tpxo7.2/u_tpxo7.2.nc'
@@ -919,21 +925,40 @@ Also had to check/create ``inputs_dst.ncml``, that it has the correct file name 
 
    vi inputs_dst.ncml
 
-   <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
-     <ns0:aggregation type="union">
-       <ns0:netcdf location="file:domain_cfg.nc">
-       <ns0:variable name="mbathy" orgName="bottom_level" />
-       <ns0:variable name="gdept" orgName="gdept_0" />
-       <ns0:variable name="gdepw" orgName="gdepw_0" />
-       <ns0:variable name="e3u" orgName="e3u_0" />
-       <ns0:variable name="e3v" orgName="e3v_0" />
-       </ns0:netcdf>
-     </ns0:aggregation>
-   </ns0:netcdf>
+    <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+      <ns0:aggregation type="union">
+        <ns0:netcdf location="file:domain_cfg.nc">
+        <ns0:variable name="mbathy" orgName="bottom_level" />
+        <ns0:variable name="e3u" orgName="e3u_0" />
+        <ns0:variable name="e3v" orgName="e3v_0" />
+        <ns0:variable name="e3t" orgName="e3t_0" />
+        <ns0:variable name="e3w" orgName="e3w_0" />
+        </ns0:netcdf>
+      </ns0:aggregation>
+    </ns0:netcdf>
 
-.. warning:
-  In the actual v4 release domain_cfg.nc  will not have gdept or gdepw. These
-  will need to be reconstructed from e3[tw].
+
+  .. warning:
+    In the actual v4 release domain_cfg.nc  will not have gdept or gdepw. These
+    will need to be reconstructed from e3[tw].
+
+  .. note : 18 Nov.  comment out the gdept and gdepw lines and
+     inserted e3t and e3w. Previouly the inputs_dst.ncml looked like::
+
+    <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+      <ns0:aggregation type="union">
+        <ns0:netcdf location="file:domain_cfg.nc">
+        <ns0:variable name="mbathy" orgName="bottom_level" />
+        <ns0:variable name="gdept" orgName="gdept_0" />
+        <ns0:variable name="gdepw" orgName="gdepw_0" />
+        <ns0:variable name="e3u" orgName="e3u_0" />
+        <ns0:variable name="e3v" orgName="e3v_0" />
+        </ns0:netcdf>
+      </ns0:aggregation>
+    </ns0:netcdf>
+
+
+
 
 
 Run PyNEMO / NRCT to generate boundary conditions
@@ -961,14 +986,32 @@ This generates::
 
   coordinates.bdy.nc
   SEAsia_bdytide_rotT_M2_grid_T.nc
-  SEAsia_bdytide_rotT_K2_grid_T.nc
+  SEAsia_bdytide_rotT_N2_grid_T.nc
   SEAsia_bdytide_rotT_S2_grid_T.nc
+  SEAsia_bdytide_rotT_K1_grid_T.nc
+  SEAsia_bdytide_rotT_K2_grid_T.nc
+  SEAsia_bdytide_rotT_P1_grid_T.nc
+  SEAsia_bdytide_rotT_O1_grid_T.nc
+  SEAsia_bdytide_rotT_M4_grid_T.nc
+  SEAsia_bdytide_rotT_Q1_grid_T.nc
   SEAsia_bdytide_rotT_M2_grid_U.nc
-  SEAsia_bdytide_rotT_K2_grid_U.nc
+  SEAsia_bdytide_rotT_N2_grid_U.nc
   SEAsia_bdytide_rotT_S2_grid_U.nc
+  SEAsia_bdytide_rotT_K1_grid_U.nc
+  SEAsia_bdytide_rotT_K2_grid_U.nc
+  SEAsia_bdytide_rotT_P1_grid_U.nc
+  SEAsia_bdytide_rotT_O1_grid_U.nc
+  SEAsia_bdytide_rotT_M4_grid_U.nc
+  SEAsia_bdytide_rotT_Q1_grid_U.nc
   SEAsia_bdytide_rotT_M2_grid_V.nc
-  SEAsia_bdytide_rotT_K2_grid_V.nc
+  SEAsia_bdytide_rotT_N2_grid_V.nc
   SEAsia_bdytide_rotT_S2_grid_V.nc
+  SEAsia_bdytide_rotT_K1_grid_V.nc
+  SEAsia_bdytide_rotT_K2_grid_V.nc
+  SEAsia_bdytide_rotT_P1_grid_V.nc
+  SEAsia_bdytide_rotT_O1_grid_V.nc
+  SEAsia_bdytide_rotT_M4_grid_V.nc
+  SEAsia_bdytide_rotT_Q1_grid_V.nc
 
 
 Copy the new files back onto ARCHER
@@ -985,20 +1028,25 @@ Copy the new files back onto ARCHER
 8. Run the configuration ON ARCHER. Turn on the tides
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+Get set up::
+
+  ssh archer
+  . ~/temporary_path_names_for_NEMO_build
+
 Get important files into EXP directory. Should already have ``domain_cfg.nc``::
 
 
   cd $EXP
-  cp $INPUTS/bathy_meter.nc $EXP/.
-  cp $INPUTS/coordinates.nc $EXP/.
-  cp $INPUTS/coordinates.bdy.nc $EXP/.
-  cp $START_FILES/namelist_cfg $EXP/.
+  rsync -tuv $INPUTS/bathy_meter.nc $EXP/.
+  rsync -tuv $INPUTS/coordinates.nc $EXP/.
+  rsync -tuv $INPUTS/coordinates.bdy.nc $EXP/.
+  rsync -tuv $START_FILES/namelist_cfg $EXP/.
 
 Create symbolic links from EXP directory::
 
   ln -s $INPUTS $EXP/bdydta
 
-Edit the output to have 1hrly SSH::
+Edit the output to have 1hrly SSH, and harmonic output::
 
  vi file_def_nemo.xml
  ...
@@ -1007,10 +1055,22 @@ Edit the output to have 1hrly SSH::
     <field field_ref="ssh"          name="zos"   />
   </file>
  </file_group>
+ ...
+ <file_group id="5d" output_freq="5d"  output_level="10" enabled=".TRUE.">  <!-- 5d files -->
+   <file id="file8" name_suffix="_D2_Tides" description="tidal harmonics" >
+     <field field_ref="M2x"          name="M2x"      long_name="M2 Elevation harmonic real part"                       />
+     <field field_ref="M2y"          name="M2y"      long_name="M2 Elevation harmonic imaginary part"                  />
+     <field field_ref="M2x_u"        name="M2x_u"    long_name="M2 current barotropic along i-axis harmonic real part "       />
+     <field field_ref="M2y_u"        name="M2y_u"    long_name="M2 current barotropic along i-axis harmonic imaginary part "  />
+     <field field_ref="M2x_v"        name="M2x_v"    long_name="M2 current barotropic along j-axis harmonic real part "       />
+     <field field_ref="M2y_v"        name="M2y_v"    long_name="M2 current barotropic along j-axis harmonic imaginary part "  />
+     ...
+   </file>
+ </file_group>
 
 ---
 
-Create a short queue runscript::
+Create a short queue runscript (Note: PBS -N jobname, PBS -m email)::
 
   vi runscript
 
@@ -1035,21 +1095,19 @@ Create a short queue runscript::
   #
     echo " ";
     OCEANCORES=96
-    XIOCORES=1
   ulimit -c unlimited
   ulimit -s unlimited
 
   rm -f core
-
-  #aprun -n $OCEANCORES -N 24 ./opa
   aprun -b -n 5 -N 5 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
-  #aprun -b -n $XIOCORES -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
 
   exit
 
 Change the notification email to your own address::
 
   sed -i "s/xxx@noc/$USER@noc/g" runscript
+
+Might also want to change the account name. E.g. ``n01-ACCORD``
 
 ---
 
@@ -1061,7 +1119,13 @@ Edit ``namelist_cfg`` to make sure it is OK
 ---
 *(17 Nov 17)* build new 75 level hybrid z-s coordinates. Submitted cold start
  20 min job.
-**PENING** 4921502.sdb. DID IT WORK?
+DID IT WORK? Yes. (Just completed the 1440 steps in 20mins)
+
+*(18 Nov 17)* Add in lots of TPXO harmonics. Run again with 40mins. Completed in 21mins.
+With rn_rdt=60 this is only 1 day of simulation.
+Try increasing the timestep.
+
+rn_rdt = 360 and resubmit. **PENDING** 4922962.sdb
 
 ----
 
@@ -1160,17 +1224,17 @@ Backup to repo key files
 ::
 
   cd ~/GitLab/NEMO-RELOC/docs/source
-  # DOMANcfg namelist_cfg for domain_cfg.nc (for s-coordinates)
-  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg SEAsia_DOMAINcfg_namelist_cfg
+  # DOMANcfg namelist_cfg for domain_cfg.nc (for hybrid z-s coordinates)
+  rsync -utv jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg SEAsia_DOMAINcfg_namelist_cfg
 
-  # EXP namelist_cfg (for s-coordinates)
-  rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/namelist_cfg SEAsia_EXP_namelist_cfg
+  # EXP namelist_cfg
+  rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/namelist_cfg SEAsia_EXP_namelist_cfg
 
-  # PyNEMO namelist.bdy (for s-coordinates)
-  rsync -utv $USER@livljobs4:/work/$USER/NEMO/SEAsia/INPUTS/namelist.bdy SEAsia_namelist.bdy
+  # PyNEMO namelist.bdy
+  rsync -utv jelt@livljobs4:/work/jelt/NEMO/SEAsia/INPUTS/namelist.bdy SEAsia_namelist.bdy
 
   # Python quick plot of SSH in the output.abort.nc file
-  rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/quickplotNEMO.py quickplotNEMO.py
+  rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/quickplotNEMO.py quickplotNEMO.py
 
 
 ---
