@@ -550,237 +550,19 @@ a pre-processing step, and output into an important file ``domain_cfg.nc``.
 
 Copy essential files into DOMAINcfg directory::
 
-    cp $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
-    cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
+    ln -s $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
+    ln -s $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
 
-Edit the template namelist_cfg with only the essenetial domain building stuff.
-Get the size of the new domain from ``ncdump -h bathy_meter.nc``::
+Edit the template ``namelist_cfg`` with only the essenetial domain building stuff.
+Get the size of the new domain from ``ncdump -h bathy_meter.nc``.
 
-  cd $TDIR/DOMAINcfg
-  vi namelist_cfg
-
-  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !! NEMO/OPA  Configuration namelist : used to overwrite defaults values defined in SHARED/namelist_ref
-  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !
-  !-----------------------------------------------------------------------
-  &namrun        !   parameters of the run
-  !-----------------------------------------------------------------------
-     nn_no       =       0   !  job number (no more used...)
-     cn_exp      =  "domaincfg"  !  experience name
-     nn_it000    =       1   !  first time step
-     nn_itend    =      75   !  last  time step (std 5475)
-  /
-  !-----------------------------------------------------------------------
-  &namcfg        !   parameters of the configuration
-  !-----------------------------------------------------------------------
-     !
-     ln_e3_dep   = .false.    ! =T : e3=dk[depth] in discret sens.
-     !                       !      ===>>> will become the only possibility in v4.0
-     !                       ! =F : e3 analytical derivative of depth function
-     !                       !      only there for backward compatibility test with v3.6
-     !                       !
-     cp_cfg      =  "orca"   !  name of the configuration
-     jp_cfg      =       0   !  resolution of the configuration
-     jpidta      =     684   !  1st lateral dimension ( >= jpi )
-     jpjdta      =     554   !  2nd    "         "    ( >= jpj )
-     jpkdta      =      51   !  number of levels      ( >= jpk )
-     jpiglo      =     684   !  1st dimension of global domain --> i =jpidta
-     jpjglo      =     554   !  2nd    -                  -    --> j  =jpjdta
-     jpizoom     =       1   !  left bottom (i,j) indices of the zoom
-     jpjzoom     =       1   !  in data domain indices
-     jperio      =       0   !  lateral cond. type (between 0 and 6)
-  /
-  !-----------------------------------------------------------------------
-  &namzgr        !   vertical coordinate
-  !-----------------------------------------------------------------------
-     ln_sco      = .true.    !  s-coordinate
-     ln_linssh   = .false.    !  linear free surface
-  /
-  !-----------------------------------------------------------------------
-  &namdom        !   space and time domain (bathymetry, mesh, timestep)
-  !-----------------------------------------------------------------------
-     jphgr_msh   =       0               !  type of horizontal mesh
-  ...
-
-.. note:
-
-  No gdept output in the offical v4 release. Though it was acheived here setting
-  ln_e3_dep = F. This is needed for PyNEMO, though could be constructed from e3[tw].
-
-
----
-
-*8 Nov 17* Revisit this DOMAINcfg generation since I am not sure that the present
-settings are the most suitable.
-
-As a starting point iterate knowledge from SWPacific dev:
-
-
-.. note: At one point I tried to use s-coords but it wasn't working. Perhaps it
- would work now that the boundary problems are fixed. I did not investigate it
- though. However I leave these s-coordinate namelist options here because they
- will be useful when I need s-coordinates to work in v4.
-
-(didn't work, though pehaps for reasons nothing to do with the coordinates...)
-
- (If I tried 5 levels then the function to compute the depth range breaks).
- Added in s-coordinate settings from AMM60. (There is a function that tapers dz
- near the equation. This is activated in ``domzgr.F90`` and not by a logical flag).
-
-How about::
-
-  cd $TDIR/DOMAINcfg
-  vi namelist_cfg
-
-  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !! NEMO/OPA  Configuration namelist : used to overwrite defaults values defined in SHARED/namelist_ref
-  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !
-  !-----------------------------------------------------------------------
-  &namrun        !   parameters of the run
-  !-----------------------------------------------------------------------
-     nn_no       =       0   !  job number (no more used...)
-     cn_exp      =  "domaincfg"  !  experience name
-     nn_it000    =       1   !  first time step
-     nn_itend    =      75   !  last  time step (std 5475)
-  /
-  !-----------------------------------------------------------------------
-  &namcfg        !   parameters of the configuration
-  !-----------------------------------------------------------------------
-     !
-     ln_e3_dep   = .false.   ! =T : e3=dk[depth] in discret sens.
-     !                       !      ===>>> will become the only possibility in v4.0
-     !                       ! =F : e3 analytical derivative of depth function
-     !                       !      only there for backward compatibility test with v3.6
-     !                       !
-     cp_cfg      =  "orca"   !  name of the configuration
-     jp_cfg      =      12   !  resolution of the configuration
-     jpidta      =     684   !  1st lateral dimension ( >= jpi )
-     jpjdta      =     554   !  2nd    "         "    ( >= jpj )
-     jpkdta      =      31   !  number of levels      ( >= jpk )
-     jpiglo      =     684   !  1st dimension of global domain --> i =jpidta
-     jpjglo      =     554   !  2nd    -                  -    --> j  =jpjdta
-     jpizoom     =       1   !  left bottom (i,j) indices of the zoom
-     jpjzoom     =       1   !  in data domain indices
-     jperio      =       0   !  lateral cond. type (between 0 and 6)
-  /
-  !-----------------------------------------------------------------------
-  &namzgr        !   vertical coordinate
-  !-----------------------------------------------------------------------
-    ln_zco      = .false.   !  z-coordinate - full    steps
-    ln_zps      = .false.   !  z-coordinate - partial steps
-    ln_sco      = .true.   !  s- or hybrid z-s-coordinate
-    ln_isfcav   = .false.   !  ice shelf cavity
-    ln_linssh   = .false.   !  linear free surface
-  /
-  !-----------------------------------------------------------------------
-  &namzgr_sco    !   s-coordinate or hybrid z-s-coordinate
-  !-----------------------------------------------------------------------
-    ln_s_sh94   = .false.    !  Song & Haidvogel 1994 hybrid S-sigma   (T)|
-    ln_s_sf12   = .true.   !  Siddorn & Furner 2012 hybrid S-z-sigma (T)| if both are false the NEMO tanh stretching is applied
-    ln_sigcrit  = .true.    !  use sigma coordinates below critical depth (T) or Z coordinates (F) for Siddorn & Furner stretch
-                            !  stretching coefficients for all functions
-    rn_jpk      =   51       ! Number of S levels
-    !ln_eq_taper = .false.   !  Tapering of S coords near equator
-    cn_coord_hgr = 'coordinates.nc'  ! File containing gphit (latitude) coordinate for use if ln_eq_taper=.true.
-    rn_sbot_min =   10.0    !  minimum depth of s-bottom surface (>0) (m)
-    rn_sbot_max = 7000.0    !  maximum depth of s-bottom surface (= ocean depth) (>0) (m)
-    rn_hc       =   50.0    !  critical depth for transition to stretched coordinates
-                         !!!!!!!  Envelop bathymetry
-    rn_rmax     =    0.3    !  maximum cut-off r-value allowed (0<r_max<1)
-                         !!!!!!!  SH94 stretching coefficients  (ln_s_sh94 = .true.)
-    rn_theta    =    6.0    !  surface control parameter (0<=theta<=20)
-    rn_bb       =    0.8    !  stretching with SH94 s-sigma
-                         !!!!!!!  SF12 stretching coefficient  (ln_s_sf12 = .true.)
-    rn_alpha    =    4.4    !  stretching with SF12 s-sigma
-    rn_efold    =    0.0    !  efold length scale for transition to stretched coord
-    rn_zs       =    1.0    !  depth of surface grid box
-                            !  bottom cell depth (Zb) is a linear function of water depth Zb = H*a + b
-    rn_zb_a     =    0.024  !  bathymetry scaling factor for calculating Zb
-    rn_zb_b     =   -0.2    !  offset for calculating Zb
-                         !!!!!!!! Other stretching (not SH94 or SF12) [also uses rn_theta above]
-    rn_thetb    =    1.0    !  bottom control parameter  (0<=thetb<= 1)
-  /
-
-This worked (once the levels were consistent). Copy locally and inspect.
-
-.. note :
-    Alternatively try and just copy the AMM60 namelist_cfg::
-
-      cp /work/n01/n01/jelt/NEMO/NEMOGCM/CONFIG/AMM60smago/EXP_NSea/namelist_cfg .
-
-    Then edit for the new grid size and removal all the processor decomposition
-     stuff (we are just generating the mesh and mask info)::
-
-       diff $TDIR/DOMAINcfg/namelist_cfg diff /work/n01/n01/jelt/NEMO/NEMOGCM/CONFIG/AMM60smago/EXP_NSea/namelist_cfg
-
-      <    jpidta      =     684   !  1st lateral dimension ( >= jpi )
-      <    jpjdta      =     554   !  2nd    "         "    ( >= jpj )
-      ---
-      >    jpidta      =     1120               !  1st lateral dimension ( >= jpi )
-      >    jpjdta      =     1440               !  2nd    "         "    ( >= jpj )
-      33,34c33,34
-      <    jpiglo      =     684               !  1st dimension of global domain --> i =jpidta
-      <    jpjglo      =     554              !  2nd    -                  -    --> j  =jpjdta
-      ---
-      >    jpiglo      =     1120               !  1st dimension of global domain --> i =jpidta
-      >    jpjglo      =     1440              !  2nd    -                  -    --> j  =jpjdta
-      499a500,506
-      >    cn_mpi_send =  'I'      !  mpi send/recieve type   ='S', 'B', or 'I' for standard send,
-      >                            !  buffer blocking send or immediate non-blocking sends, resp.
-      >    nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
-      >    ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
-      >    jpni        =   40       !  jpni   number of processors following i (set automatically if < 1)
-      >    jpnj        =   50     !  jpnj   number of processors following j (set automatically if < 1)
-      >    jpnij       =   2000     !  jpnij  number of local domains (set automatically if < 1)
-
----
-
-Build a script to run the executable::
-
-  vi $TDIR/DOMAINcdf/rs
-
-  #!/bin/bash
-  #PBS -N domain_cfg
-  #PBS -l walltime=00:20:00
-  #PBS -l select=1
-  #PBS -j oe
-  #PBS -A n01-NOCL
-  # mail alert at (b)eginning, (e)nd and (a)bortion of execution
-  #PBS -m bea
-  #PBS -M jelt@noc.ac.uk
-  #! -----------------------------------------------------------------------------
-
-  # Change to the directory that the job was submitted from
-  cd $PBS_O_WORKDIR
-
-  # Set the number of threads to 1
-  #   This prevents any system libraries from automatically
-  #   using threading.
-  export OMP_NUM_THREADS=1
-  # Change to the directory that the job was submitted from
-  ulimit -s unlimited
-
-  #===============================================================
-  # LAUNCH JOB
-  #===============================================================
-  echo `date` : Launch Job
-  aprun -n 1 -N 1 ./make_domain_cfg.exe >&  stdouterr_cfg
-
-  exit
-
-
-Try running it::
-
-  cd $TDIR/DOMAINcfg
-  qsub -q short rs
+Follow recipe of hybrid z-s coordinates in `build_domain_cfg_file.rst`_
 
 Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores
  the bits and bobs for a rebuild)::
 
-  cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
-  cp $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
+   rsync -utv $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
+   rsync -utv $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
 
 .. mote :  should check the difference between the homemade sco version the AMM60
   verison did:      ``diff namelist_cfg_sco_WIP namelist_cfg_AMM60``
@@ -1081,9 +863,15 @@ Point to the correct source and destination mesh and mask files/variables.
    !  unstructured open boundaries tidal parameters
    !-----------------------------------------------------------------------
        ln_tide        = .true.               !  =T : produce bdy tidal conditions
-       clname(1)      = 'M2'                 ! constituent name
-       clname(2)      = 'S2'
-       clname(3)      = 'K2'
+       clname(1) =  'M2'
+       clname(2) =  'S2'
+       clname(3) =  'N2'
+       clname(4) =  'K2'
+       clname(5) =  'K1'
+       clname(6) =  'O1'
+       clname(7) =  'P1'
+       clname(8) =  'Q1'
+       clname(9) =  'M4'
        ln_trans       = .false.
        sn_tide_h     = '/work/jelt/tpxo7.2/h_tpxo7.2.nc'
        sn_tide_u     = '/work/jelt/tpxo7.2/u_tpxo7.2.nc'
@@ -1137,21 +925,40 @@ Also had to check/create ``inputs_dst.ncml``, that it has the correct file name 
 
    vi inputs_dst.ncml
 
-   <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
-     <ns0:aggregation type="union">
-       <ns0:netcdf location="file:domain_cfg.nc">
-       <ns0:variable name="mbathy" orgName="bottom_level" />
-       <ns0:variable name="gdept" orgName="gdept_0" />
-       <ns0:variable name="gdepw" orgName="gdepw_0" />
-       <ns0:variable name="e3u" orgName="e3u_0" />
-       <ns0:variable name="e3v" orgName="e3v_0" />
-       </ns0:netcdf>
-     </ns0:aggregation>
-   </ns0:netcdf>
+    <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+      <ns0:aggregation type="union">
+        <ns0:netcdf location="file:domain_cfg.nc">
+        <ns0:variable name="mbathy" orgName="bottom_level" />
+        <ns0:variable name="e3u" orgName="e3u_0" />
+        <ns0:variable name="e3v" orgName="e3v_0" />
+        <ns0:variable name="e3t" orgName="e3t_0" />
+        <ns0:variable name="e3w" orgName="e3w_0" />
+        </ns0:netcdf>
+      </ns0:aggregation>
+    </ns0:netcdf>
 
-.. warning:
-  In the actual v4 release domain_cfg.nc  will not have gdept or gdepw. These
-  will need to be reconstructed from e3[tw].
+
+  .. warning:
+    In the actual v4 release domain_cfg.nc  will not have gdept or gdepw. These
+    will need to be reconstructed from e3[tw].
+
+  .. note : 18 Nov.  comment out the gdept and gdepw lines and
+     inserted e3t and e3w. Previouly the inputs_dst.ncml looked like::
+
+    <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+      <ns0:aggregation type="union">
+        <ns0:netcdf location="file:domain_cfg.nc">
+        <ns0:variable name="mbathy" orgName="bottom_level" />
+        <ns0:variable name="gdept" orgName="gdept_0" />
+        <ns0:variable name="gdepw" orgName="gdepw_0" />
+        <ns0:variable name="e3u" orgName="e3u_0" />
+        <ns0:variable name="e3v" orgName="e3v_0" />
+        </ns0:netcdf>
+      </ns0:aggregation>
+    </ns0:netcdf>
+
+
+
 
 
 Run PyNEMO / NRCT to generate boundary conditions
@@ -1179,14 +986,32 @@ This generates::
 
   coordinates.bdy.nc
   SEAsia_bdytide_rotT_M2_grid_T.nc
-  SEAsia_bdytide_rotT_K2_grid_T.nc
+  SEAsia_bdytide_rotT_N2_grid_T.nc
   SEAsia_bdytide_rotT_S2_grid_T.nc
+  SEAsia_bdytide_rotT_K1_grid_T.nc
+  SEAsia_bdytide_rotT_K2_grid_T.nc
+  SEAsia_bdytide_rotT_P1_grid_T.nc
+  SEAsia_bdytide_rotT_O1_grid_T.nc
+  SEAsia_bdytide_rotT_M4_grid_T.nc
+  SEAsia_bdytide_rotT_Q1_grid_T.nc
   SEAsia_bdytide_rotT_M2_grid_U.nc
-  SEAsia_bdytide_rotT_K2_grid_U.nc
+  SEAsia_bdytide_rotT_N2_grid_U.nc
   SEAsia_bdytide_rotT_S2_grid_U.nc
+  SEAsia_bdytide_rotT_K1_grid_U.nc
+  SEAsia_bdytide_rotT_K2_grid_U.nc
+  SEAsia_bdytide_rotT_P1_grid_U.nc
+  SEAsia_bdytide_rotT_O1_grid_U.nc
+  SEAsia_bdytide_rotT_M4_grid_U.nc
+  SEAsia_bdytide_rotT_Q1_grid_U.nc
   SEAsia_bdytide_rotT_M2_grid_V.nc
-  SEAsia_bdytide_rotT_K2_grid_V.nc
+  SEAsia_bdytide_rotT_N2_grid_V.nc
   SEAsia_bdytide_rotT_S2_grid_V.nc
+  SEAsia_bdytide_rotT_K1_grid_V.nc
+  SEAsia_bdytide_rotT_K2_grid_V.nc
+  SEAsia_bdytide_rotT_P1_grid_V.nc
+  SEAsia_bdytide_rotT_O1_grid_V.nc
+  SEAsia_bdytide_rotT_M4_grid_V.nc
+  SEAsia_bdytide_rotT_Q1_grid_V.nc
 
 
 Copy the new files back onto ARCHER
@@ -1203,20 +1028,25 @@ Copy the new files back onto ARCHER
 8. Run the configuration ON ARCHER. Turn on the tides
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+Get set up::
+
+  ssh archer
+  . ~/temporary_path_names_for_NEMO_build
+
 Get important files into EXP directory. Should already have ``domain_cfg.nc``::
 
 
   cd $EXP
-  cp $INPUTS/bathy_meter.nc $EXP/.
-  cp $INPUTS/coordinates.nc $EXP/.
-  cp $INPUTS/coordinates.bdy.nc $EXP/.
-  cp $START_FILES/namelist_cfg $EXP/.
+  rsync -tuv $INPUTS/bathy_meter.nc $EXP/.
+  rsync -tuv $INPUTS/coordinates.nc $EXP/.
+  rsync -tuv $INPUTS/coordinates.bdy.nc $EXP/.
+  rsync -tuv $START_FILES/namelist_cfg $EXP/.
 
 Create symbolic links from EXP directory::
 
   ln -s $INPUTS $EXP/bdydta
 
-Edit the output to have 1hrly SSH::
+Edit the output to have 1hrly SSH, and harmonic output::
 
  vi file_def_nemo.xml
  ...
@@ -1225,10 +1055,22 @@ Edit the output to have 1hrly SSH::
     <field field_ref="ssh"          name="zos"   />
   </file>
  </file_group>
+ ...
+ <file_group id="5d" output_freq="5d"  output_level="10" enabled=".TRUE.">  <!-- 5d files -->
+   <file id="file8" name_suffix="_D2_Tides" description="tidal harmonics" >
+     <field field_ref="M2x"          name="M2x"      long_name="M2 Elevation harmonic real part"                       />
+     <field field_ref="M2y"          name="M2y"      long_name="M2 Elevation harmonic imaginary part"                  />
+     <field field_ref="M2x_u"        name="M2x_u"    long_name="M2 current barotropic along i-axis harmonic real part "       />
+     <field field_ref="M2y_u"        name="M2y_u"    long_name="M2 current barotropic along i-axis harmonic imaginary part "  />
+     <field field_ref="M2x_v"        name="M2x_v"    long_name="M2 current barotropic along j-axis harmonic real part "       />
+     <field field_ref="M2y_v"        name="M2y_v"    long_name="M2 current barotropic along j-axis harmonic imaginary part "  />
+     ...
+   </file>
+ </file_group>
 
 ---
 
-Create a short queue runscript::
+Create a short queue runscript (Note: PBS -N jobname, PBS -m email)::
 
   vi runscript
 
@@ -1253,17 +1095,19 @@ Create a short queue runscript::
   #
     echo " ";
     OCEANCORES=96
-    XIOCORES=1
   ulimit -c unlimited
   ulimit -s unlimited
 
   rm -f core
-
-  #aprun -n $OCEANCORES -N 24 ./opa
   aprun -b -n 5 -N 5 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
-  #aprun -b -n $XIOCORES -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
 
   exit
+
+Change the notification email to your own address::
+
+  sed -i "s/xxx@noc/$USER@noc/g" runscript
+
+Might also want to change the account name. E.g. ``n01-ACCORD``
 
 ---
 
@@ -1271,6 +1115,21 @@ Edit ``namelist_cfg`` to make sure it is OK
 
 ---
 *IT WORKS. IF IT WORKS, ARCHIVE namelist_cfg too**
+
+---
+*(17 Nov 17)* build new 75 level hybrid z-s coordinates. Submitted cold start
+ 20 min job.
+DID IT WORK? Yes. (Just completed the 1440 steps in 20mins)
+
+*(18 Nov 17)* Add in lots of TPXO harmonics. Run again with 40mins. Completed in 21mins.
+With rn_rdt=60 this is only 1 day of simulation.
+Try increasing the timestep.
+
+rn_rdt = 360 and resubmit. Completes in 20min 30days.
+**But fills with NaNs from NE Boundary**
+
+
+----
 
 No met (missing slp) ``ln_usr=T``. rn_rdt=60s. Output more harmonics (20-30days).
 Run for 30 days::
@@ -1367,17 +1226,17 @@ Backup to repo key files
 ::
 
   cd ~/GitLab/NEMO-RELOC/docs/source
-  # DOMANcfg namelist_cfg for domain_cfg.nc (for s-coordinates)
-  rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg SEAsia_DOMAINcfg_namelist_cfg
+  # DOMANcfg namelist_cfg for domain_cfg.nc (for hybrid z-s coordinates)
+  rsync -utv jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg SEAsia_DOMAINcfg_namelist_cfg
 
-  # EXP namelist_cfg (for s-coordinates)
-  rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/namelist_cfg SEAsia_EXP_namelist_cfg
+  # EXP namelist_cfg
+  rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/namelist_cfg SEAsia_EXP_namelist_cfg
 
-  # PyNEMO namelist.bdy (for s-coordinates)
-  rsync -utv $USER@livljobs4:/work/$USER/NEMO/SEAsia/INPUTS/namelist.bdy SEAsia_namelist.bdy
+  # PyNEMO namelist.bdy
+  rsync -utv jelt@livljobs4:/work/jelt/NEMO/SEAsia/INPUTS/namelist.bdy SEAsia_namelist.bdy
 
   # Python quick plot of SSH in the output.abort.nc file
-  rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/quickplotNEMO.py quickplotNEMO.py
+  rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/quickplotNEMO.py quickplotNEMO.py
 
 
 ---
