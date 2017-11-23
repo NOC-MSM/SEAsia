@@ -9,7 +9,7 @@ Use my XIOS file (see ``%XIOS_HOME``). Copy from *store*::
 
   cp $WORK/$USER/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
 
-Make a new config directory structure::
+Make a new config directory structure (only say YES to OPA_SRC, unless you have other plans)::
 
   cd $CDIR
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10 clean
