@@ -96,12 +96,16 @@ Note you might have to mkdir the odd directory or two...::
   mkdir $WDIR
   mkdir $INPUTS
   mkdir $START_FILES
-  cp $WDIR/../LBay/START_FILES/dommsk.F90 $START_FILES/.
-  cp $WDIR/../LBay/START_FILES/bdyini.F90 $START_FILES/.
-  cp $WDIR/../LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
-  cp $WDIR/../LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
-  cp $WDIR/../SEAsia/START_FILES/usrdef_istate.F90 $START_FILES/.
-  cp $WDIR/../SEAsia/START_FILES/usrdef_sbc.F90    $START_FILES/.
+
+At this point you need to beg, steal or borrow to fill your $START_FILES. A good place
+to look would be ``$WORK/jelt/$CONFIG/START_FILES``. E.g.::
+
+  cp $WORK/jelt/LBay/START_FILES/dommsk.F90 $START_FILES/.
+  cp $WORK/jelt/LBay/START_FILES/bdyini.F90 $START_FILES/.
+  cp $WORK/jelt/LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
+  cp $WORK/jelt/LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
+  cp $WORK/jelt/SEAsia/START_FILES/usrdef_istate.F90 $START_FILES/.
+  cp $WORK/jelt/SEAsia/START_FILES/usrdef_sbc.F90    $START_FILES/.
 
 Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
 Or just build (if it is already downloaded). Note here we use user defined
