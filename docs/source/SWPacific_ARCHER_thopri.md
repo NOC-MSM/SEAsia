@@ -334,14 +334,107 @@ To view nc files on ARCHER::
     
 **Note** Need to make sure the -Y flag is used when sshing in. (Currently this doesn't work for me so I scp and use panoply)
 
+22/11/17
+=======
 
+ARCHER down for maintenance today so no NEMO modelling today!
 
+**Some thoughts**
 
+-- Need to reduce time step of model (to 180 seconds?) to see if that makes it more stable.
+-- Investigate adding extra harmonics particularly shallow water ones.
 
+23/11/17
+=======
 
+Running model for longer results in a blowup where the zonal velocity exceeds a threshold on 20 m/s. This occurs at around 3.8 weeks in. This is same issues found on the 21/11/17. Some research suggested that reducing the time step, currently 360 seconds could help. Both 240 and 180 seconds per time step have been used with no change in the outcome.
 
+Currently trying to setup a restart so that model can be started just before blowup allowing output to be inspected to find issue. To start the following lines within namelist_cfg need to be changed::
 
+    !-----------------------------------------------------------------------
+    &namrun        !   parameters of the run
+    !-----------------------------------------------------------------------
+    cn_exp      =    "SWPacific"  !  experience name
+    nn_it000    =  1   !  first time step
+    nn_itend    =  16800 ! 10day=14400   !  last  time step (std 5475)
+    nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+    nn_time0    =       0   !  initial time of day in hhmm
+    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+    ln_rstart   = .false.    !  start from rest (F) or from a restart file (T)
+    nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
+    nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
+    !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
+    !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
+    !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
+    cn_ocerst_in    = "SWPacific_00012677_restart_tide"   !  suffix of ocean restart name (input)
+    cn_ocerst_indir = "."         !  directory from which to read input ocean restarts
+    cn_ocerst_out   = "restart_tide"   !  suffix of ocean restart name (output)
+    cn_ocerst_outdir= "."         !  directory in which to write output ocean restarts
+    ln_iscpl    = .true.   !  cavity evolution forcing or coupling to ice sheet model
+    nn_istate   =       0   !  output the initial state (1) or not (0)
+    ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
+    nn_stock    =   12677 ! 14400   !  frequency of creation of a restart file (modulo referenced to 1)
+    nn_stocklist = 0,0,0,0,0,0,0,0,0,0 ! List of timesteps when a restart file is to be written
+    nn_write    =  480  ! 14400   !  frequency of write in the output file   (modulo referenced to nn_it000)
+    ln_mskland  = .false.   !  mask land points in NetCDF outputs (costly: + ~15%)
+    ln_cfmeta   = .false.   !  output additional data to netCDF files required for compliance with the CF metadata standard
+    ln_clobber  = .true.    !  clobber (overwrite) an existing file
+    nn_chunksz  =       0   !  chunksize (bytes) for NetCDF file (works only with iom_nf90 routines)
 
+ln_rstart needs setting to true. The cn_ocerst_in needs changing to the restart file name (in this case 12677 time steps into the simulation) This also assumes that the restart file has been created in the proper time period by running the model with nn_stock set to output an restart file. (in this case at time step 12677)
+
+Once a set of restarts have been created, they can be combined into one file (a restart file is produced for all cores) this requires the rebuild nemo tools to be compiled and used. Please follow the guide "rebuild and inspect NEMO output" recipe. The tool is compiled using the following command::
+
+    cd $TDIR
+    ./maketools -m XC_ARCHER_INTEL -n REBUILD_NEMO
+    
+then to rebuild::
+    
+    cd $EXP
+    export nproc=93
+    $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 $CONFIG_000012677_restart_tide $nproc
+
+The 93 indivdual files can now be deleted.
+
+Finally to run the restart file the starting timesteps for the simulation and harmonic analysis need to be changed in the namelist_cfg as before::
+
+    !-----------------------------------------------------------------------
+    &namrun        !   parameters of the run
+    !-----------------------------------------------------------------------
+    cn_exp      =    "SWPacific"  !  experience name
+    nn_it000    =  12678   !  first time step
+    nn_itend    =  16800 ! 10day=14400   !  last  time step (std 5475)
+    nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+    nn_time0    =       0   !  initial time of day in hhmm
+    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+    ln_rstart   = .true.    !  start from rest (F) or from a restart file (T)
+
+As the restart file in this case occurs at time step 12677, the starting time step is this plus one (12678). The start date should not need changing (not 100% sure!)
+The strating point of the harmonic analysis also needs changing::
+
+    !-----------------------------------------------------------------------
+    &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
+    !-----------------------------------------------------------------------
+    nit000_han = 12678         ! First time step used for harmonic analysis
+    nitend_han = 16800 ! 7200      ! Last time step used for harmonic analysis
+    nstep_han  = 1        ! Time step frequency for harmonic analysis
+
+As the model is a restart and not starting from rest there is no need to stagger the start of the harmonic analysis so it can start at the same time as the simulation restart timestep plus one (12678).
+
+Currently the model has errors when trying to run from restart. It produced an E R R O R saying tmask, vmask and umask variable among others were missing. This was identified to be potentially due to ln_mask_file being set to true::
+
+    !-----------------------------------------------------------------------
+    &nambdy        !  unstructured open boundaries
+    !-----------------------------------------------------------------------
+    ln_bdy         = .true.              !  Use unstructured open boundaries
+    nb_bdy         = 1                    !  number of open boundary sets
+    ln_coords_file = .true.               !  =T : read bdy coordinates from file
+    cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+    ln_mask_file   = .true.              !  =T : read mask from file
+    cn_mask_file   = 'bdydta/SWPacific_bdytide_rotT_M2_grid_T.nc'    !  name of mask file (if ln_mask_file=.TRUE.)
+    cn_dyn2d       = 'flather'
+
+However, setting this to false results in the model crashing with ssh in excess of 10 m. (Jeff.......!!!)
 
 
 
