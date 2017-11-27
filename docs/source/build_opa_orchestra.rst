@@ -1,5 +1,9 @@
 Build NEMO (ORCHESTRA) trunk @ r8395
 ++++++++++++++++++++++++++++++++++++
+
+You need to obtain a nemo account http://forge.ipsl.jussieu.fr/nemo/register
+Suggest using the same unsernam as ARCHER account
+
 ::
 
   cd $WDIR
