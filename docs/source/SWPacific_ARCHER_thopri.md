@@ -2,14 +2,14 @@
 
 Copy Input and Start files from Jelt workspace on ARCHER to my own to allow me to build my NEMO config. Check SWPacific_archer_livljob4 recipe to find out what he did to make these.
 
-    rsync --progress -r /work/n01/n01/jelt/SWPacific/INPUTS /work/n01/n01/thopri/SWPacific
-    rsync --progress -r /work/n01/n01/jelt/SWPacific/START_FILES /work/n01/n01/thopir/SWPacific
+    rsync --progress -r /work/n01/n01/thopri/SWPacific/INPUTS /work/n01/n01/$USER/SWPacific
+    rsync --progress -r /work/n01/n01/thopri/SWPacific/START_FILES /work/n01/n01/SUSER/SWPacific
 
 Set environmental varaibles::
 
     export CONFIG=SWPacific
-    export WORK=/work/n01/n01/thopri
-    export WDIR=$WORK/$CONFIG
+    export WORK=/work/n01/n01
+    export WDIR=$WORK/thopri/$CONFIG
     export INPUTS=$WDIR/INPUTS
     export START_FILES=$WDIR/START_FILES
     export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
@@ -26,11 +26,16 @@ Follow build XIOS_2.rst and build_opa_orchestra.rst recipe on gitlab server to b
 Copy over input and start files into NEMO config::
 
     cd $EXP
-    rsync -tuv $INPUTS/bathy_meter.nc $EXP/.
-    rsync -tuv $INPUTS/coordinates.nc $EXP/.
-    rsync -tuv $INPUTS/coordinates.bdy.nc $EXP/.
-    rsync -tuv $START_FILES/namelist_cfg $EXP/.
-    rsync -tuv $INPUTS/domain_cfg.nc $EXP/.
+    cp $INPUTS/bathy_meter.nc $EXP/.
+    cp $INPUTS/coordinates.nc $EXP/.
+    cp $INPUTS/coordinates.bdy.nc $EXP/.
+    cp $START_FILES/namelist_cfg $EXP/.
+    cp $INPUTS/domain_cfg.nc $EXP/.
+    cp $START_FILES/file_def_nemo.xml $EXP/.
+    cp $START_FILES/field_def_nemo-opa.xml $EXP/.
+    cp $START_FILES/runscript $EXP/.
+    cp $START_FILES/usrdef_istate.F90 $CDIR/$CONFIG/MY_SRC/.
+    cp $START_FILES/usrdef_sbc.F90 $CDIR/$CONFIG/MY_SRC/.
 
 Create symbolic links from EXP directory::
 
@@ -184,7 +189,7 @@ too::
     
 Next steps are too lengthen the runtime to a couple of months rather than 20 days. Currently takes 23 mins for 20 days so an hour should give approx 60 days. Will check with Jeff appropiate run times.
 
-Ok after chatting to Jeff its best to stay on short queue until model is ready for full run, i.e. all harmonics are being run and outputted. So I have halved the time step number to 2400 so the model runs for 10 days and just over 10 mins. Will add extra harmonics to output files and try restart model run next week. Will increase to 14 days so that full neap spring cycle is simulated. This equates to 3360 time steps. Also set wall time to 20 mins so model will run in short queue.
+Ok after chatting to Jeff its best to stay on short queue until model is ready for full run, i.e. all harmonics are being run and outputted. So I have halved the time step number to 2400 so the model runs for 10 days and just over 10 mins. Will add extra harmonics to output files and try restart model run next week. Will increase to 14 days so that neap spring cycle is simulated. This equates to 3360 time steps. Also set wall time to 20 mins so model will run in short queue.
 
 For Next Week: 20/11/17
 -----------------------------
@@ -434,7 +439,59 @@ Currently the model has errors when trying to run from restart. It produced an E
     cn_mask_file   = 'bdydta/SWPacific_bdytide_rotT_M2_grid_T.nc'    !  name of mask file (if ln_mask_file=.TRUE.)
     cn_dyn2d       = 'flather'
 
-However, setting this to false results in the model crashing with ssh in excess of 10 m. (Jeff.......!!!)
+However, setting this to false results in the model crashing with ssh in excess of 10 m. (Jeff.......!!!) Ok have had a quick chat, will look at Jeff's recipe tomorrow to try and fix the issue. I have reset the timestep to 360 seconds and the simulation to 2 weeks with HC analysis starting after one week. Will try and get this to restart tomorrow. Definatly is an issue with the bdy_mask file. Jeff has had these issues too after taking a quick peek at his recipe. Will continue tomorrow.
+
+24/11/2017
+=========
+
+Well I am lucky with Jeff as he has checked his config and has successfully do a clean run and restart so I can check his config with mine. Using the diff command (awesome tool)::
+
+    diff firstfile secondfile
+    
+This results in a list of differences. Some are expected, I have more harmonics etc. But I can see what I should change to hopefully get a working config::
+    
+    ln_iscpl = .false.
+    ln_mask_file = .true.
+    nn_stock = 4800
+    nn_write = 4800
+   
+Time steps relating to the start, end of both the simulation and harmonic analysis also need to be set. For restarts this needs to start at time step of restart plus one. Testing has shown that I can now clean start and restart a simulation run. Unfortunatly there is an issue in that at around 20 days the model crashes, it is in the same timestep regardless of starting from rest, or restart.
+
+Have been playing around with different options and start times but nothing has worked, model still eventually crashes. It is restarting well at least. Will work on it next week. Currently running from 20000107 and running for 30 days. Restart set at time step 4800. Currently crashes at 5690 which is 23.7 days.
+
+Slightly odd that running from 200000101 resulted in a crash at 5034 (20.975 days) it doesn't appear to be a specific point in the simulation time that is causing the issue. Until next week.
+
+28/11/2017
+=========
+
+With help from Jeff, the issue has hopefully been found. I made a booboo and didn't copy over some initial state files from his start files to the my_src folder. In my defence it is slightly confusing as the reciple for building NEMO doesn't have it (as its specific to the SWPacific config) but it is part of building NEMO. WIll clarify both recipes to make it more explicit.
+
+30/11/2017
+=========
+After having major issues with the QA results of the dataset I have done a run with only M2 and S2. This has resulted in much better results after identifying that the output may have the same issue as AMM60 in that the phase is mirrored. After correcting this the values of M2 and S2 of both phase and amp are much more sensible (within 20 degress and 0.5 m). I will now work with Colin to identify the best harmonics to use and the minimum simulation time required.
+
+Have been working with Colin to figure correct amount of time to run model to adequatly extra HC's for some of the harmonics it requires a run of at least a year. So given their minor contribution they have been removed and the only the harmonics that are in Topex and Nemo are used. This results in 11 harmonics.::
+
+    tname(1)   = 'M2'      ! Name of tidal constituents
+    tname(2)   = 'S2'      ! Name of tidal constituents
+    tname(3)   = 'N2'      ! Name of tidal constituents
+    tname(4)   = 'K2'      ! Name of tidal constituents
+    tname(5)   = 'K1'      ! Name of tidal constituents
+    tname(6)   = 'O1'
+    tname(7)   = 'P1'
+    tname(8)   = 'Q1'
+    tname(9)   = 'Mf'
+    tname(10)  = 'Mm'
+    tname(11)  = 'M4'
+    
+Even these require a run of at least 6 months. So I am currently doing another 30 day run to get up to a restart of 90 days or 21600 time steps and will do a 6 month run from here tomorrow. If this works well I may do an annual run from the end of this run as well.
+
+
+    
+    
+    
+    
+    
 
 
 
