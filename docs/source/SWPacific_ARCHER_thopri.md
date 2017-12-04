@@ -486,6 +486,26 @@ Have been working with Colin to figure correct amount of time to run model to ad
     
 Even these require a run of at least 6 months. So I am currently doing another 30 day run to get up to a restart of 90 days or 21600 time steps and will do a 6 month run from here tomorrow. If this works well I may do an annual run from the end of this run as well.
 
+04/12/2017
+=========
+
+Inital model run of 6 months failed at the tidal harmonic analysis stage, error was exceeding the wall time of the simulation. I had set it at 6 hours so will extend to 9 hours which should be enough (model had completed its run but did not have enough time to analyse).
+
+Did a mini test run of one day to make sure model is still outputting correctly........ And it is.
+
+Running new 6 month simulation now up to 100800 time steps. Restart at 57600 time steps. (360s per time step).
+
+
+
+
+
+
+
+
+
+
+
+
 
     
     

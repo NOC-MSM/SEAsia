@@ -36,3 +36,5 @@ Add a fix to the mask variables, from the bdy mask variable::
 Build opa::
 
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+**Note** Make sure that any inital state files that are required by the configuration are copied into the MY_SRC folder before building NEMO. E.g. for SWPacific, inital state files are required so that a constant temp and salinity are set at the start of the simulation.

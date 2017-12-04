@@ -118,6 +118,8 @@ Or just build (if it is already downloaded). Note here we use user defined
   cp $START_FILES/dommsk.F90 $CDIR/$CONFIG/MY_SRC/.
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
+**Note** Make sure to copy across any inital state files into MY_SRC before building, this is important as the SWPacific requires a constant temp and salinity to be set at the start of the simulation. I used the generic recipe to build NEMO and missed these files.
+
 ---
 
 Checkout and build XIOS2 @ r1080 `build_XIOS2.html`_::
