@@ -4,6 +4,8 @@ Build NEMO (ORCHESTRA) trunk @ r8395
 
   cd $WDIR
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
+  You need to obtain a nemo account http://forge.ipsl.jussieu.fr/nemo/register
+  Suggest using the same unsernam as ARCHER account
 
 Use my XIOS file (see ``%XIOS_HOME``). Copy from *store*::
 

@@ -87,7 +87,10 @@ of a few selcted constituents (in addition it fastens the computation).
 So now the code allow you to select which constituents you want to output. They need to be included in
 the input one. (we can imagine in the future extending this to any constituents could be outputed).
 
+Miscellaneous / Important
+=========================
 
+You need to update your xml files to include each components !!!
 
 
 

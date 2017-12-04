@@ -134,8 +134,30 @@ A solution is to submit on the post-processing node. However post-processing nod
 architecture and you need to recompile your tools for it. Basically on those node the compiler shortcuts (ftn, CC, ...) 
 are not recognized so you need to alter them depending on the compiler. for example with intel, **ftn** becomes **ifort**.
 
+
 More details can be find on the ARCHER documentation :
    http://www.archer.ac.uk/documentation/user-guide/development.php#sec-4.7
+
+
+Pynemo on livl server
+=====================
+
+I (Nico) could not manage to install pynemo locally on my work computer (worked fine at home). I change my anaconda set-up to install the 
+environments in the **/work** instead of **/login** through the **.condarc**. Finally the only way I manage to install it was to reverse 
+my environment to the **/login** default one. It seems weird to not work in the other way and it's not very class was of sorting this but 
+at least it works. I guess it's only due to *java virtual machine* path not properly path trhough but still... the error I got was the 
+following ::
+  
+   File "/work/nibrun/nico-conda/nrct_env/lib/python2.7/site-packages/jnius/reflect.py", line 162, in autoclass
+       c = find_javaclass(clsname)
+   File "jnius_export_func.pxi", line 23, in jnius.find_javaclass (jnius/jnius.c:12356)
+   jnius.JavaException: Class not found 'ucar/nc2/dataset/NetcdfDataset'
+
+
+
+
+
+
 
 
 
