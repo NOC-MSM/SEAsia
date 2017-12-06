@@ -36,7 +36,13 @@ Copy over input and start files into NEMO config::
     cp $START_FILES/runscript $EXP/.
     cp $START_FILES/usrdef_istate.F90 $CDIR/$CONFIG/MY_SRC/.
     cp $START_FILES/usrdef_sbc.F90 $CDIR/$CONFIG/MY_SRC/.
+    cp $START_FILES/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
+    cp $START_FILES/dommsk.F90 $CDIR/$CONFIG/MY_SRC/.
+    
+Build NEMO::
 
+    ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+    
 Create symbolic links from EXP directory::
 
     ln -s $INPUTS $EXP/bdydta
@@ -496,18 +502,205 @@ Did a mini test run of one day to make sure model is still outputting correctly.
 Running new 6 month simulation now up to 100800 time steps. Restart at 57600 time steps. (360s per time step).
 
 
+05/12/2017
+=========
+
+Model ran out of wall time again, damn. An additional three hours was not enough. The harmonic analysis is taking a long time, as the model itself is running in a few hours.
+
+Need to try and get an idea of far the harmonic analysis got, do I need a few more hours (or days?) hours is ok but days will require a rethink. (A.K.A go and bother Jeff)
+
+After chatting with Jeff and Nico, we have decided to try a different harmonic method requiring a new configuration as the current method does not appear to work for large time steps and numbers of harmonic constiuients.
+
+So generate new config called SWPacific_TXPO but change the cpp key from key_diaharm to key_harm_ana::
 
 
+    bld::tool::fppkeys key_zdfgls key_harm_ana key_mpp_mpi key_iomput key_nosignedzero
 
+Change to new config variable and other variables::
 
-
-
-
-
-
-
-
+    export NEMO_BUILD=SWPacific
+    export CONFIG=SWPacific_TPXO
+    export WORK=/work/n01/n01
+    export WDIR=$WORK/thopri/$NEMO_BUILD
+    export INPUTS=$WDIR/INPUTS
+    export START_FILES=$WDIR/START_FILES
+    export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+    export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+    export EXP=$CDIR/$CONFIG/EXP00
     
+**NOTE** the config name has changed to SWPacific__TPXO but the working directory is still the same "SWPacific" This is an issue with extra configurations within the same NEMO build. Should of used a different name for overall build.
+
+Copy across the relevent start files into the MY_SRC folder, first copying the additional ones provided by Nico into the start folder::
+
+    Get Nico's Files
+    cd $START_FILES
+    cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/diaharmana.F90 ./
+    cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/step_oce.F90 ./
+    cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/step.F90 ./
+    cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/bdytides.F90 ./
+
+    Copy to relevant folders
+    cd $EXP
+    cp $INPUTS/bathy_meter.nc $EXP/.
+    cp $INPUTS/coordinates.nc $EXP/.
+    cp $INPUTS/coordinates.bdy.nc $EXP/.
+    cp $START_FILES/namelist_cfg $EXP/.
+    cp $INPUTS/domain_cfg.nc $EXP/.
+    cp $START_FILES/file_def_nemo.xml $EXP/.
+    cp $START_FILES/field_def_nemo-opa.xml $EXP/.
+    cp $START_FILES/runscript $EXP/.
+    cp $START_FILES/usrdef_istate.F90 $CDIR/$CONFIG/MY_SRC/.
+    cp $START_FILES/usrdef_sbc.F90 $CDIR/$CONFIG/MY_SRC/.
+    cp $START_FILES/diaharmana.F90 $CDIR/$CONFIG/MY_SRC/.
+    cp $START_FILES/step_oce.F90 $CDIR/$CONFIG/MY_SRC/.
+    cp $START_FILES/step.F90 $CDIR/$CONFIG/MY_SRC/.
+    cp $START_FILES/bdytides.F90 $CDIR/$CONFIG/MY_SRC/.
+    cp $START_FILES/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
+    cp $START_FILES/dommsk.F90 $CDIR/$CONFIG/MY_SRC/.
+
+Now we can build the config::
+
+    cd $CDIR
+    ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+Once built, the namelist_cfg file needs some varaibles adding::
+
+    !-----------------------------------------------------------------------
+    &nambdy_tide   !  tidal forcing at open boundaries
+    !-----------------------------------------------------------------------
+    filtide      = 'bdydta/SWPacific_bdytide_rotT_'         !  file name root of tidal forcing files
+    ln_bdytide_2ddta = .false.                   !
+    ln_bdytide_conj  = .false.                   !
+    ! Harmonic analysis with restart from polcom
+    ln_harm_ana_compute = .true.                 ! Compute the harmonic analysis at the last time step
+    ln_harm_ana_store = .true.                   ! Store the harmonic analysis at the last time step for restart
+    ln_harmana_read = .false.                    ! Read harmonic analysis from restart
+    
+The constitients that I want to analyse need to be added to nam_diaharm as before, fields may need to be added to the file_def_nemo.xml and field_def_nemo-opa.xml files as well. For the moment this is going to be M2, S2 and K1 and O1.::
+
+    !-----------------------------------------------------------------------
+    &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
+    !-----------------------------------------------------------------------
+    nit000_han = 1         ! First time step used for harmonic analysis
+    nitend_han = 2400 ! 7200      ! Last time step used for harmonic analysis
+    nstep_han  = 1        ! Time step frequency for harmonic analysis
+    tname(1)   = 'M2'      ! Name of tidal constituents
+    tname(2)   = 'S2'      ! Name of tidal constituents
+    tname(3)   = 'K1'      ! Name of tidal constituents
+    tname(4)   = 'O1'      ! Name of tidal constituents
+
+M2 will be the only file outputted in the netcdf to compare with the original harmonic method so any additional HC's in file_def_nemo need to removed. I also set the hourly SSH to be written as well.::
+
+    HC's
+    <file id="file20" name_suffix="_Tides" description="tidal harmonics" >
+    <field field_ref="M2x"          name="M2x"      long_name="M2 Elevation harmonic real part"                       />
+    <field field_ref="M2y"          name="M2y"      long_name="M2 Elevation harmonic imaginary part"                  />
+    <field field_ref="M2x_u"        name="M2x_u"    long_name="M2 current barotrope along i-axis harmonic real part "       />
+    <field field_ref="M2y_u"        name="M2y_u"    long_name="M2 current barotrope along i-axis harmonic imaginary part "  />
+    <field field_ref="M2x_v"        name="M2x_v"    long_name="M2 current barotrope along j-axis harmonic real part "       />
+    <field field_ref="M2y_v"        name="M2y_v"    long_name="M2 current barotrope along j-axis harmonic imaginary part "  />
+    </file>
+    Hourly SSH
+    <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 1h files -->
+    <file id="file19" name_suffix="_SSH" description="ocean T grid variables" >
+    <field field_ref="ssh"          name="zos"   />
+    </file>
+    </file_group>
+
+
+Ok this should work, just check runscipt is limted to 20 mins and set a suitable number of time steps. WIll start with 10 days (2400 time steps).
+
+    vi runscript
+    
+    #!/bin/bash
+    #PBS -N SWPacific
+    #PBS -l select=5
+    #PBS -l walltime=00:20:00
+    #PBS -A n01-NOCL
+    #mail at (b)eginning, (e)nd and (a)bortion of execution
+    #PBS -m bea
+    #PBS -M thopri@noc.ac.uk
+    
+    vi namelist_cfg
+    
+    nn_it000    =  1   !  first time step
+    nn_itend    =  2400 ! 10day=14400   !  last  time step (std 5475)
+    
+    nit000_han = 1         ! First time step used for harmonic analysis
+    nitend_han = 2400 ! 7200      ! Last time step used for harmonic analysis
+
+Submit to short queue::
+
+    qsub -q short runscript
+    
+Oops need to add some symbolic links::
+
+    ln -s $INPUTS $EXP/bdydta
+    ln -s  $WORK/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
+    
+Take 2: Failed :(
+    
+Have had a email from Nico, the file_def_nemo and field_def_nemo xml files need new fields adding to them so have copied over his from his workspace into my START_FILES. Will now copy them into my config.::
+
+    cd $EXP
+    cp $START_FILES/file_def_nemo.xml ./
+    cp $START_FILES/field_def_nemo-opa.xml ./
+
+Take 3: Opps needed to add some mask.f90 files to MY_SRC. Have ammended copy list and rebuilt NEMO. Running now!
+
+Ok model has successfully run, I need to rename the output files for the harmonic restart as it has not been changed in the code yet. Nico gave me a link to a python script which I have copied in to my EXP folder.::
+
+    cd $EXP
+    cp /work/n01/n01/nibrun/RUNS/SWPacific/SIMU/01_harm_links.py ./
+    
+this needs modding so it uses my directories and files. The script created symbolic links to the existing restart_harm_ana files in the correct filename so that it can restart. The edited python script looks like this::
+
+    #!/home/y07/y07/cse/anaconda/4.3.1-python2/bin/python
+
+    import sys, os, glob
+
+    dir_local  = "/work/n01/n01/thopri/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific_TPXO/EXP00"
+    dir_harm   = ""
+    old_prefix = "SWPacific_20000111_restart_harm_ana"
+    new_prefix = "restart_harm_ana"
+
+    print "LINK HARMONIC FILE FOR RESTART"
+
+    Files = glob.glob( "{0}/{1}/{2}*".format(dir_local, dir_harm, old_prefix) )
+    print "  -> {0} files to link".format( len(Files) )
+
+    for iF in Files :
+
+    prefix = iF.split("/")[-1]
+    name   = prefix.replace( old_prefix, new_prefix )
+    text = "ln -s {0} {1}/{2}".format(iF,dir_local,name)
+    os.system( text )
+    
+This will add links in the EXP directory that can be used by the model. It results in a large number of files and links so will see if I can modify the script so it moves the links and files to a sub folder.
+
+So I have made a directory and moved the SWPacific_20000111_restart_harm_ana files over to it and have added the directory to python file.::
+
+    cd $EXP
+    mkdir restart_harm
+    cp SWPacific_20000111_restart_harm_ana_00* restart_harm/.
+    
+    Python Edit
+    dir_harm = "restart_harm"
+
+This has created symbolic links in my EXP folder to the subfolder. Reducing the number of files in the folder.
+
+Ok have had issues with restart running slow, nothing obvious in config. Have started a fresh 10 days so will try and restart that without rebuilding the tide restart file. Nico doesn't do this I think. WIll see if that helps tomorrow.
+
+6/12/2017
+=======
+
+Yay! not rebuilding the restart files has worked, the simulation runs at the same speed as the original fresh start simulation. Have checked output file currently harmonic_grid_t.nc and values look good. Will start a 30 day simulation to see if it works ok. If it does I check the SSH to make sure its stable then run for a further 30 days to use to compare with original harmonic data analysis.
+
+Ok have successfully run a further 30 days and the results look good. Time to compare with the orginal harmonic method.......
+
+Both methods compare well with one another but not with reality.............. So I can use the new method but need to try and improve the results.
+
+
     
     
     
