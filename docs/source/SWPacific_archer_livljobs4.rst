@@ -121,7 +121,7 @@ Or just build (if it is already downloaded). Note here we use user defined
 **Note** Make sure to copy across any inital state files into MY_SRC before building, this is important as the SWPacific requires a constant temp and salinity to be set at the start of the simulation. I used the generic recipe to build NEMO and missed these files.
 
 ---
-
+**NOTE** You need to do this before making nemo
 Checkout and build XIOS2 @ r1080 `build_XIOS2.html`_::
 
 Or just link XIOS executable to the EXP directory::
@@ -129,6 +129,10 @@ Or just link XIOS executable to the EXP directory::
   ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
 
 ---
+
+Note 
+The NEMO executable is called ‘opa’ and found in your $EXP directory. 
+This is automatically symbolically linked to 'nemo.exe' found in $CDIR/$CONFIG/BLD/bin/
 
 
 Build TOOLS
