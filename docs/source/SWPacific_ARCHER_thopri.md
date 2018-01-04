@@ -700,6 +700,19 @@ Ok have successfully run a further 30 days and the results look good. Time to co
 
 Both methods compare well with one another but not with reality.............. So I can use the new method but need to try and improve the results.
 
+Set up TPXO config to be ready to run for another 30 days.
+
+To Do
+-------
+
+1. Speak to Jeff about model comparision and best route forward.
+2. Up number of harmonics to the 13 harmonics that I can use for a 6 month simulation. See previous work in this recipe
+3. Run config for 6 months and hope it works.
+
+07/12/2017
+========
+
+Been busy in meetings etc today, have not managed to get much done. Have identified that the I and J calcs for my NEMO models are not being calculated properly. They seem to be around 5 grid cells out at times. I am investigating and most likely using the same equations used for the FES grid.
 
     
     
