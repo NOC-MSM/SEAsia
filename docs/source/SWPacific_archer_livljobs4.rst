@@ -709,6 +709,8 @@ Create NCML file for mapping variables in DESTINATION grid to what PyNEMO expect
       <ns0:variable name="gdepw" orgName="gdepw_0" />
       <ns0:variable name="e3u" orgName="e3u_0" />
       <ns0:variable name="e3v" orgName="e3v_0" />
+      <ns0:variable name="e3t" orgName="e3t_0" />
+      <ns0:variable name="e3w" orgName="e3w_0" />
       </ns0:netcdf>
     </ns0:aggregation>
   </ns0:netcdf>
