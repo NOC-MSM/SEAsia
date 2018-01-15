@@ -68,19 +68,19 @@ Starting on ARCHER::
 It is quite convenient to define a temporary file with all the path names in.
 The first line defines the configuration name (assuming bash)::
 
-cat > ~/temporary_path_names_for_NEMO_build << EOL
-export CONFIG=LBay180
-export WORK=/work/n01/n01
-export WDIR=\$WORK/\$USER/\$CONFIG
-export INPUTS=\$WDIR/INPUTS
-export START_FILES=\$WDIR/START_FILES
-export CDIR=\$WDIR/trunk_NEMOGCM_r8395/CONFIG
-export TDIR=\$WDIR/trunk_NEMOGCM_r8395/TOOLS
-export EXP=\$CDIR/\$CONFIG/EXP00
+  cat > ~/temporary_path_names_for_NEMO_build << EOL
+  export CONFIG=LBay180
+  export WORK=/work/n01/n01
+  export WDIR=\$WORK/\$USER/\$CONFIG
+  export INPUTS=\$WDIR/INPUTS
+  export START_FILES=\$WDIR/START_FILES
+  export CDIR=\$WDIR/trunk_NEMOGCM_r8395/CONFIG
+  export TDIR=\$WDIR/trunk_NEMOGCM_r8395/TOOLS
+  export EXP=\$CDIR/\$CONFIG/EXP00
 
-module swap PrgEnv-cray PrgEnv-intel
-module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-EOL
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+  EOL
 
 Execute path settings::
 
