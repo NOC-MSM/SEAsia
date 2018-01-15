@@ -7,7 +7,7 @@ NEMO-RELOC's documentation
 ==========================
 
 This is a index file for the NEMO-RELOC project. Ideas on how to format it are
-*most* welcome.
+most welcome.
 
 There are two README.md files is this project. Their contents are loaded here
  and should describe the project (rather than have intro text duplicated in this
@@ -16,7 +16,7 @@ There are two README.md files is this project. Their contents are loaded here
 .. note :
   It would have been better if the README.md files loaded their contents here
    without needing to click on a link. Like <INCLUDE=""> in HTML-speak. I don't
-    know how to do this in Markdown)* **EDIT** I think a simple pre-"make html"
+    know how to do this in Markdown) EDIT I think a simple pre-"make html"
      command would be needed to paste in the contents of the README files.
 
 I am undecided on whether the Contents should go in this file or in the READMEs...
@@ -102,7 +102,7 @@ Not sure how to do this currently have a few repo python scripts that might
 Work in progress:
 =================
 
-Probably more *work intented* rather than *work in progress*...
+Probably more work intented rather than work in progress...
 
 .. toctree::
   :maxdepth: 1
