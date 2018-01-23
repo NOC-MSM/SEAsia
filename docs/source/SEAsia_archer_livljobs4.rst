@@ -1128,7 +1128,67 @@ Try increasing the timestep.
 rn_rdt = 360 and resubmit. Completes in 20min 30days.
 **But fills with NaNs from NE Boundary**
 
+---
+*(23 Jan 18)* rn_rdt = 120. 7200 steps. 20 mins. Ran 1278 steps in 20mins (~42hrs). STABLE.
 
+
+Update tides code with Nico's version.
+++++++++++++++++++++++++++++++++++++++
+
+This should speed things up...
+::
+
+  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/diaharmana.F90 $CDIR/$CONFIG/MY_SRC/.
+  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/step_oce.F90 $CDIR/$CONFIG/MY_SRC/.
+  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/step.F90 $CDIR/$CONFIG/MY_SRC/.
+  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/bdytides.F90 $CDIR/$CONFIG/MY_SRC/.
+
+Don't take ``sbctide.F90``, ``tide.h90``, ``tide_mod.F90``
+
+Change the cpp compile flag::
+
+  vi $CDIR/$CONFIG/cpp_$CONFIG.fcm
+  ... key_diaharm --> key_harm_ana
+
+and compile the code::
+
+  cd $CDIR
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+Finally add the final (extra) three variables in your namelist_cfg / nambdy_tide ::
+
+  vi $EXP/namelist_cfg
+  ...
+  !-----------------------------------------------------------------------
+  &nambdy_tide   !  tidal forcing at open boundaries
+  !-----------------------------------------------------------------------
+     filtide      = 'bdydta/SEAsia_bdytide_rotT_'         !  file name root of tidal forcing files
+     ln_bdytide_2ddta = .false.                   !
+     ln_bdytide_conj  = .false.                    !
+                                                                  ! Harmonic analysis with restart from polcom
+     ln_harm_ana_compute=.true.          ! Compute the harmonic analysis at the last time step
+     ln_harm_ana_store=.true.                 ! Store the harmonic analysis at the last time step for restart
+     ln_harmana_read=.false.                    ! Read haronic analyisis from a restart
+  /
+
+
+* As before the constituents you want to analyse are set-up in ``nam_diaharm``
+ namelist.
+
+* The harmonic analysis is done at the end only as well as the restart dumping
+so you can only restart from the last time step so make sure you output the full
+ restart at the end. To restart, you just need to turn on the ``ln_harmana_read``
+  and to map the files to something like ``restart_harm_ana_*``  as this bit as
+   not been developed with a prefix to load the files. You can look at this
+    python script if needed:
+  ``/work/n01/n01/nibrun/RUNS/SWPacific/SIMU/01_harm_links.py``
+
+
+
+Resubmit::
+
+  cd $EXP
+  qsub -q short runscript
 ----
 
 No met (missing slp) ``ln_usr=T``. rn_rdt=60s. Output more harmonics (20-30days).
