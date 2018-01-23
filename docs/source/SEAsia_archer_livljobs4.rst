@@ -1189,7 +1189,16 @@ Resubmit::
 
   cd $EXP
   qsub -q short runscript
+
+
+Ran for 20mins. Simulated 45hrs (though I guess it hit the wall limit before
+doing the harmonic analysis)
+
+
+
 ----
+
+*(This short section was done with the old tides routine)*
 
 No met (missing slp) ``ln_usr=T``. rn_rdt=60s. Output more harmonics (20-30days).
 Run for 30 days::
@@ -1262,6 +1271,75 @@ With dt=60, 1 day = 1440 steps. Run one day on the short queue to see what is
 happening with SSH etc.
 
 Do I need to a run with constant T, S? **YES**
+
+
+
+Horizontally constant T and S initial condition
+===============================================
+
+Emulate James ORCHESTRA method (first moved usrdef_istate.F90 to usrdef_istate.F90_constTS for safe keeping)::
+
+  cd $CDIR/$CONFIG/MY_SRC
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/usrdef_istate.F90 .
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/lapack.F90 .
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/splines.F90 .
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/types.F90 .
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/utils.F90 .
+
+Edit usrdef_istate.F90 to put in profile
+Data from Hamburg WOCE Climatology Live Access Server at (-2N, 95E).
+With constant variable padding below 4000m to make it up to 75 levels::
+
+      zdep(:) = (/     0,    10,    20,    30,    40,    50,   75,    100,   125,   &
+                &    150,   175,   200,   250,   300,   350,  400,    500,   600,   &
+                &    700,   800,   900,  1000,  1100,  1200,  1300,  1400,  1500,   &
+                &   1750,  2000,  2250,  2500,  2750,  3000,  3250,  3500,  3750,   &
+                &   4000,  4100,  4200,  4300,  4400,  4500,  4500,  4600,  4700,   &
+                &   4800,  4900,  5000,  5100,  5200,  5300,  5400,  5500,  5600,   &
+                &   5700,  5800,  5900,  6000,  6100,  6200,  6300,  6400,  6500,   &
+                &   6600,  6700,  6800,  6900,  7000,  7100,  7200,  7300,  7400,   &
+                &   7500,  7600,  7700 /)
+
+      zsal(:) = (/ 34.05, 34.04, 34.10, 34.13, 34.25, 34.42, 34.88, 35.08, 35.13,   &
+                &  35.08, 35.07, 35.06, 35.06, 35.03, 35.01, 34.99, 34.96, 34.97,   &
+                &  34.97, 34.95, 34.92, 34.91, 34.88, 34.87, 34.85, 34.83, 34.82,   &
+                &  34.80, 34.77, 34.76, 34.75, 34.74, 34.73, 34.73, 34.72, 34.72,   &
+                &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
+                &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
+                &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
+                &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
+                &  34.72, 34.72, 34.72 /)
+
+      ztmp(:) = (/ 28.81, 28.74, 28.87, 28.74, 28.33, 28.01, 25.21, 21.99, 18.51,   &
+                &  15.55, 14.39, 13.43, 12.27, 11.48, 11.02, 10.51,  9.58,  8.95,   &
+                &   8.35,  7.78,  7.16,  6.52,  5.88,  5.44,  5.02,  4.57,  4.14,   &
+                &   3.34,  2.64,  2.31,  2.05,  1.86,  1.69,  1.58,  1.41,  1.23,   &
+                &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
+                &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
+                &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
+                &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
+                &   1.15,  1.15,  1.15  /)
+
+
+
+Recompile the code::
+
+  cd $CDIR
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+
+
+Resubmit::
+
+  cd $EXP
+  qsub -q short runscript
+
+**PENDING** (23 Jan 2018) Does it run to walltime?
+Need to turn off tidal forcing.
+
+
+
+
 
 
 
