@@ -1145,6 +1145,15 @@ This should speed things up...
 
 Don't take ``sbctide.F90``, ``tide.h90``, ``tide_mod.F90``
 
+I editted the output to replace the ``*_x`` and ``*_y`` components::
+
+  vi diaharmana.F90
+  ...
+  !      CALL iom_put( TRIM(Wave(ntide_all(ih))%cname_tide)//'x_new'//TRIM(suffix), cosamp2D(ih,:,:,jgrid) )
+  !      CALL iom_put( TRIM(Wave(ntide_all(ih))%cname_tide)//'y_new'//TRIM(suffix), sinamp2D(ih,:,:,jgrid) )
+        CALL iom_put( TRIM(Wave(ntide_all(ih))%cname_tide)//'x'//TRIM(suffix), cosamp2D(ih,:,:,jgrid) )
+        CALL iom_put( TRIM(Wave(ntide_all(ih))%cname_tide)//'y'//TRIM(suffix), sinamp2D(ih,:,:,jgrid) )
+
 Change the cpp compile flag::
 
   vi $CDIR/$CONFIG/cpp_$CONFIG.fcm
@@ -1170,6 +1179,29 @@ Finally add the final (extra) three variables in your namelist_cfg / nambdy_tide
      ln_harm_ana_store=.true.                 ! Store the harmonic analysis at the last time step for restart
      ln_harmana_read=.false.                    ! Read haronic analyisis from a restart
   /
+
+
+Edit xml files to output harmonics as amplitudes and phases (e.g.)::
+
+  vi file_def_nemo.xml
+  ...
+  <file_group id="tidal_harmonics" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 1d files -->
+    <file id="tidalanalysis.grid_T" name="harmonic_grid_T" description="ocean T grid variables"  enabled=".TRUE.">
+
+      <field field_ref="O1amp"         name="O1amp"       operation="instant" enabled=".TRUE." />
+      <field field_ref="O1phase"       name="O1phase"     operation="instant" enabled=".TRUE." />
+
+
+  vi field_def_nemo-opa.xml
+  ...
+      <field_group id="Tides_T" grid_ref="grid_T_2D" operation="once" >
+      <!-- tidal composante -->
+      ...
+      <field id="Q1amp"        long_name="Q1 Elevation harmonic Amplitude"                              unit="m"        />
+      <field id="Q1phase"      long_name="Q1 Elevation harmonic Phase"                                  unit="degree"   />
+
+*Recall there are elevation, u-vel and v-vel harmonics*. Also editted suffixes
+ in velocity fields, adding ``_2D``.
 
 
 * As before the constituents you want to analyse are set-up in ``nam_diaharm``
@@ -1294,7 +1326,7 @@ With constant variable padding below 4000m to make it up to 75 levels::
                 &    150,   175,   200,   250,   300,   350,  400,    500,   600,   &
                 &    700,   800,   900,  1000,  1100,  1200,  1300,  1400,  1500,   &
                 &   1750,  2000,  2250,  2500,  2750,  3000,  3250,  3500,  3750,   &
-                &   4000,  4100,  4200,  4300,  4400,  4500,  4500,  4600,  4700,   &
+                &   4000,  4100,  4200,  4300,  4400,  4500,  4550,  4600,  4700,   &
                 &   4800,  4900,  5000,  5100,  5200,  5300,  5400,  5500,  5600,   &
                 &   5700,  5800,  5900,  6000,  6100,  6200,  6300,  6400,  6500,   &
                 &   6600,  6700,  6800,  6900,  7000,  7100,  7200,  7300,  7400,   &
@@ -1322,37 +1354,86 @@ With constant variable padding below 4000m to make it up to 75 levels::
 
 
 
-Recompile the code::
+
+
+Turn off tidal forcing
+======================
+
+Need to turn off tidal forcing. See ``&nam_tide``::
+
+  ln_tide     = .false.
+  ln_tide_pot = .false.    !  use tidal potential forcing
+
+
+Comment out tidal analysis line ::
+
+  vi ../cpp_SEAsia.fcm
+    bld::tool::fppkeys key_zdfgls        \
+  //REMOVE//                 key_harm_ana       \
+                   key_mpp_mpi       \
+                   key_iomput        \
+                   key_nosignedzero
+
+Will have to recompile.
+
+
+Set boudaries to initial condition
+++++++++++++++++++++++++++++++++++
+
+(nn_dyn2d_dta was 2)::
+
+  !-----------------------------------------------------------------------
+  &nambdy        !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+      ln_bdy         = .true.              !  Use unstructured open boundaries
+      nb_bdy         = 1                    !  number of open boundary sets
+      ln_coords_file = .true.               !  =T : read bdy coordinates from file
+      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+      ln_mask_file   = .false.              !  =T : read mask from file
+      cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+      cn_dyn2d       = 'flather'               !
+      nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state
+
+
+
+Recompile the code.
+Resubmit with dt=60s and nt = 60 (ie, 1 hr)::
 
   cd $CDIR
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
 
-
-Resubmit::
-
   cd $EXP
   qsub -q short runscript
 
-**PENDING** (23 Jan 2018) Does it run to walltime?
-Need to turn off tidal forcing.
+NB avoding mistakes namely a duplicate depth in the input depth funciton --> spline failure
+
+Yes. That works.
+
+
+
+*(24 Jan 18)*
+
+With tides turned off. Initial conditions: T(z),S(z) profiles and u=v=w=0.
+
+Submit for 10 days dt=60s. nt=14400
+Try 20mins queue. --> 1128 steps.
+
+Try 30mins with 5day mean output.
+
+Ran 10days simulation in 2hrs 24mins (rn_rdt=60s, nt=14400, on 92 ocean cores, 120 cpus(total)).
 
 
 
 
 
 
+**Next steps**
+
+* lateral boundary conditions (T,S,u)
+* tides + lateral boundary conditions
 
 
-
-Note about timestep
-===================
-
-This domain has some very deep water ~7km and large areas with 6km bathymetry.
-This should limit the timestep quite considerably:
-A deep water wave would travel across a 1/12 degree model cell in
-``110000/12 / sqrt(7000*9.8) ~ 35 seconds``...
-Consequently a timestep of 1 minute might be as far as I can push it.
 
 
 
@@ -1383,7 +1464,15 @@ Backup to repo key files
 
 
 
+Note about timestep
+===================
 
+This domain has some very deep water ~7km and large areas with 6km bathymetry.
+This should limit the timestep quite considerably:
+A deep water wave would travel across a 1/12 degree model cell in
+``110000/12 / sqrt(7000*9.8) ~ 35 seconds``...
+Consequently a timestep of 1 minute might be as far as I can push it.
+---
 
 
 
