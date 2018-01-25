@@ -1424,6 +1424,12 @@ Try 30mins with 5day mean output.
 Ran 10days simulation in 2hrs 24mins (rn_rdt=60s, nt=14400, on 92 ocean cores, 120 cpus(total)).
 
 
+---
+
+James spotted that I didn't have lateral diffusion of momentum. Made some changes (following ORCHESTRA namelist_cfg)
+Submitted run (EXP01) to test timestep. rn_rdt=360 ran 1304 in 20mins ==> 5.4 days
+
+**PENDING** - Why is there an SSH instability in the NE corner?
 
 
 
