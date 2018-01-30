@@ -1482,11 +1482,11 @@ I netcdf output was not OK. Could partially view with Ferret but there was somet
   ncwa -a t tmp2.nc bdy_mask.nc
   rm -f tmp[12].nc
 
-In ipython::
+In ipython (oringally cut out a []-1::,-1::] mask)::
 
   import netCDF4
   dset = netCDF4.Dataset('bdy_mask.nc','a')
-  dset.variables['bdy_msk'][-1::,-1::] = -1    # NE boundary
+  dset.variables['bdy_msk'][-2::,-2::] = -1    # NE boundary
   dset.close()
 
 The odd thing is that the boundary is 'land' before I apply this corner point mask.
@@ -1497,7 +1497,12 @@ Copy back to archer::
 
 Change nt to 1200, so it fits in 20mins. Submit
 
+
+Stable but still had the SSH 'feature' in the NE corner.
+Repeated the above masking out a 2x2 corner.
 **PENDING**
+
+
 
 
 **Next steps**
