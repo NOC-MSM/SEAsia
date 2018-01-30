@@ -912,7 +912,7 @@ Point to the correct source and destination mesh and mask files/variables.
   I thought that I needed to create a bdy_mask.nc file so I did this from doman_cfg.nc
   though it turns out not to have been needed. Nevertheless I did the following::
 
-      module load nco/gcc/4.4.2.ncwa
+
       ncks -v top_level domain_cfg.nc tmp.nc
       ncrename -h -v top_level,mask tmp.nc bdy_mask.nc
       rm tmp.nc
@@ -1431,7 +1431,73 @@ Submitted run (EXP01) to test timestep. rn_rdt=360 ran 1304 in 20mins ==> 5.4 da
 
 **PENDING** - Why is there an SSH instability in the NE corner?
 
+26 Jan 18
 
+Try and implement Enda's fix in bdydyn2d.F90. Copy file to MY_SRC and edit from line 290::
+
+  !               zssh(ii,ij) = zssh(ii-1,ij  ) * bdytmask(ii-1,ij  ) + &
+  !                 &           zssh(ii+1,ij  ) * bdytmask(ii+1,ij  ) + &
+  !                 &           zssh(ii  ,ij-1) * bdytmask(ii  ,ij-1) + &
+  !                 &           zssh(ii  ,ij+1) * bdytmask(ii  ,ij+1)
+  !               zssh(ii,ij) = ( zssh(ii,ij) / MAX( 1, zcoef) ) * tmask(ii,ij,1)
+                 zssh(ii,ij) = zssh( ii-1, ij-1 ) * bdytmask( ii-1, ij-1) + &
+                   &          zssh( ii+1, ij+1 ) * bdytmask( ii+1, ij+1) + &
+                   &          zssh( ii+1, ij-1 ) * bdytmask( ii+1, ij-1) + &
+                   &          zssh( ii-1, ij+1 ) * bdytmask( ii-1, ij+1)
+
+Recompile the code.
+Resubmit with dt=360s and nt = 1440 on short queue (ie, 6 days)::
+
+  cd $CDIR
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+
+  cd $EXP/../EXP01
+  qsub -q short runscript
+
+Didn't help. Though on inspection I'm not sure when it would be activiated
+ as (as I undertstand it) bdytmask is only Zero at land areas::
+
+  zcoef1 = bdytmask(ii-1,ij  ) +  bdytmask(ii+1,ij  )
+  zcoef2 = bdytmask(ii  ,ij-1) +  bdytmask(ii  ,ij+1)
+  IF ( zcoef1+zcoef2 == 0 ) THEN
+  ...
+
+
+
+*(29 Jan 2018)*
+Tried masking out the corner point.
+Actually masked out a 4 point halo using ``bdy_mask.nc`` see lines 870-890 in
+ SWPacific recipe.(Though needed to have a variable called ``bdy_msk``. I made
+ a real hash of getting it working so documentation would not be worth following..).
+
+*(30 Jan 2018)*
+I netcdf output was not OK. Could partially view with Ferret but there was something wrong.
+::
+
+  module load nco/gcc/4.4.2.ncwa
+  rm -f bdy_mask.nc tmp[12].nc
+  ncks -v top_level domain_cfg.nc tmp1.nc
+  ncrename -h -v top_level,bdy_msk tmp1.nc tmp2.nc
+  ncwa -a t tmp2.nc bdy_mask.nc
+  rm -f tmp[12].nc
+
+In ipython::
+
+  import netCDF4
+  dset = netCDF4.Dataset('bdy_mask.nc','a')
+  dset.variables['bdy_msk'][-1::,-1::] = -1    # NE boundary
+  dset.close()
+
+The odd thing is that the boundary is 'land' before I apply this corner point mask.
+
+Copy back to archer::
+
+  livljobs4 INPUTS $ scp bdy_mask.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP01/.
+
+Change nt to 1200, so it fits in 20mins. Submit
+
+**PENDING**
 
 
 **Next steps**

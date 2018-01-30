@@ -130,8 +130,8 @@ Or just link XIOS executable to the EXP directory::
 
 ---
 
-Note 
-The NEMO executable is called ‘opa’ and found in your $EXP directory. 
+Note
+The NEMO executable is called ‘opa’ and found in your $EXP directory.
 This is automatically symbolically linked to 'nemo.exe' found in $CDIR/$CONFIG/BLD/bin/
 
 
@@ -360,7 +360,7 @@ When the increase in resolution is x1, the size of the coordinates were::
   jpjdta      =    382   !  2nd    "         "    ( >= jpj )
 
 
-Somewhat arbitrarily I am going to use **31** ``(jpkdta=31; rn_jpk=31)`` levels.
+I am going to use **31** levels ``(jpkdta=75; rn_jpk=75)`` levels.
 (Earlier I used 5 levels. This config gave me trouble. I've not revisited whether
 the number of levels was a problem).
 
