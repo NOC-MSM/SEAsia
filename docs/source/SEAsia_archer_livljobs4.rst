@@ -1429,80 +1429,92 @@ Ran 10days simulation in 2hrs 24mins (rn_rdt=60s, nt=14400, on 92 ocean cores, 1
 James spotted that I didn't have lateral diffusion of momentum. Made some changes (following ORCHESTRA namelist_cfg)
 Submitted run (EXP01) to test timestep. rn_rdt=360 ran 1304 in 20mins ==> 5.4 days
 
-**PENDING** - Why is there an SSH instability in the NE corner?
+There an SSH instability in the NE corner when using::
 
-26 Jan 18
+  cn_dyn3d      =  'neumann'
 
-Try and implement Enda's fix in bdydyn2d.F90. Copy file to MY_SRC and edit from line 290::
+Swirtch to::
 
-  !               zssh(ii,ij) = zssh(ii-1,ij  ) * bdytmask(ii-1,ij  ) + &
-  !                 &           zssh(ii+1,ij  ) * bdytmask(ii+1,ij  ) + &
-  !                 &           zssh(ii  ,ij-1) * bdytmask(ii  ,ij-1) + &
-  !                 &           zssh(ii  ,ij+1) * bdytmask(ii  ,ij+1)
-  !               zssh(ii,ij) = ( zssh(ii,ij) / MAX( 1, zcoef) ) * tmask(ii,ij,1)
-                 zssh(ii,ij) = zssh( ii-1, ij-1 ) * bdytmask( ii-1, ij-1) + &
-                   &          zssh( ii+1, ij+1 ) * bdytmask( ii+1, ij+1) + &
-                   &          zssh( ii+1, ij-1 ) * bdytmask( ii+1, ij-1) + &
-                   &          zssh( ii-1, ij+1 ) * bdytmask( ii-1, ij+1)
-
-Recompile the code.
-Resubmit with dt=360s and nt = 1440 on short queue (ie, 6 days)::
-
-  cd $CDIR
-  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+  cn_dyn3d      =  'zerograd'
 
 
-  cd $EXP/../EXP01
+NB Tried masking, using mask_bdy.nc, but this didn't work.
+
+
+Try with tides turned on.
+(Recompile a tide and no tide version. Save in $CONFIG/BLD/binas nemo_tide.exe
+and nemo_notide.exe, then link as appropriate)::
+
+  cd EXP00
+  ls -s /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/BLD/bin/nemo_tide.exe opa
+
+  <    ln_tide     = .true.
+  <    ln_tide_pot = .true.    !  use tidal potential forcing
+  ...
+  <     nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
+
   qsub -q short runscript
 
-Didn't help. Though on inspection I'm not sure when it would be activiated
- as (as I undertstand it) bdytmask is only Zero at land areas::
 
-  zcoef1 = bdytmask(ii-1,ij  ) +  bdytmask(ii+1,ij  )
-  zcoef2 = bdytmask(ii  ,ij-1) +  bdytmask(ii  ,ij+1)
-  IF ( zcoef1+zcoef2 == 0 ) THEN
-  ...
+---
 
+HPG errors
+++++++++++
 
+Submit a 30 day simulations, from rest, with depth varying spatially homogeneous
+temperature and salinity profiles, with no forcing, clamped initial condition
+boundary conditions
 
-*(29 Jan 2018)*
-Tried masking out the corner point.
-Actually masked out a 4 point halo using ``bdy_mask.nc`` see lines 870-890 in
- SWPacific recipe.(Though needed to have a variable called ``bdy_msk``. I made
- a real hash of getting it working so documentation would not be worth following..).
+Edit runscript: 2hrs walltime. It took 1h 50mins
 
-*(30 Jan 2018)*
-I netcdf output was not OK. Could partially view with Ferret but there was something wrong.
-::
+Edit namelist_cfg
+360s, nt=7200 --> 30 days::
 
-  module load nco/gcc/4.4.2.ncwa
-  rm -f bdy_mask.nc tmp[12].nc
-  ncks -v top_level domain_cfg.nc tmp1.nc
-  ncrename -h -v top_level,bdy_msk tmp1.nc tmp2.nc
-  ncwa -a t tmp2.nc bdy_mask.nc
-  rm -f tmp[12].nc
+  ln_tide     = .false.
+  ln_tide_pot = .false.    !  use tidal potential forcing
 
-In ipython (oringally cut out a []-1::,-1::] mask)::
+cd $EXP/../EXP_hpg_err
 
-  import netCDF4
-  dset = netCDF4.Dataset('bdy_mask.nc','a')
-  dset.variables['bdy_msk'][-2::,-2::] = -1    # NE boundary
-  dset.close()
+Scrape ``umax`` from ``solver.state`` using plot_solver_stat.py
 
-The odd thing is that the boundary is 'land' before I apply this corner point mask.
+After 30 days umax is still growing. Restart run and continue::
 
-Copy back to archer::
+  mv solver.stat solver.stat_part1
 
-  livljobs4 INPUTS $ scp bdy_mask.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP01/.
+Check progress with::
 
-Change nt to 1200, so it fits in 20mins. Submit
+   hpg_error_plotNEMO.py
+   plot_solver_stat.py
 
 
-Stable but still had the SSH 'feature' in the NE corner.
-Repeated the above masking out a 2x2 corner.
+Edit namelist_cfg for restarting::
+
+  vi namelist_cfg
+
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     cn_exp      =    "SEAsia"  !  experience name
+     nn_it000    =  7201   !  first time step
+     nn_itend    =  14400 ! 30day=7200   !  last  time step (std 5475)
+     nn_date0    =  20000102   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+     nn_time0    =       0   !  initial time of day in hhmm
+     nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+     ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
+        nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
+        nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
+
+Resubmit::
+
+  qsub runscript
+
+*(1 Feb 18)*
 **PENDING**
 
 
+
+Try lateral boundary conditions T,S,u
+++++++++++++++++++++++++++++++++++++++
 
 
 **Next steps**
