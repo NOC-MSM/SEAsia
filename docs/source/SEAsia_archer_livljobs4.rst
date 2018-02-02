@@ -1503,6 +1503,8 @@ Edit namelist_cfg for restarting::
      ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
         nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
         nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
+        cn_ocerst_in    = "SEAsia_00007200_restart"   !  suffix of ocean restart name (input)
+
 
 Resubmit::
 
@@ -1510,7 +1512,84 @@ Resubmit::
 
 *(1 Feb 18)*
 **PENDING**
+Ran in 1hr 46
 
+Joing the solver.stat files together::
+
+cp solver.stat solver.stat_part2
+cp solver.start_part1 solver.stat
+cat solver_stat_part2 >> solver_stat
+
+module load anaconda
+python plot_solver_stat.py
+
+
+
+Tide only simulation
+++++++++++++++++++++
+
+directory ``EXP_tideonly``
+
+Only tidal forcing. constant T and S
+Include: key_harm_ana
+EXEC: nemo_tideonyl_TSconst.exe
+
+
+Recompile the code.
+Resubmit with dt=60s and nt = 60 (ie, 1 hr)::
+
+  cd $CDIR
+  cp $CONFIG/MY_SRC/usrdef_istate.F90_horizTS $CONFIG/MY_SRC/usrdef_istate.F90
+
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+Move executable to something permanent::
+
+  cd $CDIR/$CONFIG/BLD/bin
+  mv nemo.exe nemo_tideonly_TSconst.exe
+
+  cd $CDIR/$CONFIG/EXP_tideonly
+  ln -s /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/BLD/bin/nemo_tideonly_TSconst.exe opa
+
+Edit namelist_cfg::
+
+  nn_itend = 14400
+  ln_rstart = .false.
+  ...
+  ln_tide     = .true.
+  ln_tide_pot = .true.    !  use tidal potential forcing
+  ...
+  !-----------------------------------------------------------------------
+  &nambdy        !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+      ln_bdy         = .true.              !  Use unstructured open boundaries
+      nb_bdy         = 1                    !  number of open boundary sets
+      ln_coords_file = .true.               !  =T : read bdy coordinates from file
+      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+      ln_mask_file   = .false.              !  =T : read mask from file
+      cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+      cn_dyn2d       = 'flather'               !
+      nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+                                            !  = 2, use tidal harmonic forcing data from files
+                                            !  = 3, use external data AND tidal harmonic forcing
+      cn_dyn3d      =  'zerograd'               !
+      nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+      cn_tra        =  'frs'               !
+      nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
+
+Didn't bother with the tidal harmonics. It will run but I am spinning up.
+
+Run for 4 hours. nt = 14400, dt =360, 60 days
+
+Edit XML output to produce 5d output.
+Resubmit::
+
+  qsub runscript
+
+**PENDING**
+*(2 Feb 2018)*
 
 
 Try lateral boundary conditions T,S,u
