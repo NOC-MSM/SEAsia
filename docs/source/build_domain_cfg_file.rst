@@ -144,7 +144,7 @@ probably not strickly necessary.
 To get the new option to work I have copied a file into ``src``. This will
 eventually be in the trunk but for now::
 
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/TOOLS/DOMAINcfg/src/domzgr.f90.jelt $TDIR/DOMAIN_cfg/src/domzgr.f90
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/TOOLS/DOMAINcfg/src/domzgr.f90.jelt $TDIR/DOMAINcfg/src/domzgr.f90
 
 Recompile the tool e.g.::
 
