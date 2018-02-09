@@ -1025,6 +1025,73 @@ Try again::
   qsub submit_nemo.PBS
 
 
+Initial conditions from AMM60 run. Cold starts
+++++++++++++++++++++++++++++++++++++++++++++++
+
+Insert new method to use AMM60 data for initial conditions.
+/work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT
+AMM60_5d_20131013_20131129_grid_T.nc
+
+Note that the temperature and salinity variables are ``thetao`` and ``so``
+
+::
+
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module load cray-netcdf cray-hdf5
+  module load nco/4.5.0
+  cd $INPUTS
+
+  ncks /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT/AMM60_5d_20120620_20120818_grid_T.nc $INPUTS/AMM60_ave_20120620_20120818_grid_T.nc
+  cp $INPUTS/AMM60_ave_20120620_20120818_grid_T.nc $START_FILES/AMM60_ave_20120620_20120818_grid_T.nc
+
+Average over time and restore the parallel modules (this went into a serial queue
+in the script ``$INPUTS/ncwa_AMM60_5d``. Took 11 minutes.)::
+
+  ncwa -a time_counter $START_FILES/AMM60_ave_20120620_20120818_grid_T.nc $INPUTS/AMM60_ave_20120620_20120818_grid_T.nc
+  cp $INPUTS/AMM60_ave_20120620_20120818_grid_T.nc $START_FILES/AMM60_ave_20120620_20120818_grid_T.nc
+
+  module unload nco cray-netcdf cray-hdf5
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+
+----
+
+Cold start
+++++++++++
+
+Edit namelist::
+
+  vi namelist_cfg
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     cn_exp      =    "AMM60"  !  experience name
+     nn_it000    =  1   !  first time step
+     nn_itend    =  1440 ! 30day=7200   !  last  time step (std 5475)
+     nn_date0    =  20120701   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+     nn_time0    =       0   !  initial time of day in hhmm
+     nn_leapy    =       0   !  Leap year calendar (1) or not (0)
+     ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
+
+
+init.nc --> AMM60_ave_20120620_20120818_grid_T.nc with path settings ::
+
+  !-----------------------------------------------------------------------
+  &namtsd    !   data : Temperature  & Salinity
+  !-----------------------------------------------------------------------
+  ! file name ! frequency (hours)    ! variable ! time interp. ! clim  !'yearly' or ! weights  ! rotation !
+  !           !  (if <0  months)     !   name   !  (logical)   ! (T/F) ! 'monthly'  ! filename ! pairing  !
+     sn_tem  = 'AMM60_ave_20120620_20120818_grid_T.nc', -1,'thetao',  .true.  , .true., 'yearly'   , ' '      , ' '
+     sn_sal  = 'AMM60_ave_20120620_20120818_grid_T.nc', -1,'so',  .true.  , .true., 'yearly'   , ''       , ' '
+  !
+     cn_dir        = '/work/n01/n01/jelt/AMM60/INPUTS/'     !  root directory for the location of the runoff files
+     ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+     ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
+  /
+
+---
+Injected a **PENDING** 9 Feb 2018. To try and do cold starts from AMM60 T,S output
+----
 
 Dead end reading in baroclinic boundary conditions. Run terminates without an error::
 
