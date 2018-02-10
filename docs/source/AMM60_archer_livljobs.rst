@@ -1090,7 +1090,7 @@ init.nc --> AMM60_ave_20120620_20120818_grid_T.nc with path settings ::
   /
 
 ---
-Injected a **PENDING** 9 Feb 2018. To try and do cold starts from AMM60 T,S output
+Injected *(9 Feb 2018)*. To try and do cold starts from AMM60 T,S output. It works.
 ----
 
 Dead end reading in baroclinic boundary conditions. Run terminates without an error::
@@ -1214,15 +1214,198 @@ Note to James::
 Check to see if there is a problem with gdept not existing...
 Inserted write statemtsn to see if arrays are empty.
 
+Fails without a clear error. Adding MAXVAL write end of ocean.output::
+
+  Number of levels for sossheig is            1
+          read sossheig (rec:     30) in /work/n01/n01/kariho40/NEMO/FORCINGS/2010_2013/AMM60bdy_NNA_R12_bt_bdyT_y2012m06.nc ok
+  fld_init : time-interpolation for sossheig read previous record =     30 at time =  180.50 days
+                    iom_nf90_open ~~~ open existing file: /work/n01/n01/kariho4
+  0/NEMO/FORCINGS/2010_2013/AMM60bdy_NNA_R12_bdyU_y2012m06.nc in READ mode
+                     ---> /work/n01/n01/kariho40/NEMO/FORCINGS/2010_2013/AMM60bdy
+  _NNA_R12_bdyU_y2012m06.nc OK
+  Dim size for vozocrtx is         2642
+  Number of levels for vozocrtx is           51
+  jelt:I think we got stuck here in fldread.F90. jpk_bdy          75
+            read vozocrtx (rec:     30) in /work/n01/n01/kariho40/NEMO/FORCINGS/2010_2013/AMM60bdy_NNA_R12_bdyU_y2012m06.nc ok
+  jelt: pre interp. Maxvel dta_read_z:   0.000000000000000E+000
+   Maxval dta_read_dz:   0.000000000000000E+000
+
+Suggests that dz and z are not getting written. James spotted that this is because igrd=0 when
+he expect igrd=2
+
+**HERE**
+
 
 Could debug on short queue? 2 XIOS servers. remaining 168 on opa (NEMOPROC?)
 --> short_submit_nemo.pbs (1 XIOS, 96 NEMOPROC. Also edit namelist_cfg in nammpp)
 Cold start, so I do't have to rebuild restart file.
 
-**PENDING**
+**Short queue should work now**
 
 
 I will look into fld_bdy_interp when I come back to this fun problem.
+
+James has a fix in::
+
+  /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/
+
+Copy files across::
+
+  export jdhaMY_SRC=/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/AMM60/MY_SRC/
+  cp $jdhaMY_SRC/bdy_oce.F90 $CDIR/$CONFIG/MY_SRC/bdy_oce.F90
+  cp $jdhaMY_SRC/bdydta.F90 $CDIR/$CONFIG/MY_SRC/bdydta.F90
+
+Recompile::
+
+  cd $CDIR
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+Resubmit::
+
+  qsub short_submit_nemo.pbs
+
+Core dump error. tail ocean.output::
+
+  dyn_keg : kinetic energy gradient trend, scheme number=           0
+  ~~~~~~~
+
+  dyn_zad : arakawa advection scheme
+
+  dyn:vor_een : vorticity term: energy and enstrophy conserving scheme
+
+
+Karen's AMM60
+/work/n01/n01/jelt/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/XIOS_AMM60_nemo_harmIT2/EXP_harmIT2/WDIR/output.namelist.dyn
+::
+
+  &NAMDYN_VOR
+  LN_DYNVOR_ENS   = F,
+  LN_DYNVOR_ENE   = F,
+  LN_DYNVOR_MIX   = F,
+  LN_DYNVOR_EEN   = T,
+  LN_DYNVOR_EEN_OLD       = F
+  /
+
+This run
+/work/n01/n01/jelt/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/XIOS_AMM60_nemo_harmIT2/EXP_v4/output.namelist.dyn
+::
+
+  &NAMDYN_VOR
+  LN_DYNVOR_ENS   = F,
+  LN_DYNVOR_ENE   = F,
+  LN_DYNVOR_MIX   = F,
+  LN_DYNVOR_EEN   = T,
+  NN_EEN_E3F      =           1,
+  LN_DYNVOR_MSK   = F
+/
+
+
+SWPacific
+/work/n01/n01/jelt/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/output.namelist.dyn
+::
+
+  &NAMDYN_VOR
+  LN_DYNVOR_ENS   = F,
+  LN_DYNVOR_ENE   = F,
+  LN_DYNVOR_MIX   = F,
+  LN_DYNVOR_EEN   = T,
+  NN_EEN_E3F      =           1,
+  LN_DYNVOR_MSK   = F
+  /
+
+
+Karen's tail ocean.output ::
+
+  less /work/n01/n01/jelt/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/XIOS_AMM60_nemo_harmIT2/EXP_harmIT2/LOGS/restart/ocean.output_EXP_harmIT2
+  ...
+  dyn_zad : arakawa advection scheme
+
+  dyn:vor_een : vorticity term: energy and enstrophy conserving scheme
+  ~~~~~~~~~~~
+
+  dyn_ldf_iso : iso-neutral laplacian diffusive operator or
+  ~~~~~~~~~~~   s-coordinate horizontal diffusive operator
+
+  dyn:hpg_prj : hydrostatic pressure gradient trend
+  ~~~~~~~~~~~   s-coordinate case, cubic spline pressure Jacobian
+  ...
+
+
+
+This run::
+
+  tail -100 /work/n01/n01/jelt/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/XIOS_AMM60_nemo_harmIT2/EXP_v4/ocean.output
+
+  ...
+
+  dyn_zad : arakawa advection scheme
+
+  dyn:vor_een : vorticity term: energy and enstrophy conserving scheme
+  ~~~~~~~~~~~
+
+
+So perhaps it is an issue with dyn_ldf_iso?
+
+Comparing with SEAsia (LN_DYNLDF_BLP=T) instead of Karen's (LN_DYNLDF_LAP=T)
+Try switching to BLP=T
+::
+
+  vi namelist_cfg
+  ...
+  !-----------------------------------------------------------------------
+  &namdyn_ldf    !   lateral diffusion on momentum
+  !-----------------------------------------------------------------------
+     !                       !  Type of the operator :
+     !                           !  no diffusion: set ln_dynldf_lap=..._blp=F
+     ln_dynldf_lap =  .false.    !    laplacian operator
+     ln_dynldf_blp =  .true.    !  bilaplacian operator
+     !                       !  Direction of action  :
+     ln_dynldf_lev =  .true.    !  iso-level
+     ln_dynldf_hor =  .false.    !  horizontal (geopotential)
+     ln_dynldf_iso =  .false.    !  iso-neutral
+     !                       !  Coefficient
+     nn_ahm_ijk_t  = 0           !  space/time variation of eddy coef
+     !                                !  =-30  read in eddy_viscosity_3D.nc file
+     !                                !  =-20  read in eddy_viscosity_2D.nc file
+     !                                !  =  0  constant
+     !                                !  = 10  F(k)=c1d
+     !                                !  = 20  F(i,j)=F(grid spacing)=c2d
+     !                                !  = 30  F(i,j,k)=c2d*c1d
+     !                                !  = 31  F(i,j,k)=F(grid spacing and local velocity)
+     !                                !  = 32  F(i,j,k)=F(local gridscale and deformation rate)
+     ! Caution in 20 and 30 cases the coefficient have to be given for a 1 degree grid (~111km)
+     rn_ahm_0      =  0.     !  horizontal laplacian eddy viscosity   [m2/s]
+     rn_ahm_b      =      0.     !  background eddy viscosity for ldf_iso [m2/s]
+     rn_bhm_0      = -1.25e+10      !  horizontal bilaplacian eddy viscosity [m4/s]
+     !                       !  Smagorinsky settings (nn_ahm_ijk_t  = 32) :
+     rn_csmc       = 3.5         !  Smagorinsky constant of proportionality
+     rn_minfac     = 1.0         !  multiplier of theorectical lower limit
+     rn_maxfac     = 1.0         !  multiplier of theorectical upper limit
+  /
+
+Submit::
+
+  qsub short_submit_nemo
+
+Still get a core dump with the last ocean.output at::
+
+  dyn:vor_een : vorticity term: energy and enstrophy conserving scheme
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
