@@ -1214,36 +1214,15 @@ Note to James::
 Check to see if there is a problem with gdept not existing...
 Inserted write statemtsn to see if arrays are empty.
 
-Fails without a clear error. Adding MAXVAL write end of ocean.output::
-
-  Number of levels for sossheig is            1
-          read sossheig (rec:     30) in /work/n01/n01/kariho40/NEMO/FORCINGS/2010_2013/AMM60bdy_NNA_R12_bt_bdyT_y2012m06.nc ok
-  fld_init : time-interpolation for sossheig read previous record =     30 at time =  180.50 days
-                    iom_nf90_open ~~~ open existing file: /work/n01/n01/kariho4
-  0/NEMO/FORCINGS/2010_2013/AMM60bdy_NNA_R12_bdyU_y2012m06.nc in READ mode
-                     ---> /work/n01/n01/kariho40/NEMO/FORCINGS/2010_2013/AMM60bdy
-  _NNA_R12_bdyU_y2012m06.nc OK
-  Dim size for vozocrtx is         2642
-  Number of levels for vozocrtx is           51
-  jelt:I think we got stuck here in fldread.F90. jpk_bdy          75
-            read vozocrtx (rec:     30) in /work/n01/n01/kariho40/NEMO/FORCINGS/2010_2013/AMM60bdy_NNA_R12_bdyU_y2012m06.nc ok
-  jelt: pre interp. Maxvel dta_read_z:   0.000000000000000E+000
-   Maxval dta_read_dz:   0.000000000000000E+000
-
-Suggests that dz and z are not getting written. James spotted that this is because igrd=0 when
+James spotted that this is because igrd=0 when
 he expect igrd=2
 
-**HERE**
 
-
-Could debug on short queue? 2 XIOS servers. remaining 168 on opa (NEMOPROC?)
---> short_submit_nemo.pbs (1 XIOS, 96 NEMOPROC. Also edit namelist_cfg in nammpp)
+Could debug on short queue. Edit PBS script and ``namelist_cfg (nammpp)``
+--> short_submit_nemo.pbs (1 XIOS, 96 NEMOPROC.
 Cold start, so I do't have to rebuild restart file.
 
 **Short queue should work now**
-
-
-I will look into fld_bdy_interp when I come back to this fun problem.
 
 James has a fix in::
 
@@ -1260,7 +1239,7 @@ Recompile::
   cd $CDIR
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
-Resubmit::
+Resubmit (to short fewer processors - short queue is off)::
 
   qsub short_submit_nemo.pbs
 
@@ -1273,6 +1252,9 @@ Core dump error. tail ocean.output::
 
   dyn:vor_een : vorticity term: energy and enstrophy conserving scheme
 
+
+Take a look at the namelist setting for the vorticity dynamics. These settings
+worked for the SWPacific, though they are different from Karen's v3.6...
 
 Karen's AMM60
 /work/n01/n01/jelt/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/XIOS_AMM60_nemo_harmIT2/EXP_harmIT2/WDIR/output.namelist.dyn
@@ -1314,7 +1296,7 @@ SWPacific
   /
 
 
-Karen's tail ocean.output ::
+Would would have happened next if it didn't crash? Karen's tail ocean.output ::
 
   less /work/n01/n01/jelt/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/XIOS_AMM60_nemo_harmIT2/EXP_harmIT2/LOGS/restart/ocean.output_EXP_harmIT2
   ...
@@ -1392,9 +1374,9 @@ Still get a core dump with the last ocean.output at::
   dyn:vor_een : vorticity term: energy and enstrophy conserving scheme
 
 
+So it probably is an issue with the vorticity routine.
 
-
-
+Check ``NEMO/OPA_SRC/DYN/dynvor.F90``. This is where the WRITE statement is made.
 
 
 
@@ -1444,7 +1426,7 @@ Still get a core dump with the last ocean.output at::
 Next steps
 ++++++++++
 
-
+Tidy code in MY_SRC. Probably some debugging WRITE statements to remove.
 
 Update tides code with Nico's version.
 ++++++++++++++++++++++++++++++++++++++
