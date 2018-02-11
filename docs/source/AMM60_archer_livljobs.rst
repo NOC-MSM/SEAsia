@@ -1427,6 +1427,8 @@ Next steps
 ++++++++++
 
 Tidy code in MY_SRC. Probably some debugging WRITE statements to remove.
+Do something smarter with the link to the initial conditions. Add a symbolic link
+from run directory to $INPUTS 
 
 Update tides code with Nico's version.
 ++++++++++++++++++++++++++++++++++++++
