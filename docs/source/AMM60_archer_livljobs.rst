@@ -1379,11 +1379,19 @@ So it probably is an issue with the vorticity routine.
 Check ``NEMO/OPA_SRC/DYN/dynvor.F90``. This is where the WRITE statement is made.
 
 
+---
+*(17 Feb 18)* Something wrong with domain_cfg.nc
+
+Copy namelist_ref file from AMM60DIR/EXP_harmIT2/namelist_ref
+
+resubmit::
+
+  qsub rs
 
 
 
 
-
+Still had odd islands at j~107
 
 
 
@@ -1428,7 +1436,7 @@ Next steps
 
 Tidy code in MY_SRC. Probably some debugging WRITE statements to remove.
 Do something smarter with the link to the initial conditions. Add a symbolic link
-from run directory to $INPUTS 
+from run directory to $INPUTS
 
 Update tides code with Nico's version.
 ++++++++++++++++++++++++++++++++++++++
