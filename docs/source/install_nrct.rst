@@ -31,7 +31,7 @@ find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print
   export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
   unset SSH_ASKPASS # Didn't need this on ARCHER...
   git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
-  cd nrct/Python
+  cd $WORK/$USER/nrct/Python
   python setup.py build
   export PYTHONPATH=/login/$USER/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
   python setup.py install --prefix ~/.conda/envs/nrct_env
