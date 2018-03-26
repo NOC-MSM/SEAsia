@@ -1345,7 +1345,7 @@ With constant variable padding below 4000m to make it up to 75 levels::
                 &   6600,  6700,  6800,  6900,  7000,  7100,  7200,  7300,  7400,   &
                 &   7500,  7600,  7700 /)
 
-      zsal(:) = (/ 34.05, 34.04, 34.10, 34.13, 34.25, 34.42, 34.88, 35.08, 35.13,   &
+      zsal(:) = (/ 34.05, 34.05, 34.10, 34.13, 34.25, 34.42, 34.88, 35.08, 35.13,   &
                 &  35.08, 35.07, 35.06, 35.06, 35.03, 35.01, 34.99, 34.96, 34.97,   &
                 &  34.97, 34.95, 34.92, 34.91, 34.88, 34.87, 34.85, 34.83, 34.82,   &
                 &  34.80, 34.77, 34.76, 34.75, 34.74, 34.73, 34.73, 34.72, 34.72,   &
@@ -1355,7 +1355,7 @@ With constant variable padding below 4000m to make it up to 75 levels::
                 &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
                 &  34.72, 34.72, 34.72 /)
 
-      ztmp(:) = (/ 28.81, 28.74, 28.87, 28.74, 28.33, 28.01, 25.21, 21.99, 18.51,   &
+      ztmp(:) = (/ 28.87, 28.87, 28.87, 28.74, 28.33, 28.01, 25.21, 21.99, 18.51,   &
                 &  15.55, 14.39, 13.43, 12.27, 11.48, 11.02, 10.51,  9.58,  8.95,   &
                 &   8.35,  7.78,  7.16,  6.52,  5.88,  5.44,  5.02,  4.57,  4.14,   &
                 &   3.34,  2.64,  2.31,  2.05,  1.86,  1.69,  1.58,  1.41,  1.23,   &
@@ -1365,6 +1365,10 @@ With constant variable padding below 4000m to make it up to 75 levels::
                 &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
                 &   1.15,  1.15,  1.15  /)
 
+I fixed the top two layers to be constant salinity and temperature to avoid possible cabling.
+The raw data had inversions at 10m
+
+NB avoding mistakes: namely a duplicate depth in the input depth funciton --> spline failure
 
 
 
@@ -1398,7 +1402,7 @@ Set boudaries to initial condition
   !-----------------------------------------------------------------------
   &nambdy        !  unstructured open boundaries
   !-----------------------------------------------------------------------
-      ln_bdy         = .true.              !  Use unstructured open boundaries
+      ln_bdy         = .false.              !  Use unstructured open boundaries
       nb_bdy         = 1                    !  number of open boundary sets
       ln_coords_file = .true.               !  =T : read bdy coordinates from file
       cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
@@ -1415,14 +1419,39 @@ Resubmit with dt=60s and nt = 60 (ie, 1 hr)::
   cd $CDIR
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
+Move the executable to a special name::
 
-  cd $EXP
-  qsub -q short runscript
+  mv $CONFIG/BLD/bin/nemo.exe $CONFIG/BLD/bin/nemo_notide_TSprofile.exe
 
-NB avoding mistakes namely a duplicate depth in the input depth funciton --> spline failure
+Move to experiment dir and link executable file in::
+
+  cd $EXP/../EXP-hpg_err
+  ln -s $CDIR/$CONFIG/BLD/bin/nemo_notide_TSprofile.exe opa
+
+Cold start run::
+
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     cn_exp      =    "SEAsia"  !  experience name
+     nn_it000    =  01   !  first time step
+     nn_itend    =  7200 ! 30day=7200   !  last  time step (std 5475)
+     nn_date0    =  20000102   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+     nn_time0    =       0   !  initial time of day in hhmm
+     nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+     ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
+
+Run::
+
+  qsub runscript
+
 
 Yes. That works.
 
+Though the SSS min decreases by 0.015 over the record. A bit odd?
+*(26 March 2018)*
+
+--- 
 
 
 *(24 Jan 18)*
