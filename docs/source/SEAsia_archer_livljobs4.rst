@@ -1428,6 +1428,21 @@ Move to experiment dir and link executable file in::
   cd $EXP/../EXP-hpg_err
   ln -s $CDIR/$CONFIG/BLD/bin/nemo_notide_TSprofile.exe opa
 
+
+
+James spotted that I didn't have lateral diffusion of momentum. Made some changes (following ORCHESTRA namelist_cfg)
+Submitted run (EXP01) to test timestep. rn_rdt=360 ran 1304 in 20mins ==> 5.4 days
+
+There an SSH instability in the NE corner when using::
+
+ cn_dyn3d      =  'neumann'
+
+Switch to::
+
+ cn_dyn3d      =  'zerograd'
+
+NB Tried masking, using mask_bdy.nc, but this didn't work.
+
 Cold start run::
 
   !-----------------------------------------------------------------------
@@ -1441,6 +1456,7 @@ Cold start run::
      nn_leapy    =       1   !  Leap year calendar (1) or not (0)
      ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
 
+
 Run::
 
   qsub runscript
@@ -1448,57 +1464,30 @@ Run::
 
 Yes. That works.
 
-Though the SSS min decreases by 0.015 over the record. A bit odd?
+Though the SSS min decreases by 0.017 over 30 days. A bit odd? Perhaps it is
+the non conservative nature of the advective schemes...
+
+NB The effect is coastal. There is no problem around the boundaries.
 *(26 March 2018)*
 
---- 
+---
 
 
-*(24 Jan 18)*
+Performance note::
 
-With tides turned off. Initial conditions: T(z),S(z) profiles and u=v=w=0.
+  With tides turned off. Initial conditions: T(z),S(z) profiles and u=v=w=0.
 
-Submit for 10 days dt=60s. nt=14400
-Try 20mins queue. --> 1128 steps.
+  Submit for 10 days dt=60s. nt=14400
+  Try 20mins queue. --> 1128 steps.
 
-Try 30mins with 5day mean output.
+  Try 30mins with 5day mean output.
 
-Ran 10days simulation in 2hrs 24mins (rn_rdt=60s, nt=14400, on 92 ocean cores, 120 cpus(total)).
+  Ran 10days simulation in 2hrs 24mins (rn_rdt=60s, nt=14400, on 92 ocean cores, 120 cpus(total)).
 
 
 ---
 
-James spotted that I didn't have lateral diffusion of momentum. Made some changes (following ORCHESTRA namelist_cfg)
-Submitted run (EXP01) to test timestep. rn_rdt=360 ran 1304 in 20mins ==> 5.4 days
 
-There an SSH instability in the NE corner when using::
-
-  cn_dyn3d      =  'neumann'
-
-Swirtch to::
-
-  cn_dyn3d      =  'zerograd'
-
-
-NB Tried masking, using mask_bdy.nc, but this didn't work.
-
-
-Try with tides turned on.
-(Recompile a tide and no tide version. Save in $CONFIG/BLD/binas nemo_tide.exe
-and nemo_notide.exe, then link as appropriate)::
-
-  cd EXP00
-  ls -s /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/BLD/bin/nemo_tide.exe opa
-
-  <    ln_tide     = .true.
-  <    ln_tide_pot = .true.    !  use tidal potential forcing
-  ...
-  <     nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
-
-  qsub -q short runscript
-
-
----
 
 HPG errors
 ++++++++++
@@ -1564,6 +1553,32 @@ cat solver.stat_part2 >> solver.stat
 
 module load anaconda
 python plot_solver_stat.py
+
+
+..note::
+
+  In the end I didn't do the restart for the last run I did.
+
+
+
+Internal tide with idealised stratification
++++++++++++++++++++++++++++++++++++++++++++
+Try with tides turned on.
+(Recompile a tide and no tide version. Save in $CONFIG/BLD/bin as nemo_tide.exe
+and nemo_notide.exe, then link as appropriate)::
+
+  cd EXP00
+  ls -s /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/BLD/bin/nemo_tide.exe opa
+
+  <    ln_tide     = .true.
+  <    ln_tide_pot = .true.    !  use tidal potential forcing
+  ...
+  <     nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
+
+  qsub -q short runscript
+
+
+---
 
 
 
