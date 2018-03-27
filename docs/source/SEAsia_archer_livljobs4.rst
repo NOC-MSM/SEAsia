@@ -1649,7 +1649,63 @@ Resubmit::
 Turn on 19 harmonics using the POLCOMS harmonic analysis (Nico's instructions and edits)
 Run for another 60 days with harmonic analysis restarting capbability.
 
-**PENDING** 5199521.sdb
+Works. Did tidal analysis plots ::
+
+  ~/GitLab/JMMP_tools
+  python Tidal_analysis_amplitude.py --verbose
+  python Tidal_analysis_plot.py --verbose
+
+
+Need to continue run
+
+::
+
+  namelist_cfg
+
+  ...
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     cn_exp      =    "SEAsia"  !  experience name
+     nn_it000    =  28801   !  first time step
+     nn_itend    =  43200 ! 10day=14400   !  last  time step (std 5475)
+     nn_date0    =  20000102   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+     nn_time0    =       0   !  initial time of day in hhmm
+     nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+     ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
+        nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
+        nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
+        !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
+        !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
+        !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
+        cn_ocerst_in    = "SEAsia_00028800_restart"   !  suffix of ocean restart name (input)
+
+  !-----------------------------------------------------------------------
+  &nambdy_tide   !  tidal forcing at open boundaries
+  !-----------------------------------------------------------------------
+     filtide      = 'bdydta/SEAsia_bdytide_rotT_'         !  file name root of tidal forcing files
+     ln_bdytide_2ddta = .false.                   !
+     ln_bdytide_conj  = .false.                   !
+                                                  ! Harmonic analysis with restart from polcom
+     ln_harm_ana_compute=.true.                   ! Compute the harmonic analysis at the last time step
+     ln_harm_ana_store=.true.                     ! Store the harmonic analysis at the last time step for restart
+     ln_harmana_read=.true.                      ! Read haronic analyisis from a restart
+
+
+
+   !-----------------------------------------------------------------------
+   &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
+   !-----------------------------------------------------------------------
+       nit000_han = 28801         ! First time step used for harmonic analysis
+       nitend_han = 43200 ! 1440 !      ! Last time step used for harmonic analysis
+
+
+
+Submit::
+
+  qsub runscript
+
+**PENDING** 5209170.sdb
 
 
 Try lateral boundary conditions T,S,u
