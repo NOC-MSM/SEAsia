@@ -1705,7 +1705,51 @@ Submit::
 
   qsub runscript
 
-**PENDING** 5209170.sdb
+Took 3:36 mins. The tidal analysis (https://www.evernote.com/shard/s652/nl/85824826/674115d9-29be-480a-ba71-6814de98df4b/) doesn't show significant improvement
+::
+
+  ~/GitLab/JMMP_tools
+  python Tidal_analysis_amplitude.py --verbose
+  python Tidal_analysis_plot.py --verbose
+
+But 4 months of simulation might still be on the short side. Run for another two months.
+::
+
+  vi namelist_cfg
+  ...
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     cn_exp      =    "SEAsia"  !  experience name
+     nn_it000    =  43201   !  first time step
+     nn_itend    =  57600 ! 10day=14400   !  last  time step (std 5475)
+     nn_date0    =  20000102   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+     nn_time0    =       0   !  initial time of day in hhmm
+     nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+     ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
+        nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
+        nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
+        !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
+        !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
+        !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
+        cn_ocerst_in    = "SEAsia_00043200_restart"   !  suffix of ocean restart name (input)
+
+
+
+
+   !-----------------------------------------------------------------------
+   &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
+   !-----------------------------------------------------------------------
+       nit000_han = 43201         ! First time step used for harmonic analysis
+       nitend_han = 57600 ! 1440 !      ! Last time step used for harmonic analysis
+
+
+
+Submit::
+
+  qsub runscript
+**PENDING** 5226597.sdb
+
 
 
 Try lateral boundary conditions T,S,u
