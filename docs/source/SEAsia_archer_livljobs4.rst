@@ -1748,7 +1748,8 @@ But 4 months of simulation might still be on the short side. Run for another two
 Submit::
 
   qsub runscript
-**PENDING** 5226597.sdb
+
+Ran with minor change to statistcs.
 
 
 
