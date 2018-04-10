@@ -853,11 +853,24 @@ Point to the correct source and destination mesh and mask files/variables.
         cn_coords_file = 'coordinates.bdy.nc' !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
         ln_mask_file   = .false.              !  =T : read mask from file
         cn_mask_file   = './bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+
+Originally, for barotropic forcing::
+
         ln_dyn2d       = .false.               !  boundary conditions for barotropic fields
         ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
         ln_tra         = .false.               !  boundary conditions for T and S
         ln_ice         = .false.               !  ice boundary condition
         nn_rimwidth    = 1                     !  width of the relaxation zone
+
+Change for baroclinic forcing::
+
+  ln_dyn2d       = .true.               !  boundary conditions for barotropic fields
+  ln_dyn3d       = .true.               !  boundary conditions for baroclinic velocities
+  ln_tra         = .true.               !  boundary conditions for T and S
+  ln_ice         = .false.               !  ice boundary condition
+  nn_rimwidth    = 9                    !  width of the relaxation zone
+
+Continuing::
 
    !-----------------------------------------------------------------------
    !  unstructured open boundaries tidal parameters
@@ -1332,7 +1345,7 @@ With constant variable padding below 4000m to make it up to 75 levels::
                 &   6600,  6700,  6800,  6900,  7000,  7100,  7200,  7300,  7400,   &
                 &   7500,  7600,  7700 /)
 
-      zsal(:) = (/ 34.05, 34.04, 34.10, 34.13, 34.25, 34.42, 34.88, 35.08, 35.13,   &
+      zsal(:) = (/ 34.05, 34.05, 34.10, 34.13, 34.25, 34.42, 34.88, 35.08, 35.13,   &
                 &  35.08, 35.07, 35.06, 35.06, 35.03, 35.01, 34.99, 34.96, 34.97,   &
                 &  34.97, 34.95, 34.92, 34.91, 34.88, 34.87, 34.85, 34.83, 34.82,   &
                 &  34.80, 34.77, 34.76, 34.75, 34.74, 34.73, 34.73, 34.72, 34.72,   &
@@ -1342,7 +1355,7 @@ With constant variable padding below 4000m to make it up to 75 levels::
                 &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
                 &  34.72, 34.72, 34.72 /)
 
-      ztmp(:) = (/ 28.81, 28.74, 28.87, 28.74, 28.33, 28.01, 25.21, 21.99, 18.51,   &
+      ztmp(:) = (/ 28.87, 28.87, 28.87, 28.74, 28.33, 28.01, 25.21, 21.99, 18.51,   &
                 &  15.55, 14.39, 13.43, 12.27, 11.48, 11.02, 10.51,  9.58,  8.95,   &
                 &   8.35,  7.78,  7.16,  6.52,  5.88,  5.44,  5.02,  4.57,  4.14,   &
                 &   3.34,  2.64,  2.31,  2.05,  1.86,  1.69,  1.58,  1.41,  1.23,   &
@@ -1352,6 +1365,10 @@ With constant variable padding below 4000m to make it up to 75 levels::
                 &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
                 &   1.15,  1.15,  1.15  /)
 
+I fixed the top two layers to be constant salinity and temperature to avoid possible cabling.
+The raw data had inversions at 10m
+
+NB avoding mistakes: namely a duplicate depth in the input depth funciton --> spline failure
 
 
 
@@ -1385,7 +1402,7 @@ Set boudaries to initial condition
   !-----------------------------------------------------------------------
   &nambdy        !  unstructured open boundaries
   !-----------------------------------------------------------------------
-      ln_bdy         = .true.              !  Use unstructured open boundaries
+      ln_bdy         = .false.              !  Use unstructured open boundaries
       nb_bdy         = 1                    !  number of open boundary sets
       ln_coords_file = .true.               !  =T : read bdy coordinates from file
       cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
@@ -1402,68 +1419,83 @@ Resubmit with dt=60s and nt = 60 (ie, 1 hr)::
   cd $CDIR
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
+Move the executable to a special name::
 
-  cd $EXP
-  qsub -q short runscript
+  mv $CONFIG/BLD/bin/nemo.exe $CONFIG/BLD/bin/nemo_notide_TSprofile.exe
 
-NB avoding mistakes namely a duplicate depth in the input depth funciton --> spline failure
+Move to experiment dir and link executable file in::
 
-Yes. That works.
-
-
-
-*(24 Jan 18)*
-
-With tides turned off. Initial conditions: T(z),S(z) profiles and u=v=w=0.
-
-Submit for 10 days dt=60s. nt=14400
-Try 20mins queue. --> 1128 steps.
-
-Try 30mins with 5day mean output.
-
-Ran 10days simulation in 2hrs 24mins (rn_rdt=60s, nt=14400, on 92 ocean cores, 120 cpus(total)).
+  cd $EXP/../EXP-hpg_err
+  ln -s $CDIR/$CONFIG/BLD/bin/nemo_notide_TSprofile.exe opa
 
 
----
 
 James spotted that I didn't have lateral diffusion of momentum. Made some changes (following ORCHESTRA namelist_cfg)
 Submitted run (EXP01) to test timestep. rn_rdt=360 ran 1304 in 20mins ==> 5.4 days
 
 There an SSH instability in the NE corner when using::
 
-  cn_dyn3d      =  'neumann'
+ cn_dyn3d      =  'neumann'
 
-Swirtch to::
+Switch to::
 
-  cn_dyn3d      =  'zerograd'
-
+ cn_dyn3d      =  'zerograd'
 
 NB Tried masking, using mask_bdy.nc, but this didn't work.
 
+Cold start run::
 
-Try with tides turned on.
-(Recompile a tide and no tide version. Save in $CONFIG/BLD/binas nemo_tide.exe
-and nemo_notide.exe, then link as appropriate)::
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     cn_exp      =    "SEAsia"  !  experience name
+     nn_it000    =  01   !  first time step
+     nn_itend    =  7200 ! 30day=7200   !  last  time step (std 5475)
+     nn_date0    =  20000102   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+     nn_time0    =       0   !  initial time of day in hhmm
+     nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+     ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
 
-  cd EXP00
-  ls -s /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/BLD/bin/nemo_tide.exe opa
 
-  <    ln_tide     = .true.
-  <    ln_tide_pot = .true.    !  use tidal potential forcing
-  ...
-  <     nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
+Run::
 
-  qsub -q short runscript
+  qsub runscript
+
+
+Yes. That works.
+
+Though the SSS min decreases by 0.017 over 30 days. A bit odd? Perhaps it is
+the non conservative nature of the advective schemes...
+
+NB The effect is coastal. There is no problem around the boundaries.
+*(26 March 2018)*
+
+---
+
+
+Performance note::
+
+  With tides turned off. Initial conditions: T(z),S(z) profiles and u=v=w=0.
+
+  Submit for 10 days dt=60s. nt=14400
+  Try 20mins queue. --> 1128 steps.
+
+  Try 30mins with 5day mean output.
+
+  Ran 10days simulation in 2hrs 24mins (rn_rdt=60s, nt=14400, on 92 ocean cores, 120 cpus(total)).
 
 
 ---
+
+
 
 HPG errors
 ++++++++++
 
 Submit a 30 day simulations, from rest, with depth varying spatially homogeneous
-temperature and salinity profiles, with no forcing, clamped initial condition
-boundary conditions
+temperature and salinity profiles, with no forcing, boundary conditions off:
+``ln_bdy = F``
+
 
 Edit runscript: 2hrs walltime. It took 1h 50mins
 
@@ -1477,6 +1509,8 @@ cd $EXP/../EXP_hpg_err
 
 Scrape ``umax`` from ``solver.state`` using plot_solver_stat.py
 
+Some along rim currents started but these are small compared to interior currents.
+Restart for another 30 days.
 After 30 days umax is still growing. Restart run and continue::
 
   mv solver.stat solver.stat_part1
@@ -1485,7 +1519,6 @@ Check progress with::
 
    hpg_error_plotNEMO.py
    plot_solver_stat.py
-
 
 Edit namelist_cfg for restarting::
 
@@ -1510,18 +1543,42 @@ Resubmit::
 
   qsub runscript
 
-*(1 Feb 18)*
-**PENDING**
 Ran in 1hr 46
 
 Joing the solver.stat files together::
 
 cp solver.stat solver.stat_part2
-cp solver.start_part1 solver.stat
-cat solver_stat_part2 >> solver_stat
+cp solver.stat_part1 solver.stat
+cat solver.stat_part2 >> solver.stat
 
 module load anaconda
 python plot_solver_stat.py
+
+
+..note::
+
+  In the end I didn't do the restart for the last run I did.
+
+
+
+Internal tide with idealised stratification
++++++++++++++++++++++++++++++++++++++++++++
+Try with tides turned on.
+(Recompile a tide and no tide version. Save in $CONFIG/BLD/bin as nemo_tide.exe
+and nemo_notide.exe, then link as appropriate)::
+
+  cd EXP00
+  ls -s /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/BLD/bin/nemo_tide.exe opa
+
+  <    ln_tide     = .true.
+  <    ln_tide_pot = .true.    !  use tidal potential forcing
+  ...
+  <     nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
+
+  qsub -q short runscript
+
+
+---
 
 
 
@@ -1581,15 +1638,119 @@ Edit namelist_cfg::
 
 Didn't bother with the tidal harmonics. It will run but I am spinning up.
 
-Run for 4 hours. nt = 14400, dt =360, 60 days
+Run for 4 hours. nt = 14400, dt =360, 60 days. Completed in 3hr 31.
 
 Edit XML output to produce 5d output.
 Resubmit::
 
   qsub runscript
 
-**PENDING**
-*(2 Feb 2018)*
+*(23 Mar 2018)*
+Turn on 19 harmonics using the POLCOMS harmonic analysis (Nico's instructions and edits)
+Run for another 60 days with harmonic analysis restarting capbability.
+
+Works. Did tidal analysis plots ::
+
+  ~/GitLab/JMMP_tools
+  python Tidal_analysis_amplitude.py --verbose
+  python Tidal_analysis_plot.py --verbose
+
+
+Need to continue run
+
+::
+
+  namelist_cfg
+
+  ...
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     cn_exp      =    "SEAsia"  !  experience name
+     nn_it000    =  28801   !  first time step
+     nn_itend    =  43200 ! 10day=14400   !  last  time step (std 5475)
+     nn_date0    =  20000102   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+     nn_time0    =       0   !  initial time of day in hhmm
+     nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+     ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
+        nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
+        nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
+        !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
+        !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
+        !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
+        cn_ocerst_in    = "SEAsia_00028800_restart"   !  suffix of ocean restart name (input)
+
+  !-----------------------------------------------------------------------
+  &nambdy_tide   !  tidal forcing at open boundaries
+  !-----------------------------------------------------------------------
+     filtide      = 'bdydta/SEAsia_bdytide_rotT_'         !  file name root of tidal forcing files
+     ln_bdytide_2ddta = .false.                   !
+     ln_bdytide_conj  = .false.                   !
+                                                  ! Harmonic analysis with restart from polcom
+     ln_harm_ana_compute=.true.                   ! Compute the harmonic analysis at the last time step
+     ln_harm_ana_store=.true.                     ! Store the harmonic analysis at the last time step for restart
+     ln_harmana_read=.true.                      ! Read haronic analyisis from a restart
+
+
+
+   !-----------------------------------------------------------------------
+   &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
+   !-----------------------------------------------------------------------
+       nit000_han = 28801         ! First time step used for harmonic analysis
+       nitend_han = 43200 ! 1440 !      ! Last time step used for harmonic analysis
+
+
+
+Submit::
+
+  qsub runscript
+
+Took 3:36 mins. The tidal analysis (https://www.evernote.com/shard/s652/nl/85824826/674115d9-29be-480a-ba71-6814de98df4b/) doesn't show significant improvement
+::
+
+  ~/GitLab/JMMP_tools
+  python Tidal_analysis_amplitude.py --verbose
+  python Tidal_analysis_plot.py --verbose
+
+But 4 months of simulation might still be on the short side. Run for another two months.
+::
+
+  vi namelist_cfg
+  ...
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     cn_exp      =    "SEAsia"  !  experience name
+     nn_it000    =  43201   !  first time step
+     nn_itend    =  57600 ! 10day=14400   !  last  time step (std 5475)
+     nn_date0    =  20000102   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+     nn_time0    =       0   !  initial time of day in hhmm
+     nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+     ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
+        nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
+        nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
+        !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
+        !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
+        !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
+        cn_ocerst_in    = "SEAsia_00043200_restart"   !  suffix of ocean restart name (input)
+
+
+
+
+   !-----------------------------------------------------------------------
+   &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
+   !-----------------------------------------------------------------------
+       nit000_han = 43201         ! First time step used for harmonic analysis
+       nitend_han = 57600 ! 1440 !      ! Last time step used for harmonic analysis
+
+
+
+Submit::
+
+  qsub runscript
+
+Ran with minor change to statistcs.
+
 
 
 Try lateral boundary conditions T,S,u
