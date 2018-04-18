@@ -156,10 +156,8 @@ following ::
 
 
 
+My old code doesn't work anymore
+================================
 
-
-
-
-
-
-
+Old code can fail is the compilers are updated but the new runs only partially re-compile the code leading to inconsistencies.
+E.g. old compilers buid the XIOS that are linked to using a new compile of OPA.
