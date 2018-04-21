@@ -21,13 +21,13 @@ to ::
 
     <file_definition type="multiple_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="10d" min_digits="4">
 
-Can mean the difference between a nice weekend or a bad one. It seems that if you decide to use multi XIOS cores, you need 
+Can mean the difference between a nice weekend or a bad one. It seems that if you decide to use multi XIOS cores, you need
 to use the second option (**multiple_file**).
 
 
-If a run suddenly stops without any errors in your NEMO **ocean.output** or in the cluster error/output files, it could 
-come from the memory of the XIOS server (you probably get in the error file something like "OOM killer terminated this process."). 
-A way to pass over this is to use more nodes, and using a single core per node to access the full memory of the node. 
+If a run suddenly stops without any errors in your NEMO **ocean.output** or in the cluster error/output files, it could
+come from the memory of the XIOS server (you probably get in the error file something like "OOM killer terminated this process.").
+A way to pass over this is to use more nodes, and using a single core per node to access the full memory of the node.
 An example for Archer, using 1 core of 12 nodes: ::
 
    aprun -b -n 12 -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./nemo.exe
@@ -131,7 +131,7 @@ Memory error for combining outputs (ARCHER)
 
 If your configuration becomes massive, combining the output might bring memory issues on **ARCHER** login nodes.
 A solution is to submit on the post-processing node. However post-processing nodes and computing nodes have different
-architecture and you need to recompile your tools for it. Basically on those node the compiler shortcuts (ftn, CC, ...) 
+architecture and you need to recompile your tools for it. Basically on those node the compiler shortcuts (ftn, CC, ...)
 are not recognized so you need to alter them depending on the compiler. for example with intel, **ftn** becomes **ifort**.
 
 
@@ -142,12 +142,12 @@ More details can be find on the ARCHER documentation :
 Pynemo on livl server
 =====================
 
-I (Nico) could not manage to install pynemo locally on my work computer (worked fine at home). I change my anaconda set-up to install the 
-environments in the **/work** instead of **/login** through the **.condarc**. Finally the only way I manage to install it was to reverse 
-my environment to the **/login** default one. It seems weird to not work in the other way and it's not very class was of sorting this but 
-at least it works. I guess it's only due to *java virtual machine* path not properly path trhough but still... the error I got was the 
+I (Nico) could not manage to install pynemo locally on my work computer (worked fine at home). I change my anaconda set-up to install the
+environments in the **/work** instead of **/login** through the **.condarc**. Finally the only way I manage to install it was to reverse
+my environment to the **/login** default one. It seems weird to not work in the other way and it's not very class was of sorting this but
+at least it works. I guess it's only due to *java virtual machine* path not properly path trhough but still... the error I got was the
 following ::
-  
+
    File "/work/nibrun/nico-conda/nrct_env/lib/python2.7/site-packages/jnius/reflect.py", line 162, in autoclass
        c = find_javaclass(clsname)
    File "jnius_export_func.pxi", line 23, in jnius.find_javaclass (jnius/jnius.c:12356)

@@ -13,10 +13,14 @@ import matplotlib.cm as cm  # colormaps
 import sys # Exit command
 #####%matplotlib inline
 
-flag = 0 # Read output.abort
+#flag = 0 # Read output.abort
 #flag = 1 # Read SWPacific*nc
 #flag = 2 # bdydta mask
 #flag = 3 # Tide data
+flag = 4 # grid T data
+
+dir = ''
+dir = '/Users/jeff/Desktop/temp/'
 
 print 'flag =',flag
 
@@ -37,11 +41,14 @@ elif flag == 2:
 elif flag == 3: # Tides
 	filename = 'SWPacific_5d_20000101_20000120_Tides.nc'
 	var = 'M2x'
+elif flag == 4: # grid_T
+	filename = 'AMM60_1d_20120601_20120605_grid_T.nc'
+	var = 'temper25h'
 else:
 	print 'Panic!'
 
 ## Load file and variables
-f = Dataset(filename)
+f = Dataset(dir+filename)
 
 #load lat and lon
 #nav_lat = f.variables['nav_lat'][:] # (y,x)
@@ -61,18 +68,22 @@ if flag == 0 or flag == 2 or flag == 3:
 	plt.pcolormesh( zos[:,:], cmap=cmap )
 elif flag == 1:
 	plt.pcolormesh( zos[-2,:,:], cmap=cmap )
-plt.clim([-lim/10.,lim/10.])
+elif flag == 4:
+	plt.pcolormesh( zos[0,0,:,:], cmap=cmap )
+#plt.clim([-lim/10.,lim/10.])
 plt.colorbar()
 ax = fig.add_subplot(212)
 if flag == 0 or flag ==2:
 	plt.pcolormesh( zos[:,:], cmap=cmap )
 elif flag == 1:
 	plt.pcolormesh( zos[-2,:,:], cmap=cmap )
+elif flag == 4:
+	plt.pcolormesh( zos[0,0,:,:], cmap=cmap )
 plt.xlim([528,548])
 plt.ylim([366,386])
-plt.clim([-lim,lim])
+#plt.clim([-lim,lim])
 plt.colorbar()
-plt.title('SSH')
+plt.title(var)
 #plt.xlabel('long'); plt.ylabel('lat')
 plt.show()
 
