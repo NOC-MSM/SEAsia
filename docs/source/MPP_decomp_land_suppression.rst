@@ -4,7 +4,19 @@ MPP decomposition for land suppression
 Before doing long runs it is important to optimise MPP decompositoin by invoking
  land supression to save redundant ocean processors.
 
-In the namelist there is a subsection nammpp. This allows the user to switch on land suppression from the NEMO simulations. Setting jpni, jpnj and jpnij to values less than 1 tells NEMO to decompose the domain into jpni x jpnj processor maps such that jpni x jpnj = total number of requested processors. The user can take a little control by specifying how the x-axis and y-axis are subdivided e.g. by setting jpni=10, jpnj=10 and jpnij=100 the x and y axes are divided up into 10 equal parts for the decomposition. If 40% of the domain happens to be land land suppression can be triggered if jpni x jpni > jpnij. As a first guess we may run with the following jpni=10, jpnj=10 and jpnij=60. To test this run the model for 1time step. Invariably this will fail, but the mode will write out what jpnij it was expecting in the ocean.output file. jpnij can then be updated in the namelist_cfg and the model rerun with the correct jpnij value. This allows the user to run a more efficient setup and speeding up simulations.
+In the namelist there is a subsection nammpp. This allows the user to switch on
+land suppression from the NEMO simulations. Setting jpni, jpnj and jpnij to values
+less than 1 tells NEMO to decompose the domain into jpni x jpnj processor maps
+such that jpni x jpnj = total number of requested processors. The user can take
+a little control by specifying how the x-axis and y-axis are subdivided
+e.g. by setting jpni=10, jpnj=10 and jpnij=100 the x and y axes are divided
+up into 10 equal parts for the decomposition. If 40% of the domain happens
+to be land land suppression can be triggered if jpni x jpni > jpnij. As a
+first guess we may run with the following jpni=10, jpnj=10 and jpnij=60. To test
+this run the model for 1time step. Invariably this will fail, but the mode will
+write out what jpnij it was expecting in the ocean.output file. jpnij can then
+be updated in the namelist_cfg and the model rerun with the correct jpnij value.
+This allows the user to run a more efficient setup and speeding up simulations.
 
 When choosing jpni and jpnj bear in mind the following:
 * Ideally you want to keep the decomposition as ‘square’ as possible to minimise communications
