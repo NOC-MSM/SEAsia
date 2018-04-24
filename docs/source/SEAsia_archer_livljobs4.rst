@@ -1763,6 +1763,56 @@ Try lateral boundary conditions T,S,u
 * tides + lateral boundary conditions
 
 
+---
+
+*(24 Apr 2018)*
+Get the 3D global NEMO files
+
+
+ssh livljobs4
+
+. ~/temporary_path_names_for_NEMO_build
+cd $INPUTS
+
+Edit the namelist.bdy for 3D fields::
+
+  vi namelist.bdy
+
+  !-----------------------------------------------------------------------
+  !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+      ln_coords_file = .true.               !  =T : produce bdy coordinates files
+      cn_coords_file = 'coordinates.bdy.nc' !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
+      ln_mask_file   = .false.              !  =T : read mask from file
+      cn_mask_file   = './bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+      ln_dyn2d       = .true.               !  boundary conditions for barotropic fields
+      ln_dyn3d       = .true.               !  boundary conditions for baroclinic velocities
+      ln_tra         = .true.               !  boundary conditions for T and S
+      ln_ice         = .false.               !  ice boundary condition
+      nn_rimwidth    = 9                    !  width of the relaxation zone
+
+
+
+Run pynemo::
+
+
+  cd $INPUTS
+
+  module load anaconda/2.1.0  # Want python2
+  source activate nrct_env
+  cd $INPUTS
+  export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+  pynemo -s namelist.bdy
+
+
+JASMIN Thredds server is working.
+Need to have mulitple time slices available or the interp time falls over.
+Need to adject ORCA0083 time window.
+Need to turn of tides if the rimwidth != 1.
+Issues with datetime for end of the month in profile.py
+
+
+
 
 
 
