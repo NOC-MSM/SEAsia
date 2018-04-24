@@ -1810,6 +1810,9 @@ Need to have mulitple time slices available or the interp time falls over.
 Need to adject ORCA0083 time window.
 Need to turn of tides if the rimwidth != 1.
 Issues with datetime for end of the month in profile.py
+  Made changes to use datetime and timedelta instrad of netcdfdatime, or something.
+
+
 
 
 
