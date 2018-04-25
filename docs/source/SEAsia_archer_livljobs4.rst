@@ -1766,17 +1766,93 @@ Try lateral boundary conditions T,S,u
 ---
 
 *(24 Apr 2018)*
-Get the 3D global NEMO files
+Build the 3D boundary conditions from ORCA0083-N01
+==================================================
 
+Use PyNEMO to generate 3D bcs on livljobs4::
 
-ssh livljobs4
+  ssh livljobs4
 
-. ~/temporary_path_names_for_NEMO_build
-cd $INPUTS
+  . ~/temporary_path_names_for_NEMO_build
+  cd $INPUTS
 
-Edit the namelist.bdy for 3D fields::
+Edit the namelist.bdy for 3D fields. There are a few key things to note:
+
+* Turn off the tides ``ln_tide =.false.`` and change ``rimwidth``: 1 --> 9
+(tides don't work with rimwidth != 1 and baroclinc bcs don't work with rimwidth=1)
+
+* For the ORCA0083-N001 run there was a glitch with the model timestamp. It is
+ out by 36 days and 16 hours. This can be adjusted with a new namelist variable
+ ``nn_src_time_adj``.
+
+* The parent files could not be accessed on the thredd server because it is broken.
+ For now I've copied Nov 1978 into ``/projectsa/accord/ORCA0083``. This is reflected
+ in local_inputs_src.ncml
+
+* Make sure the namelist time variables (years and months) match the timestamps in the files you
+ load otherwise not much happens...
+
+* You might need to have the time data spanning a whole month, so that a month
+ can be extracted.
+
+* Finally, there may have been an issue with a pynemo datetime function that
+ determined the datetime for end of the month in profile.py
+I  made change to the master branch to use datetime and timedelta instead of
+ netcdfdatime, or something. This only matters is pynemo breaks with an
+associated datetime error. Then this is the fix.
+
+::
 
   vi namelist.bdy
+
+  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !! NEMO/OPA  : namelist for BDY generation tool
+  !!
+  !!             User inputs for generating open boundary conditions
+  !!             employed by the BDY module in NEMO. Boundary data
+  !!             can be set up for v3.2 NEMO and above.
+  !!
+  !!             More info here.....
+  !!
+  !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+  !-----------------------------------------------------------------------
+  !   vertical coordinate
+  !-----------------------------------------------------------------------
+     ln_zco      = .false.   !  z-coordinate - full    steps   (T/F)
+     ln_zps      = .true.    !  z-coordinate - partial steps   (T/F)
+     ln_sco      = .false.   !  s- or hybrid z-s-coordinate    (T/F)
+     rn_hmin     =   -10     !  min depth of the ocean (>0) or
+                             !  min number of ocean level (<0)
+
+  !-----------------------------------------------------------------------
+  !   s-coordinate or hybrid z-s-coordinate
+  !-----------------------------------------------------------------------
+     rn_sbot_min =   10.     !  minimum depth of s-bottom surface (>0) (m)
+     rn_sbot_max = 7000.     !  maximum depth of s-bottom surface
+                             !  (= ocean depth) (>0) (m)
+     ln_s_sigma  = .true.   !  hybrid s-sigma coordinates
+     rn_hc       =  150.0    !  critical depth with s-sigma
+
+  !-----------------------------------------------------------------------
+  !  grid information
+  !-----------------------------------------------------------------------
+     sn_src_hgr = './mesh_hgr_src.nc'   !  parent /grid/
+     sn_src_zgr = './mesh_zgr_src.nc'   !  parent
+     sn_dst_hgr = './domain_cfg.nc'
+     sn_dst_zgr = './inputs_dst.ncml' ! rename output variables
+     sn_src_msk = './mask_src.nc'       ! parent
+     sn_bathy   = './bathy_meter.nc'
+
+  !-----------------------------------------------------------------------
+  !  I/O
+  !-----------------------------------------------------------------------
+     sn_src_dir = './local_inputs_src.ncml'       ! src_files/'
+     sn_dst_dir = '/work/jelt/NEMO/SEAsia/INPUTS/'
+     sn_fn      = 'SEAsia'                 ! prefix for output files
+     nn_fv      = -1e20                     !  set fill value for output files
+     nn_src_time_adj = 0                                    ! src time adjustment
+     sn_dst_metainfo = 'metadata info: jelt'
 
   !-----------------------------------------------------------------------
   !  unstructured open boundaries
@@ -1791,6 +1867,119 @@ Edit the namelist.bdy for 3D fields::
       ln_ice         = .false.               !  ice boundary condition
       nn_rimwidth    = 9                    !  width of the relaxation zone
 
+  !-----------------------------------------------------------------------
+  !  unstructured open boundaries tidal parameters
+  !-----------------------------------------------------------------------
+      ln_tide        = .false.               !  =T : produce bdy tidal conditions
+      clname(1) =  'M2'
+      clname(2) =  'S2'
+      clname(3) =  'N2'
+      clname(4) =  'K2'
+      clname(5) =  'K1'
+      clname(6) =  'O1'
+      clname(7) =  'P1'
+      clname(8) =  'Q1'
+      clname(9) =  'M4'
+      ln_trans       = .false.
+      sn_tide_h     = '/work/jelt/tpxo7.2/h_tpxo7.2.nc'
+      sn_tide_u     = '/work/jelt/tpxo7.2/u_tpxo7.2.nc'
+
+  !-----------------------------------------------------------------------
+  !  Time information
+  !-----------------------------------------------------------------------
+      nn_year_000     = 1979        !  year start
+      nn_year_end     = 1979        !  year end
+      nn_month_000    = 11          !  month start (default = 1 is years>1)
+      nn_month_end    = 11         !  month end (default = 12 is years>1)
+      sn_dst_calendar = 'gregorian' !  output calendar format
+      nn_base_year    = 1978        !  base year for time counter
+      sn_tide_grid    = '/work/jelt/tpxo7.2/grid_tpxo7.2.nc'
+      nn_src_time_adj    = -3254400  ! -3168000 - 86400 ! fix to align model time stamp
+  !-----------------------------------------------------------------------
+  !  Additional parameters
+  !-----------------------------------------------------------------------
+      nn_wei  = 1                   !  smoothing filter weights
+      rn_r0   = 0.041666666         !  decorrelation distance use in gauss
+                                    !  smoothing onto dst points. Need to
+                                    !  make this a funct. of dlon
+      sn_history  = 'bdy files produced by jelt from ORCA0083-N01'
+                                    !  history for netcdf file
+      ln_nemo3p4  = .true.          !  else presume v3.2 or v3.3
+      nn_alpha    = 0               !  Euler rotation angle
+      nn_beta     = 0               !  Euler rotation angle
+      nn_gamma    = 0               !  Euler rotation angle
+      rn_mask_max_depth = 300.0     !  Maximum depth to be ignored for the mask
+      rn_mask_shelfbreak_dist = 60    !  Distance from the shelf break
+
+
+The ORCA0083-N01 parent files. (This could be streamlined with some wildcards)::
+
+  vi local_inputs_src.ncml::
+
+  <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
+  <ns0:aggregation type="union">
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="temperature" type="joinExisting">
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791101d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791106d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791111d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791116d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791121d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791126d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791201d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791206d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="salinity" type="joinExisting">
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791101d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791106d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791111d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791116d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791121d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791126d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791201d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791206d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="zonal_velocity" type="joinExisting">
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791101d05U.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791106d05U.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791111d05U.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791116d05U.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791121d05U.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791126d05U.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791201d05U.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791206d05U.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="meridian_velocity" type="joinExisting">
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791101d05V.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791106d05V.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791111d05V.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791116d05V.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791121d05V.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791126d05V.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791201d05V.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791206d05V.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+    <ns0:netcdf>
+      <ns0:aggregation dimName="time_counter" name="sea_surface_height" type="joinExisting">
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791101d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791106d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791111d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791116d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791121d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791126d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791201d05T.nc" />
+          <ns0:netcdf location="file:/projectsa/accord/ORCA0083/ORCA0083-N01_19791206d05T.nc" />
+      </ns0:aggregation>
+    </ns0:netcdf>
+  </ns0:aggregation>
+  </ns0:netcdf>
 
 
 Run pynemo::
@@ -1805,15 +1994,15 @@ Run pynemo::
   pynemo -s namelist.bdy
 
 
-JASMIN Thredds server is working.
-Need to have mulitple time slices available or the interp time falls over.
-Need to adject ORCA0083 time window.
-Need to turn of tides if the rimwidth != 1.
-Issues with datetime for end of the month in profile.py
-  Made changes to use datetime and timedelta instrad of netcdfdatime, or something.
+*(25 Apr 2018)*
+Outputs::
 
+  SEAsia_bdyT_y1979m11.nc
+  coordinates.bdy.nc
 
+* Crashed on SSH bc. Editted indNAN variable and resubmitted
 
+*(PENDING)*
 
 
 
