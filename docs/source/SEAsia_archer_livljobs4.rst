@@ -1995,12 +1995,17 @@ Run pynemo::
 
 
 *(25 Apr 2018)*
+
+* ``nemo_bdy_extr_tm3.py`` Editted ind_NAN variable and caught exception for
+empty index list. Resubmitted.
+
 Outputs::
 
-  SEAsia_bdyT_y1979m11.nc
   coordinates.bdy.nc
+  SEAsia_bdyT_y1979m11.nc
+  SEAsia_bt_bdyT_y1979m11.nc
+  ...
 
-* Crashed on SSH bc. Editted indNAN variable and resubmitted
 
 *(PENDING)*
 
