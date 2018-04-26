@@ -2004,10 +2004,33 @@ Outputs::
   coordinates.bdy.nc
   SEAsia_bdyT_y1979m11.nc
   SEAsia_bt_bdyT_y1979m11.nc
-  ...
+  SEAsia_bdyU_y1979m11.nc
+  SEAsia_bdyV_y1979m11.nc
+
+This took 2 hours! To produce a month of boundary conditions.
 
 
-*(PENDING)*
+Copy files from SAN to ARCHER::
+
+  livljobs4
+  cd $INPUTS
+  for file in  SEAsia_bd*nc; do rsync -uvt $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
