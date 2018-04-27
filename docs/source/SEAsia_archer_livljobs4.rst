@@ -413,7 +413,8 @@ For constant T and S use the user defined functions in ``$CDIR/$CONFIG/MY_SRC``:
       # Directory to install binaries:
       INSTALL_DIR = /home/n01/n01/jelt/local
 
-    Proceed with Step 6 (of Lighhouse Reef Readthedocs)::
+    Proceed with Step 6 (of Lighhouse Reef Readthedocs). This is best done in a clean terminal
+    ::
 
       cd ~
       mkdir local
@@ -432,119 +433,158 @@ For constant T and S use the user defined functions in ``$CDIR/$CONFIG/MY_SRC``:
       cp $START_FILES/initcd_votemper.namelist $INPUTS/.
       cp $START_FILES/initcd_vosaline.namelist $INPUTS/.
 
-    Generate the actual files. Cut them out of something bigger. Use the same indices
-    as used in coordinates.nc (note that the nco tools don't like the
-    parallel modules)::
+The sosie routine is VERY slow. (2.5 hrs). Make a cut down parent file using ORCA0083-N01.
+Cut down based on coordintaes from create coordinates namelist. (Add a buffer as
+I'm not sure how the sosie extraction works)::
 
-    ----
+    module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+    module load cray-netcdf cray-hdf5
+    module load nco/4.5.0
+    cd $WDIR/INPUTS
 
-    *(3 March 2017)*
-    Insert new method to use AMM60 data for initial conditions.
-    /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT
-    AMM60_5d_20131013_20131129_grid_T.nc
+    ncks -d x,45,735 -d y,1245,1795 ORCA0083-N01_19791101d05T.nc $WDIR/INPUTS/cut_down_19791101d05_SEAsia_grid_T.nc
 
-    Find the AMM60 indices using FERRET on the bathy_meter.nc file: ``shade log(Bathymetry[I=540:750, J=520:820])``
+Average over time and restore the parallel modules (Not necessary for this data with 1 time point)::
 
-    Note that the temperature and salinity variables are ``thetao`` and ``so``
+    #ncwa -a time_counter $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc  $WDIR/INPUTS/cut_down_201310_LBay_grid_T.nc
 
-    ::
+    module unload nco cray-netcdf cray-hdf5
+    module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-      module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-      module load cray-netcdf cray-hdf5
-      module load nco/4.5.0
-      cd $INPUTS
 
-      ncks -d x,560,620 -d y,720,800 /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT/AMM60_5d_20131013_20131129_grid_T.nc $INPUTS/cut_down_20131013_LBay_grid_T.nc
-
-    Average over time and restore the parallel modules::
-
-      ncwa -a time_counter $START_FILES/cut_down_20131013_LBay_grid_T.nc  $INPUTS/cut_down_201310_LBay_grid_T.nc
-
-      module unload nco cray-netcdf cray-hdf5
-      module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+----
 
 
 
-    Edit namelists::
+Edit namelists::
 
-      vi initcd_votemper.namelist
-      cf_in     = 'cut_down_201310_LBay_grid_T.nc'
-      cv_in     = 'thetao'
-      cf_x_in   = 'cut_down_201310_LBay_grid_T.nc'
-      cv_out   = 'thetao'
-      csource  = 'AMM60'
-      ctarget  = 'LBay'
+  vi initcd_votemper.namelist
+  cf_in     = 'cut_down_19791101d05_SEAsia_grid_T.nc'
+  cv_in     = 'votemper'
+  cf_x_in   = 'cut_down_19791101d05_SEAsia_grid_T.nc'
+  cv_out   = 'votemper'
+  csource  = 'ORCA0083-N01'
+  ctarget  = 'SEAsia'
 
-      vi initcd_vosaline.namelist
-      ...
-      cv_out   = 'so'
-      ...
+  vi initcd_vosaline.namelist
+  ...
+  cv_out   = 'vosaline'
+  ...
 
+Copy parent file to ARCHER INPUTS (need to generalise / improve)::
 
-
-    Do stuff. I think the intention was for SOSIE to flood fill the land::
-
-      sosie.x -f initcd_votemper.namelist
-
-    Creates::
-
-      thetao_AMM60-LBay_2013.nc4
-      sosie_mapping_AMM60-LBay.nc
-
-    Repeat for salinity::
-
-      sosie.x -f initcd_vosaline.namelist
-
-    Creates::
-
-      so_AMM60-LBay_2013.nc4
+  livljobs4
+  scp /projectsa/accord/ORCA0083/ORCA0083-N01_19791101d05T.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/.
 
 
-    Now do interpolation as before. First copy the namelists::
+Do stuff (on ARCHER). I think the intention was for SOSIE to flood fill the land::
 
-      cp $START_FILES/namelist_reshape_bilin_initcd_votemper $INPUTS/.
-      cp $START_FILES/namelist_reshape_bilin_initcd_vosaline $INPUTS/.
-
-    Edit the input files::
-
-      vi $INPUTS/namelist_reshape_bilin_initcd_votemper
-      &grid_inputs
-        input_file = 'thetao_AMM60-LBay_2013.nc4'
-      ...
-
-      &interp_inputs
-        input_file = "thetao_AMM60-LBay_2013.nc4"
-      ...
-
-    Simiarly for the *vosaline.nc file::
-
-      vi $INPUTS/namelist_reshape_bilin_initcd_vosaline
-      &grid_inputs
-        input_file = 'so_AMM60-LBay_2013.nc4'
-      ...
-
-      &interp_inputs
-        input_file = "so_AMM60-LBay_2013.nc4"
-      ...
+  cd $INPUTS
+  sosie.x -f initcd_votemper.namelist
+  sosie.x -f initcd_vosaline.namelist
 
 
-    Produce the remap files::
+I had trouble getting ARCHER to run this. (Though with the cut down parent the
+ commandline is fine, though it runs out of walltime in Interactive Mode)
+Initially, running in the commandline the job failed with insufficient memory,
+ because I didn't cut the ORCA data down first.
+ In the end I submitted it as a pair of serial jobs ::
 
-      $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
+  vi $INPUTS/sosie_initcd_T
 
-    Creates ``remap_nemo_grid_R12.nc`` and ``remap_data_grid_R12.nc``. Then::
+  #!/bin/bash
+  #PBS -N init_T
+  #PBS -l select=serial=true:ncpus=1
+  #PBS -l walltime=06:00:00
+  #PBS -o init_T.log
+  #PBS -e init_T.err
+  #PBS -A n01-ACCORD
+  ###################################################
 
-      $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
+  module swap PrgEnv-cray PrgEnv-intel
+  module load cray-hdf5-parallel
+  module load cray-netcdf-hdf5parallel
 
-    Creates ``data_nemo_bilin_R12.nc``. Then::
 
-      $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
+  cd /home/n01/n01/jelt/sosie
+  make clean
+  make
+  make install
 
-    Creates ``initcd_votemper.nc``. Then::
+  #set up paths
+  cd /work/n01/n01/jelt/SEAsia/INPUTS
 
-      $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
+  /home/n01/n01/jelt/local/bin/sosie.x -f initcd_votemper.namelist
+  #/home/n01/n01/jelt/local/bin/sosie.x -f initcd_vosaline.namelist
 
-    Creates ``initcd_vosaline.nc``.
+
+  # qsub -q serial <filename>
+  ###################################################
+
+
+Similarly for ``sosie_initcd_S``. Then::
+
+  qsub -q serial sosie_initcd_T
+  qsub -q serial sosie_initcd_S
+
+3 hours not enough - resubmit with 6 hrs! *(PENDING)*
+
+Whether as a serial job or from the commandline, the temperature process creates::
+
+  thetao_AMM60-LBay_2013.nc4
+  sosie_mapping_AMM60-LBay.nc
+
+And the salinity process creates::
+
+  so_AMM60-LBay_2013.nc4
+
+
+
+Now do interpolation as before. First copy the namelists::
+
+  cp $START_FILES/namelist_reshape_bilin_initcd_votemper $INPUTS/.
+  cp $START_FILES/namelist_reshape_bilin_initcd_vosaline $INPUTS/.
+
+Edit the input files::
+
+  vi $INPUTS/namelist_reshape_bilin_initcd_votemper
+  &grid_inputs
+    input_file = 'thetao_AMM60-LBay_2013.nc4'
+  ...
+
+  &interp_inputs
+    input_file = "thetao_AMM60-LBay_2013.nc4"
+  ...
+
+Similarly for the *vosaline.nc file::
+
+  vi $INPUTS/namelist_reshape_bilin_initcd_vosaline
+  &grid_inputs
+    input_file = 'so_AMM60-LBay_2013.nc4'
+  ...
+
+  &interp_inputs
+    input_file = "so_AMM60-LBay_2013.nc4"
+  ...
+
+
+Produce the remap files::
+
+  $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
+
+Creates ``remap_nemo_grid_R12.nc`` and ``remap_data_grid_R12.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
+
+Creates ``data_nemo_bilin_R12.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
+
+Creates ``initcd_votemper.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
+
+Creates ``initcd_vosaline.nc``.
 
 
 
