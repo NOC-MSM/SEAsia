@@ -1927,8 +1927,10 @@ Finally turn rivers on::
   !              !  file name           ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
   !              !                      !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
      sn_rnf      = 'SEAsia_rivers',        -1         , 'rorunoff',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
+     sn_cnf      = 'SEAsia_rivers',         0         , 'socoefr0',   .false.    , .true. , 'yearly'  , ''       , ''       , ''
      ...
      cn_dir      = 'bdydta/'      !  root directory for the location of the runoff files
+     ln_rnf_mouth= .false.    !  specific treatment at rivers mouths
 
 
 Edit runscript::
@@ -1943,7 +1945,11 @@ Resubmit::
 **PENDING**
 *(27 Apr 2018)*
 
-Run for 30 mins. nt = 960, dt =360, 4 days. Completed in  XXX.
+/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP_tide_TSprofile_river
+
+Run for 30 mins. nt = 960, dt =360, 4 days. Completed in  15 mins 06s.
+
+CHECK OUTPUT
 
 
 
