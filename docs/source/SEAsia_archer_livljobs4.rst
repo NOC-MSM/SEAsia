@@ -1810,6 +1810,143 @@ Ran with minor change to statistcs.
 
 
 
+Tide with idealised stratification and rivers
++++++++++++++++++++++++++++++++++++++++++++++
+
+directory ``EXP_tide_TSprofile_river``
+
+Only tidal forcing. profile of T and S
+Include: key_harm_ana
+EXEC: nemo_tide_TSprofile_nomet.exe
+
+::
+
+  cp EXP_tideonly/* EXP_tide_TSprofile_river/.
+  ln -s $INPUTS bdydta
+
+Recompile the code.
+Resubmit with dt=60s and nt = 60 (ie, 1 hr)::
+
+  cd $CDIR
+  cp $CONFIG/MY_SRC/usrdef_istate.F90_horizTS $CONFIG/MY_SRC/usrdef_istate.F90
+
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+Move executable to something permanent::
+
+  cd $CDIR/$CONFIG/BLD/bin
+  mv nemo.exe nemo_tide_TSprofile_nomet.exe
+
+  cd $CDIR/$CONFIG/EXP_tide_TSprofile_river
+  ln -s /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/BLD/bin/nemo_tide_TSprofile_nomet.exe opa
+
+Edit namelist_cfg::
+
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     cn_exp      =    "SEAsia"  !  experience name
+     nn_it000    =  57601   !  first time step
+     nn_itend    =  58560 ! 10day=14400   !  last  time step (std 5475)
+     nn_date0    =  20000102   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+     nn_time0    =       0   !  initial time of day in hhmm
+     nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+     ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
+        nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
+        nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
+        !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
+        !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
+        !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
+        cn_ocerst_in    = "SEAsia_00057600_restart"   !  suffix of ocean restart name (input)
+
+  ...
+
+  !-----------------------------------------------------------------------
+  &nam_tide      !   tide parameters
+  !-----------------------------------------------------------------------
+     ln_tide     = .true.
+     ln_tide_pot = .true.    !  use tidal potential forcing
+  ...
+
+  !-----------------------------------------------------------------------
+  &nambdy        !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+      ln_bdy         = .true.              !  Use unstructured open boundaries
+      nb_bdy         = 1                    !  number of open boundary sets
+      ln_coords_file = .true.               !  =T : read bdy coordinates from file
+      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+      ln_mask_file   = .false.              !  =T : read mask from file
+      cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+      cn_dyn2d       = 'flather'               !
+      nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+                                            !  = 2, use tidal harmonic forcing data from files
+                                            !  = 3, use external data AND tidal harmonic forcing
+      cn_dyn3d      =  'zerograd'               !
+      nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+      cn_tra        =  'frs'               !
+      nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
+      ...
+
+  !-----------------------------------------------------------------------
+  &nambdy_tide   !  tidal forcing at open boundaries
+  !-----------------------------------------------------------------------
+     filtide      = 'bdydta/SEAsia_bdytide_rotT_'         !  file name root of tidal forcing files
+     ln_bdytide_2ddta = .false.                   !
+     ln_bdytide_conj  = .false.                   !
+                                                  ! Harmonic analysis with restart from polcom
+     ln_harm_ana_compute=.true.                   ! Compute the harmonic analysis at the last time step
+     ln_harm_ana_store=.true.                     ! Store the harmonic analysis at the last time step for restart
+     ln_harmana_read=.true.                      ! Read haronic analyisis from a restart
+
+  ...
+  !-----------------------------------------------------------------------
+  &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
+  !-----------------------------------------------------------------------
+      nit000_han = 57601         ! First time step used for harmonic analysis
+      nitend_han = 58560 ! 1440 !      ! Last time step used for harmonic analysis
+
+
+
+
+Finally turn rivers on::
+
+  !-----------------------------------------------------------------------
+  &namsbc        !   Surface Boundary Condition (surface module)
+  !-----------------------------------------------------------------------
+  ln_rnf      = .true.    !  runoffs                                   (T => fill namsbc_rnf)
+  ...
+  !-----------------------------------------------------------------------
+  &namsbc_rnf    !   runoffs namelist surface boundary condition          (ln_rnf=T)
+  !-----------------------------------------------------------------------
+  !              !  file name           ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+  !              !                      !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
+     sn_rnf      = 'SEAsia_rivers',        -1         , 'rorunoff',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
+     ...
+     cn_dir      = 'bdydta/'      !  root directory for the location of the runoff files
+
+
+Edit runscript::
+
+  vi runscript
+  #PBS -l walltime=00:30:00
+
+Resubmit::
+
+  qsub runscript
+
+**PENDING**
+*(27 Apr 2018)*
+
+Run for 30 mins. nt = 960, dt =360, 4 days. Completed in  XXX.
+
+
+
+
+
+
+
 Try lateral boundary conditions T,S,u
 ++++++++++++++++++++++++++++++++++++++
 
