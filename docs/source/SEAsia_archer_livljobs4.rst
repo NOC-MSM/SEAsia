@@ -589,70 +589,76 @@ Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, w
 
 Initially use zero atm forcing. Specified in usr defined functions in MY_SRC.
 
-.. note: Comment out weight for atm forcing
+Second time around add in met forcing.
 
-    Generate cut down drowned precip file (note that the nco tools don't like the
-    parallel modules). **HEALTH WARNING** *Cut out files with only one index in that lat direction broke NEMO*::
+Generate cut down drowned precip file (note that the nco tools don't like the
+parallel modules). **HEALTH WARNING** *Cut out files with only one index in that lat direction broke NEMO*
 
-      module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-      module load cray-netcdf cray-hdf5
-      module load nco/4.5.0
-      ncks -d lon,355.,360. -d lat,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_precip_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_precip_DFS5.1.1_y2000.nc
-      ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_u10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_u10_DFS5.1.1_y2000.nc
-      ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_v10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_v10_DFS5.1.1_y2000.nc
-      ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_radsw_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_radsw_DFS5.1.1_y2000.nc
-      ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_radlw_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_radlw_DFS5.1.1_y2000.nc
-      ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_t2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_t2_DFS5.1.1_y2000.nc
-      ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_q2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_q2_DFS5.1.1_y2000.nc
-      ncks -d lon0,355.,360. -d lat0,48.,55. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_snow_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_snow_DFS5.1.1_y2000.nc
+**NOTE THAT I'VE LABELLED THE CUTDOWN FILES AS y1979 WHEN THEY ARE 2000. THIS IS TO GET THINGS MOVING AS BCS ARE 1979**::
 
-      module unload nco/4.5.0
-      module unload cray-netcdf cray-hdf5
-      module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module load cray-netcdf cray-hdf5
+  module load nco/4.5.0
+  ncks -d lon,70.,140. -d lat,-21.,21. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_precip_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_precip_DFS5.1.1_y1979.nc
+  ncks -d lon0,70.,140. -d lat0,-21.,21. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_u10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_u10_DFS5.1.1_y1979.nc
+  ncks -d lon0,70.,140. -d lat0,-21.,21. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_v10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_v10_DFS5.1.1_y1979.nc
+  ncks -d lon0,70.,140. -d lat0,-21.,21. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_radsw_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_radsw_DFS5.1.1_y1979.nc
+  ncks -d lon0,70.,140. -d lat0,-21.,21. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_radlw_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_radlw_DFS5.1.1_y1979.nc
+  ncks -d lon0,70.,140. -d lat0,-21.,21. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_t2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_t2_DFS5.1.1_y1979.nc
+  ncks -d lon0,70.,140. -d lat0,-21.,21. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_q2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_q2_DFS5.1.1_y1979.nc
+  ncks -d lon0,70.,140. -d lat0,-21.,21. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_snow_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_snow_DFS5.1.1_y1979.nc
 
-    Obtain namelist files and data file::
+  module unload nco/4.5.0
+  module unload cray-netcdf cray-hdf5
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-      cp $START_FILES/namelist_reshape_bilin_atmos $INPUTS/.
-      cp $START_FILES/namelist_reshape_bicubic_atmos $INPUTS/.
+Obtain namelist files and data file::
 
-    Edit namelist to reflect source filenames (just a year change)::
+  cp $START_FILES/namelist_reshape_bilin_atmos $INPUTS/.
+  cp $START_FILES/namelist_reshape_bicubic_atmos $INPUTS/.
 
-      vi $WDIR/INPUTS/namelist_reshape_bilin_atmos
-      ...
-      &grid_inputs
-          input_file = 'cutdown_drowned_precip_DFS5.1.1_y2000.nc'
+Edit namelist to reflect source filenames (just a year change)::
 
-      vi $WDIR/INPUTS/namelist_reshape_bicubic_atmos
-      ...
-      &grid_inputs
-        input_file = 'cutdown_drowned_precip_DFS5.1.1_y2000.nc'
+  vi $WDIR/INPUTS/namelist_reshape_bilin_atmos
+  ...
+  &grid_inputs
+      input_file = 'cutdown_drowned_precip_DFS5.1.1_y1979.nc'
 
-
-    Setup weights files for the atmospheric forcing::
-
-      cd $INPUTS
-      $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
-
-    Generate  remap files ``remap_nemo_grid_atmos.nc`` and ``remap_data_grid_atmos.nc``. Then::
-
-      $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
-
-    Generates ``data_nemo_bilin_atmos.nc``. Then::
-
-      $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bilin_atmos
-
-    Generates ``weights_bilinear_atmos.nc``. Then::
-
-      $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bicubic_atmos
-
-    Generates ``data_nemo_bicubic_atmos.nc``. Then::
-
-      $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
-
-    Generates ``weights_bicubic_atmos.nc``.
+  vi $WDIR/INPUTS/namelist_reshape_bicubic_atmos
+  ...
+  &grid_inputs
+    input_file = 'cutdown_drowned_precip_DFS5.1.1_y1979.nc'
 
 
-THIS IS WHERE START WITH LIVLJOBS4 to create boundary files with PyNEMO *(20 Sept 2017)*
+Setup weights files for the atmospheric forcing. Use the pre-compiled tools::
+
+  export OLD_TDIR=$WORK/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+Setup weights files for the atmospheric forcing::
+
+  cd $INPUTS
+  $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
+
+Generate  remap files ``remap_nemo_grid_atmos.nc`` and ``remap_data_grid_atmos.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
+
+Generates ``data_nemo_bilin_atmos.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bilin_atmos
+
+Generates ``weights_bilinear_atmos.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bicubic_atmos
+
+Generates ``data_nemo_bicubic_atmos.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
+
+Generates ``weights_bicubic_atmos.nc``.
+
+
+*(27 Apr 2018)*
 If all the files are ready to go jump straight to `7. Generate boundary conditions with PyNEMO: Run PyNEMO`_
 
 Statement about external forcing
