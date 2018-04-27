@@ -2022,9 +2022,61 @@ Copy files from SAN to ARCHER::
 
 
 
+First try to add external 2d forcing.
+From a tides only run, change only:
+
+* ``nn_dyn2d_dta: 2 --> 3``
+
+
+::
+
+vi namelist_cfg
+
+nn_dyn2d_dta   =  3                   !  = 0, bdy data are equal to the initial state
+
+!-----------------------------------------------------------------------
+&nambdy        !  unstructured open boundaries
+!-----------------------------------------------------------------------
+    ln_bdy         = .true.              !  Use unstructured open boundaries
+    nb_bdy         = 1                    !  number of open boundary sets
+    ln_coords_file = .true.               !  =T : read bdy coordinates from file
+    cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+    ln_mask_file   = .false.              !  =T : read mask from file
+    cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+    cn_dyn2d       = 'flather'               !
+    nn_dyn2d_dta   =  3                   !  = 0, bdy data are equal to the initial state
+                                          !  = 1, bdy data are read in 'bdydata   .nc' files
+                                          !  = 2, use tidal harmonic forcing data from files
+                                          !  = 3, use external data AND tidal harmonic forcing
+    cn_dyn3d      =  'zerograd'               !
+    nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
+                                          !  = 1, bdy data are read in 'bdydata   .nc' files
+    cn_tra        =  'frs'               !
+    nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
+                                          !  = 1, bdy data are read in 'bdydata   .nc' files
+    cn_ice_lim      =  'none'             !
+    nn_ice_lim_dta  =  0                  !  = 0, bdy data are equal to the initial state
+                                          !  = 1, bdy data are read in 'bdydata   .nc' files
+    rn_ice_tem      = 270.                !  lim3 only: arbitrary temperature of incoming sea ice
+    rn_ice_sal      = 10.                 !  lim3 only:      --   salinity           --
+    rn_ice_age      = 30.                 !  lim3 only:      --   age                --
+
+    ln_tra_dmp    =.false.                !  open boudaries conditions for tracers
+    ln_dyn3d_dmp  =.false.                !  open boundary condition for baroclinic velocities
+    rn_time_dmp   =  1.                   ! Damping time scale in days
+    rn_time_dmp_out =  1.                 ! Outflow damping time scale
+    nn_rimwidth   = 1                    !  width of the relaxation zone
+    ln_vol        = .false.               !  total volume correction (see nn_volctl parameter)
+    nn_volctl     = 1                     !  = 0, the total water flux across open boundaries is zero
+    nb_jpk_bdy    = -1                    ! number of levels in the bdy data (set < 0 if consistent with planned run)
 
 
 
+Fix the forcing boundary files names::
+
+  vi namelist_cfg
+
+...
 
 
 
