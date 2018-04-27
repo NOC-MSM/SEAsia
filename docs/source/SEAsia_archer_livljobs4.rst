@@ -401,10 +401,14 @@ Then try with tides.
 Then try with initial conditions.
 
 For constant T and S use the user defined functions in ``$CDIR/$CONFIG/MY_SRC``:
-  ``usrdef_sbc.F90``  and ``usrdef_istate.F90``.
+  ``usrdef_sbc.F90``  and ``usrdef_istate.F90``. Compile and save executable with
+  telegraphic names that point to compile options. e.g.::
 
+    nemo_notide_TSprofile.exe
+    nemo_tideonly_TSconst.exe
 
-.. note: Skip this for now.
+Second time around we build initial conditions
+*(27 Apr 2018)*
 
     Copy ``make.macro`` file and edit the path if necessary::
     **FIX** to the notes (copied from jdha instead): ``cp $WDIR/INPUTS/make.macro ./``::
