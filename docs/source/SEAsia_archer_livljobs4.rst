@@ -381,6 +381,15 @@ Output files::
  use bathy_meter.nc
  shade log(BATHYMETRY), nav_lon, nav_lat; go land
 
+2.5 Generate River forcing
+++++++++++++++++++++++++++
+
+`Matlab script to generate river forcing <Generate_river_forcing.rst>`_
+
+Link the river forcing output into ``$INPUTS`` e.g.::
+
+  scp river_test.nc $USER@login.archer.ac.uk:$INPUTS/$CONFIG_rivers.nc
+
 
 3. Generate initial conditions
 ++++++++++++++++++++++++++++++
