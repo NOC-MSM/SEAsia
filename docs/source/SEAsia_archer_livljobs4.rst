@@ -28,7 +28,9 @@ It is a tide only run.
 Issues that arose
 =================
 
-* ...
+* The THREDDS server to access ORCA0083 data is broken and the JASMIN server
+ hosting it is not a thredds server. Therefore PyNEMO needs to run on local
+  copies of the parent data.
 
 .. note: PyNEMO is interchangabably called NRCT (NEMO Relocatable Configuration Tool)
 
