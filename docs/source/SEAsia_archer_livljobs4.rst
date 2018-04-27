@@ -19,7 +19,7 @@ Uses a prerelease of NEMO v4 (@r8395)
 
 The summary procedure:
 #. ARCHER: Get code. Build tools. Generate coordinates, bathymetry, domain_cfg.nc
-#. ARCHER: *skip: Generate initial conditions and atmospheric forcings*
+#. ARCHER: Generate initial conditions and atmospheric forcings
 #. LIVLJOBS4: Generate boundary conditions with NRCT/PyNEMO
 #. ARCHER: Run simulation
 
