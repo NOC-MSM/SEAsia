@@ -494,7 +494,7 @@ I had trouble getting ARCHER to run this. (Though with the cut down parent the
  commandline is fine, though it runs out of walltime in Interactive Mode)
 Initially, running in the commandline the job failed with insufficient memory,
  because I didn't cut the ORCA data down first.
- In the end I submitted it as a pair of serial jobs ::
+ In the end I submitted it as a pair of serial jobs. **IT TOOK 4hrs 25m**::
 
   vi $INPUTS/sosie_initcd_T
 
@@ -533,18 +533,16 @@ Similarly for ``sosie_initcd_S``. Then::
   qsub -q serial sosie_initcd_T
   qsub -q serial sosie_initcd_S
 
-3 hours not enough - resubmit with 6 hrs! *(PENDING)*
+3 hours not enough - resubmit with 6 hrs! *It took 4h 25min*
 
 Whether as a serial job or from the commandline, the temperature process creates::
 
-  thetao_AMM60-LBay_2013.nc4
-  sosie_mapping_AMM60-LBay.nc
+  sosie_mapping_ORCA0083-N01-SEAsia.nc
+  votemper_ORCA0083-N01-SEAsia_1978.nc4
 
 And the salinity process creates::
 
-  so_AMM60-LBay_2013.nc4
-
-
+  vosaline_ORCA0083-N01-SEAsia_1978.nc4
 
 Now do interpolation as before. First copy the namelists::
 
@@ -555,22 +553,25 @@ Edit the input files::
 
   vi $INPUTS/namelist_reshape_bilin_initcd_votemper
   &grid_inputs
-    input_file = 'thetao_AMM60-LBay_2013.nc4'
+    input_file = 'votemper_ORCA0083-N01-SEAsia_1978.nc4'
   ...
+    input_name = "votemper"
 
   &interp_inputs
-    input_file = "thetao_AMM60-LBay_2013.nc4"
+    input_file = "votemper_ORCA0083-N01-SEAsia_1978.nc4"
   ...
 
 Similarly for the *vosaline.nc file::
 
   vi $INPUTS/namelist_reshape_bilin_initcd_vosaline
   &grid_inputs
-    input_file = 'so_AMM60-LBay_2013.nc4'
+    input_file = 'vosaline_ORCA0083-N01-SEAsia_1978.nc4'
+    ...
+    input_name = "vosaline"
   ...
 
   &interp_inputs
-    input_file = "so_AMM60-LBay_2013.nc4"
+    input_file = "vosaline_ORCA0083-N01-SEAsia_1978.nc4"
   ...
 
 
@@ -1949,7 +1950,7 @@ Resubmit::
 
 Run for 30 mins. nt = 960, dt =360, 4 days. Completed in  15 mins 06s.
 
-CHECK OUTPUT
+CHECK OUTPUT - This works, but 4 days is not very exciting.
 
 
 
