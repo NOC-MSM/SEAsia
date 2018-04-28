@@ -1954,6 +1954,277 @@ CHECK OUTPUT - This works, but 4 days is not very exciting.
 
 
 
+Initial conditions
+++++++++++++++++++
+
+directory: EXP_tide_initcd
+
+Switch in initial conditions from the existing (working) tide only homogeneous run.
+::
+  mkdir EXP_tide_initcd
+
+Copy files from ??? to EXP_tide_initcd **ADDING IN -K keeps symlinks. I THINK**::
+
+  rsync -aPvt --exclude=*restart*nc --exclude=*_?d_*grid_?.nc EXP_tideonly/* EXP_tide_initcd/
+
+
+.. Note :
+
+  Tried Restart to repeat last tide only run::
+
+    rsync -aPvt EXP_tideonly/SEAsia_00043200_restart_*.nc EXP_tide_initcd/.
+
+  But it didn't work. The T/S fields were not picked up.
+
+
+Try from rest.
+
+
+Rerun the last successful tidal only simulation but with initial conditions.
+but switch on init conditions::
+
+
+  vi namelist_cfg
+
+  ...
+  cn_exp      =    "SEAsia"  !  experience name
+  nn_it000    =  1   !  first time step
+  nn_itend    =  2400 ! 10day=2400; dt=360  !  last  time step (std 5475)
+
+  ln_restart = .false.
+
+Make sure the harmonic restart is also off::
+
+  ln_harmana_read=.false.                      ! Read haronic analyisis from a restart
+  ...
+  !-----------------------------------------------------------------------
+  &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
+  !-----------------------------------------------------------------------
+      nit000_han = 1         ! First time step used for harmonic analysis
+      nitend_han = 2400 ! 1440 !      ! Last time step used for harmonic analysis
+
+Turn on intial conditions::
+
+  !-----------------------------------------------------------------------
+  &namtsd        !   data : Temperature  & Salinity
+  !-----------------------------------------------------------------------
+  !              !  file name                 ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+  !              !                            !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
+     sn_tem  = 'initcd_votemper',         -1        ,'votemper' ,    .false.    , .true. , 'yearly'   , ''       ,   ''    ,    ''
+     sn_sal  = 'initcd_vosaline',         -1        ,'vosaline' ,    .false.    , .true. , 'yearly'   , ''       ,   ''    ,    ''
+     !
+     cn_dir        = '../../../../INPUTS/'     !  root directory for the location of the runoff files
+     ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+     ln_tsd_tradmp = .true.   !  damping of ocean T & S toward T &S input data (T) or not (F)
+  /
+
+
+Add some daily output::
+
+  vi file_def_nemo.xml
+
+    <file_group id="1d" output_freq="1d"  output_level="10" enabled=".TRUE.">  <!-- 1d files -->
+    <file id="file19" name_suffix="_SS" description="ocean T grid variables" >
+     <field field_ref="ssh"          name="zos"   />
+     <field field_ref="sss"          name="sss"   />
+    </file>
+  </file_group>
+
+
+Link in missing sybolic link files::
+
+  ln -s ../BLD/bin/nemo_tide_TSprofile_nomet.exe opa
+
+
+Press Go!::
+
+  qsub runscript
+
+
+**PENDING**. Does it run or does it crash. (It is not obious that switching in initial conditions will work well).
+
+* well it didn't work. This could be the fact it was run compiled with code that has a prescribed profile,
+Or it could have been an issue with the phasing in the of the initial conditions...
+
+
+Initial conditions are read in and look fine but a cold start (dt=360)  blows up
+in a coupel of timesteps.
+
+
+
+Restart with rn_rdt=60. blows up in 68 steps
+Restart with rn_rdt=10. blows up in the same place.
+
+stpctl: the speed is larger than 20 m/s
+======
+kt=   426 max abs(U):   3.666    , i j k:   286    3   74
+
+
+This is a boundary problem. JUST TURN BCS on::
+
+  !-----------------------------------------------------------------------
+  &nambdy        !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+      ln_bdy         = .true.              !  Use unstructured open boundaries
+      nb_bdy         = 1                    !  number of open boundary sets
+      ln_coords_file = .true.               !  =T : read bdy coordinates from file
+      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+      ln_mask_file   = .false.              !  =T : read mask from file
+      cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+      cn_dyn2d       = 'flather'               !
+      nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+                                            !  = 2, use tidal harmonic forcing data from files
+                                            !  = 3, use external data AND tidal harmonic forcing
+      cn_dyn3d      =  'zerograd'               !
+      nn_dyn3d_dta  =  1                    !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+      cn_tra        =  'frs'               !
+      nn_tra_dta    =  1                    !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+      cn_ice_lim      =  'none'             !
+      nn_ice_lim_dta  =  0                  !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+      rn_ice_tem      = 270.                !  lim3 only: arbitrary temperature of incoming sea ice
+      rn_ice_sal      = 10.                 !  lim3 only:      --   salinity           --
+      rn_ice_age      = 30.                 !  lim3 only:      --   age                --
+
+      ln_tra_dmp    =.false.                !  open boudaries conditions for tracers
+      ln_dyn3d_dmp  =.false.                !  open boundary condition for baroclinic velocities
+      rn_time_dmp   =  1.                   ! Damping time scale in days
+      rn_time_dmp_out =  1.                 ! Outflow damping time scale
+      nn_rimwidth   = 9                    !  width of the relaxation zone
+      ln_vol        = .false.               !  total volume correction (see nn_volctl parameter)
+      nn_volctl     = 1                     !  = 0, the total water flux across open boundaries is zero
+      nb_jpk_bdy    = -1                    ! number of levels in the bdy data (set < 0 if consistent with planned run)
+  /
+  !-----------------------------------------------------------------------
+  &nambdy_dta    !  open boundaries - external data
+  !-----------------------------------------------------------------------
+  !              !  file name      ! frequency (hours) ! variable  ! time interp.!  clim   ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+  !              !                 !  (if <0  months)  !   name    !  (logical)  !  (T/F ) ! 'monthly' ! filename ! pairing  ! filename      !
+     bn_ssh      = 'SEAsia_bt_bdyT', -1      , 'sossheig',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_u2d      = 'SEAsia_bdyU',  -1        , 'vobtcrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_v2d      = 'SEAsia_bdyV',  -1        , 'vobtcrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_u3d      = 'SEAsia_bdyU'   -1        , 'vozocrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_v3d      = 'SEAsia_bdyV'   -1        , 'vomecrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_tem      = 'SEAsia_bdyT'   -1        , 'votemper',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_sal      = 'SEAsia_bdyT'   -1        , 'vosaline',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+  ! for lim2
+
+
+I also fudged the dates on the boundary conditions files::
+
+  cd $INPUTS
+  ln -s SEAsia_bdyT_y1979m11.nc SEAsia_bdyT_y2000m01.nc
+  ln -s SEAsia_bdyU_y1979m11.nc SEAsia_bdyU_y2000m01.nc
+  ln -s SEAsia_bdyV_y1979m11.nc SEAsia_bdyV_y2000m01.nc
+  ln -s SEAsia_bt_bdyT_y1979m11.nc SEAsia_bt_bdyT_y2000m01.nc
+
+/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP_tide_initcd
+
+
+Conflict in rimwidth variable. I set it to 1 for tides and 9 for 3d stuff.
+
+Maximum rimwidth in file is            1
+nn_rimwidth from namelist is            9
+
+Turn tides off::
+
+  !-----------------------------------------------------------------------
+  &nam_tide      !   tide parameters
+  !-----------------------------------------------------------------------
+     ln_tide     = .false.
+     ln_tide_pot = .false.    !  use tidal potential forcing
+     ln_tide_ramp= .false.   !
+
+
+     ...
+     ln_harm_ana_compute=.false.                   ! Compute the harmonic analysis at the last time step
+     ln_harm_ana_store=.false.                     ! Store the harmonic analysis at the last time step for restart
+     ln_harmana_read=.false.                      ! Read haronic analyisis from a restart
+
+Also switch 2d forcing to External bc (2-->1)::
+
+     nn_dyn2d_dta   =  1                   !  = 0, bdy data are equal to the initial state
+
+Made sure the coordinates.bdy.nc file was created with the 3d bcs (rimwidth=9)::
+
+  ln -s ../../../../INPUTS/coordinates.bdy.nc_rw9 coordinates.bdy.nc
+
+Blows up near the boundary at first time step. Add on Damping
+
+ln_dyn3d_dmp  =.true.                !  open boundary condition for baroclinic velocities
+
+Blows up on first time step. Output initial field. Rebuild it and inspect::
+
+  qsub -q short rebuild.pbs
+
+
+T and S field look good. SSH field is wierd. U, V fields are not there / inf.
+
+
+Try ``ln_bdy = F``
+
+rn_rdt=60 --> nt=68 before velocity blows up.
+
+Rebuild the output.abort files (``qsub -q short rebuild.pbs``)
+
+
+The model blows up at a trench south of indonesia. I speculate that the inital conditiosn don't map nicely to our coordinate system...
+
+
+Still blows up::
+
+  stpctl: the speed is larger than 20 m/s
+  ======
+ kt=    68 max abs(U):   3.388    , i j k:   593  504   74
+
+
+
+Try Lap mom (Previuosly had bilap.) Take lap constant from Jason ::
+
+  ln_dynldf_lap =  .true.    !    laplacian operator
+  ln_dynldf_blp =  .false.    !  bilaplacian operator
+
+  rn_ahm_0      =  40000.     !  horizontal laplacian eddy viscosity   [m2/s]
+  rn_ahm_b      =      0.     !  background eddy viscosity for ldf_iso [m2/s]
+  rn_bhm_0      = -1.25e+10      !  horizontal bilaplacian eddy viscosity [m4/s]
+
+This has stabilised the problem, though solver.stat was on the upward trajectory.
+
+**NOW TRY TO GRADUALLY RESTORE FUNCTIONALITY**
+oost time step from 1minute upto 6 again. Is it the same. No it blows up in 11 steps.
+
+Try with boundaries turned on::
+
+  rn_rdt=60
+  ln_bdy=T
+  nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
+  !-----------------------------------------------------------------------
+     ln_tide     = .true.
+     ln_tide_pot = .true.    !  use tidal potential forcing
+
+Turn off the External boundary conditions.
+This works the solver.stat variables are on the up.
+
+Boost rn_ahm_0 = 100 000 (from 40k), (rn_rdt = 120 is not stable)
+Try 10 days.
+Try cn_tra = 'frs'
+nn_tra_dta    =  1
+
+--> negative salinity.
+
+Perhaps there is a problem with the boundary files I made.
+
+
+**ACTION:**
+/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP_tide_initcd
+inspect the boundary T,S.
+
+
+
+
 
 
 
@@ -2219,7 +2490,7 @@ Copy files from SAN to ARCHER::
 
   livljobs4
   cd $INPUTS
-  for file in  SEAsia_bd*nc; do rsync -uvt $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
+  for file in  SEAsia_b*nc; do rsync -uvt $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
 
 
 
@@ -2309,7 +2580,7 @@ Submit and see what happens::
 
   qsub runscript
 
-
+THIS BROKE. I AM NOT SURE IF IT WAS MY FAULT (afer < 1 min). TRY AGAIN BEFORE CONCLUDING.
 
 
 
