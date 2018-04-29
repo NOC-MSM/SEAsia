@@ -2225,7 +2225,9 @@ inspect the boundary T,S.
 
 Salinity have no zero values...
 
+Try again with tides only making sure rimwidth=1 in coordinates.bdy.nc and namelist_cfg
 
+212  394   40
 
 
 
