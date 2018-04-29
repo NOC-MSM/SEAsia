@@ -2223,6 +2223,7 @@ Perhaps there is a problem with the boundary files I made.
 inspect the boundary T,S.
 
 
+Salinity have no zero values...
 
 
 
