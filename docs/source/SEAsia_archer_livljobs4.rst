@@ -2229,6 +2229,53 @@ Try again with tides only making sure rimwidth=1 in coordinates.bdy.nc and namel
 
 212  394   40
 
+*29 Apr*
+
+Boost lateral diffusion.
+rn_aht_0 = 25 —> 1000
+
+Try dt=10s
+
+Run for 4 hours (1440)  and restart with smaller dt.
+finished in 20min 10s
+
+
+Double timestep.
+nn_it000    =  1441   !  first time step
+nn_itend    =  2880  ! 10day=14400;rn_rdt=60   !  last  time step (std 5475)
+ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
+cn_ocerst_in    = "SEAsia_00001440_restart"   !  suffix of ocean restart name (input)
+rn_rdt      =  20.     !  time step for the dynamics (and tracer if nn_acc=0)
+
+
+nn_it000    =  2881   !  first time step
+nn_itend    =  4320  ! 10day=14400;rn_rdt=60   !  last  time step (std 5475)nn_time0    =       0   !  initial time of day in hhmm
+   cn_ocerst_in    = "SEAsia_00002880_restart"   !  suffix of ocean restart name (input)
+rn_rdt=20 (rn_rdt = 40  - crash)
+
+This completed. Submit with same dt for a 12 hr longer run.
+
+nn_it000    =  4321   !  first time step
+nn_itend    =  8640  ! 10day=14400;rn_rdt=60   !  last  time step (std 5475)nn_time0    =       0   !  initial time of day in hhmm
+   cn_ocerst_in    = "SEAsia_00004320_restart"   !  suffix of ocean restart name (input)
+rn_rdt=20
+submit 1h 10mins
+
+Just restart to look at Doh. (messed up file id in xml file)
+
+Extend of 5 days with a longer time step (60s) and longer submission (2hrs)
+nn_it000    =  8641   !  first time step
+nn_itend    = 15840  ! 10day=14400;rn_rdt=60   !  last  time step (std 5475)nn_time0    =       0   !  initial time of day in hhmm
+   cn_ocerst_in    = "SEAsia_00008640_restart"   !  suffix of ocean restart name (input)
+rn_rdt=60
+submit 2h 10mins
+
+This blew up: resubmit rn_rdt=30 (will be 2.5 days.)
+blows up in 12 mins.
+
+
+**PENDING**
+
 
 
 
