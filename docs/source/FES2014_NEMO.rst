@@ -1,9 +1,10 @@
 .. contents:: Table of Contents
 
 *****
-Change of tides in NEMO to account for FES 2014
+Change of tides in NEMO 
 *****
 
+The documentation and final changed are mainly for NEMO 4 (trunk revision 9395 used for ORCHESTRA)
 
 
 Where to access FES 2014
@@ -23,7 +24,10 @@ Code changes for FES 2014
 
 In order to use the FES data (or any other dataset), one needs to provide the information of the new constituents. 
 The file **NEMOGCM/NEMO/OPA_SRC/SBC/tide.h90** needs to be  updated to contain information for the full set of tidal 
-constituents used by NEMO. This table mainly provides the equilibrium tide coefficients (*equitide*), the *Schureman* 
+constituents used by NEMO. In the new package the **tide.90** is named **tide_FES14.h90** and is activated through the
+cpp flage **key_FES14_tides**.
+
+This table mainly provides the equilibrium tide coefficients (*equitide*), the *Schureman* 
 coefficients (similar to *Doodson* numbers but different) and the formulation needed. As an example, the Schureman vs 
 Doodson numbers for M2 ::
    M2 : Doodson   : 2  0 0 0 0 0
@@ -54,6 +58,10 @@ value. to be confirmed though.
 **nutide** is used to compute tide potential - it uses a different formulation depending of nutide
 see **NEMOGCM/NEMO/OPA_SRC/SBC/sbctide.F90** in function tide_init_potential.
 
+
+Tidal potential due to long-period and love number
+==================================================
+
 The original code of NEMO was not accounting for tidal potential due to long-period. This has been added in 
 **NEMOGCM/NEMO/OPA_SRC/SBC/sbctide.F90**::
      IF    ( Wave(ntide(jk))%nutide == 1 )  THEN  ;  zcs = zcons * SIN( 2._wp*zlat )
@@ -69,14 +77,17 @@ Further as the maximum number of constituents is hard coded, other routines were
     * NEMOGCM/NEMO/OPA_SRC/SBC/tide_mod.F90
     * NEMOGCM/NEMO/OPA_SRC/BDY/bdytides.F90
 
-Code changes for restarts
-=========================
+The **Love number** was fixed to 0.7. It is now set-up in the namelist **namelist nam_tide** under **dn_love_number**.
+
+
+Restart, 3D and fast harmonic analysis
+======================================
 
 Two versions of tidal harmonic analysis co-exist in NEMO, the original one :
     * **NEMOGCM/NEMO/OPA_SRC/SBC/diaharm.F90**
 
-and a second one (developed by Enda) which allows to output the harmonic analysis to a restart file : 
-    * **NEMOGCM/NEMO/OPA_SRC/SBC/diaharmana.F90**
+and a second one (developed by Enda from POLCOMS) which allows to output the harmonic analysis to a restart file : 
+    * **NEMOGCM/NEMO/OPA_SRC/SBC/diaharm_fast.F90**
 
 Here we modified the second one in order to be able to select the constituents we want as the version
 analysis the full set of input constituents leading to *crazy* results if the period simulated is not 
@@ -87,10 +98,57 @@ of a few selcted constituents (in addition it fastens the computation).
 So now the code allow you to select which constituents you want to output. They need to be included in
 the input one. (we can imagine in the future extending this to any constituents could be outputed).
 
+To activate this harmonic analysis, you need to compile with the cpp flag **key_diaharm_fast**. Then a namelist need 
+to be added::
+     !-----------------------------------------------------------------------
+     &nam_diaharm_fast   !   Harmonic analysis of tidal constituents               ("key_diaharm_fast")
+     !-----------------------------------------------------------------------
+     ln_diaharm_store = .true.
+     ln_diaharm_compute = .true.
+     ln_diaharm_read_restart = .true.
+     ln_ana_ssh   = .true.
+     ln_ana_uvbar = .false.
+     ln_ana_bfric = .true.
+     ln_ana_rho  = .false.
+     ln_ana_uv3d = .true.
+     ln_ana_w3d  = .false.
+     tname(1) = 'O1',
+     tname(2) = 'M2',
+     /
+
+The code is able to analyse ssh (**ln_ana_ssh**), barotropic currents (**ln_ana_uvbar**), bottom friction (**ln_ana_bfric**),
+and 3D components: density (**ln_ana_rho**), horizontal velocities (**ln_ana_uv3d**) and vertical velocity (**ln_ana_w3d**). 
+To activate it and write restart, **ln_diaharm_store** needs to be on. To output the results, **ln_diaharm_compute** and to 
+restart from a previous run with harmonic analysis, **ln_diaharm_read_restart**.
+
+The code is been modified to allow flexibility and to be able to add new analysis in a straightforward way.
+
 Miscellaneous / Important
 =========================
 
 You need to update your xml files to include each components !!!
+
+
+Examples
+========
+
+You can find the source code in ARCHER under **/work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC** using :
+  - bdyini.F90
+  - diaharm.F90
+  - diaharm_fast.F90
+  - sbctide.F90
+  - step.F90
+  - step_oce.F90
+  - tide_FES14.h90
+  - tideini.F90
+  - tide_mod.F90
+
+Namelists and xml file examples can be found in **/work/n01/n01/nibrun/RUNS/SWPacific/SIMU** with :
+  - namelist_cfg
+  - namelist_ref
+  - file_def_nemo.xml
+  - field_def_nemo-opa.xml
+
 
 
 
