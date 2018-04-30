@@ -410,6 +410,8 @@ For constant T and S use the user defined functions in ``$CDIR/$CONFIG/MY_SRC``:
 Second time around we build initial conditions
 *(27 Apr 2018)*
 
+UPDATE: (30 Apr 2018) FOR CHILD RESOLUTION MATCHING PARENT THIS IS NOT NECESSARY.
+
     Copy ``make.macro`` file and edit the path if necessary::
     **FIX** to the notes (copied from jdha instead): ``cp $WDIR/INPUTS/make.macro ./``::
 
