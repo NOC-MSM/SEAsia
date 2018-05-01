@@ -221,3 +221,85 @@ Creates ``initcd_votemper.nc``. Then::
   $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
 
 Creates ``initcd_vosaline.nc``.
+
+---
+
+Interpolate in z on the fly
+===========================
+
+
+For vertical interpolation we let NEMO do the heavy lifting. This requires some changes
+to the FORTRAN.
+
+/work/n01/n01/mane1/ARC25v3.6/OPA_SRC
+
+fldread
+
+vi dtatsd.F90
+(maybe I need to add?::
+
+   #  include "domzgr_substitute.h90"
+
+)
+
+line 25::
+
+  USE iom
+
+dta_tsd_init
+line 46::
+
+  #if defined key_gen_IC
+     REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) ::   gdept_init, gdept_dta, sal_dta,temp_dta
+     REAL(wp), ALLOCATABLE, DIMENSION(:)     ::   gdept_init_1d
+     REAL(wp), ALLOCATABLE, DIMENSION(:,:)   ::   ssh_dta
+     INTEGER                                 ::   jpk_init , inum_dta
+     LOGICAL                                 ::   ln_tsd3  !( T if depth is 3d, else 1d)
+     INTEGER ::   id ,linum   ! local integers
+     INTEGER                                 ::   ddims(4),dimsd(3)
+  #endif
+
+line 107 insert::
+
+        ALLOCATE( sf_tsd(jp_tem)%fnow(jpi,jpj,jpk)   , STAT=ierr0 )
+  IF( sn_tem%ln_tint )   ALLOCATE( sf_tsd(jp_tem)%fdta(jpi,jpj,jpk,2) , STAT=ierr1 )
+        ALLOCATE( sf_tsd(jp_sal)%fnow(jpi,jpj,jpk)   , STAT=ierr2 )
+  IF( sn_sal%ln_tint )   ALLOCATE( sf_tsd(jp_sal)%fdta(jpi,jpj,jpk,2) , STAT=ierr3 )
+
+Into::
+
+  #if defined key_gen_IC
+         CALL iom_open ( 'bathy_meter', inum_dta )
+         !! get dimensions
+         id = iom_varid( inum_dta, 'gdept_glo', dimsd )
+         jpk_init = dimsd(3)
+         IF(lwp) WRITE(numout,*) 'Dimensions of ICs: ', dimsd, jpk_init
+                                ALLOCATE( temp_dta(jpidta,jpjdta,jpk_init)                , STAT=ierr0 )
+                                ALLOCATE( sal_dta(jpidta,jpjdta,jpk_init)                 , STAT=ierr1 )
+                                ALLOCATE( ssh_dta(jpidta,jpjdta         )                 , STAT=ierr2 )
+                                ALLOCATE( gdept_dta (jpidta,jpjdta,jpk_init),               STAT=ierr3 )
+       !
+                                ALLOCATE( sf_tsd(jp_tem)%fnow(jpi,jpj,jpk_init)   , STAT=ierr4 )
+                                ALLOCATE( sf_tsd(jp_sal)%fnow(jpi,jpj,jpk_init)   , STAT=ierr5 )
+                                ALLOCATE( gdept_init         (jpi,jpj,jpk_init),    STAT=ierr6 )
+
+         CALL iom_close( inum_dta )   ! Close the input file
+  #else
+                                ALLOCATE( sf_tsd(jp_tem)%fnow(jpi,jpj,jpk)   , STAT=ierr0 )
+        IF( sn_tem%ln_tint )   ALLOCATE( sf_tsd(jp_tem)%fdta(jpi,jpj,jpk,2) , STAT=ierr1 )
+                                ALLOCATE( sf_tsd(jp_sal)%fnow(jpi,jpj,jpk)   , STAT=ierr2 )
+        IF( sn_sal%ln_tint )   ALLOCATE( sf_tsd(jp_sal)%fdta(jpi,jpj,jpk,2) , STAT=ierr3 )
+  #endif
+
+dta_tsd
+
+Compile with ``key_gen_IC``
+
+Edit cpp_SEAsia.fcm::
+
+  bld::tool::fppkeys key_zdfgls        \
+                key_harm_ana      \
+                key_gen_IC        \
+                key_mpp_mpi       \
+                key_iomput        \
+                key_nosignedzero
