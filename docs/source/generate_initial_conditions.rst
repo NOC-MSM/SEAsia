@@ -26,6 +26,10 @@ For constant T and S use the user defined functions in ``$CDIR/$CONFIG/MY_SRC``:
 Existing T,S field initial conditions
 =====================================
 
+KEY POINTS:
+* Not sure how to force 2d interpolation. jlev != 0 gives only one level in the output.
+* Note sure how to make FORTRAN read in my new files (because I'm crap at FORTRAN)
+
 Second time around we build initial conditions
 *(27 Apr 2018)*
 
@@ -90,7 +94,8 @@ interpolation.
 In this exmaple I am now pointlessly interpolating something onto itself. This is a template and would
 be useful when I have a child grid at a finer resolution than the parent.
 
-Need to set jpk = ???
+Set jplev = 1
+To interpolate only on the first level (and output level..). **NOT SURE HOW YOU FIX IT TO DO 2D INTERPOLATION**
 ::
 
   vi initcd_votemper.namelist
@@ -123,7 +128,7 @@ I had trouble getting ARCHER to run this. (Though with the cut down parent the
  commandline is fine, though it runs out of walltime in Interactive Mode)
 Initially, running in the commandline the job failed with insufficient memory,
  because I didn't cut the ORCA data down first.
- In the end I submitted it as a pair of serial jobs. **IT TOOK 4hrs 25m**::
+ In the end I submitted it as a pair of serial jobs. **IT TOOK 4hrs 25m TO DO 3D**::
 
   vi $INPUTS/sosie_initcd_T
 
@@ -231,20 +236,14 @@ Interpolate in z on the fly
 For vertical interpolation we let NEMO do the heavy lifting. This requires some changes
 to the FORTRAN.
 
-/work/n01/n01/mane1/ARC25v3.6/OPA_SRC
+Maria's code worked for v3.6: ``cd /work/n01/n01/mane1/ARC25v3.6/OPA_SRC``
 
-fldread
+Make some changes ``MY_SRC/dtatsd.F90`` including
 
-vi dtatsd.F90
-(maybe I need to add?::
-
-   #  include "domzgr_substitute.h90"
-
-)
 
 line 25::
 
-  USE iom
+    USE iom
 
 dta_tsd_init
 line 46::
@@ -259,7 +258,7 @@ line 46::
      INTEGER                                 ::   ddims(4),dimsd(3)
   #endif
 
-line 107 insert::
+line 107 change::
 
         ALLOCATE( sf_tsd(jp_tem)%fnow(jpi,jpj,jpk)   , STAT=ierr0 )
   IF( sn_tem%ln_tint )   ALLOCATE( sf_tsd(jp_tem)%fdta(jpi,jpj,jpk,2) , STAT=ierr1 )
@@ -291,7 +290,25 @@ Into::
         IF( sn_sal%ln_tint )   ALLOCATE( sf_tsd(jp_sal)%fdta(jpi,jpj,jpk,2) , STAT=ierr3 )
   #endif
 
-dta_tsd
+
+line 120:
+Desparate times, hardcoded bathymetry variable::
+
+  vi  dtatsd.F90
+  line 120:
+    id = iom_varid( inum_dta, 'Bathymetry', dimsd )
+
+This is a hack and probably ought to be some whizzy function from ``domain_cfg.nc``
+
+Hardwired initial condition file::
+
+  line 190:
+  CALL iom_open ('bdydta/cut_down_19791101d05_SEAsia_grid_T.nc', sf_tsd(jp_tem)%num )
+
+
+
+
+
 
 Compile with ``key_gen_IC``
 
@@ -303,3 +320,134 @@ Edit cpp_SEAsia.fcm::
                 key_mpp_mpi       \
                 key_iomput        \
                 key_nosignedzero
+
+
+
+
+Compile and debug on short queue::
+
+
+  cd $CDIR
+
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+  mv SEAsia/BLD/bin/nemo.exe SEAsia/BLD/bin/nemo_tide_genIC_nomet.exe
+
+  cd SEAsia/EXP_tide_initcd
+
+  rm opa
+  ln -s ../BLD/bin/nemo_tide_genIC_nomet.exe opa
+
+  qsub runscript_short
+
+
+
+Crash report::
+
+
+  less ocean.output
+
+  ...
+
+  dta_tsd_init : Temperature & Salinity data
+   ~~~~~~~~~~~~
+      Namelist namtsd
+         Initialisation of ocean T & S with T &S input data   ln_tsd_init   =  T
+         damping of ocean T & S toward T &S input data        ln_tsd_tradmp =  F
+
+                       iom_nf90_open ~~~ open existing file: bathy_meter.nc in REA
+   D mode
+                      ---> bathy_meter.nc OK
+
+   ===>>> : E R R O R
+           ===========
+
+   iom_varid, file: bathy_meter.nc, var: bathymetry not found
+   Dimensions of ICs:            0           0           0           0
+                       iom_close ~~~ close file: bathy_meter.nc ok
+
+      fld_fill : fill data structure with information from namelist namtsd
+      ~~~~~~~~
+         list of files and frequency (>0: in hours ; <0 in months)
+         root filename: ../../../../INPUTS/cut_down_19791101d05_SEAsia_grid_T.nc
+      variable name: votemper
+            frequency:   -1.00000000000000         time interp:  F    climatology:
+     T
+            weights:    pairing:    data type: yearly     land/sea mask:
+         root filename: ../../../../INPUTS/cut_down_19791101d05_SEAsia_grid_T.nc
+      variable name: vosaline
+            frequency:   -1.00000000000000         time interp:  F    climatology:
+     T
+            weights:    pairing:    data type: yearly     land/sea mask:
+    *** Info used values :
+      date ndastp                                      :     19791100
+      number of elapsed days since the begining of run :   0.000000000000000E+000
+      nn_time0                                         :            0
+
+   =======>> 1/2 time step before the start of the run DATE Y/M/D =   1979/10/31  nsec_day:   86220  nsec_week:  259020                     nsec_month: 2678220  nsec_year:26265420
+  ======>> time-step =       1      New day, DATE Y/M/D = 1979/11/01      nday_year = 305
+           nsec_year = 26265780   nsec_month =     180   nsec_day =   180
+     nsec_week =   259380
+   Read initial temperature distribution
+                       iom_nf90_open ~~~ open existing file: bdydta/initcd_votempe
+   r_3D.nc in READ mode
+                      ---> bdydta/initcd_votemper_3D.nc OK
+
+   ===>>> : E R R O R
+           ===========
+
+             iom_get_123d, file: bdydta/initcd_votemper_3D.nc, var: votemper
+   size(pv_r3d, 1):     0 /= icnt(1):  684
+
+   ===>>> : E R R O R
+           ===========
+
+             iom_get_123d, file: bdydta/initcd_votemper_3D.nc, var: votemper
+   size(pv_r3d, 2):     0 /= icnt(2):  554
+
+   ===>>> : E R R O R
+           ===========
+
+             iom_get_123d, file: bdydta/initcd_votemper_3D.nc, var: votemper
+   size(pv_r3d, 3):     0 /= icnt(3):   75
+                       iom_close ~~~ close file: bdydta/initcd_votemper_3D.nc ok
+                       iom_nf90_open ~~~ open existing file: bdydta/initcd_vosalin
+   e_3D.nc in READ mode
+                      ---> bdydta/initcd_vosaline_3D.nc OK
+
+   ===>>> : E R R O R
+           ===========
+
+             iom_get_123d, file: bdydta/initcd_vosaline_3D.nc, var: vosaline
+   size(pv_r3d, 1):     0 /= icnt(1):  684
+
+   ===>>> : E R R O R
+           ===========
+
+             iom_get_123d, file: bdydta/initcd_vosaline_3D.nc, var: vosaline
+   size(pv_r3d, 2):     0 /= icnt(2):  554
+
+   ===>>> : E R R O R
+           ===========
+
+             iom_get_123d, file: bdydta/initcd_vosaline_3D.nc, var: vosaline
+   size(pv_r3d, 3):     0 /= icnt(3):   75
+                       iom_close ~~~ close file: bdydta/initcd_vosaline_3D.nc ok
+
+
+-----
+
+scratch
+=======
+
+float votemper(time_counter, deptht, y, x) ;
+time_counter = 1
+deptht = 75 ;
+y = 551 ;
+x = 691 ;
+
+
+domain_cfg.nc
+x = 684 ; 76.9166: 133.833
+y = 554 ;  -20.0761: 24.7641
+z = 75 ;
