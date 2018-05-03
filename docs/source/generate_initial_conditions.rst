@@ -23,15 +23,18 @@ For constant T and S use the user defined functions in ``$CDIR/$CONFIG/MY_SRC``:
     nemo_tideonly_TSconst.exe
 
 
-Existing T,S field initial conditions
-=====================================
+Building T,S field initial conditions from existing fields
+==========================================================
 
-KEY POINTS:
-* Not sure how to force 2d interpolation. jlev != 0 gives only one level in the output.
-* Note sure how to make FORTRAN read in my new files (because I'm crap at FORTRAN)
-
-Second time around we build initial conditions
+Second time around we build 3D initial conditions
 *(27 Apr 2018)*
+
+*Since my parent and child are on the same grid I'm not sure I need the SOSIE
+step. Try skipping it for now.*
+
+
+Use SOSIE tools to interpolate onto a finer grid
+------------------------------------------------
 
 Copy ``make.macro`` file and edit the path if necessary::
 **FIX** to the notes (copied from jdha instead): ``cp $WDIR/INPUTS/make.macro ./``::
@@ -73,7 +76,7 @@ I'm not sure how the sosie extraction works)::
     module load nco/4.5.0
     cd $WDIR/INPUTS
 
-    ncks -d x,45,735 -d y,1245,1795 ORCA0083-N01_19791101d05T.nc $WDIR/INPUTS/cut_down_19791101d05_SEAsia_grid_T.nc
+    ncks -d x,45,735 -d y,1245,1810 ORCA0083-N01_19791101d05T.nc $WDIR/INPUTS/cut_down_19791101d05_SEAsia_grid_T.nc
 
 Average over time and restore the parallel modules (Not necessary for this data with 1 time point)::
 
@@ -178,7 +181,17 @@ And the salinity process creates::
 
   vosaline_ORCA0083-N01-SEAsia_1978.nc4
 
-Now do interpolation as before. First copy the namelists::
+
+Use SCRIP tools to remap to the new grid
+----------------------------------------
+
+Now do interpolation onto child grid.  The ``scrip`` tools are build in ``TDIR``
+e.g. in `Build Tools<SEAsia_archer_livljobs4.rst>`_
+::
+
+  export OLD_TDIR=$WORK/$USER/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/
+
+First copy the namelists::
 
   cp $START_FILES/namelist_reshape_bilin_initcd_votemper $INPUTS/.
   cp $START_FILES/namelist_reshape_bilin_initcd_vosaline $INPUTS/.
@@ -207,6 +220,21 @@ Similarly for the *vosaline.nc file::
   &interp_inputs
     input_file = "vosaline_ORCA0083-N01-SEAsia_1978.nc4"
   ...
+
+
+.. Note: Alternatively since child and parent are on the same horizontal grid,
+  skip the SOSIE step and do the SCRIP interpolation only. To do this will need
+  ammend the input_file and input_vars parameters. E.g.
+
+  &interp_inputs
+      input_file = "cut_down_19791101d05_SEAsia_grid_T.nc4"
+      interp_file = "data_nemo_bilin_R12.nc"
+      input_name = "vosaline"
+      input_start = 1,1,1,1
+      input_stride = 1,1,1,1
+      input_stop = 0,0,0,0
+      input_vars = "deptht", "time_counter"
+
 
 
 Produce the remap files::
@@ -342,6 +370,11 @@ Compile and debug on short queue::
 
 
 
+**PENDING**
+(3 May 2018)*
+DID IT CRASH?
+cd /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP_tide_initcd
+
 Crash report::
 
 
@@ -349,103 +382,11 @@ Crash report::
 
   ...
 
-  dta_tsd_init : Temperature & Salinity data
-   ~~~~~~~~~~~~
-      Namelist namtsd
-         Initialisation of ocean T & S with T &S input data   ln_tsd_init   =  T
-         damping of ocean T & S toward T &S input data        ln_tsd_tradmp =  F
-
-                       iom_nf90_open ~~~ open existing file: bathy_meter.nc in REA
-   D mode
-                      ---> bathy_meter.nc OK
-
-   ===>>> : E R R O R
-           ===========
-
-   iom_varid, file: bathy_meter.nc, var: bathymetry not found
-   Dimensions of ICs:            0           0           0           0
-                       iom_close ~~~ close file: bathy_meter.nc ok
-
-      fld_fill : fill data structure with information from namelist namtsd
-      ~~~~~~~~
-         list of files and frequency (>0: in hours ; <0 in months)
-         root filename: ../../../../INPUTS/cut_down_19791101d05_SEAsia_grid_T.nc
-      variable name: votemper
-            frequency:   -1.00000000000000         time interp:  F    climatology:
-     T
-            weights:    pairing:    data type: yearly     land/sea mask:
-         root filename: ../../../../INPUTS/cut_down_19791101d05_SEAsia_grid_T.nc
-      variable name: vosaline
-            frequency:   -1.00000000000000         time interp:  F    climatology:
-     T
-            weights:    pairing:    data type: yearly     land/sea mask:
-    *** Info used values :
-      date ndastp                                      :     19791100
-      number of elapsed days since the begining of run :   0.000000000000000E+000
-      nn_time0                                         :            0
-
-   =======>> 1/2 time step before the start of the run DATE Y/M/D =   1979/10/31  nsec_day:   86220  nsec_week:  259020                     nsec_month: 2678220  nsec_year:26265420
-  ======>> time-step =       1      New day, DATE Y/M/D = 1979/11/01      nday_year = 305
-           nsec_year = 26265780   nsec_month =     180   nsec_day =   180
-     nsec_week =   259380
-   Read initial temperature distribution
-                       iom_nf90_open ~~~ open existing file: bdydta/initcd_votempe
-   r_3D.nc in READ mode
-                      ---> bdydta/initcd_votemper_3D.nc OK
-
-   ===>>> : E R R O R
-           ===========
-
-             iom_get_123d, file: bdydta/initcd_votemper_3D.nc, var: votemper
-   size(pv_r3d, 1):     0 /= icnt(1):  684
-
-   ===>>> : E R R O R
-           ===========
-
-             iom_get_123d, file: bdydta/initcd_votemper_3D.nc, var: votemper
-   size(pv_r3d, 2):     0 /= icnt(2):  554
-
-   ===>>> : E R R O R
-           ===========
-
-             iom_get_123d, file: bdydta/initcd_votemper_3D.nc, var: votemper
-   size(pv_r3d, 3):     0 /= icnt(3):   75
-                       iom_close ~~~ close file: bdydta/initcd_votemper_3D.nc ok
-                       iom_nf90_open ~~~ open existing file: bdydta/initcd_vosalin
-   e_3D.nc in READ mode
-                      ---> bdydta/initcd_vosaline_3D.nc OK
-
-   ===>>> : E R R O R
-           ===========
-
-             iom_get_123d, file: bdydta/initcd_vosaline_3D.nc, var: vosaline
-   size(pv_r3d, 1):     0 /= icnt(1):  684
-
-   ===>>> : E R R O R
-           ===========
-
-             iom_get_123d, file: bdydta/initcd_vosaline_3D.nc, var: vosaline
-   size(pv_r3d, 2):     0 /= icnt(2):  554
-
-   ===>>> : E R R O R
-           ===========
-
-             iom_get_123d, file: bdydta/initcd_vosaline_3D.nc, var: vosaline
-   size(pv_r3d, 3):     0 /= icnt(3):   75
-                       iom_close ~~~ close file: bdydta/initcd_vosaline_3D.nc ok
-
 
 -----
 
 scratch
 =======
-
-float votemper(time_counter, deptht, y, x) ;
-time_counter = 1
-deptht = 75 ;
-y = 551 ;
-x = 691 ;
-
 
 domain_cfg.nc
 x = 684 ; 76.9166: 133.833
