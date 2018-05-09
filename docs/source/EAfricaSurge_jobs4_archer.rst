@@ -27,6 +27,10 @@ Summary of the following:
 6. Generate wind and pressure boundary conditions   
 
 7. Run with tides only forcing on Archer 
+
+8. Adding wind stress and pressure surface boundary conditions
+
+9. Output xml and running on Archer
   
   
 1a) Get and build Met Surge Config
@@ -80,7 +84,7 @@ up, leave it, we do it here anyway)
 Get NEMO branch ::
 
   mkdir $WDIR
-  svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/UKMO/dev_r8814_surge_modelling_Nemo4/NEMOGCM/dev_r8814_surge_modelling_Nemo4
+  svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/UKMO/dev_r8814_surge_modelling_Nemo4/NEMOGCM dev_r8814_surge_modelling_Nemo4
 
 Get the correct archer compiler options file ::
 
@@ -916,6 +920,42 @@ Edit the namelist_cfg file ::
      rn_wdld   = 20.0  !: land elevation below which wetting/drying will be considered
      nn_wdit   =   10  !: maximum number of iteration for W/D limiter
   /
+
+8) Adding wind stress and pressure surface boundary conditions
+==============================================================
+
+Open the namelist_cfg file and make the following changes in the relevent sections  ::
+  
+  !-----------------------------------------------------------------------
+  &namsbc
+  !----------------------------------------------------------------------- 
+    ln_usr = .true.
+    ln_apr_dyn = .true.
+ 
+  !----------------------------------------------------------------------- 
+  &namsbc_usr
+  !-----------------------------------------------------------------------
+    ln_use_sbc = .true.
+    !              !  file name                    ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+    !              !                               !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
+       sn_wndi     = 'EAfrica_u10'              ,       1           ,'u10',   .false.     , .false. , 'week_mon'  ,'weights_bicubic_u10' , '' , ''
+       sn_wndj     = 'EAfrica_v10'              ,       1           ,'v10',   .false.     , .false. , 'week_mon'  ,'weights_bicubic_v10' , '' , ''
+    !   sn_wndi     = 'EAfrica_u10'              ,       1           ,'u10',   .false.     , .false. , 'monthly'  ,'weights_bicubic_u10' , '' , ''
+    !   sn_wndj     = 'EAfrica_v10'              ,       1           ,'v10',   .false.     , .false. , 'monthly'  ,'weights_bicubic_v10' , '' , ''
+
+  !-----------------------------------------------------------------------
+  &namsbc_apr
+  !-----------------------------------------------------------------------
+    !          !  file name  ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+    !          !             !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
+       sn_apr= 'EAfrica_msl',        1         ,   'msl' ,    .false.    , .false., 'week_mon'   ,  'weights_bicubic_msl'      ,   ''     ,  ''
+    !   sn_apr= 'EAfrica_msl',        1         ,   'msl' ,    .false.    , .false., 'monthly'   ,  'weights_bicubic_msl'      ,   ''     ,  ''
+
+**Note** This configuration requires weekly forcing files (change the 'mon' to the day of the week (3 letters) that the forcing files start on).
+The commented out bits are what you need to run monthly forcing files, or change to yearly. Also it should work with time interp set to true or false.
+
+9) Output xml and running
+=========================
 
 Edit to have 1 hr SSH output ::
 
