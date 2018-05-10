@@ -78,6 +78,17 @@ Note you might have to mkdir the odd directory or two...::
   cp $WDIR/../SWPacific/START_FILES/usrdef_istate.F90 $START_FILES/.
   cp $WDIR/../SWPacific/START_FILES/usrdef_sbc.F90    $START_FILES/.
 
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/par_oce.F90 $START_FILES/.
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/dtatsd.F90 $START_FILES/.
+
+  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/diaharmana.F90 $START_FILES/.
+  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/step_oce.F90 $CSTART_FILES/.
+  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/step.F90 $START_FILES/.
+  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/bdytides.F90 $START_FILES/.
+
+.. note : jelt 10 May 2018: I think that the link to nico's harmonic analysis files above are out of date.
+   I think that Nico updated it, but in the following I am still using his first version which I
+   stored in START_FILES.
 
 Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
 Or just build (if it is already downloaded). Note here we use user defined
@@ -458,7 +469,9 @@ to do simple horizontal interpolation. See notes in
 `<generate_initial_conditions.rst>`_
 
 This will generates files typically called ``initcd_votemper.nc``
-and ``initcd_vosaline.nc``.
+and ``initcd_vosaline.nc``, and corresponding mask and depth variables files
+ ``initcd_mask.nc`` and ``initcd_depth.nc``.
+
 
 
 
@@ -969,7 +982,7 @@ Edit the output to have 1hrly SSH, and harmonic output::
 
 Create a short queue runscript (Note: PBS -N jobname, PBS -m email)::
 
-  vi runscript
+  vi runscript_short
 
   #!/bin/bash
   #PBS -N SEAsia
@@ -979,6 +992,7 @@ Create a short queue runscript (Note: PBS -N jobname, PBS -m email)::
   # mail alert at (b)eginning, (e)nd and (a)bortion of execution
   #PBS -m bea
   #PBS -M jelt@noc.ac.uk
+  #PBS -q short
 
   module swap PrgEnv-cray PrgEnv-intel
   module load cray-netcdf-hdf5parallel
@@ -991,12 +1005,13 @@ Create a short queue runscript (Note: PBS -N jobname, PBS -m email)::
   cd $PBS_O_WORKDIR
   #
     echo " ";
-    OCEANCORES=96
+    OCEANCORES=88
+    XIOSCORES=4
   ulimit -c unlimited
   ulimit -s unlimited
 
   rm -f core
-  aprun -b -n 5 -N 5 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
+  aprun -b -n $XIOSCORES -N 4 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
 
   exit
 
@@ -1032,36 +1047,11 @@ rn_rdt = 360 and resubmit. Completes in 20min 30days.
 Update tides code with Nico's version.
 ++++++++++++++++++++++++++++++++++++++
 
-This should speed things up...
-::
+Add the POLCOMS harmonic analysis to the executable (as in now in)
+`<build_opa_orchestra.rst>`_
+This requires some changes to the standard ``namelist_cfg``
 
-  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/diaharmana.F90 $CDIR/$CONFIG/MY_SRC/.
-  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/step_oce.F90 $CDIR/$CONFIG/MY_SRC/.
-  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/step.F90 $CDIR/$CONFIG/MY_SRC/.
-  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/bdytides.F90 $CDIR/$CONFIG/MY_SRC/.
-
-Don't take ``sbctide.F90``, ``tide.h90``, ``tide_mod.F90``
-
-I editted the output to replace the ``*_x`` and ``*_y`` components::
-
-  vi diaharmana.F90
-  ...
-  !      CALL iom_put( TRIM(Wave(ntide_all(ih))%cname_tide)//'x_new'//TRIM(suffix), cosamp2D(ih,:,:,jgrid) )
-  !      CALL iom_put( TRIM(Wave(ntide_all(ih))%cname_tide)//'y_new'//TRIM(suffix), sinamp2D(ih,:,:,jgrid) )
-        CALL iom_put( TRIM(Wave(ntide_all(ih))%cname_tide)//'x'//TRIM(suffix), cosamp2D(ih,:,:,jgrid) )
-        CALL iom_put( TRIM(Wave(ntide_all(ih))%cname_tide)//'y'//TRIM(suffix), sinamp2D(ih,:,:,jgrid) )
-
-Change the cpp compile flag::
-
-  vi $CDIR/$CONFIG/cpp_$CONFIG.fcm
-  ... key_diaharm --> key_harm_ana
-
-and compile the code::
-
-  cd $CDIR
-  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
-
-Finally add the final (extra) three variables in your namelist_cfg / nambdy_tide ::
+Add the final (extra) three variables in your namelist_cfg / nambdy_tide ::
 
   vi $EXP/namelist_cfg
   ...
@@ -1117,7 +1107,7 @@ so you can only restart from the last time step so make sure you output the full
 Resubmit::
 
   cd $EXP
-  qsub -q short runscript
+  qsub -q short runscript_short
 
 
 Ran for 20mins. Simulated 45hrs (though I guess it hit the wall limit before
@@ -1168,17 +1158,21 @@ MPP decomposition for land suppression
 
 Before doing long runs it is important to optimise MPP decompositoin by invoking
  land supression to save redundant ocean processors.
-Resulting decomposition::
+Resulting decomposition (with notes for both standard or short queue
+ configurations)::
 
    vi namelist_cfg
    ...
    !-----------------------------------------------------------------------
    &nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
    !-----------------------------------------------------------------------
-      ...
-      jpni        =  12       !  jpni   number of processors following i (set automatically if < 1)
-      jpnj        =  8    !  jpnj   number of processors following j (set automatically if < 1)
-      jpnij       =  92    !  jpnij  number of local domains (set automatically if < 1)
+      cn_mpi_send =  'I'      !  mpi send/recieve type   ='S', 'B', or 'I' for standard send,
+                              !  buffer blocking send or immediate non-blocking sends, resp.
+      nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
+      ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
+      jpni        =  12    ! standardqueue:12 ! shortqueue:11      !  jpni   number of processors following i (set automatically if < 1)
+      jpnj        =  8     !  jpnj   number of processors following j (set automatically if < 1)
+      jpnij       =  92    ! standardqueue:92 ! shortqueue:88 !  jpnij  number of local domains (set automatically if < 1)
 
 Inspect ``ocean_output`` to find ``jpnij``. In my simulation ``jpni=12, jpnj=8 --> jpnij = 92``
 Update OCEANCORES in runscript (make sure the ``aprun`` statement is as expected too)::
@@ -1376,7 +1370,7 @@ Performance note::
 HPG errors
 ++++++++++
 
-Submit a 30 day simulations, from rest, with depth varying spatially homogeneous
+Submit a 30 day simulation, from rest, with depth varying spatially homogeneous
 temperature and salinity profiles, with no forcing, boundary conditions off:
 ``ln_bdy = F``
 
@@ -1790,13 +1784,6 @@ Copy files from ??? to EXP_tide_initcd **ADDING IN -K keeps symlinks. I THINK**:
   rsync -aPvt --exclude=*restart*nc --exclude=*_?d_*grid_?.nc EXP_tideonly/* EXP_tide_initcd/
 
 
-.. Note :
-
-  Tried Restart to repeat last tide only run::
-
-    rsync -aPvt EXP_tideonly/SEAsia_00043200_restart_*.nc EXP_tide_initcd/.
-
-  But it didn't work. The T/S fields were not picked up.
 
 
 Try from rest.
@@ -1827,18 +1814,21 @@ Make sure the harmonic restart is also off::
 
 Turn on intial conditions::
 
-  !-----------------------------------------------------------------------
-  &namtsd        !   data : Temperature  & Salinity
-  !-----------------------------------------------------------------------
-  !              !  file name                 ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
-  !              !                            !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
-     sn_tem  = 'initcd_votemper',         -1        ,'votemper' ,    .false.    , .true. , 'yearly'   , ''       ,   ''    ,    ''
-     sn_sal  = 'initcd_vosaline',         -1        ,'vosaline' ,    .false.    , .true. , 'yearly'   , ''       ,   ''    ,    ''
-     !
-     cn_dir        = '../../../../INPUTS/'     !  root directory for the location of the runoff files
-     ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
-     ln_tsd_tradmp = .true.   !  damping of ocean T & S toward T &S input data (T) or not (F)
-  /
+    !-----------------------------------------------------------------------
+    &namtsd        !   data : Temperature  & Salinity
+    !-----------------------------------------------------------------------
+    !              !  file name                 ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+    !              !                            !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
+    sn_tem  = 'initcd_votemper.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+    sn_sal  = 'initcd_vosaline.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+    sn_dep  = 'initcd_depth.nc'   ,         -12        ,'gdept_4D',   .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
+    sn_msk  = 'initcd_mask.nc'    ,         -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
+
+      !
+       cn_dir        = '../../../../INPUTS/'     !  root directory for the location of the runoff files
+       ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+       ln_tsd_interp = .true.    !  Interpolation of T & S in the verticalinput data (T) or not (F)
+       ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
 
 
 Add some daily output::
@@ -1855,85 +1845,8 @@ Add some daily output::
 
 Link in missing sybolic link files::
 
-  ln -s ../BLD/bin/nemo_tide_TSprofile_nomet.exe opa
-
-
-Press Go!::
-
-  qsub runscript
-
-
-**PENDING**. Does it run or does it crash. (It is not obious that switching in initial conditions will work well).
-
-* well it didn't work. This could be the fact it was run compiled with code that has a prescribed profile,
-Or it could have been an issue with the phasing in the of the initial conditions...
-
-
-Initial conditions are read in and look fine but a cold start (dt=360)  blows up
-in a coupel of timesteps.
-
-
-
-Restart with rn_rdt=60. blows up in 68 steps
-Restart with rn_rdt=10. blows up in the same place.
-
-stpctl: the speed is larger than 20 m/s
-======
-kt=   426 max abs(U):   3.666    , i j k:   286    3   74
-
-
-This is a boundary problem. JUST TURN BCS on::
-
-  !-----------------------------------------------------------------------
-  &nambdy        !  unstructured open boundaries
-  !-----------------------------------------------------------------------
-      ln_bdy         = .true.              !  Use unstructured open boundaries
-      nb_bdy         = 1                    !  number of open boundary sets
-      ln_coords_file = .true.               !  =T : read bdy coordinates from file
-      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
-      ln_mask_file   = .false.              !  =T : read mask from file
-      cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-      cn_dyn2d       = 'flather'               !
-      nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
-                                            !  = 1, bdy data are read in 'bdydata   .nc' files
-                                            !  = 2, use tidal harmonic forcing data from files
-                                            !  = 3, use external data AND tidal harmonic forcing
-      cn_dyn3d      =  'zerograd'               !
-      nn_dyn3d_dta  =  1                    !  = 0, bdy data are equal to the initial state
-                                            !  = 1, bdy data are read in 'bdydata   .nc' files
-      cn_tra        =  'frs'               !
-      nn_tra_dta    =  1                    !  = 0, bdy data are equal to the initial state
-                                            !  = 1, bdy data are read in 'bdydata   .nc' files
-      cn_ice_lim      =  'none'             !
-      nn_ice_lim_dta  =  0                  !  = 0, bdy data are equal to the initial state
-                                            !  = 1, bdy data are read in 'bdydata   .nc' files
-      rn_ice_tem      = 270.                !  lim3 only: arbitrary temperature of incoming sea ice
-      rn_ice_sal      = 10.                 !  lim3 only:      --   salinity           --
-      rn_ice_age      = 30.                 !  lim3 only:      --   age                --
-
-      ln_tra_dmp    =.false.                !  open boudaries conditions for tracers
-      ln_dyn3d_dmp  =.false.                !  open boundary condition for baroclinic velocities
-      rn_time_dmp   =  1.                   ! Damping time scale in days
-      rn_time_dmp_out =  1.                 ! Outflow damping time scale
-      nn_rimwidth   = 9                    !  width of the relaxation zone
-      ln_vol        = .false.               !  total volume correction (see nn_volctl parameter)
-      nn_volctl     = 1                     !  = 0, the total water flux across open boundaries is zero
-      nb_jpk_bdy    = -1                    ! number of levels in the bdy data (set < 0 if consistent with planned run)
-  /
-  !-----------------------------------------------------------------------
-  &nambdy_dta    !  open boundaries - external data
-  !-----------------------------------------------------------------------
-  !              !  file name      ! frequency (hours) ! variable  ! time interp.!  clim   ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
-  !              !                 !  (if <0  months)  !   name    !  (logical)  !  (T/F ) ! 'monthly' ! filename ! pairing  ! filename      !
-     bn_ssh      = 'SEAsia_bt_bdyT', -1      , 'sossheig',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-     bn_u2d      = 'SEAsia_bdyU',  -1        , 'vobtcrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-     bn_v2d      = 'SEAsia_bdyV',  -1        , 'vobtcrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-     bn_u3d      = 'SEAsia_bdyU'   -1        , 'vozocrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-     bn_v3d      = 'SEAsia_bdyV'   -1        , 'vomecrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-     bn_tem      = 'SEAsia_bdyT'   -1        , 'votemper',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-     bn_sal      = 'SEAsia_bdyT'   -1        , 'vosaline',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-  ! for lim2
-
+  rm opa
+  ln -s ../BLD/bin/nemo_tide_nomet.exe opa
 
 I also fudged the dates on the boundary conditions files::
 
@@ -1943,160 +1856,26 @@ I also fudged the dates on the boundary conditions files::
   ln -s SEAsia_bdyV_y1979m11.nc SEAsia_bdyV_y2000m01.nc
   ln -s SEAsia_bt_bdyT_y1979m11.nc SEAsia_bt_bdyT_y2000m01.nc
 
-/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP_tide_initcd
 
+Run on short queue::
 
-Conflict in rimwidth variable. I set it to 1 for tides and 9 for 3d stuff.
+  cd SEAsia/EXP_tide_initcd
+  qsub runscript_short
 
-Maximum rimwidth in file is            1
-nn_rimwidth from namelist is            9
-
-Turn tides off::
-
-  !-----------------------------------------------------------------------
-  &nam_tide      !   tide parameters
-  !-----------------------------------------------------------------------
-     ln_tide     = .false.
-     ln_tide_pot = .false.    !  use tidal potential forcing
-     ln_tide_ramp= .false.   !
-
-
-     ...
-     ln_harm_ana_compute=.false.                   ! Compute the harmonic analysis at the last time step
-     ln_harm_ana_store=.false.                     ! Store the harmonic analysis at the last time step for restart
-     ln_harmana_read=.false.                      ! Read haronic analyisis from a restart
-
-Also switch 2d forcing to External bc (2-->1)::
-
-     nn_dyn2d_dta   =  1                   !  = 0, bdy data are equal to the initial state
-
-Made sure the coordinates.bdy.nc file was created with the 3d bcs (rimwidth=9)::
-
-  ln -s ../../../../INPUTS/coordinates.bdy.nc_rw9 coordinates.bdy.nc
-
-Blows up near the boundary at first time step. Add on Damping
-
-ln_dyn3d_dmp  =.true.                !  open boundary condition for baroclinic velocities
-
-Blows up on first time step. Output initial field. Rebuild it and inspect::
-
-  qsub -q short rebuild.pbs
-
-
-T and S field look good. SSH field is wierd. U, V fields are not there / inf.
-
-
-Try ``ln_bdy = F``
-
-rn_rdt=60 --> nt=68 before velocity blows up.
-
-Rebuild the output.abort files (``qsub -q short rebuild.pbs``)
-
-
-The model blows up at a trench south of indonesia. I speculate that the inital conditiosn don't map nicely to our coordinate system...
-
-
-Still blows up::
-
-  stpctl: the speed is larger than 20 m/s
-  ======
- kt=    68 max abs(U):   3.388    , i j k:   593  504   74
+---
 
 
 
-Try Lap mom (Previuosly had bilap.) Take lap constant from Jason ::
 
-  ln_dynldf_lap =  .true.    !    laplacian operator
-  ln_dynldf_blp =  .false.    !  bilaplacian operator
+**PENDING** 5318634.sdb
+(10 May 2018)*
+DID IT CRASH? Yes but not because of an obvious initial condition interpolation problem
 
-  rn_ahm_0      =  40000.     !  horizontal laplacian eddy viscosity   [m2/s]
-  rn_ahm_b      =      0.     !  background eddy viscosity for ldf_iso [m2/s]
-  rn_bhm_0      = -1.25e+10      !  horizontal bilaplacian eddy viscosity [m4/s]
+cd /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP_tide_initcd
 
-This has stabilised the problem, though solver.stat was on the upward trajectory.
-
-**NOW TRY TO GRADUALLY RESTORE FUNCTIONALITY**
-oost time step from 1minute upto 6 again. Is it the same. No it blows up in 11 steps.
-
-Try with boundaries turned on::
-
-  rn_rdt=60
-  ln_bdy=T
-  nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
-  !-----------------------------------------------------------------------
-     ln_tide     = .true.
-     ln_tide_pot = .true.    !  use tidal potential forcing
-
-Turn off the External boundary conditions.
-This works the solver.stat variables are on the up.
-
-Boost rn_ahm_0 = 100 000 (from 40k), (rn_rdt = 120 is not stable)
-Try 10 days.
-Try cn_tra = 'frs'
-nn_tra_dta    =  1
-
---> negative salinity.
-
-Perhaps there is a problem with the boundary files I made.
+Crashes because negative salinity is advected into the domain at the southern boundary
 
 
-**ACTION:**
-/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP_tide_initcd
-inspect the boundary T,S.
-
-
-Salinity have no zero values...
-
-Try again with tides only making sure rimwidth=1 in coordinates.bdy.nc and namelist_cfg
-
-212  394   40
-
-*29 Apr*
-
-Boost lateral diffusion.
-rn_aht_0 = 25 —> 1000
-
-Try dt=10s
-
-Run for 4 hours (1440)  and restart with smaller dt.
-finished in 20min 10s
-
-
-Double timestep.
-nn_it000    =  1441   !  first time step
-nn_itend    =  2880  ! 10day=14400;rn_rdt=60   !  last  time step (std 5475)
-ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
-cn_ocerst_in    = "SEAsia_00001440_restart"   !  suffix of ocean restart name (input)
-rn_rdt      =  20.     !  time step for the dynamics (and tracer if nn_acc=0)
-
-
-nn_it000    =  2881   !  first time step
-nn_itend    =  4320  ! 10day=14400;rn_rdt=60   !  last  time step (std 5475)nn_time0    =       0   !  initial time of day in hhmm
-   cn_ocerst_in    = "SEAsia_00002880_restart"   !  suffix of ocean restart name (input)
-rn_rdt=20 (rn_rdt = 40  - crash)
-
-This completed. Submit with same dt for a 12 hr longer run.
-
-nn_it000    =  4321   !  first time step
-nn_itend    =  8640  ! 10day=14400;rn_rdt=60   !  last  time step (std 5475)nn_time0    =       0   !  initial time of day in hhmm
-   cn_ocerst_in    = "SEAsia_00004320_restart"   !  suffix of ocean restart name (input)
-rn_rdt=20
-submit 1h 10mins
-
-Just restart to look at Doh. (messed up file id in xml file)
-
-Extend of 5 days with a longer time step (60s) and longer submission (2hrs)
-nn_it000    =  8641   !  first time step
-nn_itend    = 15840  ! 10day=14400;rn_rdt=60   !  last  time step (std 5475)nn_time0    =       0   !  initial time of day in hhmm
-   cn_ocerst_in    = "SEAsia_00008640_restart"   !  suffix of ocean restart name (input)
-rn_rdt=60
-submit 2h 10mins
-
-This blew up: resubmit rn_rdt=30 (will be 2.5 days.)
-blows up in 12 mins.
-
-
-**PENDING**
 
 
 
@@ -2502,6 +2281,9 @@ Consequently a timestep of 1 minute might be as far as I can push it.
 
 Rebuild the output and inspect `rebuild_and_inspect_NEMO_output.rst`_
 ++++++++++++++++++++++++++++++
+
+::
+  qsub -q short rebuild.pbs
 
 ---
 

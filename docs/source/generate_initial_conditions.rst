@@ -2,6 +2,8 @@ Generate Initial conditions
 +++++++++++++++++++++++++++
 +++++++++++++++++++++++++++
 
+**10 May 2018: THIS IS NOT PROPERLY GENERALISED BECAUSE I'VE ONLY DONE IT ONCE!**
+
 For a new configuration you probably want to start with idealised, or homogenous
 initial conditions. This is done with user defined initial conditions ``ln_usr``
 with the expression being compiled into the executable
