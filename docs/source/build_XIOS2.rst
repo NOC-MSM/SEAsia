@@ -14,7 +14,7 @@ Implement make command::
 
 Link the xios-2.0_r1080 to a generic XIOS directory name::
 
-  ln -s  $WORK/$USER/xios-2.0_r108  $WORK/$USER/XIOS
+  ln -s  $WORK/$USER/xios-2.0_r1080  $WORK/$USER/XIOS
 
 Link xios executable to the EXP directory::
 
