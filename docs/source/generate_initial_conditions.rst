@@ -33,6 +33,8 @@ Second time around we build 3D initial conditions
 step. Try skipping it for now. You would want to use SOSIE to flood fill the land
 if you are horizontally interpolating*
 
+Jump straight to using SCRIP tools to remap parent fields onto child grid
+
 
 Use SOSIE tools to interpolate onto a finer grid
 ------------------------------------------------
@@ -85,9 +87,6 @@ Average over time and restore the parallel modules (Not necessary for this data 
 
     module unload nco cray-netcdf cray-hdf5
     module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-
-
-----
 
 
 
@@ -207,7 +206,9 @@ Edit the input files::
 
   &interp_inputs
     input_file = "cut_down_19791101d05_SEAsia_grid_T.nc"
-  ...
+    ...
+    input_vars = "deptht", "time_counter"
+
 
 Similarly for the *vosaline.nc file::
 
@@ -220,21 +221,9 @@ Similarly for the *vosaline.nc file::
 
   &interp_inputs
     input_file = 'cut_down_19791101d05_SEAsia_grid_T.nc'
-  ...
+    ...
+    input_vars = "deptht", "time_counter"
 
-
-.. Note: Alternatively since child and parent are on the same horizontal grid,
-  skip the SOSIE step and do the SCRIP interpolation only. To do this will need
-  ammend the input_file and input_vars parameters. E.g.
-
-  &interp_inputs
-      input_file = "cut_down_19791101d05_SEAsia_grid_T.nc4"
-      interp_file = "data_nemo_bilin_R12.nc"
-      input_name = "vosaline"
-      input_start = 1,1,1,1
-      input_stride = 1,1,1,1
-      input_stop = 0,0,0,0
-      input_vars = "deptht", "time_counter"
 
 
 
@@ -263,27 +252,21 @@ Interpolate in z on the fly
 
 
 For vertical interpolation we let NEMO do the heavy lifting. This requires some changes
-to the FORTRAN.
+to the FORTRAN using ``par_oce.F90`` and ``dtatsd.F90`` in ``MY_SRC``. See
+`<build_opa_orchestra.rst>`_
 
-Copy two files from ORCHESTRA branch: ``/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC``::
-
-  cd $CDIR/$CONFIG/MY_SRC
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/par_oce.F90 .
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/dtatsd.F90 .
-
-Compile::
+Maybe move the executable to something memorable e.g.::
 
   cd $CDIR
+  mv $CONFIG/BLD/bin/nemo.exe $CONFIG/BLD/bin/nemo_tide_nomet.exe
 
-  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+To interpolate the initial conditions on-the-fly need to pass information to
+NEMO about the parent vertical grid and parent mask file. Appropriate variables
+are created in external files that are read into the namelist.
 
-  mv SEAsia/BLD/bin/nemo.exe SEAsia/BLD/bin/nemo_tide_nomet.exe
-
-
-Need to build mask and depth variables, corresponding to the parent grid. These
-are 4D variables, where length(t)=1.
-
-This can be achieved with NCO tools to manipulate the parent file::
+These mask and depth variables need to be 4D variables, where length(t)=1.
+They can be created with NCO tools by manipulating a parent initial condition file.
+On archer, load the appropriate modules::
 
   module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
   module load cray-netcdf cray-hdf5
@@ -313,6 +296,8 @@ Restore modules::
   module unload cray-netcdf cray-hdf5
   module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
+The resulting files are ``initcd_mask.nc`` and ``initcd_depth.nc`` which are read
+into the namelist.
 
 Edit, or add, new **mask** and **depth** variables to the namelist_cfg. Also
 add the logical switch to do vertical interpolation ``ln_tsd_interp=T``::
@@ -336,54 +321,12 @@ add the logical switch to do vertical interpolation ``ln_tsd_interp=T``::
      ln_tsd_interp = .true.    !  Interpolation of T & S in the verticalinput data (T) or not (F)
      ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
 
+.. Note: Can interpolate the initcd_fields in time if that is appropriate. Can in
+ principle apply a weightings file so that the initcd_field file are uncut parent grid
+ data at some other resolution.
 
-Run on short queue::
-
-  cd SEAsia/EXP_tide_initcd
-
-  rm opa
-  ln -s ../BLD/bin/nemo_tide_nomet.exe opa
-
-  qsub runscript_short
-
-
-
-**PENDING** 5317765.sdb
-(10 May 2018)*
-DID IT CRASH? Yes but not because of an obvious initial condition interpolation problem
-cd /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP_tide_initcd
-
-Crash report::
-
-
-  less ocean.output
-
-  ...
-
-   ==>> time-step=            1  3d speed2 max:    330.126555988935
-
-  ===>>> : E R R O R
-          ===========
-
-   stpctl: the speed is larger than 20 m/s
-   ======
-  kt=     1 max abs(U):   11.11    , i j k:   539  535   64
-
-            output of last fields in numwso
-   ==>> time-step=            1  SSS min: -1.000000020040877E+020
-
-  ===>>> : E R R O R
-          ===========
-
-  stp_ctl : NEGATIVE sea surface salinity
-  =======
-
------
-
-scratch
-=======
-
-domain_cfg.nc
-x = 684 ; 76.9166: 133.833
-y = 554 ;  -20.0761: 24.7641
-z = 75 ;
+ However, do not do use the weights files to perform horizontal interpolation combined
+ with  ln_tsd_interp = .true. to perform vertical interpolation as the mask file
+ will be rendered useless! If you are going to take this approach flood-fill all
+ the land and then set the mask array to equal 1 everywhere. That way it won’t be
+ corrupted when using the weights files to interpolate onto the child grid.
