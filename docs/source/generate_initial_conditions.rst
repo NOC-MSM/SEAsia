@@ -30,7 +30,8 @@ Second time around we build 3D initial conditions
 *(27 Apr 2018)*
 
 *Since my parent and child are on the same grid I'm not sure I need the SOSIE
-step. Try skipping it for now.*
+step. Try skipping it for now. You would want to use SOSIE to flood fill the land
+if you are horizontally interpolating*
 
 
 Use SOSIE tools to interpolate onto a finer grid
@@ -200,25 +201,25 @@ Edit the input files::
 
   vi $INPUTS/namelist_reshape_bilin_initcd_votemper
   &grid_inputs
-    input_file = 'votemper_ORCA0083-N01-SEAsia_1978.nc4'
+    input_file = 'cut_down_19791101d05_SEAsia_grid_T.nc'
   ...
     input_name = "votemper"
 
   &interp_inputs
-    input_file = "votemper_ORCA0083-N01-SEAsia_1978.nc4"
+    input_file = "cut_down_19791101d05_SEAsia_grid_T.nc"
   ...
 
 Similarly for the *vosaline.nc file::
 
   vi $INPUTS/namelist_reshape_bilin_initcd_vosaline
   &grid_inputs
-    input_file = 'vosaline_ORCA0083-N01-SEAsia_1978.nc4'
+    input_file = 'cut_down_19791101d05_SEAsia_grid_T.nc'
     ...
     input_name = "vosaline"
   ...
 
   &interp_inputs
-    input_file = "vosaline_ORCA0083-N01-SEAsia_1978.nc4"
+    input_file = 'cut_down_19791101d05_SEAsia_grid_T.nc'
   ...
 
 
@@ -264,115 +265,92 @@ Interpolate in z on the fly
 For vertical interpolation we let NEMO do the heavy lifting. This requires some changes
 to the FORTRAN.
 
-Maria's code worked for v3.6: ``cd /work/n01/n01/mane1/ARC25v3.6/OPA_SRC``
+Copy two files from ORCHESTRA branch: ``/work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC``::
 
-Make some changes ``MY_SRC/dtatsd.F90`` including
+  cd $CDIR/$CONFIG/MY_SRC
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/par_oce.F90 .
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/dtatsd.F90 .
 
-
-line 25::
-
-    USE iom
-
-dta_tsd_init
-line 46::
-
-  #if defined key_gen_IC
-     REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) ::   gdept_init, gdept_dta, sal_dta,temp_dta
-     REAL(wp), ALLOCATABLE, DIMENSION(:)     ::   gdept_init_1d
-     REAL(wp), ALLOCATABLE, DIMENSION(:,:)   ::   ssh_dta
-     INTEGER                                 ::   jpk_init , inum_dta
-     LOGICAL                                 ::   ln_tsd3  !( T if depth is 3d, else 1d)
-     INTEGER ::   id ,linum   ! local integers
-     INTEGER                                 ::   ddims(4),dimsd(3)
-  #endif
-
-line 107 change::
-
-        ALLOCATE( sf_tsd(jp_tem)%fnow(jpi,jpj,jpk)   , STAT=ierr0 )
-  IF( sn_tem%ln_tint )   ALLOCATE( sf_tsd(jp_tem)%fdta(jpi,jpj,jpk,2) , STAT=ierr1 )
-        ALLOCATE( sf_tsd(jp_sal)%fnow(jpi,jpj,jpk)   , STAT=ierr2 )
-  IF( sn_sal%ln_tint )   ALLOCATE( sf_tsd(jp_sal)%fdta(jpi,jpj,jpk,2) , STAT=ierr3 )
-
-Into::
-
-  #if defined key_gen_IC
-         CALL iom_open ( 'bathy_meter', inum_dta )
-         !! get dimensions
-         id = iom_varid( inum_dta, 'gdept_glo', dimsd )
-         jpk_init = dimsd(3)
-         IF(lwp) WRITE(numout,*) 'Dimensions of ICs: ', dimsd, jpk_init
-                                ALLOCATE( temp_dta(jpidta,jpjdta,jpk_init)                , STAT=ierr0 )
-                                ALLOCATE( sal_dta(jpidta,jpjdta,jpk_init)                 , STAT=ierr1 )
-                                ALLOCATE( ssh_dta(jpidta,jpjdta         )                 , STAT=ierr2 )
-                                ALLOCATE( gdept_dta (jpidta,jpjdta,jpk_init),               STAT=ierr3 )
-       !
-                                ALLOCATE( sf_tsd(jp_tem)%fnow(jpi,jpj,jpk_init)   , STAT=ierr4 )
-                                ALLOCATE( sf_tsd(jp_sal)%fnow(jpi,jpj,jpk_init)   , STAT=ierr5 )
-                                ALLOCATE( gdept_init         (jpi,jpj,jpk_init),    STAT=ierr6 )
-
-         CALL iom_close( inum_dta )   ! Close the input file
-  #else
-                                ALLOCATE( sf_tsd(jp_tem)%fnow(jpi,jpj,jpk)   , STAT=ierr0 )
-        IF( sn_tem%ln_tint )   ALLOCATE( sf_tsd(jp_tem)%fdta(jpi,jpj,jpk,2) , STAT=ierr1 )
-                                ALLOCATE( sf_tsd(jp_sal)%fnow(jpi,jpj,jpk)   , STAT=ierr2 )
-        IF( sn_sal%ln_tint )   ALLOCATE( sf_tsd(jp_sal)%fdta(jpi,jpj,jpk,2) , STAT=ierr3 )
-  #endif
-
-
-line 120:
-Desparate times, hardcoded bathymetry variable::
-
-  vi  dtatsd.F90
-  line 120:
-    id = iom_varid( inum_dta, 'Bathymetry', dimsd )
-
-This is a hack and probably ought to be some whizzy function from ``domain_cfg.nc``
-
-Hardwired initial condition file::
-
-  line 190:
-  CALL iom_open ('bdydta/cut_down_19791101d05_SEAsia_grid_T.nc', sf_tsd(jp_tem)%num )
-
-
-
-
-
-
-Compile with ``key_gen_IC``
-
-Edit cpp_SEAsia.fcm::
-
-  bld::tool::fppkeys key_zdfgls        \
-                key_harm_ana      \
-                key_gen_IC        \
-                key_mpp_mpi       \
-                key_iomput        \
-                key_nosignedzero
-
-
-
-
-Compile and debug on short queue::
-
+Compile::
 
   cd $CDIR
 
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
-  mv SEAsia/BLD/bin/nemo.exe SEAsia/BLD/bin/nemo_tide_genIC_nomet.exe
+  mv SEAsia/BLD/bin/nemo.exe SEAsia/BLD/bin/nemo_tide_nomet.exe
+
+
+Need to build mask and depth variables, corresponding to the parent grid. These
+are 4D variables, where length(t)=1.
+
+This can be achieved with NCO tools to manipulate the parent file::
+
+  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+  module load cray-netcdf cray-hdf5
+  module load nco/4.5.0
+
+If the depth (gdept) variable is 1D and the file has dimensions
+[time,z,y,x] then first we make it 3D and call it something like gdept_3D::
+
+  cd $INPUTS/
+  ncap2 -O -s 'gdept_3D[z,y,x]=gdept' initcd_votemper.nc tmp.nc
+
+Then add a time dimension::
+
+  ncap2 -O -s 'gdept_4D[time_counter,z,y,x]=gdept_4D' tmp.nc initcd_depth.nc
+  rm tmp.nc
+
+For the mask variable use one of the tracer variables (in this case salinity and we know the land values are set to zero)::
+
+  ncks -d time_counter,0,0,1 -v vosaline initcd_vosaline.nc initcd_mask.nc
+  ncap2 -O -s 'where(vosaline <=0.) vosaline=0' initcd_mask.nc initcd_mask.nc
+  ncap2 -O -s 'where(vosaline >0.) vosaline=1' initcd_mask.nc initcd_mask.nc
+  ncrename -v vosaline,mask initcd_mask.nc
+
+Restore modules::
+
+  module unload nco/4.5.0
+  module unload cray-netcdf cray-hdf5
+  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+
+Edit, or add, new **mask** and **depth** variables to the namelist_cfg. Also
+add the logical switch to do vertical interpolation ``ln_tsd_interp=T``::
+
+  cd $EXP/../EXP_tide_initcd
+  vi namelist_cfg
+
+  !-----------------------------------------------------------------------
+  &namtsd        !   data : Temperature  & Salinity
+  !-----------------------------------------------------------------------
+  !              !  file name                 ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+  !              !                            !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
+  sn_tem  = 'initcd_votemper.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+  sn_sal  = 'initcd_vosaline.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+  sn_dep  = 'initcd_depth.nc'   ,         -12        ,'gdept_4D',   .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
+  sn_msk  = 'initcd_mask.nc'    ,         -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
+
+    !
+     cn_dir        = '../../../../INPUTS/'     !  root directory for the location of the runoff files
+     ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+     ln_tsd_interp = .true.    !  Interpolation of T & S in the verticalinput data (T) or not (F)
+     ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
+
+
+Run on short queue::
 
   cd SEAsia/EXP_tide_initcd
 
   rm opa
-  ln -s ../BLD/bin/nemo_tide_genIC_nomet.exe opa
+  ln -s ../BLD/bin/nemo_tide_nomet.exe opa
 
   qsub runscript_short
 
 
 
-**PENDING**
-(3 May 2018)*
-DID IT CRASH?
+**PENDING** 5317765.sdb
+(10 May 2018)*
+DID IT CRASH? Yes but not because of an obvious initial condition interpolation problem
 cd /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP_tide_initcd
 
 Crash report::
@@ -382,6 +360,23 @@ Crash report::
 
   ...
 
+   ==>> time-step=            1  3d speed2 max:    330.126555988935
+
+  ===>>> : E R R O R
+          ===========
+
+   stpctl: the speed is larger than 20 m/s
+   ======
+  kt=     1 max abs(U):   11.11    , i j k:   539  535   64
+
+            output of last fields in numwso
+   ==>> time-step=            1  SSS min: -1.000000020040877E+020
+
+  ===>>> : E R R O R
+          ===========
+
+  stp_ctl : NEGATIVE sea surface salinity
+  =======
 
 -----
 
