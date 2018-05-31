@@ -1,0 +1,187 @@
+!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!! LIM3 namelist:  
+!!              1 - Generic parameters                 (namicerun)
+!!              2 - Diagnostics                        (namicediag)
+!!              3 - Ice initialization                 (namiceini)
+!!              4 - Ice discretization                 (namiceitd)
+!!              5 - Ice dynamics and transport         (namicedyn)
+!!              6 - Ice diffusion                      (namicehdf)
+!!              7 - Ice thermodynamics                 (namicethd)
+!!              8 - Ice salinity                       (namicesal)
+!!              9 - Ice mechanical redistribution      (namiceitdme)
+!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!
+!------------------------------------------------------------------------------
+&namicerun     !   Generic parameters
+!------------------------------------------------------------------------------
+   jpl              =    5          !  number of ice  categories
+   nlay_i           =    2          !  number of ice  layers
+   nlay_s           =    1          !  number of snow layers (only 1 is working)
+   rn_amax_n        =   0.997       !  maximum tolerated ice concentration NH
+   rn_amax_s        =   0.997       !  maximum tolerated ice concentration SH
+   cn_icerst_in     = "restart_ice" !  suffix of ice restart name (input)
+   cn_icerst_out    = "restart_ice" !  suffix of ice restart name (output)
+   cn_icerst_indir  = "."           !  directory to read   input ice restarts
+   cn_icerst_outdir = "."           !  directory to write output ice restarts
+   ln_limthd        =  .true.       !  ice thermo   (T) or not (F) => DO NOT TOUCH UNLESS U KNOW WHAT U DO
+   ln_limdyn        =  .true.       !  ice dynamics (T) or not (F) => DO NOT TOUCH UNLESS U KNOW WHAT U DO
+   nn_limdyn        =   2           !     (ln_limdyn=T) switch for ice dynamics   
+                                    !      2: total
+                                    !      1: advection only (no diffusion, no ridging/rafting)
+                                    !      0: advection only (as 1 but with prescribed velocity, bypass rheology)
+   rn_uice          =   0.00001     !     (nn_limdyn=0) ice u-velocity
+   rn_vice          =  -0.00001     !     (nn_limdyn=0) ice v-velocity
+/
+!------------------------------------------------------------------------------
+&namicediag    !   Diagnostics
+!------------------------------------------------------------------------------
+   ln_limdiachk   =  .false.        !  check online the heat, mass & salt budgets (T) or not (F)
+   ln_limdiahsb   =  .false.        !  output the heat, mass & salt budgets (T) or not (F)
+   ln_limctl      =  .false.        !  ice points output for debug (T or F)
+   iiceprt        =    10           !  i-index for debug
+   jiceprt        =    10           !  j-index for debug
+/
+!------------------------------------------------------------------------------
+&namiceini     !   Ice initialization
+!------------------------------------------------------------------------------
+                  ! -- limistate -- !
+   ln_limini      = .true.          !  activate ice initialization (T) or not (F)
+   ln_limini_file = .false.         !  netcdf file provided for initialization (T) or not (F)
+   rn_thres_sst   =  2.0            !  maximum water temperature with initial ice (degC)
+   rn_hts_ini_n   =  0.3            !  initial real snow thickness (m), North
+   rn_hts_ini_s   =  0.3            !        "            "             South
+   rn_hti_ini_n   =  3.0            !  initial real ice thickness  (m), North
+   rn_hti_ini_s   =  1.0            !        "            "             South
+   rn_ati_ini_n   =  0.9            !  initial ice concentration   (-), North
+   rn_ati_ini_s   =  0.9            !        "            "             South
+   rn_smi_ini_n   =  6.3            !  initial ice salinity     (g/kg), North
+   rn_smi_ini_s   =  6.3            !        "            "             South
+   rn_tmi_ini_n   =  270.           !  initial ice/snw temperature (K), North
+   rn_tmi_ini_s   =  270.           !        "            "             South
+/
+!------------------------------------------------------------------------------
+&namiceitd     !   Ice discretization
+!------------------------------------------------------------------------------
+   nn_catbnd      =    2           !  computation of ice category boundaries based on
+                                   !      1: tanh function
+                                   !      2: h^(-alpha), function of rn_himean
+   rn_himean      =    2.0         !  expected domain-average ice thickness (m), nn_catbnd = 2 only
+/
+!------------------------------------------------------------------------------
+&namicedyn     !   Ice dynamics and transport
+!------------------------------------------------------------------------------
+                  ! -- limtrp & limadv -- !
+   nn_limadv      =    0            !  choose the advection scheme (-1=Prather ; 0=Ultimate-Macho)
+   nn_limadv_ord  =    5            !  choose the order of the advection scheme (if nn_limadv=0)
+                  ! -- limitd_me -- !
+   nn_icestr      =    0            !  ice strength parameteriztaion                      
+                                    !     0: Hibler_79     P = pstar*<h>*exp(-c_rhg*A)
+                                    !     1: Rothrock_75   P = Cf*coeff*integral(wr.h^2)    
+   rn_pe_rdg      =   17.0          !     (nn_icestr=1) ridging work divided by pot. energy change in ridging
+   rn_pstar       =    2.0e+04      !     (nn_icestr=0) ice strength thickness parameter (N/m2) 
+   rn_crhg        =   20.0          !     (nn_icestr=0) ice strength conc. parameter (-)
+   ln_icestr_bvf  =    .false.      !     ice strength function brine volume (T) or not (F)
+                                    !
+            ! -- limdyn & limrhg -- !
+   rn_cio         =    5.0e-03      !  ice-ocean drag coefficient (-)
+   rn_creepl      =    1.0e-12      !  creep limit (s-1)
+   rn_ecc         =    2.0          !  eccentricity of the elliptical yield curve          
+   nn_nevp        =  120            !  number of EVP subcycles                             
+   rn_relast      =    0.333        !  ratio of elastic timescale to ice time step: Telast = dt_ice * rn_relast 
+                                    !     advised value: 1/3 (rn_nevp=120) or 1/9 (rn_nevp=300)
+   ln_landfast    =  .false.        !  landfast ice parameterization (T or F)                           
+   rn_gamma       =    0.15         !     (ln_landfast=T)  fraction of ocean depth that ice must reach to initiate landfast
+                                    !                      recommended range: [0.1 ; 0.25]
+   rn_icebfr      =    10.          !     (ln_landfast=T)  maximum bottom stress per unit area of contact (N/m2)                 
+                                    !                      a very large value ensures ice velocity=0 even with a small contact area
+                                    !                      recommended range: ?? (should be greater than atm-ice stress => >0.1 N/m2)
+   rn_lfrelax     =    1.e-5        !     (ln_landfast=T)  relaxation time scale to reach static friction (s-1)                 
+/
+!------------------------------------------------------------------------------
+&namicehdf     !   Ice horizontal diffusion
+!------------------------------------------------------------------------------
+                     ! -- limhdf -- !
+   nn_ahi0        =    -1           !  horizontal diffusivity computation
+                                    !    -1: no diffusion (bypass limhdf)
+                                    !     0: use rn_ahi0_ref
+                                    !     1: use rn_ahi0_ref x mean grid cell length / ( 2deg mean grid cell length )
+                                    !     2: use rn_ahi0_ref x grid cell length      / ( 2deg mean grid cell length )
+   rn_ahi0_ref    = 350.0           !  horizontal sea ice diffusivity (m2/s) 
+                                    !     if nn_ahi0 > 0, rn_ahi0_ref is the reference value at a nominal 2 deg resolution
+/
+!------------------------------------------------------------------------------
+&namicethd     !   Ice thermodynamics
+!------------------------------------------------------------------------------
+                 ! -- limthd_dif -- !
+   rn_kappa_i     = 1.0             !  radiation attenuation coefficient in sea ice (m-1)
+   nn_conv_dif    = 50              !  maximal number of iterations for heat diffusion computation
+   rn_terr_dif    = 1.0e-04         !  maximum temperature after heat diffusion (degC)
+   nn_ice_thcon   = 1               !  sea ice thermal conductivity
+                                    !     0: k = k0 + beta.S/T            (Untersteiner, 1964)
+                                    !     1: k = k0 + beta1.S/T - beta2.T (Pringle et al., 2007)
+   ln_it_qnsice   = .true.          !  iterate the surface non-solar flux with surface temperature (T) or not (F)
+   nn_monocat     = 0               !  virtual ITD mono-category parameterizations (1, jpl = 1 only) or not (0)
+                                    !     2: simple piling instead of ridging    --- temporary option
+                                    !     3: activate G(he) only                 --- temporary option
+                                    !     4: activate extra lateral melting only --- temporary option
+   rn_cdsn     = 0.31              !  thermal conductivity of the snow (0.31 W/m/K, Maykut and Untersteiner, 1971)
+                                   !  Obs: 0.1-0.5 (Lecomte et al, JAMES 2013)
+                  ! -- limthd_dh -- !
+   ln_limdH       = .true.          !  activate ice thickness change from growing/melting (T) or not (F) => DO NOT TOUCH UNLESS U KNOW WHAT U DO
+   rn_betas       = 0.66            !  exponent in lead-ice repratition of snow precipitation
+                                    !     betas = 1 -> equipartition, betas < 1 -> more on leads
+                  ! -- limthd_da -- !
+   ln_limdA       = .true.          !  activate lateral melting param. (T) or not (F) => DO NOT TOUCH UNLESS U KNOW WHAT U DO
+   rn_beta        = 1.0             !     (ln_latmelt=T) coef. beta for lateral melting param. Recommended range=[0.8-1.2]
+                                    !      => decrease = more melt and melt peaks toward higher concentration (A~0.5 for beta=1 ; A~0.8 for beta=0.2)
+                                    !         0.3 = best fit for western Fram Strait and Antarctica
+                                    !         1.4 = best fit for eastern Fram Strait      
+   rn_dmin        = 8.              !     (ln_latmelt=T) minimum floe diameter for lateral melting param. Recommended range=[6-10]
+                                    !      => 6  vs 8m = +40% melting at the peak (A~0.5)
+                                    !         10 vs 8m = -20% melting
+                 ! -- limthd_lac -- !
+   ln_limdO       = .true.          !  activate ice growth in open-water (T) or not (F) => DO NOT TOUCH UNLESS U KNOW WHAT U DO
+   rn_hnewice     = 0.1             !  thickness for new ice formation in open water (m)
+   ln_frazil      = .false.         !  Frazil ice parameterization (ice collection as a function of wind)
+   rn_maxfrazb    = 1.0             !     (ln_frazil=T) maximum fraction of frazil ice collecting at the ice base
+   rn_vfrazb      = 0.417           !     (ln_frazil=T) thresold drift speed for frazil ice collecting at the ice bottom (m/s)
+   rn_Cfrazb      = 5.0             !     (ln_frazil=T) squeezing coefficient for frazil ice collecting at the ice bottom
+                  ! -- limitd_th -- !
+   rn_himin       = 0.1             !  minimum ice thickness (m) used in remapping, must be smaller than rn_hnewice
+/
+!------------------------------------------------------------------------------
+&namicesal     !   Ice salinity
+!------------------------------------------------------------------------------
+                 ! -- limthd_sal -- !
+   ln_limdS       = .true.          !  activate gravity drainage and flushing (T) or not (F) => DO NOT TOUCH UNLESS U KNOW WHAT U DO
+   nn_icesal      =  2              !  ice salinity option
+                                    !     1: constant ice salinity (S=rn_icesal)
+                                    !     2: varying salinity parameterization S(z,t)
+                                    !     3: prescribed salinity profile S(z), Schwarzacher, 1959
+   rn_icesal      =  4.             !    (nn_icesal=1) ice salinity (g/kg)
+   rn_sal_gd      =  5.             !  restoring ice salinity, gravity drainage (g/kg)
+   rn_time_gd     =  1.73e+6        !  restoring time scale, gravity drainage  (s)
+   rn_sal_fl      =  2.             !  restoring ice salinity, flushing (g/kg)
+   rn_time_fl     =  8.64e+5        !  restoring time scale, flushing (s)
+   rn_simax       = 20.             !  maximum tolerated ice salinity (g/kg)
+   rn_simin       =  0.1            !  minimum tolerated ice salinity (g/kg)
+/
+!------------------------------------------------------------------------------
+&namiceitdme   !   Ice mechanical redistribution (ridging and rafting)
+!------------------------------------------------------------------------------
+                  ! -- limitd_me -- !
+   rn_cs          =   0.5           !  fraction of shearing energy contributing to ridging
+   nn_partfun     =   1             !  type of ridging participation function
+                                    !     0: linear      (Thorndike et al, 1975)
+                                    !     1: exponential (Lipscomb, 2007)
+   rn_gstar       =   0.15          !     (nn_partfun = 0) fractional area of thin ice being ridged 
+   rn_astar       =   0.03          !     (nn_partfun = 1) exponential measure of ridging ice fraction [set to 0.05 if hstar=100]
+   ln_ridging     =   .true.        !  ridging activated (T) or not (F) => DO NOT TOUCH UNLESS U KNOW WHAT U DO
+   rn_hstar       =  25.0           !     (ln_ridging = T) determines the maximum thickness of ridged ice (m) (Hibler, 1980)
+   rn_por_rdg     =   0.3           !     (ln_ridging = T) porosity of newly ridged ice (Lepparanta et al., 1995)
+   rn_fsnowrdg    =   0.5           !     (ln_ridging = T) snow volume fraction that survives in ridging
+   ln_rafting     =   .true.        !  rafting activated (T) or not (F) => DO NOT TOUCH UNLESS U KNOW WHAT U DO
+   rn_hraft       =   0.75          !     (ln_rafting = T) threshold thickness for rafting (m)
+   rn_craft       =   5.0           !     (ln_rafting = T) squeezing coefficient used in the rafting function
+   rn_fsnowrft    =   0.5           !     (ln_rafting = T) snow volume fraction that survives in rafting
+/
