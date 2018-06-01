@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>MPP decomposition for land suppression &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="mpp-decomposition-for-land-suppression">
+<h1>MPP decomposition for land suppression<a class="headerlink" href="#mpp-decomposition-for-land-suppression" title="Permalink to this headline">¶</a></h1>
+<dl class="docutils">
+<dt>Before doing long runs it is important to optimise MPP decompositoin by invoking</dt>
+<dd>land supression to save redundant ocean processors.</dd>
+</dl>
+<p>In the namelist there is a subsection nammpp. This allows the user to switch on land suppression from the NEMO simulations. Setting jpni, jpnj and jpnij to values less than 1 tells NEMO to decompose the domain into jpni x jpnj processor maps such that jpni x jpnj = total number of requested processors. The user can take a little control by specifying how the x-axis and y-axis are subdivided e.g. by setting jpni=10, jpnj=10 and jpnij=100 the x and y axes are divided up into 10 equal parts for the decomposition. If 40% of the domain happens to be land land suppression can be triggered if jpni x jpni &gt; jpnij. As a first guess we may run with the following jpni=10, jpnj=10 and jpnij=60. To test this run the model for 1time step. Invariably this will fail, but the mode will write out what jpnij it was expecting in the ocean.output file. jpnij can then be updated in the namelist_cfg and the model rerun with the correct jpnij value. This allows the user to run a more efficient setup and speeding up simulations.</p>
+<p>When choosing jpni and jpnj bear in mind the following:
+* Ideally you want to keep the decomposition as ‘square’ as possible to minimise communications
+* With NEMO the efficiency drops of if the tile/processor map size is less than 15x15 points</p>
+<p>Initially run with the namelist_cfg parameters:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;nammpp        !   Massively Parallel Processing                        (&quot;key_mpp_mpi)
+!-----------------------------------------------------------------------
+   cn_mpi_send =  &#39;I&#39;      !  mpi send/recieve type   =&#39;S&#39;, &#39;B&#39;, or &#39;I&#39; for standard send,
+                           !  buffer blocking send or immediate non-blocking sends, resp.
+   nn_buffer   =   0       !  size in bytes of exported buffer (&#39;B&#39; case), 0 no exportation
+   ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
+   jpni        =  -1       !  jpni   number of processors following i (set automatically if &lt; 1)
+   jpnj        =  -1    !  jpnj   number of processors following j (set automatically if &lt; 1)
+   jpnij       =  -1    !  jpnij  number of local domains (set automatically if &lt; 1)
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Then inspect <code class="docutils literal"><span class="pre">ocean_output</span></code> to see the <code class="docutils literal"><span class="pre">jpni</span></code> and <code class="docutils literal"><span class="pre">jpnj</span></code>.</dt>
+<dd><p class="first">Set <code class="docutils literal"><span class="pre">jpnij</span> <span class="pre">&lt;</span> <span class="pre">jpni*jpnj</span></code> and run again. E.g.:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;nammpp        !   Massively Parallel Processing                        (&quot;key_mpp_mpi)
+!-----------------------------------------------------------------------
+   cn_mpi_send =  &#39;I&#39;      !  mpi send/recieve type   =&#39;S&#39;, &#39;B&#39;, or &#39;I&#39; for standard send,
+                           !  buffer blocking send or immediate non-blocking sends, resp.
+   nn_buffer   =   0       !  size in bytes of exported buffer (&#39;B&#39; case), 0 no exportation
+   ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
+   jpni        =  12       !  jpni   number of processors following i (set automatically if &lt; 1)
+   jpnj        =  8    !  jpnj   number of processors following j (set automatically if &lt; 1)
+   jpnij       =  1    !  jpnij  number of local domains (set automatically if &lt; 1)
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Inspect <code class="docutils literal"><span class="pre">ocean_output</span></code> to find <code class="docutils literal"><span class="pre">jpnij</span></code>. In my simulation <code class="docutils literal"><span class="pre">jpni=8,</span> <span class="pre">jpnj=12</span> <span class="pre">--&gt;</span> <span class="pre">jpnij</span> <span class="pre">=</span> <span class="pre">93</span></code>
+Update OCEANCORES in runscript (make sure the <code class="docutils literal"><span class="pre">aprun</span></code> statement is as expected too):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">runscript</span>
+<span class="o">...</span>
+<span class="n">OCEANCORES</span><span class="o">=</span><span class="mi">93</span> <span class="c1"># formerly 96</span>
+</pre></div>
+</div>
+<p>And submit again.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/MPP_decomp_land_suppression.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/MPP_decomp_land_suppression.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
