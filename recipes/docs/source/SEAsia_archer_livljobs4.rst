@@ -1773,24 +1773,22 @@ CHECK OUTPUT - This works, but 4 days is not very exciting.
 Initial conditions
 ++++++++++++++++++
 
-directory: EXP_tide_initcd
+directory: EXP_hpg_initcd
 
 Switch in initial conditions from the existing (working) tide only homogeneous run.
 ::
-  mkdir EXP_tide_initcd
+  mkdir EXP_hpg_initcd
 
-Copy files from ??? to EXP_tide_initcd **ADDING IN -K keeps symlinks. I THINK**::
+Copy files from ??? to EXP_hpg_initcd **ADDING IN -K keeps symlinks. I THINK**::
 
-  rsync -aPvt --exclude=*restart*nc --exclude=*_?d_*grid_?.nc EXP_tideonly/* EXP_tide_initcd/
-
-
+  rsync -aPvt --exclude=*restart*nc --exclude=*_?d_*grid_?.nc EXP_tideonly/* EXP_hpg_initcd/
 
 
 Try from rest.
 
 
 Rerun the last successful tidal only simulation but with initial conditions.
-but switch on init conditions::
+Switch off bcs and tides run for 60 days::
 
 
   vi namelist_cfg
@@ -1798,11 +1796,42 @@ but switch on init conditions::
   ...
   cn_exp      =    "SEAsia"  !  experience name
   nn_it000    =  1   !  first time step
-  nn_itend    =  2400 ! 10day=2400; dt=360  !  last  time step (std 5475)
+  nn_itend    =  7200 ! 30day=7200; dt=360  !  last  time step (std 5475)
 
   ln_restart = .false.
 
-Make sure the harmonic restart is also off::
+Turn off open boundaries::
+
+  !-----------------------------------------------------------------------
+  &nambdy        !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+      ln_bdy         = .false.              !  Use unstructured open boundaries
+      nb_bdy         = 1                    !  number of open boundary sets
+      ln_coords_file = .true.               !  =T : read bdy coordinates from file
+      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+      ln_mask_file   = .false.              !  =T : read mask from file
+      cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+      cn_dyn2d       = 'flather'               !
+      nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+                                            !  = 2, use tidal harmonic forcing data from files
+                                            !  = 3, use external data AND tidal harmonic forcing
+      cn_dyn3d      =  'zerograd'               !
+      nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+      cn_tra        =  'frs'               !
+      nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
+
+
+Turn off tides::
+
+  !-----------------------------------------------------------------------
+  &nam_tide      !   tide parameters
+  !-----------------------------------------------------------------------
+     ln_tide     = .false.
+     ln_tide_pot = .false.    !  use tidal potential forcing
+
+Make sure the harmonic restart is also off (not so important yet since ln_tide=F)::
 
   ln_harmana_read=.false.                      ! Read haronic analyisis from a restart
   ...
@@ -1814,21 +1843,21 @@ Make sure the harmonic restart is also off::
 
 Turn on intial conditions::
 
-    !-----------------------------------------------------------------------
-    &namtsd        !   data : Temperature  & Salinity
-    !-----------------------------------------------------------------------
-    !              !  file name                 ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
-    !              !                            !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
-    sn_tem  = 'initcd_votemper.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
-    sn_sal  = 'initcd_vosaline.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
-    sn_dep  = 'initcd_depth.nc'   ,         -12        ,'gdept_4D',   .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
-    sn_msk  = 'initcd_mask.nc'    ,         -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
+  !-----------------------------------------------------------------------
+  &namtsd        !   data : Temperature  & Salinity
+  !-----------------------------------------------------------------------
+  !              !  file name                 ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+  !              !                            !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
+  sn_tem  = 'votemper_ORCA0083-N01-SEAsia_1978.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+  sn_sal  = 'vosaline_ORCA0083-N01-SEAsia_1978.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+  sn_dep  = 'initcd_depth.nc'   ,         -12        ,'gdept_4D',   .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
+  sn_msk  = 'initcd_mask.nc'    ,         -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
 
-      !
-       cn_dir        = '../../../../INPUTS/'     !  root directory for the location of the runoff files
-       ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
-       ln_tsd_interp = .true.    !  Interpolation of T & S in the verticalinput data (T) or not (F)
-       ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
+    !
+     cn_dir        = '../../../../INPUTS/'     !  root directory for the location of the runoff files
+     ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+     ln_tsd_interp = .true.    !  Interpolation of T & S in the verticalinput data (T) or not (F)
+     ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
 
 
 Add some daily output::
@@ -1856,26 +1885,97 @@ I also fudged the dates on the boundary conditions files::
   ln -s SEAsia_bdyV_y1979m11.nc SEAsia_bdyV_y2000m01.nc
   ln -s SEAsia_bt_bdyT_y1979m11.nc SEAsia_bt_bdyT_y2000m01.nc
 
-
 Run on short queue::
 
   cd SEAsia/EXP_tide_initcd
   qsub runscript_short
 
----
+Later in evening run on standard queue (2hrs)::
+
+  cd SEAsia/EXP_tide_initcd
+  qsub runscript
+
+
+**THIS WORKS** 13 May 2018
 
 
 
+Initial conditions + tides
+--------------------------
 
-**PENDING** 5318634.sdb
-(10 May 2018)*
-DID IT CRASH? Yes but not because of an obvious initial condition interpolation problem
+directory: EXP_tide_initcd
+
+EXEC: ``nemo_tide_nomet.exe``
+
+Switch in initial conditions from the existing (working) tide only homogeneous run.
+::
+  mkdir EXP_tide_initcd
+
+Copy files from ??? to EXP_tide_initcd **ADDING IN -K keeps symlinks. I THINK**::
+
+  rsync -aPvt --exclude=*restart*nc --exclude=*_?d_*grid_?.nc EXP_hpg_initcd/* EXP_tide_initcd/
+
+
+Try from rest.::
+
+  vi namelist_cfg
+
+  ...
+  cn_exp      =    "SEAsia"  !  experience name
+  nn_it000    =  1   !  first time step
+  nn_itend    =  7200 ! 30day=7200; dt=360  !  last  time step (std 5475)
+
+  ln_restart = .false.
+
+Turn off open boundaries::
+
+  !-----------------------------------------------------------------------
+  &nambdy        !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+      ln_bdy         = .false.              !  Use unstructured open boundaries
+      nb_bdy         = 1                    !  number of open boundary sets
+      ln_coords_file = .true.               !  =T : read bdy coordinates from file
+      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+      ln_mask_file   = .false.              !  =T : read mask from file
+      cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+      cn_dyn2d       = 'flather'               !
+      nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+                                            !  = 2, use tidal harmonic forcing data from files
+                                            !  = 3, use external data AND tidal harmonic forcing
+      cn_dyn3d      =  'zerograd'               !
+      nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+      cn_tra        =  'frs'               !
+      nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
+
+
+Turn on tides::
+
+  !-----------------------------------------------------------------------
+  &nam_tide      !   tide parameters
+  !-----------------------------------------------------------------------
+     ln_tide     = .true.
+     ln_tide_pot = .true.    !  use tidal potential forcing
+
+Make sure the harmonic restart is also off ::
+
+  ln_harmana_read=.false.                      ! Read haronic analyisis from a restart
+  ...
+  !-----------------------------------------------------------------------
+  &nam_diaharm   !   Harmonic analysis of tidal constituents               ("key_diaharm")
+  !-----------------------------------------------------------------------
+      nit000_han = 1         ! First time step used for harmonic analysis
+      nitend_han = 2400 ! 1440 !      ! Last time step used for harmonic analysis
+
+
 
 cd /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP_tide_initcd
 
-Crashes because negative salinity is advected into the domain at the southern boundary
+**PENDING** 5324836.sdb
+13 May 2018
 
-
+completed 1hr 39
 
 
 
@@ -2150,17 +2250,370 @@ Copy files from SAN to ARCHER::
 Tide + 2D forcing simulation
 ++++++++++++++++++++++++++++
 
-directory ``EXP00``
+directory ``EXP_openbcs``
 
-EXEC: nemo.exe
+EXEC: ``nemo_tide_nomet.exe``
 
-First try to add external 2d forcing.
-From a tides only run, change only:
 
-* ``nn_dyn2d_dta: 2 --> 3``
+Switch in initial conditions from the existing (working) tide only homogeneous
+ run::
 
+  mkdir EXP_openbcs
+  cd EXP_openbcs
+
+Copy files from ??? to EXP_tide_initcd **ADDING IN -K keeps symlinks. I THINK**::
+
+  rsync -aPvt --exclude=*restart*nc --exclude=$CONFIG*.nc EXP_tide_initcd/* EXP_openbcs/
+
+Link in missing sybolic link files::
+
+  rm opa
+  ln -s ../BLD/bin/nemo_tide_nomet.exe opa
+
+Try from rest.
+First try tides only with ln_bdy=T. ``nn_dyn2d_dta   =  2``. Ran to 400 steps (40hrs) OK
+Second try with 2D bcs not tides: ``nn_dyn2d_dta   =  1``.
+
+===>>> : E R R O R
+        ===========
+
+ stpctl: the speed is larger than 20 m/s
+ ======
+kt=     1 max abs(U):  1.0000E+20, i j k:   288    2    1
+
+          output of last fields in numwso
+
+--- **PROBLEM WITH 2D BCS**
+
+Third try with tides + tracers::
+
+  cn_dyn2d       = 'flather'               !
+  nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
+  cn_dyn3d      =  'zerograd'               !
+  nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
+  cn_tra        =  'frs'               !
+  nn_tra_dta    =  1                    !  = 0, bdy data are equal to the initial state
+
+Also blows immediately.
+
+Revisit PyNEMO. Turn off tidal output and run.
+
+----
+
+trouble
++++++++
+
+19 May 2018
+
+Make a new mask file to only process the southern boundary.
+Turn off vertical interpolation in PyNEMO so that it creates output on the parent
+vertical grid.
+
+livljobs4/6
+
+
+The mask variable takes values (-1 mask, 1 wet/active domain, 0 land). Need to
+only mask a single point around the edge since the rimwidth is considered to be
+part of the active domain.
+
+PyNEMO looks for the interface between -1 and 1 to generate boundary forcings. Get a
+template from domain_cfg.nc and then modify as desired around the boundary.
+
+Maked the entire boundary "land=0", except for the wet bits along the southern boundary
+which are "mask=-1"::
+
+  module load nco/gcc/4.4.2.ncwa
+  rm -f bdy_mask.nc tmp[12].nc
+  ncks -v top_level domain_cfg.nc tmp1.nc
+  ncrename -h -v top_level,mask tmp1.nc tmp2.nc
+  ncwa -a t tmp2.nc bdy_mask.nc
+  rm -f tmp[12].nc
+
+In ipython::
+
+import netCDF4
+import numpy as np
+dset = netCDF4.Dataset('bdy_mask2.nc','a')
+[ny,nx] = np.shape(dset.variables['mask'][:])
+for i in range(nx):
+  if dset.variables['mask'][1,i] == 1:
+    dset.variables['mask'][0,i] = -1
+  else:
+    dset.variables['mask'][0,i] = 0
+dset.close()
+
+Rebuld pynemo as necessary `<install_nrct.rst>`_ with any fixes.
+
+Rebuild boundary conditions::
+
+  module load anaconda/2.1.0  # Want python2
+  source activate nrct_env
+  cd $INPUTS
+  export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+
+  pynemo -s namelist.bdy
+
+----
+
+**21 May 2018**
+
+Get James' to generate open bcs and try them out.
+Also created a new domain_cfg.nc file.
+From /work/jdha/jelt copy to $INPUTS::
+
+  cd /work/jdha/jelt/
+  rsync -uvat  SEAsia_full_bdyT_y1979m11.nc jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/.
+  rsync -uvat  SEAsia_full_bt_bdyT_y1979m11.nc jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/.
+  rsync -uvat  SEAsia_full_bdyU_y1979m11.nc jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/.
+  rsync -uvat  SEAsia_full_bdyV_y1979m11.nc jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/.
+  rsync -uvat  SEAsia_full_bdytide*nc jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/.
+  rsync -uvat  coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/.
+  rsync -uvat  domain_cfg_jdha.nc jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/.
+
+Also has a bdy_mask.nc and a domain_cfg.nc that were the same as mine.
+
+Edit the namlist for accomdate new files::
+
+  cd $EXP/../EXP_openbcs
+  vi namelist_cfg
+
+  !-----------------------------------------------------------------------
+  &namcfg        !   parameters of the configuration
+  !-----------------------------------------------------------------------
+     ln_read_cfg = .true.   !  (=T) read the domain configuration file
+        !                   !  (=F) user defined configuration  ==>>>  see usrdef(_...) modules
+        cn_domcfg = "domain_cfg_jdha"         ! domain configuration filename
+
+  ...
+
+  !-----------------------------------------------------------------------
+  &nambdy_dta    !  open boundaries - external data
+  !-----------------------------------------------------------------------
+  !              !  file name      ! frequency (hours) ! variable  ! time interp.!  clim   ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+  !              !                 !  (if <0  months)  !   name    !  (logical)  !  (T/F ) ! 'monthly' ! filename ! pairing  ! filename      !
+     bn_ssh      = 'SEAsia_full_bt_bdyT', 24      , 'sossheig',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_u2d      = 'SEAsia_full_bdyU',  24        , 'vobtcrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_v2d      = 'SEAsia_full_bdyV',  24        , 'vobtcrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_u3d      = 'SEAsia_full_bdyU'   24        , 'vozocrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_v3d      = 'SEAsia_full_bdyV'   24        , 'vomecrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_tem      = 'SEAsia_full_bdyT'   24        , 'votemper',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_sal      = 'SEAsia_full_bdyT'   24        , 'vosaline',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+
+
+ !-----------------------------------------------------------------------
+ &nambdy_tide   !  tidal forcing at open boundaries
+ !-----------------------------------------------------------------------
+    filtide      = 'bdydta/SEAsia_full_bdytide_'         !  file name root of tidal forcing files
+
+
+
+Submit on the short queue. 20mins for nt=1200 at rn_rdt=360 (5 days). Recall
+::
+
+  dimensions:
+  	x = 684 ;
+  	y = 554 ;
+  	z = 75 ;
+
+Crashed on eastern boundary::
+
+
+  ===>>> : E R R O R
+          ===========
+
+   stpctl: the speed is larger than 20 m/s
+   ======
+  kt=   933 max abs(U):   4.136    , i j k:   682  269   30
+
+
+Rebuild. ``qsub rebuild.pbs``
+
+Trun off tides and change 2d forcing to u2d only.
+::
+
+   ===>>> : E R R O R
+          ===========
+
+   stpctl: the speed is larger than 20 m/s
+   ======
+  kt=   969 max abs(U):   4.113    , i j k:   682  269   16
+
+            output of last fields in numwso
+
+  ===>>> : E R R O R
+          ===========
+
+**output.abort_u3d_ts3d_u2d_tide.nc**
+
+
+Turn off 3d u. Keep T,S u2d + tides.
+Resubmit...::
+
+  ===>>> : E R R O R
+          ===========
+
+   stpctl: the speed is larger than 20 m/s
+   ======
+  kt=   969 max abs(U):   4.113    , i j k:   682  269   16
+
+            output of last fields in numwso
+
+
+**output.abort_ts3d_u2d_tide.nc**
+
+Turn off (u2d), on (u3d, T/S, tides)
+::
+
+  ===>>> : E R R O R
+          ===========
+
+   stpctl: the speed is larger than 20 m/s
+   ======
+  kt=   964 max abs(U):   3.893    , i j k:   682  268   26
+
+            output of last fields in numwso
+
+  ===>>> : E R R O R
+
+**output.abort_ts3d_u3d_tide.nc**
+
+
+Harmonic boundary only. Off (u2d, u3d, T/S)
 
 ::
+
+  ===>>> : E R R O R
+        ===========
+
+ stpctl: the speed is larger than 20 m/s
+ ======
+  kt=   922 max abs(U):   4.037    , i j k:   682  266    1
+
+            output of last fields in numwso
+
+  ===>>> : E R R O R
+          ===========
+
+**output.abort_tide.nc**
+
+
+u2d boundary only. Off (tide, u3d, T/S)
+::
+  ===>>> : E R R O R
+          ===========
+
+   stpctl: the speed is larger than 20 m/s
+   ======
+  kt=   944 max abs(U):   4.064    , i j k:   681  268   14
+
+            output of last fields in numwso
+
+  ===>>> : E R R O R
+          ===========
+
+
+
+**output.abort_u2d.nc**
+
+
+Off (tide, u2d, u3d, T/S). Output istate
+::
+
+  ===>>> : E R R O R
+          ===========
+
+   stpctl: the speed is larger than 20 m/s
+   ======
+  kt=   921 max abs(U):   4.004    , i j k:   682  266   17
+
+            output of last fields in numwso
+
+  ===>>> : E R R O R
+          ===========
+
+
+**output.abort_rest.nc**
+
+Rebuild istate.
+Completes with neumann boundary conditions for u3d tied to istate.
+
+Switch all the open boundary conditions on. Submit.
+Runs. Run for 30day (~2hours)
+::
+
+  vi namelist_cfg
+
+  !-----------------------------------------------------------------------
+  &nambdy        !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+      ln_bdy         = .true.              !  Use unstructured open boundaries
+      nb_bdy         = 1                    !  number of open boundary sets
+      ln_coords_file = .true.               !  =T : read bdy coordinates from file
+      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+      ln_mask_file   = .false.              !  =T : read mask from file
+      cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+      cn_dyn2d       = 'flather'               !
+      nn_dyn2d_dta   =  3                  !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+                                            !  = 2, use tidal harmonic forcing data from files
+                                            !  = 3, use external data AND tidal harmonic forcing
+      cn_dyn3d      =  'neumann'               !
+      nn_dyn3d_dta  =  1                    !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+      cn_tra        =  'frs'               !
+      nn_tra_dta    =  1                    !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+      cn_ice_lim      =  'none'             !
+      nn_ice_lim_dta  =  0                  !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+      rn_ice_tem      = 270.                !  lim3 only: arbitrary temperature of incoming sea ice
+      rn_ice_sal      = 10.                 !  lim3 only:      --   salinity           --
+      rn_ice_age      = 30.                 !  lim3 only:      --   age                --
+
+      ln_tra_dmp    =.false.                !  open boudaries conditions for tracers
+      ln_dyn3d_dmp  =.false.                !  open boundary condition for baroclinic velocities
+      rn_time_dmp   =  1.                   ! Damping time scale in days
+      rn_time_dmp_out =  1.                 ! Outflow damping time scale
+      nn_rimwidth   = 9                    !  width of the relaxation zone
+      ln_vol        = .false.               !  total volume correction (see nn_volctl parameter)
+      nn_volctl     = 1                     !  = 0, the total water flux across open boundaries is zero
+      nb_jpk_bdy    = -1                    ! number of levels in the bdy data (set < 0 if consistent with planned run)
+
+
+
+PENDING
+**/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP_openbcs**
+
+Broke. Weirdness. NaNs around iteration 841.
+
+::
+
+  vi namelist_cfg
+  ...
+  nb_jpk_bdy    = 75                    ! number of levels in the bdy data (set < 0 if consistent with planned run)
+
+-1 means vertical interpolation happens --> Seg Fault.
+
+Running again with nb_jpk_bdy = -1, for fun.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-----
+
+**Later, edit the following**
+
+From a tides only run, change only. ::
 
   vi namelist_cfg
 
@@ -2225,14 +2678,12 @@ Fix the forcing boundary files names::
      cn_dir      = 'bdydta/' !  root directory for the location of the bulk files
      ln_full_vel = .false.   !
 
-
-
 Submit and see what happens::
 
   qsub runscript
 
-THIS BROKE. I AM NOT SURE IF IT WAS MY FAULT (afer < 1 min). TRY AGAIN BEFORE CONCLUDING.
-
+**PENDING**
+/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP_openbcs
 
 
 
