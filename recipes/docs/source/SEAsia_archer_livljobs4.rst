@@ -2597,9 +2597,74 @@ Broke. Weirdness. NaNs around iteration 841.
 Running again with nb_jpk_bdy = -1, for fun.
 
 
+Catch up with James' edits
+++++++++++++++++++++++++++
+*4 June 2018*
+
+Add Git repo of MY_SRC and do a "sparse checkout" of the MY_SRC folder::
+
+  mv $CDIR/$CONFIG/MY_SRC $CDIR/$CONFIG/MY_SRC/MY_SRC_safe
+  cd $WORK/$USER/$CONFIG
+  mkdir git_repo
+  cd git_repo
+  git init
+  git remote add -f origin https://github.com/NOC-MSM/NEMO_cfgs.git  # Creates and empty repo without checking out the features
+  git config core.sparseCheckout true
+
+Specify the folders I want::
+
+  echo $CONFIG/MY_SRC >> .git/info/sparse-checkout
+
+Last but not least, update your empty repo with the state from the remote. (And
+set the upstream remote master)::
+
+  git pull origin master
+  git push --set-upstream origin master
+
+Symbolic link to where MY_SRC actually sits::
+
+  ln -s $WORK/$USER/$CONFIG/git_repo/$CONFIG/MY_SRC $CDIR/$CONFIG/MY_SRC
+
+Rebuild opa (I removed the tidal analysis key from the cpp file, as we aren't
+using it yet.)::
+
+  cd $CDIR
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+Link in executable::
+
+  cd $EXP/../EXP_openbcs
+  rm opa
+  ln -s ../BLD/bin/nemo.exe opa
+
+Edit namelist_cfg for boundary conditions::
+
+  !-----------------------------------------------------------------------
+  &nambdy        !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+      ln_bdy         = .true.              !  Use unstructured open boundaries
+      nb_bdy         = 1                    !  number of open boundary sets
+      ln_coords_file = .true.               !  =T : read bdy coordinates from file
+      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+      ln_mask_file   = .false.              !  =T : read mask from file
+      cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+      cn_dyn2d       = 'flather'               !
+      nn_dyn2d_dta   =  3                  !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+                                            !  = 2, use tidal harmonic forcing data from files
+                                            !  = 3, use external data AND tidal harmonic forcing
+      cn_dyn3d      =  'none'               !
+      nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+      cn_tra        =  'frs'               !
+      nn_tra_dta    =  1                    !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
 
 
+Submit and see what happens::
 
+  qsub runscript_short
+  5385610.sdb
 
 
 
