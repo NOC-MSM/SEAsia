@@ -1,7 +1,8 @@
 # NEMO_cfgs
 NEMO configurations
 
-Each configuration directory should be laid out in the following manner:
+Each configuration directory should be laid out in the following manner, to
+faciliate configuration archival and sharing:
 
 <pre>
 MYCONFIG
