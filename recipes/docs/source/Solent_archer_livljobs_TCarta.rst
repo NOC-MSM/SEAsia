@@ -727,7 +727,9 @@ Adjust runscript parameters::
 **BLOWS AFTER A FEW STEPS. PROBABLY SOMETHING WRONG WITH THE VERTICAL GRID IN
 THE DEEP CHANNEL**
 
-
+7 Jun 2018
+Regenerate domain_cfg.nc with stretched sigma and resubmit.
+Still blows after a few steps. Didn't get a chance to look why..
 
 
 
