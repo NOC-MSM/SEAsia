@@ -818,7 +818,33 @@ Try:
 rn_ahm_0      =   25.     !  horizontal laplacian eddy viscosity   [m2/s]
 rn_rdt = 1.
 
-**PENDING**
+kt=328 -- 20 mins wall time.
+
+
+*Try with tides turned on*
+
+ln_tide = T
+ln_bdy = T - tide only
+rn_ahm_0      =   25.     !  horizontal laplacian eddy viscosity   [m2/s]
+rn_rdt = 1.
+
+**PENDING** 8 Jun 2018
+
+
+
+If it works:
+* increase timestep?
+* Try FES tides
+
+
+
+
+
+
+
+
+
+
 
 
 
