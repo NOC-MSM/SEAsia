@@ -828,12 +828,33 @@ ln_bdy = T - tide only
 rn_ahm_0      =   25.     !  horizontal laplacian eddy viscosity   [m2/s]
 rn_rdt = 1.
 
-**PENDING** 8 Jun 2018
+*8 Jun 2018*
+
+**Works**. ~348 steps in 20mins
+
+
+Try a 5s timestep --> kt = 33
+stp_ctl : the ssh is larger than 10m
+=======
+kt=    33 max ssh:   10.75    , i j:  2404  935
+
+
+Try 3s timestep --> kt=88
+stp_ctl : the ssh is larger than 10m
+=======
+kt=    88 max ssh:   11.58    , i j:  2388 1104
+
+
+Try 2s timestep --> kt = 212
+stp_ctl : the ssh is larger than 10m
+=======
+kt=   212 max ssh:   10.47    , i j:  2354  970
 
 
 
-If it works:
+To do?:
 * increase timestep?
+* try more processors?
 * Try FES tides
 
 
