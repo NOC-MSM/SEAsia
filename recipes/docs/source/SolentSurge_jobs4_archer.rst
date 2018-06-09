@@ -59,7 +59,7 @@ Get some required files ::
   mkdir $START_FILES
   cp $WORK/jelt/LBay/START_FILES/dommsk.F90 $START_FILES/.
   cp $WORK/jelt/LBay/START_FILES/bdyini.F90 $START_FILES/.
-  cp $WORK/jelt/Solent/START_FILES/usrdef_sbc.F90 $CDIR/$CONFIG/MY_SRC/.
+  #cp $WORK/jelt/Solent/START_FILES/usrdef_sbc.F90 $CDIR/$CONFIG/MY_SRC/.
   cp $WORK/jelt/LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
   cp $WORK/jelt/LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
 
@@ -294,11 +294,14 @@ Copy files to EXP directory ::
   rsync -tuv $INPUTS/coordinates.nc $EXP/.
   rsync -tuv $INPUTS/coordinates.bdy.nc $EXP/.
 
+.. note : Hmm I'm sure I don't need to copy bathy_meter.nc to EXP
+
 Link to the tide data ::
 
   ln -s $INPUTS $EXP/bdydta
 
-Edit the namelist_cfg file ::
+Edit the namelist_cfg file.
+(chanage the lateral diffusion to laplacian = 25) ::
 
   !-----------------------------------------------------------------------
   &namrun        !   parameters of the run
@@ -475,12 +478,12 @@ Edit the namelist_cfg file ::
   &namdyn_ldf    !   lateral diffusion on momentum
   !-----------------------------------------------------------------------
      !                       !  Type of the operator :
-     ln_dynldf_blp  =  .true.   !  bilaplacian operator
-     ln_dynldf_lap    =  .false.  !  bilaplacian operator
+     ln_dynldf_blp  =  .false.   !  bilaplacian operator
+     ln_dynldf_lap    = .true.  !  bilaplacian operator
      !                       !  Direction of action  :
      ln_dynldf_lev  =  .true.   !  iso-level
                              !  Coefficient
-     rn_ahm_0     = 60.0      !  horizontal laplacian eddy viscosity   [m2/s]
+     rn_ahm_0     = 25.0      !  horizontal laplacian eddy viscosity   [m2/s]
      rn_bhm_0     = -1.0e+9   !  horizontal bilaplacian eddy viscosity [m4/s]
   /
   !-----------------------------------------------------------------------
@@ -521,7 +524,7 @@ Edit to have 1 hr SSH output ::
   ...
   <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 1h files -->
    <file id="file19" name_suffix="_SSH" description="ocean T grid variables" >
-     <field field_ref="ssh"          name="zos"   />
+     <field field_ref="ssh"          name="zos"      operation="instant"   />
    </file>
 
    <file id="file20" name_suffix="_Tides" description="tidal harmonics" >
@@ -602,3 +605,36 @@ Submit the job ::
 
   cd $EXP
   qsub -q short runscript
+
+
+---
+
+progress
++++++++++
+
+rn_rdt=1
+ahm=25
+kt = 252
+
+stp_ctl : the ssh is larger than 10m
+=======
+kt=   252 max ssh:   10.42    , i j:  2400 1086
+
+rn_rdt=1
+ahm=60
+
+stpctl: the zonal velocity is larger than 20 m/s
+======
+kt=    48 max abs(U):   23.62    , i j k:  2404 1083    2
+
+
+rn_rdt=1
+ahm=10
+
+Runs 1hr( (3600steps) in about 10mins.
+Run again with 1hrly output for 6 hours nt=21600 (1hr walltime)
+
+**PENDING**
+
+* Should inspect domain_cfg.nc. What are the e3t units? cm? ulikely...
+* Should have restarting tides.
