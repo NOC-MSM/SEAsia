@@ -83,23 +83,19 @@ up, leave it, we do it here anyway)
 
 Get NEMO branch ::
 
-  mkdir $WDIR
+  cd $WDIR
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/UKMO/dev_r8814_surge_modelling_Nemo4/NEMOGCM dev_r8814_surge_modelling_Nemo4
 
 Get the correct archer compiler options file ::
 
   cp /work/n01/n01/jelt/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
 
-Create a link to xios_server.exe ::
-
-  ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
-
 Make NEMO ::
 
   cd $CDIR
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
-If build finished then jump to next section. If build failed try :: 
+If build finished then jump to next section. If build failed try ::
 
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10 clean
 
@@ -112,6 +108,10 @@ Check compile flags ::
 Build ::
 
  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+Create a link to xios_server.exe ::
+
+  ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
 
 
 2) Generate coordinates file
