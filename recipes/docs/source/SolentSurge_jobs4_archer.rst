@@ -634,7 +634,21 @@ ahm=10
 Runs 1hr( (3600steps) in about 10mins.
 Run again with 1hrly output for 6 hours nt=21600 (1hr walltime)
 
+stp_ctl : the ssh is larger than 10m
+=======
+kt=  9507 max ssh:   10.02    , i j:   190  502
+
+
+Got two hours out with SSH fields.
+Rebuild on 96 processors - something numerical happens west of Hurst in open water.
+
+**Plan** generate a restart and fiddle with viscosity parameters.
+
+Run for 9500 to generate a restart 25mins walltime.
+
 **PENDING**
+
+
 
 * Should inspect domain_cfg.nc. What are the e3t units? cm? ulikely...
 * Should have restarting tides.
