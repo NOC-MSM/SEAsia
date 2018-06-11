@@ -2528,7 +2528,11 @@ Submit for 3 hours (nt=7200; 30 days) and see what happens::
   qsub runscript
   5388562.sdb
 
-
+*11 June 18* Got a lead from Andrew C about XIOS2. Sumbmitted and waiting
+**PENDING**
+It should output a sub domain...
+Hmm it doesn't seem to output anything.
+Perhaps start again with fresh XML files.
 
 
 
