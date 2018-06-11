@@ -653,7 +653,21 @@ biharm + laplacian? - No. Use one or none.
 rn_ahm_0 = 1.
 
 SSH2 seems to go down. Run for 2hours and see if the currents are better. (Was
-getting 3.9m/s downstream of Hurst point, to west, with ahm_0 = 10).
+getting 3.9m/s downstream of Hurst point, to west, with ahm_0 = 10
+
+stp_ctl : the ssh is larger than 10m
+=======
+kt=  3969 max ssh:   10.66    , i j:  1273  120
+
+
+Try restoring laplacian diffusion ramping up the tides instead.
+Run for 4 hours. Ramp up over 4 hours
+
+ln_tide_ramp = .true.
+rdttideramp =    0.1666
+rn_ahm_0 = 10.
+rn_rdt = 1.
+
 
 **PENDING**
 
