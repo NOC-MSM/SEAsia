@@ -668,6 +668,10 @@ rdttideramp =    0.1666
 rn_ahm_0 = 10.
 rn_rdt = 1.
 
+This worked and ran out to 4hrs (14400 steps).
+
+Restart and run for 14400 more hours. (no tidal ramp).
+
 
 **PENDING**
 
