@@ -646,6 +646,15 @@ Rebuild on 96 processors - something numerical happens west of Hurst in open wat
 
 Run for 9500 to generate a restart 25mins walltime.
 
+*(11 June)*
+restart
+biharm + laplacian? - No. Use one or none.
+
+rn_ahm_0 = 1.
+
+SSH2 seems to go down. Run for 2hours and see if the currents are better. (Was
+getting 3.9m/s downstream of Hurst point, to west, with ahm_0 = 10).
+
 **PENDING**
 
 
