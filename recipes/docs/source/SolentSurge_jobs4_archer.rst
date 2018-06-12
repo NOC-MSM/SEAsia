@@ -59,9 +59,10 @@ Get some required files ::
   mkdir $START_FILES
   cp $WORK/jelt/LBay/START_FILES/dommsk.F90 $START_FILES/.
   cp $WORK/jelt/LBay/START_FILES/bdyini.F90 $START_FILES/.
-  #cp $WORK/jelt/Solent/START_FILES/usrdef_sbc.F90 $CDIR/$CONFIG/MY_SRC/.
+  cp $WORK/jelt/SEAsia/git_repo/SEAsia/MY_SRC/stpctl.F90 $START_FILES/.
   cp $WORK/jelt/LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
   cp $WORK/jelt/LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
+
 
 Load modules ::
 
@@ -102,6 +103,10 @@ Check compile flags ::
   vi $CONFIG/cpp_$CONFIG.fcm
 
   bld::tool::fppkeys  key_nosignedzero key_diainstant key_mpp_mpi key_iomput
+
+Minor edit to solver.stat output::
+
+  cp $START_FILES/stpctl.F90  $CDIR/$CONFIG/MY_SRC/.
 
 Build ::
 
@@ -672,8 +677,44 @@ This worked and ran out to 4hrs (14400 steps).
 
 Restart and run for 14400 more hours. (no tidal ramp).
 
+stp_ctl : the ssh is larger than 10m
+=======
+kt= 27929 max ssh:   10.27    , i j:  1308  121
 
-**PENDING**
+*2 June 2018*
+Ooo just missed finishing.
+Try increasing the bottom friction (from 2.4e-3 to 3.e-3)
+
+rn_bfri2    =    3.e-3 ! 2.4e-3 !  bottom drag coefficient (non linear case)
+
+restart from 21600. Two hours on short queue.
+
+stp_ctl : the ssh is larger than 10m
+=======
+kt= 28641 max ssh:   10.15    , i j:  1308  120
+
+
+Try increasing bottom friction some more:
+rn_bfri2    =    4.e-3 !  bottom drag coefficient (non linear case)
+
+restart from 21600. Two hours on short queue.
+
+Will blow up.
+
+Increase friction by 10
+2.3e-2
+Cold start.
+
+Worked ran to 7200.
+Retarted. Ran and past peak in vel2 and sum(ssh2).
+
+Restart for a long run and leave.
+
+13 hours in 6 x 20mins + 10mins = 2 hours 10mins
+
+ 14401 --> 14400 + 46,800 = 61200
+
+ **PENDING**
 
 
 
