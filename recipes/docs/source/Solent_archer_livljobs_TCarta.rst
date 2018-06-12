@@ -411,7 +411,7 @@ Copy across some parent mesh files and a mask file (even though they are not
 used. This is because this old version of PyNEMO didn't anticipate tide-only usage)::
 
   cp ../../SEAsia/INPUTS/mesh_?gr_src.nc $INPUTS/.
-  cp ../../SEAsia/mask_src.nc $INPUTS/.
+  cp ../../SEAsia/INPUTS/mask_src.nc $INPUTS/.
 
 
 If I don't make a boundary mask then it doesn't work... This can also be done with
