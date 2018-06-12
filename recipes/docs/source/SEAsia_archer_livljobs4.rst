@@ -2407,194 +2407,6 @@ Edit the namlist for accomdate new files::
 
 
 
-Submit on the short queue. 20mins for nt=1200 at rn_rdt=360 (5 days). Recall
-::
-
-  dimensions:
-  	x = 684 ;
-  	y = 554 ;
-  	z = 75 ;
-
-Crashed on eastern boundary::
-
-
-  ===>>> : E R R O R
-          ===========
-
-   stpctl: the speed is larger than 20 m/s
-   ======
-  kt=   933 max abs(U):   4.136    , i j k:   682  269   30
-
-
-Rebuild. ``qsub rebuild.pbs``
-
-Trun off tides and change 2d forcing to u2d only.
-::
-
-   ===>>> : E R R O R
-          ===========
-
-   stpctl: the speed is larger than 20 m/s
-   ======
-  kt=   969 max abs(U):   4.113    , i j k:   682  269   16
-
-            output of last fields in numwso
-
-  ===>>> : E R R O R
-          ===========
-
-**output.abort_u3d_ts3d_u2d_tide.nc**
-
-
-Turn off 3d u. Keep T,S u2d + tides.
-Resubmit...::
-
-  ===>>> : E R R O R
-          ===========
-
-   stpctl: the speed is larger than 20 m/s
-   ======
-  kt=   969 max abs(U):   4.113    , i j k:   682  269   16
-
-            output of last fields in numwso
-
-
-**output.abort_ts3d_u2d_tide.nc**
-
-Turn off (u2d), on (u3d, T/S, tides)
-::
-
-  ===>>> : E R R O R
-          ===========
-
-   stpctl: the speed is larger than 20 m/s
-   ======
-  kt=   964 max abs(U):   3.893    , i j k:   682  268   26
-
-            output of last fields in numwso
-
-  ===>>> : E R R O R
-
-**output.abort_ts3d_u3d_tide.nc**
-
-
-Harmonic boundary only. Off (u2d, u3d, T/S)
-
-::
-
-  ===>>> : E R R O R
-        ===========
-
- stpctl: the speed is larger than 20 m/s
- ======
-  kt=   922 max abs(U):   4.037    , i j k:   682  266    1
-
-            output of last fields in numwso
-
-  ===>>> : E R R O R
-          ===========
-
-**output.abort_tide.nc**
-
-
-u2d boundary only. Off (tide, u3d, T/S)
-::
-  ===>>> : E R R O R
-          ===========
-
-   stpctl: the speed is larger than 20 m/s
-   ======
-  kt=   944 max abs(U):   4.064    , i j k:   681  268   14
-
-            output of last fields in numwso
-
-  ===>>> : E R R O R
-          ===========
-
-
-
-**output.abort_u2d.nc**
-
-
-Off (tide, u2d, u3d, T/S). Output istate
-::
-
-  ===>>> : E R R O R
-          ===========
-
-   stpctl: the speed is larger than 20 m/s
-   ======
-  kt=   921 max abs(U):   4.004    , i j k:   682  266   17
-
-            output of last fields in numwso
-
-  ===>>> : E R R O R
-          ===========
-
-
-**output.abort_rest.nc**
-
-Rebuild istate.
-Completes with neumann boundary conditions for u3d tied to istate.
-
-Switch all the open boundary conditions on. Submit.
-Runs. Run for 30day (~2hours)
-::
-
-  vi namelist_cfg
-
-  !-----------------------------------------------------------------------
-  &nambdy        !  unstructured open boundaries
-  !-----------------------------------------------------------------------
-      ln_bdy         = .true.              !  Use unstructured open boundaries
-      nb_bdy         = 1                    !  number of open boundary sets
-      ln_coords_file = .true.               !  =T : read bdy coordinates from file
-      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
-      ln_mask_file   = .false.              !  =T : read mask from file
-      cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-      cn_dyn2d       = 'flather'               !
-      nn_dyn2d_dta   =  3                  !  = 0, bdy data are equal to the initial state
-                                            !  = 1, bdy data are read in 'bdydata   .nc' files
-                                            !  = 2, use tidal harmonic forcing data from files
-                                            !  = 3, use external data AND tidal harmonic forcing
-      cn_dyn3d      =  'neumann'               !
-      nn_dyn3d_dta  =  1                    !  = 0, bdy data are equal to the initial state
-                                            !  = 1, bdy data are read in 'bdydata   .nc' files
-      cn_tra        =  'frs'               !
-      nn_tra_dta    =  1                    !  = 0, bdy data are equal to the initial state
-                                            !  = 1, bdy data are read in 'bdydata   .nc' files
-      cn_ice_lim      =  'none'             !
-      nn_ice_lim_dta  =  0                  !  = 0, bdy data are equal to the initial state
-                                            !  = 1, bdy data are read in 'bdydata   .nc' files
-      rn_ice_tem      = 270.                !  lim3 only: arbitrary temperature of incoming sea ice
-      rn_ice_sal      = 10.                 !  lim3 only:      --   salinity           --
-      rn_ice_age      = 30.                 !  lim3 only:      --   age                --
-
-      ln_tra_dmp    =.false.                !  open boudaries conditions for tracers
-      ln_dyn3d_dmp  =.false.                !  open boundary condition for baroclinic velocities
-      rn_time_dmp   =  1.                   ! Damping time scale in days
-      rn_time_dmp_out =  1.                 ! Outflow damping time scale
-      nn_rimwidth   = 9                    !  width of the relaxation zone
-      ln_vol        = .false.               !  total volume correction (see nn_volctl parameter)
-      nn_volctl     = 1                     !  = 0, the total water flux across open boundaries is zero
-      nb_jpk_bdy    = -1                    ! number of levels in the bdy data (set < 0 if consistent with planned run)
-
-
-
-PENDING
-**/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP_openbcs**
-
-Broke. Weirdness. NaNs around iteration 841.
-
-::
-
-  vi namelist_cfg
-  ...
-  nb_jpk_bdy    = 75                    ! number of levels in the bdy data (set < 0 if consistent with planned run)
-
--1 means vertical interpolation happens --> Seg Fault.
-
-Running again with nb_jpk_bdy = -1, for fun.
 
 
 Catch up with James' edits
@@ -2625,8 +2437,11 @@ Symbolic link to where MY_SRC actually sits::
 
   ln -s $WORK/$USER/$CONFIG/git_repo/$CONFIG/MY_SRC $CDIR/$CONFIG/MY_SRC
 
+
+.. note : the above git integration needs to be abstracted to the setup phase.
+
 Rebuild opa (I removed the tidal analysis key from the cpp file, as we aren't
-using it yet.)::
+using it yet) At this time also removed Nico's harmonic analysis changes::
 
   cd $CDIR
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
@@ -2637,8 +2452,12 @@ Link in executable::
   rm opa
   ln -s ../BLD/bin/nemo.exe opa
 
-Edit namelist_cfg for boundary conditions::
+Edit namelist_cfg for boundary conditions. Use full velocities with FRS for tracers
+and specified for 3d velcities::
 
+
+  vi namelist_cfg
+  ...
   !-----------------------------------------------------------------------
   &nambdy        !  unstructured open boundaries
   !-----------------------------------------------------------------------
@@ -2653,18 +2472,77 @@ Edit namelist_cfg for boundary conditions::
                                             !  = 1, bdy data are read in 'bdydata   .nc' files
                                             !  = 2, use tidal harmonic forcing data from files
                                             !  = 3, use external data AND tidal harmonic forcing
-      cn_dyn3d      =  'none'               !
-      nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
+      cn_dyn3d      =  'specified'               !
+      nn_dyn3d_dta  =  1                    !  = 0, bdy data are equal to the initial state
                                             !  = 1, bdy data are read in 'bdydata   .nc' files
       cn_tra        =  'frs'               !
       nn_tra_dta    =  1                    !  = 0, bdy data are equal to the initial state
                                             !  = 1, bdy data are read in 'bdydata   .nc' files
+      cn_ice_lim      =  'none'             !
+      nn_ice_lim_dta  =  0                  !  = 0, bdy data are equal to the initial state
+                                            !  = 1, bdy data are read in 'bdydata   .nc' files
+      rn_ice_tem      = 270.                !  lim3 only: arbitrary temperature of incoming sea ice
+      rn_ice_sal      = 10.                 !  lim3 only:      --   salinity           --
+      rn_ice_age      = 30.                 !  lim3 only:      --   age                --
+
+      ln_tra_dmp    =.false.                !  open boudaries conditions for tracers
+      ln_dyn3d_dmp  =.true.                !  open boundary condition for baroclinic velocities
+      rn_time_dmp   =  1.                   ! Damping time scale in days
+      rn_time_dmp_out =  150.                 ! Outflow damping time scale
+      nn_rimwidth   = 9                    !  width of the relaxation zone
+      ln_vol        = .false.               !  total volume correction (see nn_volctl parameter)
+      nn_volctl     = 1                     !  = 0, the total water flux across open boundaries is zero
+      nb_jpk_bdy    =  75                   ! number of levels in the bdy data (set < 0 if consistent with planned run)
+  /
+
+Presently need to use James' forcing files::
+
+  ...
+  !-----------------------------------------------------------------------
+  &nambdy_dta    !  open boundaries - external data
+  !-----------------------------------------------------------------------
+  !              !  file name      ! frequency (hours) ! variable  ! time interp.!  clim   ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+  !              !                 !  (if <0  months)  !   name    !  (logical)  !  (T/F ) ! 'monthly' ! filename ! pairing  ! filename      !
+     bn_ssh      = 'SEAsia_full_bt_bdyT', 24      , 'sossheig',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_u2d      = 'SEAsia_full2_bdyU',  24        , 'vozocrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_v2d      = 'SEAsia_full2_bdyV',  24        , 'vomecrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_u3d      = 'SEAsia_full2_bdyU'   24        , 'vozocrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_v3d      = 'SEAsia_full2_bdyV'   24        , 'vomecrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_tem      = 'SEAsia_full_bdyT'   24        , 'votemper',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_sal      = 'SEAsia_full_bdyT'   24        , 'vosaline',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+  ! for lim2
+  !   bn_frld    = 'amm12_bdyT_ice',         24        , 'ileadfra',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
+  !   bn_hicif   = 'amm12_bdyT_ice',         24        , 'iicethic',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
+  !   bn_hsnif   = 'amm12_bdyT_ice',         24        , 'isnowthi',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
+  ! for lim3
+  !   bn_a_i     = 'amm12_bdyT_ice',         24        , 'ileadfra',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
+  !   bn_ht_i    = 'amm12_bdyT_ice',         24        , 'iicethic',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
+  !   bn_ht_s    = 'amm12_bdyT_ice',         24        , 'isnowthi',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
+
+     cn_dir      = 'bdydta/' !  root directory for the location of the bulk files
+     ln_full_vel = .true.   !
+  /
+
+Submit for 3 hours (nt=7200; 30 days) and see what happens::
+
+  qsub runscript
+  5388562.sdb
+
+*11 June 18* Got a lead from Andrew C about XIOS2. Sumbmitted and waiting
+**PENDING**
+It should output a sub domain...
+Hmm it doesn't seem to output anything.
+Perhaps start again with fresh XML files.
 
 
-Submit and see what happens::
 
-  qsub runscript_short
-  5385610.sdb
+
+
+
+
+
+
+
 
 
 

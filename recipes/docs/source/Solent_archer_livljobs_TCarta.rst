@@ -372,13 +372,17 @@ Get the size of the new domain from ``ncdump -h bathy_meter.nc``.
 
 Follow recipe of hybrid z-s coordinates in `build_domain_cfg_file.rst`_
 
-.. note : couldn't compile make_domain_cfg.exe (don't know what...) so linked to SEAsia executable...
+.. note : couldn't compile make_domain_cfg.exe (don't know why...) so linked to SEAsia executable...
 
 Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores
  the bits and bobs for a rebuild)::
 
    rsync -utv $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
    rsync -utv $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
+
+Also have to copy to where the tidal forcing is made (like the SAN)
+
+.. note : tried stretched sigma coordinates taking guidance from LBay180 configuration.
 
 
 5. Generate tidal boundary conditions
@@ -726,6 +730,134 @@ Adjust runscript parameters::
 27 May 2018
 **BLOWS AFTER A FEW STEPS. PROBABLY SOMETHING WRONG WITH THE VERTICAL GRID IN
 THE DEEP CHANNEL**
+
+7 Jun 2018
+Regenerate domain_cfg.nc with stretched sigma and resubmit.
+Still blows after a few steps. Didn't get a chance to look why..
+
+
+jpiglo =         2410
+jpjglo =         1363
+jpkglo =           31
+
+stpctl: the zonal velocity is larger than 20 m/s
+======
+kt=     5 max abs(U):  7.6246E+05, i j k:  1211   34   30
+
+Rebuild from 74 processors
+
+Try running with SWPacific executable...
+
+.. note: comment out ln_tsd_interp and harmonic analysis nambdy_tide lines
+
+same problem. Try smoothing the bathy
+
+
+
+ln_bdy = F
+ln_tide = T
+kt=13
+
+
+Revert back to Solent executable (o/w issue with ln_tide=F when compiled with tidal analysis)
+ln_bdy = F
+ln_tide = F
+kt=13
+
+stpctl: the zonal velocity is larger than 20 m/s
+======
+kt=    13 max abs(U):   167.4    , i j k:  1204   33   30
+
+
+increase viscosty:
+rn_ahm_0      =   400.     !  horizontal laplacian eddy viscosity   [m2/s]
+rn_rdt = 1.
+
+
+stpctl: the zonal velocity is larger than 20 m/s
+======
+kt=    32 max abs(U):   48.93    , i j k:  1202   33   30
+
+
+Deepest water ~100m --> c_g = 32m/s --> 16m box => 0.5s step
+rn_ahm_0      =   400.     !  horizontal laplacian eddy viscosity   [m2/s]
+rn_rdt = 0.5
+
+stpctl: the zonal velocity is larger than 20 m/s
+======
+kt=    51 max abs(U):   185.8    , i j k:     2  705   30
+
+
+Try:
+rn_ahm_0      =   4000.     !  horizontal laplacian eddy viscosity   [m2/s]
+rn_rdt = 1.
+
+stpctl: the zonal velocity is larger than 20 m/s
+======
+kt=    16 max abs(U):   242.2    , i j k:  1205   33   30
+
+Try:
+rn_ahm_0      =   200.     !  horizontal laplacian eddy viscosity   [m2/s]
+rn_rdt = 1.
+
+stpctl: the zonal velocity is larger than 20 m/s
+======
+kt=    49 max abs(U):   43.60    , i j k:     2  706   30
+
+
+Try:
+rn_ahm_0      =   100.     !  horizontal laplacian eddy viscosity   [m2/s]
+rn_rdt = 1.
+
+stpctl: the zonal velocity is larger than 20 m/s
+======
+kt=    99 max abs(U):   61.36    , i j k:     2  704   29
+
+
+Try:
+rn_ahm_0      =   25.     !  horizontal laplacian eddy viscosity   [m2/s]
+rn_rdt = 1.
+
+kt=328 -- 20 mins wall time.
+
+
+*Try with tides turned on*
+
+ln_tide = T
+ln_bdy = T - tide only
+rn_ahm_0      =   25.     !  horizontal laplacian eddy viscosity   [m2/s]
+rn_rdt = 1.
+
+*8 Jun 2018*
+
+**Works**. ~348 steps in 20mins
+
+
+Try a 5s timestep --> kt = 33
+stp_ctl : the ssh is larger than 10m
+=======
+kt=    33 max ssh:   10.75    , i j:  2404  935
+
+
+Try 3s timestep --> kt=88
+stp_ctl : the ssh is larger than 10m
+=======
+kt=    88 max ssh:   11.58    , i j:  2388 1104
+
+
+Try 2s timestep --> kt = 212
+stp_ctl : the ssh is larger than 10m
+=======
+kt=   212 max ssh:   10.47    , i j:  2354  970
+
+
+
+To do?:
+* increase timestep?
+* try more processors?
+* Try FES tides
+
+
 
 
 
