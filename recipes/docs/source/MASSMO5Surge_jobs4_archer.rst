@@ -119,6 +119,10 @@ Check compile flags ::
 
   bld::tool::fppkeys  key_nosignedzero key_diainstant key_mpp_mpi key_iomput
 
+Minor edit to solver.stat output::
+
+  cp $START_FILES/stpctl.F90  $CDIR/$CONFIG/MY_SRC/.
+
 Build ::
 
  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
@@ -341,7 +345,7 @@ for your desired domain setup. Here we use a 3 level s-coordinate set up ::
   &namdom        !   space and time domain (bathymetry, mesh, timestep)
   !-----------------------------------------------------------------------
     nn_msh      =    0      !  create (=1) a mesh file or not (=0)
-    rn_rdt      =   1.     !  time step for the dynamics (and tracer if nn_acc=0)
+    rn_rdt      =   100.     !  time step for the dynamics (and tracer if nn_acc=0)
     ppglam0     =  999999.0             !  longitude of first raw and column T-point (jphgr_msh = 1)
     ppgphi0     =  999999.0             ! latitude  of first raw and column T-point (jphgr_msh = 1)
     ppe1_deg    =  999999.0             !  zonal      grid-spacing (degrees)
@@ -636,58 +640,118 @@ Generate the boundary conditions with PyNEMO
   pynemo -s namelist.bdy
 
 
-**THIS FELL OVER HERE**
-
-
 This creates::
 
-  Solent_bdytide_rotT_M4_grid_T.nc
-  Solent_bdytide_rotT_MM_grid_T.nc
-  Solent_bdytide_rotT_MN4_grid_T.nc
-  Solent_bdytide_rotT_MS4_grid_T.nc
-  Solent_bdytide_rotT_M2_grid_T.nc
-  Solent_bdytide_rotT_N2_grid_T.nc
-  Solent_bdytide_rotT_S2_grid_T.nc
-  Solent_bdytide_rotT_K1_grid_T.nc
-  Solent_bdytide_rotT_K2_grid_T.nc
-  Solent_bdytide_rotT_P1_grid_T.nc
-  Solent_bdytide_rotT_O1_grid_T.nc
-  Solent_bdytide_rotT_MF_grid_T.nc
-  Solent_bdytide_rotT_Q1_grid_T.nc
-  Solent_bdytide_rotT_M4_grid_U.nc
-  Solent_bdytide_rotT_MM_grid_U.nc
-  Solent_bdytide_rotT_MN4_grid_U.nc
-  Solent_bdytide_rotT_MS4_grid_U.nc
-  Solent_bdytide_rotT_M2_grid_U.nc
-  Solent_bdytide_rotT_N2_grid_U.nc
-  Solent_bdytide_rotT_S2_grid_U.nc
-  Solent_bdytide_rotT_K1_grid_U.nc
-  Solent_bdytide_rotT_K2_grid_U.nc
-  Solent_bdytide_rotT_P1_grid_U.nc
-  Solent_bdytide_rotT_O1_grid_U.nc
-  Solent_bdytide_rotT_MF_grid_U.nc
-  Solent_bdytide_rotT_Q1_grid_U.nc
-  Solent_bdytide_rotT_M4_grid_V.nc
-  Solent_bdytide_rotT_MM_grid_V.nc
-  Solent_bdytide_rotT_MN4_grid_V.nc
-  Solent_bdytide_rotT_MS4_grid_V.nc
-  Solent_bdytide_rotT_M2_grid_V.nc
-  Solent_bdytide_rotT_N2_grid_V.nc
-  Solent_bdytide_rotT_S2_grid_V.nc
-  Solent_bdytide_rotT_K1_grid_V.nc
-  Solent_bdytide_rotT_K2_grid_V.nc
-  Solent_bdytide_rotT_P1_grid_V.nc
-  Solent_bdytide_rotT_O1_grid_V.nc
-  Solent_bdytide_rotT_MF_grid_V.nc
-  Solent_bdytide_rotT_Q1_grid_V.nc
-  coordinates.bdy.nc
+  MASSMO5_bdytide_rotT_NU2_grid_T.nc
+  MASSMO5_bdytide_rotT_O1_grid_T.nc
+  MASSMO5_bdytide_rotT_P1_grid_T.nc
+  MASSMO5_bdytide_rotT_Q1_grid_T.nc
+  MASSMO5_bdytide_rotT_MTM_grid_T.nc
+  MASSMO5_bdytide_rotT_MU2_grid_T.nc
+  MASSMO5_bdytide_rotT_N2_grid_T.nc
+  MASSMO5_bdytide_rotT_N4_grid_T.nc
+  MASSMO5_bdytide_rotT_R2_grid_T.nc
+  MASSMO5_bdytide_rotT_S1_grid_T.nc
+  MASSMO5_bdytide_rotT_2N2_grid_T.nc
+  MASSMO5_bdytide_rotT_J1_grid_T.nc
+  MASSMO5_bdytide_rotT_EPS2_grid_T.nc
+  MASSMO5_bdytide_rotT_K2_grid_T.nc
+  MASSMO5_bdytide_rotT_K1_grid_T.nc
+  MASSMO5_bdytide_rotT_LA2_grid_T.nc
+  MASSMO5_bdytide_rotT_L2_grid_T.nc
+  MASSMO5_bdytide_rotT_M3_grid_T.nc
+  MASSMO5_bdytide_rotT_M2_grid_T.nc
+  MASSMO5_bdytide_rotT_M6_grid_T.nc
+  MASSMO5_bdytide_rotT_M4_grid_T.nc
+  MASSMO5_bdytide_rotT_MF_grid_T.nc
+  MASSMO5_bdytide_rotT_M8_grid_T.nc
+  MASSMO5_bdytide_rotT_MM_grid_T.nc
+  MASSMO5_bdytide_rotT_MKS2_grid_T.nc
+  MASSMO5_bdytide_rotT_MS4_grid_T.nc
+  MASSMO5_bdytide_rotT_MN4_grid_T.nc
+  MASSMO5_bdytide_rotT_MSQM_grid_T.nc
+  MASSMO5_bdytide_rotT_MSF_grid_T.nc
+  MASSMO5_bdytide_rotT_S4_grid_T.nc
+  MASSMO5_bdytide_rotT_S2_grid_T.nc
+  MASSMO5_bdytide_rotT_T2_grid_T.nc
+  MASSMO5_bdytide_rotT_SSA_grid_T.nc
+  MASSMO5_bdytide_rotT_SA_grid_T.nc
+  MASSMO5_bdytide_rotT_NU2_grid_U.nc
+  MASSMO5_bdytide_rotT_O1_grid_U.nc
+  MASSMO5_bdytide_rotT_P1_grid_U.nc
+  MASSMO5_bdytide_rotT_Q1_grid_U.nc
+  MASSMO5_bdytide_rotT_MTM_grid_U.nc
+  MASSMO5_bdytide_rotT_MU2_grid_U.nc
+  MASSMO5_bdytide_rotT_N2_grid_U.nc
+  MASSMO5_bdytide_rotT_N4_grid_U.nc
+  MASSMO5_bdytide_rotT_R2_grid_U.nc
+  MASSMO5_bdytide_rotT_S1_grid_U.nc
+  MASSMO5_bdytide_rotT_2N2_grid_U.nc
+  MASSMO5_bdytide_rotT_J1_grid_U.nc
+  MASSMO5_bdytide_rotT_EPS2_grid_U.nc
+  MASSMO5_bdytide_rotT_K2_grid_U.nc
+  MASSMO5_bdytide_rotT_K1_grid_U.nc
+  MASSMO5_bdytide_rotT_LA2_grid_U.nc
+  MASSMO5_bdytide_rotT_L2_grid_U.nc
+  MASSMO5_bdytide_rotT_M3_grid_U.nc
+  MASSMO5_bdytide_rotT_M2_grid_U.nc
+  MASSMO5_bdytide_rotT_M6_grid_U.nc
+  MASSMO5_bdytide_rotT_M4_grid_U.nc
+  MASSMO5_bdytide_rotT_MF_grid_U.nc
+  MASSMO5_bdytide_rotT_M8_grid_U.nc
+  MASSMO5_bdytide_rotT_MM_grid_U.nc
+  MASSMO5_bdytide_rotT_MKS2_grid_U.nc
+  MASSMO5_bdytide_rotT_MS4_grid_U.nc
+  MASSMO5_bdytide_rotT_MN4_grid_U.nc
+  MASSMO5_bdytide_rotT_MSQM_grid_U.nc
+  MASSMO5_bdytide_rotT_MSF_grid_U.nc
+  MASSMO5_bdytide_rotT_S4_grid_U.nc
+  MASSMO5_bdytide_rotT_S2_grid_U.nc
+  MASSMO5_bdytide_rotT_T2_grid_U.nc
+  MASSMO5_bdytide_rotT_SSA_grid_U.nc
+  MASSMO5_bdytide_rotT_SA_grid_U.nc
+  MASSMO5_bdytide_rotT_NU2_grid_V.nc
+  MASSMO5_bdytide_rotT_O1_grid_V.nc
+  MASSMO5_bdytide_rotT_P1_grid_V.nc
+  MASSMO5_bdytide_rotT_Q1_grid_V.nc
+  MASSMO5_bdytide_rotT_MTM_grid_V.nc
+  MASSMO5_bdytide_rotT_MU2_grid_V.nc
+  MASSMO5_bdytide_rotT_N2_grid_V.nc
+  MASSMO5_bdytide_rotT_N4_grid_V.nc
+  MASSMO5_bdytide_rotT_R2_grid_V.nc
+  MASSMO5_bdytide_rotT_S1_grid_V.nc
+  MASSMO5_bdytide_rotT_2N2_grid_V.nc
+  MASSMO5_bdytide_rotT_J1_grid_V.nc
+  MASSMO5_bdytide_rotT_EPS2_grid_V.nc
+  MASSMO5_bdytide_rotT_K2_grid_V.nc
+  MASSMO5_bdytide_rotT_K1_grid_V.nc
+  MASSMO5_bdytide_rotT_LA2_grid_V.nc
+  MASSMO5_bdytide_rotT_L2_grid_V.nc
+  MASSMO5_bdytide_rotT_M3_grid_V.nc
+  MASSMO5_bdytide_rotT_M2_grid_V.nc
+  MASSMO5_bdytide_rotT_M6_grid_V.nc
+  MASSMO5_bdytide_rotT_M4_grid_V.nc
+  MASSMO5_bdytide_rotT_MF_grid_V.nc
+  MASSMO5_bdytide_rotT_M8_grid_V.nc
+  MASSMO5_bdytide_rotT_MM_grid_V.nc
+  MASSMO5_bdytide_rotT_MKS2_grid_V.nc
+  MASSMO5_bdytide_rotT_MS4_grid_V.nc
+  MASSMO5_bdytide_rotT_MN4_grid_V.nc
+  MASSMO5_bdytide_rotT_MSQM_grid_V.nc
+  MASSMO5_bdytide_rotT_MSF_grid_V.nc
+  MASSMO5_bdytide_rotT_S4_grid_V.nc
+  MASSMO5_bdytide_rotT_S2_grid_V.nc
+  MASSMO5_bdytide_rotT_T2_grid_V.nc
+  MASSMO5_bdytide_rotT_SSA_grid_V.nc
+  MASSMO5_bdytide_rotT_SA_grid_V.nc
 
 Copy the new files back onto ARCHER::
 
   livljobs4$
   cd $INPUTS
   rsync -utv coordinates.bdy.nc $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/coordinates.bdy.nc
-  for file in $CONFIG*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
+  #for file in $CONFIG*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
+  for file in MASSMO5*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
 
 
 
@@ -713,9 +777,9 @@ Edit the namelist_cfg file.
   !-----------------------------------------------------------------------
   &namrun        !   parameters of the run
   !-----------------------------------------------------------------------
-    cn_exp      =  "Solent_surge"  !  experience name
+    cn_exp      =  "MASSMO5_surge"  !  experience name
     nn_it000    = 1   !  first time step
-    nn_itend    =  43200    !  last  time step (for dt = 6 min, 240*dt = 1 day)
+    nn_itend    = 7200     !  last  time step (for dt = 6 min, 240*dt = 1 day)
     nn_date0    =  20130101 !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
     nn_time0    =       0   !  initial time of day in hhmm
     nn_leapy    =       1   !  Leap year calendar (1) or not (0)
@@ -725,13 +789,13 @@ Edit the namelist_cfg file.
       !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
       !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
       !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
-      cn_ocerst_in    = "Solent_surge_00043920_restart"   !  suffix of ocean restart name (input)
+      cn_ocerst_in    = "MASSMO5_surge_00014400_restart"   !  suffix of ocean restart name (input)
       cn_ocerst_indir = "./Restart_files"         !  directory from which to read input ocean restarts
       cn_ocerst_out   = "restart"   !  suffix of ocean restart name (output)
       cn_ocerst_outdir= "./Restart_files"         !  directory in which to write output ocean restarts
     nn_istate   =       0   !  output the initial state (1) or not (0)
-    nn_stock    =   43200    !  frequency of creation of a restart file (modulo referenced to 1)
-    nn_write    =   43200    !  frequency of write in the output file   (modulo referenced to nit000)
+    nn_stock    =  7200  ! 9500    !  frequency of creation of a restart file (modulo referenced to 1)
+    nn_write    =  7200  ! 9500    !  frequency of write in the output file   (modulo referenced to nit000)
   /
   !-----------------------------------------------------------------------
   &namcfg        !   parameters of the configuration
@@ -744,7 +808,7 @@ Edit the namelist_cfg file.
   &namdom        !   space and time domain (bathymetry, mesh, timestep)
   !-----------------------------------------------------------------------
      ln_2d        = .true.  !  (=T) run in 2D barotropic mode (no tracer processes or vertical diffusion)
-     rn_rdt      =   1.    !  time step for the dynamics (and tracer if nn_acc=0)
+     rn_rdt      =   100.    !  time step for the dynamics (and tracer if nn_acc=0)
   /
 
   !-----------------------------------------------------------------------
@@ -811,7 +875,8 @@ Edit the namelist_cfg file.
   &nam_tide      !   tide parameters
   !-----------------------------------------------------------------------
      ln_tide     = .true.
-     rdttideramp =    1.
+     ln_tide_ramp = .true.
+     rdttideramp =    0.1666  ! 4 hours
      clname(1)     =   'M2'   !  name of constituent
      clname(2)     =   'S2'
      clname(3)     =   'K2'
@@ -835,7 +900,7 @@ Edit the namelist_cfg file.
   !-----------------------------------------------------------------------
   &nambdy_tide     ! tidal forcing at open boundaries
   !-----------------------------------------------------------------------
-     filtide      = 'bdydta/Solent_bdytide_rotT_'         !  file name root of tidal forcing files
+     filtide      = 'bdydta/MASSMO5_bdytide_rotT_'         !  file name root of tidal forcing files
      ln_bdytide_2ddta = .false.
   /
   !-----------------------------------------------------------------------
@@ -843,7 +908,7 @@ Edit the namelist_cfg file.
   !-----------------------------------------------------------------------
      nn_bfr      =    2      !  type of bottom friction :   = 0 : free slip,  = 1 : linear friction
                              !                              = 2 : nonlinear friction
-     rn_bfri2    =    2.4e-3 !  bottom drag coefficient (non linear case)
+     rn_bfri2    =    2.4e-2 !  bottom drag coefficient (non linear case)
      rn_bfeb2    =    0.0e0  !  bottom turbulent kinetic energy background  (m2/s2)
      ln_loglayer =   .false. !  loglayer bottom friction (only effect when nn_bfr = 2)
      rn_bfrz0    =    0.003  !  bottom roughness (only effect when ln_loglayer = .true.)
@@ -885,12 +950,12 @@ Edit the namelist_cfg file.
   &namdyn_ldf    !   lateral diffusion on momentum
   !-----------------------------------------------------------------------
      !                       !  Type of the operator :
-     ln_dynldf_blp  =  .false.   !  bilaplacian operator
-     ln_dynldf_lap    = .true.  !  bilaplacian operator
+     ln_dynldf_blp  =  .true.   !  bilaplacian operator
+     ln_dynldf_lap   = .false.  !  bilaplacian operator
      !                       !  Direction of action  :
      ln_dynldf_lev  =  .true.   !  iso-level
                              !  Coefficient
-     rn_ahm_0     = 25.0      !  horizontal laplacian eddy viscosity   [m2/s]
+     rn_ahm_0     = 60.0      !  horizontal laplacian eddy viscosity   [m2/s]
      rn_bhm_0     = -1.0e+9   !  horizontal bilaplacian eddy viscosity [m4/s]
   /
   !-----------------------------------------------------------------------
@@ -971,7 +1036,7 @@ Create short queue runscript (Change the email address) ::
   #===============================================================
   # CLUSTER BITS
   #===============================================================
-  #PBS -N SolentSurg
+  #PBS -N MASSMO5Surg
   #PBS -l select=5
   #PBS -l walltime=00:20:00
   #PBS -A n01-ACCORD
@@ -1018,71 +1083,19 @@ Submit the job ::
 
 progress
 +++++++++
+H = 3.3km --> sqrt(g*H) = 182 m/s
+dx = 3km -->  rn_rdt = 16.5
 
-rn_rdt=1
-ahm=25
-kt = 252
-
-stp_ctl : the ssh is larger than 10m
-=======
-kt=   252 max ssh:   10.42    , i j:  2400 1086
-
-rn_rdt=1
-ahm=60
-
-stpctl: the zonal velocity is larger than 20 m/s
-======
-kt=    48 max abs(U):   23.62    , i j k:  2404 1083    2
-
-
-rn_rdt=1
-ahm=10
-
-Runs 1hr( (3600steps) in about 10mins.
-Run again with 1hrly output for 6 hours nt=21600 (1hr walltime)
-
-stp_ctl : the ssh is larger than 10m
-=======
-kt=  9507 max ssh:   10.02    , i j:   190  502
-
-
-Got two hours out with SSH fields.
-Rebuild on 96 processors - something numerical happens west of Hurst in open water.
-
-**Plan** generate a restart and fiddle with viscosity parameters.
-
-Run for 9500 to generate a restart 25mins walltime.
-
-*(11 June)*
-restart
-biharm + laplacian? - No. Use one or none.
-
-rn_ahm_0 = 1.
-
-SSH2 seems to go down. Run for 2hours and see if the currents are better. (Was
-getting 3.9m/s downstream of Hurst point, to west, with ahm_0 = 10
-
-stp_ctl : the ssh is larger than 10m
-=======
-kt=  3969 max ssh:   10.66    , i j:  1273  120
-
-
-Try restoring laplacian diffusion ramping up the tides instead.
-Run for 4 hours. Ramp up over 4 hours
 
 ln_tide_ramp = .true.
-rdttideramp =    0.1666
-rn_ahm_0 = 10.
-rn_rdt = 1.
+rdttideramp =    1.
+rn_bfri2 = 2.4e-2 ! increased by 10
 
-This worked and ran out to 4hrs (14400 steps).
 
-Restart and run for 14400 more hours. (no tidal ramp).
+Try
+rn_rdt = 50 --> blows up
+rn_rdt = 15 so that 7200 is just more than 1 day (ramp length)
 
+WORKS.
 
 **PENDING**
-
-
-
-* Should inspect domain_cfg.nc. What are the e3t units? cm? ulikely...
-* Should have restarting tides.
