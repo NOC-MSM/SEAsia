@@ -693,31 +693,71 @@ Submit the job ::
 
 ---
 
-starting
-++++++++
+Experiments: TPXO
++++++++++++++++++
 
+Initially TPXO forcing is used. Then FES2014 forcing is used. These go into
+experiments ``EXP_TPXO`` and ``EXP_FES``. E.g.::
+
+  export EXP=$CDIR/$CONFIG/EXP_TPXO
+
+The simulations are run in two steps. Initially there is a spin up with ramped
+tides, then there is the run with 5 min frequency SSH, ubar and vbar output.
+
+
+* Spin up
+
+nn_it000    =  1   !  first time step
+nn_itend    =  14400
+ln_restart = F
 Increase bottom friction by 10
 rn_brfi2 = 2.3e-2
 rn_rdt = 1.
 rn_ahm_0     = 10.0
 ln_tide_ramp = .true.
 rdttideramp =    0.1666
-Cold start.
+filtide      = 'bdydta/TPXO/Solent_bdytide_rotT_'
 
-Worked ran to 7200.
+Worked ran to 7200. (Did in two stages, not one as suggested by nn_iten=14400)
 Retarted. Ran and past peak in vel2 and sum(ssh2).
 nt = 14400
 
-Restart for a long run and leave.
-ln_tide_ramp = .true.
-
+* Production run
 13 hours in 6 x 20mins + 10mins = 2 hours 10mins
+14401 --> 14400 + 46,800 = 61200
 
- 14401 --> 14400 + 46,800 = 61200
+Restart for a long run and leave.
+ln_restart = .true.
+ln_tide_ramp = .false.
 
+nn_it000    =  14401   !  first time step
+nn_itend    =  61200
+
+
+
+
+Experiments: FES
+++++++++++++++++
+
+export EXP=$CDIR/$CONFIG/EXP_FES
+
+ln -s /work/n01/n01/jelt/Solent_surge/dev_r8814_surge_modelling_Nemo4/CONFIG/Solent_surge/BLD/bin/nemo.exe $EXP/../EXP_FES/opa
+rm $EXP/field_def_nemo-opa.xml
+cp $START_FILES/field_def_nemo-opa.xml $EXP/.
+
+* Spin up
+
+nn_it000    =  1   !  first time step
+nn_itend    =  14400
+ln_restart = F
+Increase bottom friction by 10
+rn_brfi2 = 2.3e-2
+rn_rdt = 1.
+rn_ahm_0     = 10.0
+ln_tide_ramp = .true.
+rdttideramp =    0.1666
+filtide      = 'bdydta/FES/Solent_bdytide_rotT_'
+
+
+Check changes to namelist_cfg
  **PENDING**
-
-
-
-* Should inspect domain_cfg.nc. What are the e3t units? cm? ulikely...
-* Should have restarting tides.
