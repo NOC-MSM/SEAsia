@@ -63,6 +63,19 @@ Get some required files ::
   cp $WORK/jelt/LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
   cp $WORK/jelt/LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
 
+Files for improved tides and (last 2 items for) harmonic analysis::
+
+  cd /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC
+  #cp bdyini.F90 $START_FILES/. # Already have this file
+  cp step.F90 $START_FILES/.
+  cp step_oce.F90 $START_FILES/.
+  cp tideini.F90 $START_FILES/.
+  cp tide_FES14.h90 $START_FILES/.
+  cp sbctide.F90 $START_FILES/.
+  cp tide_mod.F90 $START_FILES/.
+  #cp bdytides.F90 $START_FILES/.
+  cp diaharm_fast.F90 $START_FILES/.
+  cp /work/n01/n01/nibrun/RUNS/SWPacific/SIMU/field_def_nemo-opa.xml $START_FILES/.
 
 Load modules ::
 
@@ -98,15 +111,27 @@ If build finished then jump to next section. If build failed try ::
 
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10 clean
 
-Check compile flags ::
+Check compile flags (add new harmonic analysis and tide handling flags)::
 
-  vi $CONFIG/cpp_$CONFIG.fcm
+  vi $CDIR/$CONFIG/cpp_$CONFIG.fcm
 
-  bld::tool::fppkeys  key_nosignedzero key_diainstant key_mpp_mpi key_iomput
+  bld::tool::fppkeys  key_nosignedzero key_diainstant key_mpp_mpi key_iomput key_diaharm_fast key_FES14_tides
 
 Minor edit to solver.stat output::
 
   cp $START_FILES/stpctl.F90  $CDIR/$CONFIG/MY_SRC/.
+
+Copy in changes to harmonic analysis and tidal processing::
+
+  cp $START_FILES/dommsk.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/bdyini.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/tideini.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/tide_mod.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/tide_FES14.h90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/step_oce.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/step.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/sbctide.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/diaharm_fast.F90    $CDIR/$CONFIG/MY_SRC/.
 
 Build ::
 
@@ -314,7 +339,8 @@ Link to the tide data ::
 
   ln -s $INPUTS $EXP/bdydta
 
-Edit the namelist_cfg file.
+Edit the namelist_cfg file. **Note additions for key_diaharm_fast** `<FES2014_NEMO.rst>_`
+Also note additional love number ``dn_love_number``
 (chanage the lateral diffusion to laplacian = 25) ::
 
   !-----------------------------------------------------------------------
@@ -420,6 +446,7 @@ Edit the namelist_cfg file.
      ln_tide     = .true.
      ln_tide_ramp = .true.
      rdttideramp =    0.166 # 4 hours
+     dn_love_number = 0.69
      clname(1)     =   'M2'   !  name of constituent
      clname(2)     =   'S2'
      clname(3)     =   'K2'
@@ -443,7 +470,7 @@ Edit the namelist_cfg file.
   !-----------------------------------------------------------------------
   &nambdy_tide     ! tidal forcing at open boundaries
   !-----------------------------------------------------------------------
-     filtide      = 'bdydta/Solent_bdytide_rotT_'         !  file name root of tidal forcing files
+     filtide      = 'bdydta/FES/Solent_bdytide_rotT_'         !  file name root of tidal forcing files
      ln_bdytide_2ddta = .false.
   /
   !-----------------------------------------------------------------------
@@ -520,6 +547,21 @@ Edit the namelist_cfg file.
       tname(3)   = 'K2'
   /
   !-----------------------------------------------------------------------
+  &nam_diaharm_fast   !   Harmonic analysis of tidal constituents               ("key_diaharm_fast")
+  !-----------------------------------------------------------------------
+      ln_diaharm_store = .false.
+      ln_diaharm_compute = .false.
+      ln_diaharm_read_restart = .false.
+      ln_ana_ssh   = .true.
+      ln_ana_uvbar = .false.
+      ln_ana_bfric = .false.
+      ln_ana_rho  = .false.
+      ln_ana_uv3d = .false.
+      ln_ana_w3d  = .false.
+      tname(1) = 'O1',
+      tname(2) = 'M2',
+  /
+  !-----------------------------------------------------------------------
   &namwad       !   Wetting and Drying namelist
   !-----------------------------------------------------------------------
      ln_wd = .false.   !: key to turn on/off wetting/drying (T: on, F: off)
@@ -541,16 +583,37 @@ Edit to have 1 hr SSH output ::
    <file id="file19" name_suffix="_SSH" description="ocean T grid variables" >
      <field field_ref="ssh"          name="zos"      operation="instant"   />
    </file>
+  </file_group>
 
-   <file id="file20" name_suffix="_Tides" description="tidal harmonics" >
-     <field field_ref="K2x"          name="K2x"      long_name="K2 Elevation harmonic real part"                       />
-     <field field_ref="K2y"          name="K2y"      long_name="K2 Elevation harmonic imaginary part"                  />
-     <field field_ref="M2x"          name="M2x"      long_name="M2 Elevation harmonic real part"                       />
-     <field field_ref="M2y"          name="M2y"      long_name="M2 Elevation harmonic imaginary part"                  />
-     <field field_ref="S2x"          name="S2x"      long_name="S2 Elevation harmonic real part"                       />
-     <field field_ref="S2y"          name="S2y"      long_name="S2 Elevation harmonic imaginary part"                  />
+  <file_group id="tidal_harmonics" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 1d files -->
+    <file id="tidalanalysis.grid_T" name="harmonic_grid_T" description="ocean T grid variables"  enabled=".TRUE.">
+      <field field_ref="O1amp_ssh" name="O1amp_ssh"       operation="instant" enabled=".TRUE." />
+      <field field_ref="O1pha_ssh" name="O1pha_ssh"     operation="instant" enabled=".TRUE." />
+      <field field_ref="M2amp_ssh" name="M2amp_ssh"       operation="instant" enabled=".TRUE." />
+      <field field_ref="M2pha_ssh" name="M2pha_ssh"     operation="instant" enabled=".TRUE." />
     </file>
-   </file_group>
+
+    <!-- OUTPUT HARMONIC 2D U FIELDS -->
+    <file id="tidalanalysis.grid_U" name="harmonic_grid_U" description="ocean U grid variables"  enabled=".TRUE.">
+          <field id="O1amp_u2d"    long_name="O1 u2D harmonic Amplitude"     unit="m/s"      />
+          <field id="O1pha_u2d"    long_name="O1 u2D harmonic Phase"         unit="m/s"      />
+          <field id="M2amp_u2d"    long_name="M2 u2D harmonic Amplitude"     unit="m/s"      />
+          <field id="M2pha_u2d"    long_name="M2 u2D harmonic Phase"         unit="m/s"      />
+    </file>
+
+    <!-- OUTPUT HARMONIC 2D V FIELDS -->
+    <file id="tidalanalysis.grid_V" name="harmonic_grid_V" description="ocean V grid variables"  enabled=".TRUE.">
+          <field id="O1amp_v2d"     long_name="O1 v2D harmonic Amplitude"     unit="m/s"      />
+          <field id="O1pha_v2d"     long_name="O1 v2D harmonic Phase"         unit="m/s"      />
+          <field id="M2amp_v2d"     long_name="M2 v2D harmonic Amplitude"     unit="m/s"      />
+          <field id="M2pha_v2d"     long_name="M2 v2D harmonic Phase"         unit="m/s"      />
+    </file>
+  </file_group>
+
+
+Get field_def_nemo-opa.xml::
+
+  cp $START_FILES/field_def_nemo-opa.xml $EXP/.
 
 Ensure that file_def_nemo.xml is pointed to ::
 
@@ -624,101 +687,23 @@ Submit the job ::
 
 ---
 
-progress
-+++++++++
+starting
+++++++++
 
-rn_rdt=1
-ahm=25
-kt = 252
-
-stp_ctl : the ssh is larger than 10m
-=======
-kt=   252 max ssh:   10.42    , i j:  2400 1086
-
-rn_rdt=1
-ahm=60
-
-stpctl: the zonal velocity is larger than 20 m/s
-======
-kt=    48 max abs(U):   23.62    , i j k:  2404 1083    2
-
-
-rn_rdt=1
-ahm=10
-
-Runs 1hr( (3600steps) in about 10mins.
-Run again with 1hrly output for 6 hours nt=21600 (1hr walltime)
-
-stp_ctl : the ssh is larger than 10m
-=======
-kt=  9507 max ssh:   10.02    , i j:   190  502
-
-
-Got two hours out with SSH fields.
-Rebuild on 96 processors - something numerical happens west of Hurst in open water.
-
-**Plan** generate a restart and fiddle with viscosity parameters.
-
-Run for 9500 to generate a restart 25mins walltime.
-
-*(11 June)*
-restart
-biharm + laplacian? - No. Use one or none.
-
-rn_ahm_0 = 1.
-
-SSH2 seems to go down. Run for 2hours and see if the currents are better. (Was
-getting 3.9m/s downstream of Hurst point, to west, with ahm_0 = 10
-
-stp_ctl : the ssh is larger than 10m
-=======
-kt=  3969 max ssh:   10.66    , i j:  1273  120
-
-
-Try restoring laplacian diffusion ramping up the tides instead.
-Run for 4 hours. Ramp up over 4 hours
-
+Increase bottom friction by 10
+rn_brfi2 = 2.3e-2
+rn_rdt = 1.
+rn_ahm_0     = 10.0
 ln_tide_ramp = .true.
 rdttideramp =    0.1666
-rn_ahm_0 = 10.
-rn_rdt = 1.
-
-This worked and ran out to 4hrs (14400 steps).
-
-Restart and run for 14400 more hours. (no tidal ramp).
-
-stp_ctl : the ssh is larger than 10m
-=======
-kt= 27929 max ssh:   10.27    , i j:  1308  121
-
-*2 June 2018*
-Ooo just missed finishing.
-Try increasing the bottom friction (from 2.4e-3 to 3.e-3)
-
-rn_bfri2    =    3.e-3 ! 2.4e-3 !  bottom drag coefficient (non linear case)
-
-restart from 21600. Two hours on short queue.
-
-stp_ctl : the ssh is larger than 10m
-=======
-kt= 28641 max ssh:   10.15    , i j:  1308  120
-
-
-Try increasing bottom friction some more:
-rn_bfri2    =    4.e-3 !  bottom drag coefficient (non linear case)
-
-restart from 21600. Two hours on short queue.
-
-Will blow up.
-
-Increase friction by 10
-2.3e-2
 Cold start.
 
 Worked ran to 7200.
 Retarted. Ran and past peak in vel2 and sum(ssh2).
+nt = 14400
 
 Restart for a long run and leave.
+ln_tide_ramp = .true.
 
 13 hours in 6 x 20mins + 10mins = 2 hours 10mins
 
