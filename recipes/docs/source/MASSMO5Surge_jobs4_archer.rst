@@ -303,11 +303,11 @@ for your desired domain setup. Here we use a 3 level s-coordinate set up ::
     !                       !
     cp_cfg      =  "orca"   !  name of the configuration
     jp_cfg      =    36   !  resolution of the configuration
-    jpidta      =    3339   !  1st lateral dimension ( >= jpi )
-    jpjdta      =    2670   !  2nd    "         "    ( >= jpj )
+    jpidta      =    664   !  1st lateral dimension ( >= jpi )
+    jpjdta      =    454   !  2nd    "         "    ( >= jpj )
     jpkdta      =       3   !  number of levels      ( >= jpk )
-    jpiglo      =    3339   !  1st dimension of global domain --> i =jpidta
-    jpjglo      =    2670   !  2nd    -                  -    --> j  =jpjdta
+    jpiglo      =    664   !  1st dimension of global domain --> i =jpidta
+    jpjglo      =    454   !  2nd    -                  -    --> j  =jpjdta
     jpizoom     =       1   !  left bottom (i,j) indices of the zoom
     jpjzoom     =       1   !  in data domain indices
     jperio      =       0   !  lateral cond. type (between 0 and 6)
@@ -371,7 +371,7 @@ Build executable::
 
   cp $WORK/$USER/ARCH/arch-XC_ARCHER_INTEL_XIOS1.fcm $CDIR/../ARCH/.
 
-To get the new option to work I have copied a file into ``src``. This will
+To get the new melange coordinates option to work I have copied a file into ``src``. This will
 eventually be in the trunk but for now::
 
   cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/TOOLS/DOMAINcfg/src/domzgr.f90.jelt $TDIR/DOMAINcfg/src/domzgr.f90
@@ -452,6 +452,8 @@ used. This is because this old version of PyNEMO didn't anticipate tide-only usa
 
   cp ../../SEAsia/INPUTS/mesh_?gr_src.nc $INPUTS/.
   cp ../../SEAsia/INPUTS/mask_src.nc $INPUTS/.
+  cp ../../SEAsia/INPUTS/inputs_dst.ncml $INPUTS/.
+  cp ../../SEAsia/INPUTS/cut_inputs_src.ncml $INPUTS/.
 
 
 If I don't make a boundary mask then it doesn't work... This can also be done with
@@ -629,6 +631,7 @@ Generate the boundary conditions with PyNEMO
   source activate nrct_env
   cd $INPUTS
   export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+  export PYTHONPATH=/login/$USER/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
 
   pynemo -s namelist.bdy
 
