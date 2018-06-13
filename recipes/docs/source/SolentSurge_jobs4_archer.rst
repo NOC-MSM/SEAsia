@@ -587,26 +587,32 @@ Edit to have 1 hr SSH output ::
 
   <file_group id="tidal_harmonics" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 1d files -->
     <file id="tidalanalysis.grid_T" name="harmonic_grid_T" description="ocean T grid variables"  enabled=".TRUE.">
-      <field field_ref="O1amp_ssh" name="O1amp_ssh"       operation="instant" enabled=".TRUE." />
-      <field field_ref="O1pha_ssh" name="O1pha_ssh"     operation="instant" enabled=".TRUE." />
+      <field field_ref="S2amp_ssh" name="S2amp_ssh"       operation="instant" enabled=".TRUE." />
+      <field field_ref="S2pha_ssh" name="S2pha_ssh"     operation="instant" enabled=".TRUE." />
       <field field_ref="M2amp_ssh" name="M2amp_ssh"       operation="instant" enabled=".TRUE." />
       <field field_ref="M2pha_ssh" name="M2pha_ssh"     operation="instant" enabled=".TRUE." />
+      <field field_ref="K2amp_ssh" name="K2amp_ssh"       operation="instant" enabled=".TRUE." />
+      <field field_ref="K2pha_ssh" name="K2pha_ssh"     operation="instant" enabled=".TRUE." />
     </file>
 
     <!-- OUTPUT HARMONIC 2D U FIELDS -->
     <file id="tidalanalysis.grid_U" name="harmonic_grid_U" description="ocean U grid variables"  enabled=".TRUE.">
-          <field id="O1amp_u2d"    long_name="O1 u2D harmonic Amplitude"     unit="m/s"      />
-          <field id="O1pha_u2d"    long_name="O1 u2D harmonic Phase"         unit="m/s"      />
+          <field id="S2amp_u2d"    long_name="S2 u2D harmonic Amplitude"     unit="m/s"      />
+          <field id="S2pha_u2d"    long_name="S2 u2D harmonic Phase"         unit="m/s"      />
           <field id="M2amp_u2d"    long_name="M2 u2D harmonic Amplitude"     unit="m/s"      />
           <field id="M2pha_u2d"    long_name="M2 u2D harmonic Phase"         unit="m/s"      />
+          <field id="K2amp_u2d"    long_name="K2 u2D harmonic Amplitude"     unit="m/s"      />
+          <field id="K2pha_u2d"    long_name="K2 u2D harmonic Phase"         unit="m/s"      />
     </file>
 
     <!-- OUTPUT HARMONIC 2D V FIELDS -->
     <file id="tidalanalysis.grid_V" name="harmonic_grid_V" description="ocean V grid variables"  enabled=".TRUE.">
-          <field id="O1amp_v2d"     long_name="O1 v2D harmonic Amplitude"     unit="m/s"      />
-          <field id="O1pha_v2d"     long_name="O1 v2D harmonic Phase"         unit="m/s"      />
+          <field id="S2amp_v2d"     long_name="S2 v2D harmonic Amplitude"     unit="m/s"      />
+          <field id="S2pha_v2d"     long_name="S2 v2D harmonic Phase"         unit="m/s"      />
           <field id="M2amp_v2d"     long_name="M2 v2D harmonic Amplitude"     unit="m/s"      />
           <field id="M2pha_v2d"     long_name="M2 v2D harmonic Phase"         unit="m/s"      />
+          <field id="K2amp_v2d"     long_name="K2 v2D harmonic Amplitude"     unit="m/s"      />
+          <field id="K2pha_v2d"     long_name="K2 v2D harmonic Phase"         unit="m/s"      />
     </file>
   </file_group>
 
