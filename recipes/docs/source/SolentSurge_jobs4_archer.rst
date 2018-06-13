@@ -278,13 +278,22 @@ Copy to EXP directory and also change permissions to ensure readable to others :
 5) Generate boundary conditions
 ===============================
 
-I'm going to skip this. Assuming that the files I've already generated are OK...
+This is done for TPXO and FES data.
+
+These were generated using TPXO data previously
 ::
 
-  rsync -utv /work/n01/n01/jelt/Solent/INPUTS/coordinates.bdy.nc $INPUTS/.
 
-  cd /work/n01/n01/jelt/Solent/INPUTS/
-  for file in Solent_*nc; do rsync -utv $file $INPUTS/$file ; done
+  livljobs4
+  cd /work/jelt/NEMO/Solent/INPUTS
+  rsync -utv coordinates.bdy.nc $USER@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/.
+
+  cd TPXO
+  for file in Solent_*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/TPXO/$file ; done
+
+  cd ../FES
+  for file in Solent_*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/FES/$file ; done
+
 
 
 
@@ -409,7 +418,8 @@ Edit the namelist_cfg file.
   &nam_tide      !   tide parameters
   !-----------------------------------------------------------------------
      ln_tide     = .true.
-     rdttideramp =    1.
+     ln_tide_ramp = .true.
+     rdttideramp =    0.166 # 4 hours
      clname(1)     =   'M2'   !  name of constituent
      clname(2)     =   'S2'
      clname(3)     =   'K2'
