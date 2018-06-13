@@ -637,34 +637,6 @@ Generate the boundary conditions with PyNEMO
 
 
 **THIS FELL OVER HERE**
-.. note:
-
-  Didn't find a proxy environment variable
-  tide_src:  FES
-  INFO:pynemo.profile:START
-  INFO:pynemo.profile:0.0
-  INFO:pynemo.profile:0.0
-  INFO:pynemo.profile:ice = False
-  INFO:pynemo.profile:Done Setup
-  INFO:pynemo.profile:Using input mask file
-  INFO:pynemo.profile:0.08
-  INFO:pynemo.profile:Done Mask
-  INFO:pynemo.profile:start bdy_t
-  Warning: Shape of expected 2D array: (0, 2)
-  Traceback (most recent call last):
-    File "/login/jelt/.conda/envs/nrct_env/bin/pynemo", line 11, in <module>
-      load_entry_point('pynemo==0.2', 'console_scripts', 'pynemo')()
-    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/pynemo_exe.py", line 44, in main
-      profile.process_bdy(setup_file, mask_gui)
-    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/profile.py", line 119, in process_bdy
-      grid_t = gen_grid.Boundary(bdy_msk, settings, 't')
-    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/nemo_bdy_gen_c.py", line 109, in __init__
-      bdy_i, bdy_r = self._remove_duplicate_points(bdy_i, bdy_r)
-    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/nemo_bdy_gen_c.py", line 161, in _remove_duplicate_points
-      uniqind = self._unique_rows(bdy_i2)
-    File "/login/jelt/.conda/envs/nrct_env/lib/python2.7/site-packages/pynemo-0.2-py2.7.egg/pynemo/nemo_bdy_gen_c.py", line 217, in _unique_rows
-      indx = zip(*sorted([(val, i) for i,val in enumerate(tlist)]))[1]
-  IndexError: list index out of range
 
 
 This creates::
