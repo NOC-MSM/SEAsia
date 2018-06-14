@@ -77,6 +77,15 @@ Files for improved tides and (last 2 items for) harmonic analysis::
   cp diaharm_fast.F90 $START_FILES/.
   cp /work/n01/n01/nibrun/RUNS/SWPacific/SIMU/field_def_nemo-opa.xml $START_FILES/.
 
+Add a couple of extra lines into the field_def files. This is a glitch in the surge code,
+because it doesn't expect you to not care about the winds::
+
+  vi $START_FILES/field_def_nemo-opa.xml
+  line 338
+  <field id="wspd"         long_name="wind speed module"                     standard_name="wind_speed"                                                           unit="m/s"                            />
+  <field id="uwnd"         long_name="u component of wind"       unit="m/s"         />
+  <field id="vwnd"         long_name="v component of wind"       unit="m/s"        />
+
 Load modules ::
 
   module swap PrgEnv-cray PrgEnv-intel
@@ -115,7 +124,8 @@ Check compile flags (add new harmonic analysis and tide handling flags)::
 
   vi $CDIR/$CONFIG/cpp_$CONFIG.fcm
 
-  bld::tool::fppkeys  key_nosignedzero key_diainstant key_mpp_mpi key_iomput key_diaharm_fast key_FES14_tides
+  bld::tool::fppkeys  key_nosignedzero key_diainstant key_mpp_mpi key_iomput \
+                      key_diaharm_fast key_FES14_tides
 
 Minor edit to solver.stat output::
 
@@ -305,7 +315,7 @@ Copy to EXP directory and also change permissions to ensure readable to others :
 
 This is done for TPXO and FES data.
 
-These were generated using TPXO data previously
+(There is a bit of confusion about directory names beig Solent or Solent_surge)
 ::
 
 
@@ -558,8 +568,9 @@ Also note additional love number ``dn_love_number``
       ln_ana_rho  = .false.
       ln_ana_uv3d = .false.
       ln_ana_w3d  = .false.
-      tname(1) = 'O1',
-      tname(2) = 'M2',
+      tname(1) = 'M2'
+      tname(2) = 'S2'
+      tname(3) = 'K2'
   /
   !-----------------------------------------------------------------------
   &namwad       !   Wetting and Drying namelist
@@ -708,7 +719,7 @@ tides, then there is the run with 5 min frequency SSH, ubar and vbar output.
 * Spin up
 
 nn_it000    =  1   !  first time step
-nn_itend    =  14400
+nn_itend    =  7200
 ln_restart = F
 Increase bottom friction by 10
 rn_brfi2 = 2.3e-2
@@ -748,7 +759,7 @@ cp $START_FILES/field_def_nemo-opa.xml $EXP/.
 * Spin up
 
 nn_it000    =  1   !  first time step
-nn_itend    =  14400
+nn_itend    =  7200
 ln_restart = F
 Increase bottom friction by 10
 rn_brfi2 = 2.3e-2
@@ -759,5 +770,39 @@ rdttideramp =    0.1666
 filtide      = 'bdydta/FES/Solent_bdytide_rotT_'
 
 
+Try a cold start with no tide ramp.
+Keep the ramp. You do get spikes o/w
+
+7200 takes just over 20mins. Does not complete restart output.
+
+Double spin up and put on longer queue
+
+nn_it000    =  1   !  first time step
+nn_itend    =  14400
+ln_restart = F
+Increase bottom friction by 10
+rn_brfi2 = 2.3e-2
+rn_rdt = 1.
+rn_ahm_0     = 10.0
+ln_tide_ramp = .true.
+rdttideramp =    0.1666
+filtide      = 'bdydta/FES/Solent_bdytide_rotT_'
+
+Submit on 1hr queue.
+**HERE**
+
+
+* Production run
+
+13 hours in 6 x 20mins + 10mins = 2 hours 10mins
+14401 --> 14400 + 46,800 = 61200
+
+
+
+
+
+
 Check changes to namelist_cfg
- **PENDING**
+
+ Can no longer get it to run. Problem with the new code in surge mode?
+ Tried recompiling without diaharm_fast --> current opa
