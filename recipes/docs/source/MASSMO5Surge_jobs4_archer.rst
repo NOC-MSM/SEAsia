@@ -79,6 +79,29 @@ Get some required files ::
   cp $WORK/jelt/LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
   cp $WORK/jelt/LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
 
+Files for improved tides and (last 2 items for) harmonic analysis::
+
+  cd /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC
+  #cp bdyini.F90 $START_FILES/. # Already have this file
+  cp step.F90 $START_FILES/.
+  cp step_oce.F90 $START_FILES/.
+  cp tideini.F90 $START_FILES/.
+  cp tide_FES14.h90 $START_FILES/.
+  cp sbctide.F90 $START_FILES/.
+  cp tide_mod.F90 $START_FILES/.
+  #cp bdytides.F90 $START_FILES/.
+  cp diaharm_fast.F90 $START_FILES/.
+  cp /work/n01/n01/nibrun/RUNS/SWPacific/SIMU/field_def_nemo-opa.xml $START_FILES/.
+
+Add a couple of extra lines into the field_def files. This is a glitch in the surge code,
+because it doesn't expect you to not care about the winds::
+
+  vi $START_FILES/field_def_nemo-opa.xml
+  line 338
+  <field id="wspd"         long_name="wind speed module"                     standard_name="wind_speed"                                                           unit="m/s"                            />
+  <field id="uwnd"         long_name="u component of wind"       unit="m/s"         />
+  <field id="vwnd"         long_name="v component of wind"       unit="m/s"        />
+
 Load modules ::
 
   module swap PrgEnv-cray PrgEnv-intel
@@ -113,15 +136,29 @@ If build finished then jump to next section. If build failed try ::
 
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10 clean
 
-Check compile flags ::
+Check compile flags (add new harmonic analysis and tide handling flags)::
 
   vi $CONFIG/cpp_$CONFIG.fcm
 
-  bld::tool::fppkeys  key_nosignedzero key_diainstant key_mpp_mpi key_iomput
+  bld::tool::fppkeys  key_nosignedzero key_diainstant key_mpp_mpi key_iomput \
+                      key_diaharm_fast key_FES14_tides
+
 
 Minor edit to solver.stat output::
 
   cp $START_FILES/stpctl.F90  $CDIR/$CONFIG/MY_SRC/.
+
+Copy in changes to harmonic analysis and tidal processing::
+
+  cp $START_FILES/dommsk.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/bdyini.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/tideini.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/tide_mod.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/tide_FES14.h90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/step_oce.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/step.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/sbctide.F90  $CDIR/$CONFIG/MY_SRC/.
+  cp $START_FILES/diaharm_fast.F90    $CDIR/$CONFIG/MY_SRC/.
 
 Build ::
 
@@ -771,8 +808,8 @@ Link to the tide data ::
 
   ln -s $INPUTS $EXP/bdydta
 
-Edit the namelist_cfg file.
-(chanage the lateral diffusion to laplacian = 25) ::
+Edit the namelist_cfg file. **Note additions for key_diaharm_fast** `<FES2014_NEMO.rst>_`
+Also note additional love number ``dn_love_number`` ::
 
   !-----------------------------------------------------------------------
   &namrun        !   parameters of the run
@@ -877,6 +914,7 @@ Edit the namelist_cfg file.
      ln_tide     = .true.
      ln_tide_ramp = .true.
      rdttideramp =    0.1666  ! 4 hours
+     dn_love_number = 0.69
      clname(1)     =   'M2'   !  name of constituent
      clname(2)     =   'S2'
      clname(3)     =   'K2'
@@ -977,6 +1015,22 @@ Edit the namelist_cfg file.
       tname(3)   = 'K2'
   /
   !-----------------------------------------------------------------------
+  &nam_diaharm_fast   !   Harmonic analysis of tidal constituents               ("key_diaharm_fast")
+  !-----------------------------------------------------------------------
+      ln_diaharm_store = .false.
+      ln_diaharm_compute = .false.
+      ln_diaharm_read_restart = .false.
+      ln_ana_ssh   = .true.
+      ln_ana_uvbar = .false.
+      ln_ana_bfric = .false.
+      ln_ana_rho  = .false.
+      ln_ana_uv3d = .false.
+      ln_ana_w3d  = .false.
+      tname(1) = 'M2'
+      tname(2) = 'S2'
+      tname(3) = 'K2'
+  /
+  !-----------------------------------------------------------------------
   &namwad       !   Wetting and Drying namelist
   !-----------------------------------------------------------------------
      ln_wd = .false.   !: key to turn on/off wetting/drying (T: on, F: off)
@@ -993,21 +1047,49 @@ Edit the namelist_cfg file.
 Edit to have 1 hr SSH output ::
 
   vi file_def_nemo.xml
-  ...
-  <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 1h files -->
-   <file id="file19" name_suffix="_SSH" description="ocean T grid variables" >
-     <field field_ref="ssh"          name="zos"      operation="instant"   />
-   </file>
-
-   <file id="file20" name_suffix="_Tides" description="tidal harmonics" >
-     <field field_ref="K2x"          name="K2x"      long_name="K2 Elevation harmonic real part"                       />
-     <field field_ref="K2y"          name="K2y"      long_name="K2 Elevation harmonic imaginary part"                  />
-     <field field_ref="M2x"          name="M2x"      long_name="M2 Elevation harmonic real part"                       />
-     <field field_ref="M2y"          name="M2y"      long_name="M2 Elevation harmonic imaginary part"                  />
-     <field field_ref="S2x"          name="S2x"      long_name="S2 Elevation harmonic real part"                       />
-     <field field_ref="S2y"          name="S2y"      long_name="S2 Elevation harmonic imaginary part"                  />
+    ...
+    <file_definition type="one_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="10d" min_digits="4">
+    ...
+    <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 1h files -->
+     <file id="file120" name_suffix="_SSH" description="ocean T grid variables" >
+      <field field_ref="ssh"          name="zos" operation="instant"     />
+     </file>
+    </file_group>
+  <!--
+    <file_group id="tidal_harmonics" output_freq="1h"  output_level="10" enabled=".TRUE.">
+    <file id="tidalanalysis.grid_T" name="harmonic_grid_T" description="ocean T grid variables"  enabled=".TRUE.">
+      <field field_ref="S2amp_ssh" name="S2amp_ssh"       operation="instant" enabled=".TRUE." />
+      <field field_ref="S2pha_ssh" name="S2pha_ssh"     operation="instant" enabled=".TRUE." />
+      <field field_ref="M2amp_ssh" name="M2amp_ssh"       operation="instant" enabled=".TRUE." />
+      <field field_ref="M2pha_ssh" name="M2pha_ssh"     operation="instant" enabled=".TRUE." />
+      <field field_ref="K2amp_ssh" name="K2amp_ssh"       operation="instant" enabled=".TRUE." />
+      <field field_ref="K2pha_ssh" name="MKpha_ssh"     operation="instant" enabled=".TRUE." />
     </file>
-   </file_group>
+    <file id="tidalanalysis.grid_U" name="harmonic_grid_U" description="ocean U grid variables"  enabled=".TRUE.">
+          <field id="S2amp_u2d"    long_name="S2 u2D harmonic Amplitude"     unit="m/s"      />
+          <field id="S2pha_u2d"    long_name="S2 u2D harmonic Phase"         unit="m/s"      />
+          <field id="M2amp_u2d"    long_name="M2 u2D harmonic Amplitude"     unit="m/s"      />
+          <field id="M2pha_u2d"    long_name="M2 u2D harmonic Phase"         unit="m/s"      />
+          <field id="K2amp_u2d"    long_name="K2 u2D harmonic Amplitude"     unit="m/s"      />
+          <field id="K2pha_u2d"    long_name="K2 u2D harmonic Phase"         unit="m/s"      />
+    </file>
+    <file id="tidalanalysis.grid_V" name="harmonic_grid_V" description="ocean V grid variables"  enabled=".TRUE.">
+          <field id="S2amp_v2d"     long_name="S2 v2D harmonic Amplitude"     unit="m/s"      />
+          <field id="S2pha_v2d"     long_name="S2 v2D harmonic Phase"         unit="m/s"      />
+          <field id="M2amp_v2d"     long_name="M2 v2D harmonic Amplitude"     unit="m/s"      />
+          <field id="M2pha_v2d"     long_name="M2 v2D harmonic Phase"         unit="m/s"      />
+          <field id="K2amp_v2d"     long_name="K2 v2D harmonic Amplitude"     unit="m/s"      />
+          <field id="K2pha_v2d"     long_name="K2 v2D harmonic Phase"         unit="m/s"      />
+    </file>
+    </file_group>
+  -->
+      ...
+
+   </file_definition>
+
+Get field_def_nemo-opa.xml::
+
+ cp $START_FILES/field_def_nemo-opa.xml $EXP/.
 
 Ensure that file_def_nemo.xml is pointed to ::
 
@@ -1086,16 +1168,88 @@ progress
 H = 3.3km --> sqrt(g*H) = 182 m/s
 dx = 3km -->  rn_rdt = 16.5
 
-
-ln_tide_ramp = .true.
-rdttideramp =    1.
-rn_bfri2 = 2.4e-2 ! increased by 10
-
-
 Try
 rn_rdt = 50 --> blows up
 rn_rdt = 15 so that 7200 is just more than 1 day (ramp length)
 
+
+* Spin up
+
+nn_it000    = 1   !  first time step
+nn_itend    = 28800 ! 5 days
+ln_restart = F
+
+ln_tide_ramp = .false.
+rdttideramp =    1.
+rn_bfri2 = 2.4e-2 ! increased by 10
+ln_dynldf_blp  =  .true.   !  bilaplacian operator
+rn_bhm_0     = -1.0e+9   !  horizontal bilaplacian eddy viscosity [m4/s]
+
+* Production run (changes)
+
+nn_it000    = 28801   !  first time step
+nn_itend    = 144000  ! plus 20 days
+ln_restart = .true.
+ln_tide_ramp = .false.
+
+
 WORKS.
 
+20days in 18:50 mins
+
+Add in some extra harmonics::
+
+  vi namelist_cfg
+
+  !-----------------------------------------------------------------------
+  &nam_tide      !   tide parameters
+  !-----------------------------------------------------------------------
+    ...
+    clname(1) ='2N2'
+    clname(2)='EPS2'
+    clname(3)='J1'
+    clname(4)='K1'
+    clname(5)='K2'
+    clname(6)='L2'
+    clname(7)='LA2'
+    clname(8)='M2'
+    clname(9)='M3'
+    clname(10)='M4'
+    clname(11)='M6'
+    clname(12)='M8'
+    clname(13)='MF'
+    clname(14)='MKS2'
+    clname(15)='MM'
+    clname(16)='MN4'
+    clname(17)='MS4'
+    clname(18)='MSF'
+    clname(19)='MSQM'
+    clname(20)='MTM'
+    clname(21)='MU2'
+    clname(22)='N2'
+    clname(23)='N4'
+    clname(24)='NU2'
+    clname(25)='O1'
+    clname(26)='P1'
+    clname(27)='Q1'
+    clname(28)='R2'
+    clname(29)='S1'
+    clname(30)='S2'
+    clname(31)='S4'
+    clname(32)='SA'
+    clname(33)='SSA'
+    clname(34)='T2'
+
+Test extra harmonics::
+
+  nn_it000    = 1   !  first time step
+  nn_itend    = 144000     !  last  time step (for dt = 6 min, 240*dt = 1 day)
+  ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
+    cn_ocerst_in    = "MASSMO5_surge_00144000_restart"   !  suffix of ocean restart name (input)
+  nn_stock    =  72000  ! 9500    !  frequency of creation of a restart file (modulo referenced to 1)
+  nn_write    =  72000  ! 9500    !  frequency of write in the output file   (modulo referenced to nit000)
+  ln_tide_ramp = .false.
+
+
+qsub -q short runscript
 **PENDING**
