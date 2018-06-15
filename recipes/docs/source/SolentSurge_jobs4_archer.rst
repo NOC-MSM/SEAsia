@@ -797,7 +797,7 @@ ran in 41 mins 14400s
 14401 --> 14400 + 46,800 = 61200
 
 nn_it000    = 14401   !  first time step
-nn_itend    = 61200     !  last  time step (for dt = 6 min, 240*dt = 1 day)
+nn_itend    = 61200     !  last  time step (for dt = 6 min, 240.dt = 1 day)
 nn_date0    =  20130101 !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
 nn_time0    =       0   !  initial time of day in hhmm
 nn_leapy    =       1   !  Leap year calendar (1) or not (0)
@@ -825,7 +825,8 @@ completed in 2hr 17::
   Solent_surge_1h_20130101_20130101_SSH.nc
 
 
-Check changes to namelist_cfg
+Plot animation with ``Solent_SSH_anim_zoom.py``
 
- Can no longer get it to run. Problem with the new code in surge mode?
- Tried recompiling without diaharm_fast --> current opa
+**TO-DO**
+
+* Check changes to namelist_cfg
