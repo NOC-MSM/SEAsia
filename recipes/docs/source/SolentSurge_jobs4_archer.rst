@@ -39,7 +39,7 @@ Login to Archer ::
 
 Create file 'temporary_path_names_for_NEMO_build_surge' and add the following ::
 
-  export CONFIG=EAFRICA_SURGE
+  export CONFIG=Solent_surge
   export WORK=/work/n01/n01
   export WDIR=/work/n01/n01/$USER/$CONFIG
   export INPUTS=$WDIR/INPUTS
@@ -789,17 +789,40 @@ rdttideramp =    0.1666
 filtide      = 'bdydta/FES/Solent_bdytide_rotT_'
 
 Submit on 1hr queue.
-**HERE**
-
+ran in 41 mins 14400s
 
 * Production run
 
 13 hours in 6 x 20mins + 10mins = 2 hours 10mins
 14401 --> 14400 + 46,800 = 61200
 
+nn_it000    = 14401   !  first time step
+nn_itend    = 61200     !  last  time step (for dt = 6 min, 240*dt = 1 day)
+nn_date0    =  20130101 !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+nn_time0    =       0   !  initial time of day in hhmm
+nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+ln_rstart   =  .true.  !  start from rest (F) or from a restart file (T)
+ln_tide_ramp = .false.
 
 
+::
 
+  vi file_def_nemo.xml
+  ...
+  <file_group id="5mi" output_freq="5mi"  output_level="10" enabled=".TRUE." >
+   <file id="file19" name_suffix="_5min" description="ocean T,U,V grid variables" >
+    <field field_ref="ssh"          name="zos" operation="instant"     />
+    <field field_ref="ubar"         name="ubar" operation="instant"     />
+    <field field_ref="vbar"         name="vbar" operation="instant"     />
+   </file>
+  </file_group>
+
+Submit for 3hours
+
+completed in 2hr 17::
+
+  Solent_surge_5mi_20130101_20130101_5min.nc
+  Solent_surge_1h_20130101_20130101_SSH.nc
 
 
 Check changes to namelist_cfg
