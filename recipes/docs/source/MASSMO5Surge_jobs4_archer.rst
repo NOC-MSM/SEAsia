@@ -801,6 +801,35 @@ Copy the new files back onto ARCHER::
   #for file in $CONFIG*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
   for file in MASSMO5*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
 
+.. This didn't work :
+  rsync -uvt bdy_mask.nc $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/bdy_mask.nc
+
+  Change the mask variable name::
+
+    module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+    module load cray-netcdf cray-hdf5
+
+    module load nco/4.5.0
+    ncrename -h -v mask,bdy_msk bdy_mask.nc bdy_msk.nc
+
+  Restore original modules ::
+
+    module unload nco cray-netcdf cray-hdf5
+    module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+
+  In ipython add land behined the corner::
+
+    ipython
+    import netCDF4, numpy
+    dset = netCDF4.Dataset('bdy_msk.nc','a')
+    ny,nx = numpy.shape(dset.variables['bdy_msk'][:])
+    [x1,y1] = [501, ny] # note plus one index from bdy mask
+    [x2,y2] = [nx, 301] # note plus one index from bdy mask
+    for i in range(x1,nx):
+      for j in range(y2,ny):
+        if j*(x2-x1) + i*(y1-y2) -y1*x2+y2*x1 > 0:
+          dset.variables['bdy_msk'][j,i] = 0
+    dset.close()
 
 
 6) Running model with tidal forcing at the boundaries on ARCHER
@@ -812,6 +841,11 @@ Copy files to EXP directory ::
   rsync -tuv $INPUTS/bathy_meter.nc $EXP/.
   rsync -tuv $INPUTS/coordinates.nc $EXP/.
   rsync -tuv $INPUTS/coordinates.bdy.nc $EXP/.
+
+.. This masking the corner thing didnt work:
+
+  rsync -tuv $INPUTS/bdy_mask.nc $EXP/bdy_mask.nc
+
 
 .. note : Hmm I'm sure I don't need to copy bathy_meter.nc to EXP
 
@@ -918,7 +952,6 @@ Also note additional love number ``dn_love_number`` ::
   !   rn_shlat    =     0     !  shlat = 0  !  0 < shlat < 2  !  shlat = 2  !  2 < shlat
                              !  free slip  !   partial slip  !   no slip   ! strong slip
   /
-
   !-----------------------------------------------------------------------
   &nam_tide      !   tide parameters
   !-----------------------------------------------------------------------
@@ -926,9 +959,40 @@ Also note additional love number ``dn_love_number`` ::
      ln_tide_ramp = .true.
      rdttideramp =    0.1666  ! 4 hours
      dn_love_number = 0.69
-     clname(1)     =   'M2'   !  name of constituent
-     clname(2)     =   'S2'
-     clname(3)     =   'K2'
+     clname(1) ='2N2'
+     clname(2)='EPS2'
+     clname(3)='J1'
+     clname(4)='K1'
+     clname(5)='K2'
+     clname(6)='L2'
+     clname(7)='LA2'
+     clname(8)='M2'
+     clname(9)='M3'
+     clname(10)='M4'
+     clname(11)='M6'
+     clname(12)='M8'
+     clname(13)='MF'
+     clname(14)='MKS2'
+     clname(15)='MM'
+     clname(16)='MN4'
+     clname(17)='MS4'
+     clname(18)='MSF'
+     clname(19)='MSQM'
+     clname(20)='MTM'
+     clname(21)='MU2'
+     clname(22)='N2'
+     clname(23)='N4'
+     clname(24)='NU2'
+     clname(25)='O1'
+     clname(26)='P1'
+     clname(27)='Q1'
+     clname(28)='R2'
+     clname(29)='S1'
+     clname(30)='S2'
+     clname(31)='S4'
+     clname(32)='SA'
+     clname(33)='SSA'
+     clname(34)='T2'
   /
   !-----------------------------------------------------------------------
   &nambdy        !  unstructured open boundaries
@@ -1176,7 +1240,7 @@ Submit the job ::
 
 progress
 +++++++++
-H = 3.3km --> sqrt(g*H) = 182 m/s
+H = 3.3km --> sqrt(g.H) = 182 m/s
 dx = 3km -->  rn_rdt = 16.5
 
 Try
@@ -1184,86 +1248,35 @@ rn_rdt = 50 --> blows up
 rn_rdt = 15 so that 7200 is just more than 1 day (ramp length)
 
 
-* Spin up
-
-nn_it000    = 1   !  first time step
-nn_itend    = 28800 ! 5 days
-ln_restart = F
-
-ln_tide_ramp = .false.
-rdttideramp =    1.
-rn_bfri2 = 2.4e-2 ! increased by 10
-ln_dynldf_blp  =  .true.   !  bilaplacian operator
-rn_bhm_0     = -1.0e+9   !  horizontal bilaplacian eddy viscosity [m4/s]
-
-* Production run (changes)
-
-nn_it000    = 28801   !  first time step
-nn_itend    = 144000  ! plus 20 days
-ln_restart = .true.
-ln_tide_ramp = .false.
-
-
-WORKS.
-
-20days in 18:50 mins
-
-Add in some extra harmonics::
-
-  vi namelist_cfg
-
-  !-----------------------------------------------------------------------
-  &nam_tide      !   tide parameters
-  !-----------------------------------------------------------------------
-    ...
-    clname(1) ='2N2'
-    clname(2)='EPS2'
-    clname(3)='J1'
-    clname(4)='K1'
-    clname(5)='K2'
-    clname(6)='L2'
-    clname(7)='LA2'
-    clname(8)='M2'
-    clname(9)='M3'
-    clname(10)='M4'
-    clname(11)='M6'
-    clname(12)='M8'
-    clname(13)='MF'
-    clname(14)='MKS2'
-    clname(15)='MM'
-    clname(16)='MN4'
-    clname(17)='MS4'
-    clname(18)='MSF'
-    clname(19)='MSQM'
-    clname(20)='MTM'
-    clname(21)='MU2'
-    clname(22)='N2'
-    clname(23)='N4'
-    clname(24)='NU2'
-    clname(25)='O1'
-    clname(26)='P1'
-    clname(27)='Q1'
-    clname(28)='R2'
-    clname(29)='S1'
-    clname(30)='S2'
-    clname(31)='S4'
-    clname(32)='SA'
-    clname(33)='SSA'
-    clname(34)='T2'
-
-Test extra harmonics::
+* Spin up::
 
   nn_it000    = 1   !  first time step
-  nn_itend    = 72000     !  last  time step (for dt = 6 min, 240*dt = 1 day)
-  ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
-    cn_ocerst_in    = "MASSMO5_surge_00072000_restart"   !  suffix of ocean restart name (input)
-  nn_stock    =  72000  ! 9500    !  frequency of creation of a restart file (modulo referenced to 1)
-  nn_write    =  72000  ! 9500    !  frequency of write in the output file   (modulo referenced to nit000)
-  ln_tide_ramp = .true.
+  nn_itend    = 57600 ! 10 days
+  ln_restart = .false.
+    cn_ocerst_in    = "MASSMO5_surge_00057600_restart"   !  suffix of ocean restart name (input)
+  nn_stock    =  57600      !  frequency of creation of a restart file (modulo referenced to 1)
+  nn_write    =  57600      !  frequency of write in the output file   (modulo referenced to nit000)
 
+  ln_tide_ramp = .false.
+  rdttideramp =    1.
+  rn_bfri2 = 2.4e-2 ! increased by 10
+  ln_dynldf_blp  =  .true.   !  bilaplacian operator
+  rn_bhm_0     = -1.0e+9   !  horizontal bilaplacian eddy viscosity [m4/s]
 
-qsub -q short runscript
+12mins 51
+
+*15 June 2018*
+With the forcing cutting off the corner there ends up being two domains. One that
+I want and a bad corner, which is water, and does its own thing. Hopefully it can be
+ignored and doesn't break the simulation. Couldn't figure out how to mask it without
+changing the bathymetry.
+
+* Production run (changes) 30 days 57600 + 172,800::
+
+  nn_it000    = 57601   !  first time step
+  nn_itend    = 230400  ! plus 30 days
+  ln_restart = .true.
+  ln_tide_ramp = .false.
+
+Submit for an 1hr
 **PENDING**
-
-20mins 103831 steps.
-Didn't complete full run though did output restarts at 72000
