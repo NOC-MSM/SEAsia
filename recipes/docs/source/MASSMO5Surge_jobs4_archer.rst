@@ -499,7 +499,10 @@ used. This is because this old version of PyNEMO didn't anticipate tide-only usa
 
 If I don't make a boundary mask then it doesn't work... This can also be done with
 the PyNEMO GUI. The mask variable takes values (-1 mask, 1 wet, 0 land). Get a
-template from domain_cfg.nc and then modify as desired around the boundary::
+template from domain_cfg.nc and then modify as desired around the boundary.
+
+For this domain there was an issue with the top right corner being too near the amphidrome
+(I think) so I chopped it out here::
 
   module load nco/gcc/4.4.2.ncwa
   rm -f bdy_mask.nc tmp[12].nc
@@ -510,14 +513,22 @@ template from domain_cfg.nc and then modify as desired around the boundary::
 
 In ipython::
 
-  import netCDF4
+  import netCDF4, numpy
   dset = netCDF4.Dataset('bdy_mask.nc','a')
   dset.variables['mask'][0,:]  = -1     # Southern boundary
   dset.variables['mask'][-1,:] = -1    # Northern boundary
   dset.variables['mask'][:,-1] = -1    # Eastern boundary
   dset.variables['mask'][:,0] = -1        # Western boundary
-  dset.close()
 
+  ny,nx = numpy.shape(dset.variables['mask'][:])
+
+  [x1,y1] = [500, ny]
+  [x2,y2] = [nx, 300]
+  for i in range(x1,nx):
+    for j in range(y2,ny):
+      if j*(x2-x1) + i*(y1-y2) -y1*x2+y2*x1 > 0:
+        dset.variables['mask'][j,i] = -1
+  dset.close()
 
 
 Couldn't find the FES data (they have moved from Tom's work dir). Tide data source
@@ -1242,13 +1253,13 @@ Add in some extra harmonics::
 
 Test extra harmonics::
 
-  nn_it000    = 7201   !  first time step
-  nn_itend    = 14000     !  last  time step (for dt = 6 min, 240*dt = 1 day)
+  nn_it000    = 1   !  first time step
+  nn_itend    = 72000     !  last  time step (for dt = 6 min, 240*dt = 1 day)
   ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
-    cn_ocerst_in    = "MASSMO5_surge_00144000_restart"   !  suffix of ocean restart name (input)
+    cn_ocerst_in    = "MASSMO5_surge_00072000_restart"   !  suffix of ocean restart name (input)
   nn_stock    =  72000  ! 9500    !  frequency of creation of a restart file (modulo referenced to 1)
   nn_write    =  72000  ! 9500    !  frequency of write in the output file   (modulo referenced to nit000)
-  ln_tide_ramp = .false.
+  ln_tide_ramp = .true.
 
 
 qsub -q short runscript
