@@ -1242,8 +1242,8 @@ Add in some extra harmonics::
 
 Test extra harmonics::
 
-  nn_it000    = 1   !  first time step
-  nn_itend    = 144000     !  last  time step (for dt = 6 min, 240*dt = 1 day)
+  nn_it000    = 7201   !  first time step
+  nn_itend    = 14000     !  last  time step (for dt = 6 min, 240*dt = 1 day)
   ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
     cn_ocerst_in    = "MASSMO5_surge_00144000_restart"   !  suffix of ocean restart name (input)
   nn_stock    =  72000  ! 9500    !  frequency of creation of a restart file (modulo referenced to 1)
@@ -1253,3 +1253,6 @@ Test extra harmonics::
 
 qsub -q short runscript
 **PENDING**
+
+20mins 103831 steps.
+Didn't complete full run though did output restarts at 72000
