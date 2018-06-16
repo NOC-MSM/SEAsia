@@ -1427,4 +1427,23 @@ Looks reasonable. Continue for another 30days (172,800)::
       ...
 
 Request 45mins.
+38 mins
+
+Try 4 months (4*172,800 = 691,200)::
+
+  vi namelist_cfg_AMM60
+  ...
+  nn_it000   =  576001    !  first time step
+  nn_itend   = 1267200  ! plus 30*4 days
+  cn_ocerst_in    = "MASSMO5_surge_00576000_restart"   !  suffix of ocean restart name (input)
+  ...
+  !-----------------------------------------------------------------------
+  &nam_diaharm   !   Harmonic analysis of tidal constituents ('key_diaharm')
+  !-----------------------------------------------------------------------
+      nit000_han =  576001      ! First time step used for harmonic analysis
+      nitend_han = 1267200 ! 30*4 days    ! Last time step used for harmonic analysis
+  ...
+
+Request 2hr 45mins
+
 **PENDING**
