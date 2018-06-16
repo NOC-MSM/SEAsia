@@ -391,9 +391,9 @@ Also have to copy to where the tidal forcing is made (like the SAN)
 livljobs4: get all the necessary files onto this machine::
 
   cd $INPUTS
-  rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/domain_cfg.nc .
-  rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/coordinates.nc .
-  rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/bathy_meter.nc .
+  rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/domain_cfg.nc .
+  rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/coordinates.nc .
+  rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/bathy_meter.nc .
 
 Need to generate 3 more files: A ``namelist.bdy`` which drives PyNEMO and which
 has two input files: ``inputs_src.ncml`` which points to the data source and
@@ -410,6 +410,7 @@ First install PyNEMO `install_nrct`_ if not already done so. Use branch ``Genera
 Copy across some parent mesh files and a mask file (even though they are not
 used. This is because this old version of PyNEMO didn't anticipate tide-only usage)::
 
+  cd $INPUTS
   cp ../../SEAsia/INPUTS/mesh_?gr_src.nc $INPUTS/.
   cp ../../SEAsia/INPUTS/mask_src.nc $INPUTS/.
 
