@@ -472,9 +472,9 @@ Copy to EXP directory and also change permissions to ensure readable to others :
 livljobs4: get all the necessary files onto this machine::
 
   cd $INPUTS
-  rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/jelt/MASSMO5_surge/INPUTS/domain_cfg.nc .
-  rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/jelt/MASSMO5_surge/INPUTS/coordinates.nc .
-  rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/jelt/MASSMO5_surge/INPUTS/bathy_meter.nc .
+  rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/domain_cfg.nc .
+  rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/coordinates.nc .
+  rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/bathy_meter.nc .
 
 Need to generate 3 more files: A ``namelist.bdy`` which drives PyNEMO and which
 has two input files: ``inputs_src.ncml`` which points to the data source and
@@ -1278,5 +1278,153 @@ changing the bathymetry.
   ln_restart = .true.
   ln_tide_ramp = .false.
 
-Submit for an 1hr
+Submit for an 1hr. Completed in 38mins
+**PENDING**
+
+Looks reasonable. Test harmonic analysis::
+
+  vi namelist_cfg_AMM60
+  ...
+  nn_it000    = 230401    !  first time step
+  nn_itend    = 403200  ! plus 30 days
+  cn_ocerst_in    = "MASSMO5_surge_00230400_restart"   !  suffix of ocean restart name (input)
+  nn_stock    =  172800  ! 30 days  !  frequency of creation of a restart file (modulo referenced to 1)
+  nn_write    =  172800  ! 30 days  !  frequency of write in the output file   (modulo referenced to nit000)
+  ...
+  !-----------------------------------------------------------------------
+  &nam_diaharm   !   Harmonic analysis of tidal constituents ('key_diaharm')
+  !-----------------------------------------------------------------------
+      nit000_han = 230401      ! First time step used for harmonic analysis
+      nitend_han = 403200 ! 30 days    ! Last time step used for harmonic analysis
+      nstep_han  = 20 ! 5 mins         ! Time step frequency for harmonic analysis
+      tname(1)='K1'
+      tname(2)='K2'
+      tname(3)='M2'
+      tname(4)='M4'
+      tname(5)='N2'
+      tname(6)='O1'
+      tname(7)='P1'
+      tname(8)='Q1'
+      tname(9)='S2'
+  /
+  !-----------------------------------------------------------------------
+  &nam_diaharm_fast   !   Harmonic analysis of tidal constituents               ("key_diaharm_fast")
+  !-----------------------------------------------------------------------
+      ln_diaharm_store = .true.
+      ln_diaharm_compute = .true.
+      ln_diaharm_read_restart = .false.
+      ln_ana_ssh   = .true.
+      ln_ana_uvbar = .true.
+      ln_ana_bfric = .false.
+      ln_ana_rho  = .false.
+      ln_ana_uv3d = .false.
+      ln_ana_w3d  = .false.
+      tname(1)='K1'
+      tname(2)='K2'
+      tname(3)='M2'
+      tname(4)='M4'
+      tname(5)='N2'
+      tname(6)='O1'
+      tname(7)='P1'
+      tname(8)='Q1'
+      tname(9)='S2'
+  /
+
+NB more constitents is not really practical as they haven't been added to the
+field_def*xml file.
+
+Change file XML output::
+
+
+  vi file_def_nemo.xml
+  ..
+
+  <file_group id="tidal_harmonics" output_freq="1h"  output_level="10" enabled=".TRUE.">
+   <file id="tidalanalysis.grid_T" name_suffix="harmonic_grid_T" description="ocean T grid variables"  enabled=".TRUE.">
+        <field field_ref="O1amp_ssh"    long_name="O1  harmonic Amplitude"     operation="instant"      />
+        <field field_ref="O1pha_ssh"    long_name="O1  harmonic Phase"         operation="instant"      />
+        <field field_ref="K1amp_ssh"    long_name="K1  harmonic Amplitude"     operation="instant"      />
+        <field field_ref="K1pha_ssh"    long_name="K1  harmonic Phase"         operation="instant"      />
+        <field field_ref="Q1amp_ssh"    long_name="Q1  harmonic Amplitude"     operation="instant"      />
+        <field field_ref="Q1pha_ssh"    long_name="Q1  harmonic Phase"         operation="instant"      />
+        <field field_ref="P1amp_ssh"    long_name="P1  harmonic Amplitude"     operation="instant"      />
+        <field field_ref="P1pha_ssh"    long_name="P1  harmonic Phase"         operation="instant"      />
+        <field field_ref="M2amp_ssh"    long_name="M2  harmonic Amplitude"     operation="instant"      />
+        <field field_ref="M2pha_ssh"    long_name="M2  harmonic Phase"         operation="instant"      />
+        <field field_ref="S2amp_ssh"    long_name="S2  harmonic Amplitude"     operation="instant"      />
+        <field field_ref="S2pha_ssh"    long_name="S2  harmonic Phase"         operation="instant"      />
+        <field field_ref="K2amp_ssh"    long_name="K2  harmonic Amplitude"     operation="instant"      />
+        <field field_ref="K2pha_ssh"    long_name="K2  harmonic Phase"         operation="instant"      />
+        <field field_ref="N2amp_ssh"    long_name="N2  harmonic Amplitude"     operation="instant"      />
+        <field field_ref="N2pha_ssh"    long_name="N2  harmonic Phase"         operation="instant"      />
+        <field field_ref="M4amp_ssh"    long_name="M4  harmonic Amplitude"     operation="instant"      />
+        <field field_ref="M4pha_ssh"    long_name="M4  harmonic Phase"         operation="instant"      />
+   </file>
+   <file id="tidalanalysis.grid_U" name_suffix="harmonic_grid_U" description="ocean U grid variables"  enabled=".TRUE.">
+        <field field_ref="O1amp_u2d"    long_name="O1 u2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="O1pha_u2d"    long_name="O1 u2D harmonic Phase"         operation="instant"      />
+        <field field_ref="K1amp_u2d"    long_name="K1 u2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="K1pha_u2d"    long_name="K1 u2D harmonic Phase"         operation="instant"      />
+        <field field_ref="Q1amp_u2d"    long_name="Q1 u2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="Q1pha_u2d"    long_name="Q1 u2D harmonic Phase"         operation="instant"      />
+        <field field_ref="P1amp_u2d"    long_name="P1 u2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="P1pha_u2d"    long_name="P1 u2D harmonic Phase"         operation="instant"      />
+        <field field_ref="M2amp_u2d"    long_name="M2 u2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="M2pha_u2d"    long_name="M2 u2D harmonic Phase"         operation="instant"      />
+        <field field_ref="S2amp_u2d"    long_name="S2 u2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="S2pha_u2d"    long_name="S2 u2D harmonic Phase"         operation="instant"      />
+        <field field_ref="K2amp_u2d"    long_name="K2 u2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="K2pha_u2d"    long_name="K2 u2D harmonic Phase"         operation="instant"      />
+        <field field_ref="N2amp_u2d"    long_name="N2 u2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="N2pha_u2d"    long_name="N2 u2D harmonic Phase"         operation="instant"      />
+        <field field_ref="M4amp_u2d"    long_name="M4 u2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="M4pha_u2d"    long_name="M4 u2D harmonic Phase"         operation="instant"      />
+   </file>
+   <file id="tidalanalysis.grid_V" name_suffix="harmonic_grid_V" description="ocean V grid variables"  enabled=".TRUE.">
+        <field field_ref="O1amp_v2d"    long_name="O1 v2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="O1pha_v2d"    long_name="O1 v2D harmonic Phase"         operation="instant"      />
+        <field field_ref="K1amp_v2d"    long_name="K1 v2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="K1pha_v2d"    long_name="K1 v2D harmonic Phase"         operation="instant"      />
+        <field field_ref="Q1amp_v2d"    long_name="Q1 v2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="Q1pha_v2d"    long_name="Q1 v2D harmonic Phase"         operation="instant"      />
+        <field field_ref="P1amp_v2d"    long_name="P1 v2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="P1pha_v2d"    long_name="P1 v2D harmonic Phase"         operation="instant"      />
+        <field field_ref="M2amp_v2d"    long_name="M2 v2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="M2pha_v2d"    long_name="M2 v2D harmonic Phase"         operation="instant"      />
+        <field field_ref="S2amp_v2d"    long_name="S2 v2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="S2pha_v2d"    long_name="S2 v2D harmonic Phase"         operation="instant"      />
+        <field field_ref="K2amp_v2d"    long_name="K2 v2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="K2pha_v2d"    long_name="K2 v2D harmonic Phase"         operation="instant"      />
+        <field field_ref="N2amp_v2d"    long_name="N2 v2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="N2pha_v2d"    long_name="N2 v2D harmonic Phase"         operation="instant"      />
+        <field field_ref="M4amp_v2d"    long_name="M4 v2D harmonic Amplitude"     operation="instant"      />
+        <field field_ref="M4pha_v2d"    long_name="M4 v2D harmonic Phase"         operation="instant"      />
+   </file>
+  </file_group>
+
+
+Submit with 2hrs. Finished in 38mins. (which is the same speed as without harmonic analysis...)
+Looks reasonable. Continue for another 30days (172,800)::
+
+  vi namelist_cfg_AMM60
+  ...
+  nn_it000    = 403201    !  first time step
+  nn_itend    = 576000  ! plus 30 days
+  cn_ocerst_in    = "MASSMO5_surge_00403200_restart"   !  suffix of ocean restart name (input)
+  ...
+  !-----------------------------------------------------------------------
+  &nam_diaharm   !   Harmonic analysis of tidal constituents ('key_diaharm')
+  !-----------------------------------------------------------------------
+      nit000_han = 403201      ! First time step used for harmonic analysis
+      nitend_han = 576000 ! 30 days    ! Last time step used for harmonic analysis
+  ...
+  !-----------------------------------------------------------------------
+  &nam_diaharm_fast   !   Harmonic analysis of tidal constituents               ("key_diaharm_fast")
+  !-----------------------------------------------------------------------
+      ln_diaharm_store = .true.
+      ln_diaharm_compute = .true.
+      ln_diaharm_read_restart = .true.
+      ...
+
+Request 45mins.
 **PENDING**
