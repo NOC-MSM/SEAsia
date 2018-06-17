@@ -1452,6 +1452,11 @@ using the XML file, so I manually fixed the file names to something like::
 
   MASSMO5_surge_576001_1267200_harmonic_grid_T.nc
 
+There was an issue getting the filenames to work properly with the harmonic output
+using the XML file, so I manually fixed the file names to something like::
+
+  MASSMO5_surge_576001_1267200_harmonic_grid_T.nc
+
 **To-Do**
 
 * generate tiles.
