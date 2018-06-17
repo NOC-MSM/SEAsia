@@ -1445,5 +1445,11 @@ Try 4 months (4*172,800 = 691,200)::
   ...
 
 Request 2hr 45mins
+Took 2hrs 43mins.
+
+There was an issue getting the filenames to work properly with the harmonic output
+using the XML file, so I manually fixed the file names to something like::
+
+  MASSMO5_surge_576001_1267200_harmonic_grid_T.nc
 
 **PENDING**
