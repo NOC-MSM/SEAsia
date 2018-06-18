@@ -587,19 +587,19 @@ Move the Solent*nc files to a directory ``TPXO``::
 (There might still be a bit of confusion about directory names beig Solent or Solent_surge)
 ::
 
-
   livljobs4
   cd /work/jelt/NEMO/Solent/INPUTS
-  rsync -utv coordinates.bdy.nc $USER@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/.
 
   cd TPXO
   for file in Solent_*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/TPXO/$file ; done
+  rsync -utv coordinates.bdy.nc $USER@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/TPXO/.
 
   cd ../FES
   for file in Solent_*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/FES/$file ; done
+  rsync -utv coordinates.bdy.nc $USER@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/FES/.
 
 
-
+.. Note : put the ``coordinates.bdy.nc`` into the FES or TPXO directory.
 
 
 6) Running model with tidal forcing at the boundaries on ARCHER
@@ -625,7 +625,7 @@ Also note additional love number ``dn_love_number``
   !-----------------------------------------------------------------------
   &namrun        !   parameters of the run
   !-----------------------------------------------------------------------
-    cn_exp      =  "Solent_surge"  !  experience name
+    cn_exp      =  "Solent_surge_FES"  !  experience name
     nn_it000    = 1   !  first time step
     nn_itend    =  43200    !  last  time step (for dt = 6 min, 240*dt = 1 day)
     nn_date0    =  20130101 !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
@@ -735,7 +735,7 @@ Also note additional love number ``dn_love_number``
   !-----------------------------------------------------------------------
      ln_bdy     = .true.
      nb_bdy         = 1                    !  number of open boundary sets
-     cn_coords_file = 'bdydta/coordinates.bdy.nc' !  bdy coordinates files
+     cn_coords_file = 'bdydta/FES/coordinates.bdy.nc' !  bdy coordinates files
      cn_dyn2d       = 'flather'            !
      nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
                                            !  = 1, bdy data are read in 'bdydata   .nc' files
@@ -1055,6 +1055,7 @@ rn_rdt = 1.
 rn_ahm_0     = 10.0
 ln_tide_ramp = .true.
 rdttideramp =    0.1666
+cn_coords_file = 'bdydta/FES/coordinates.bdy.nc' !  bdy coordinates files
 filtide      = 'bdydta/FES/Solent_bdytide_rotT_'
 
 Submit on 1hr queue.
