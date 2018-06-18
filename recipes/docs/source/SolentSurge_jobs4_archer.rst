@@ -1096,6 +1096,47 @@ completed in 2hr 17::
 
 Plot animation with ``Solent_SSH_anim_zoom.py``
 
+
+---
+
+FES2014 harmonic fields look really good compared with TPXO forced AMM60. So it
+is worth treating the FES2014, rather than the TPXO, forced run as the most promising.
+To that end I restore the bed friction in an FES run and see what SSH amplitudes result::
+
+
+  rsync -vutr $EXP/../EXP_FES $EXP/../EXP_FES_origfric
+
+Then tidy the files in this new directory. e.g. remove all the restarts and `ln -s` instead.
+
+Change the bottom friction::
+
+  vi namelist_cfg
+  ...
+  rn_bfri2    =    2.4e-3 !  bottom drag coefficient (non linear case)
+
+Link in missing files (bad rsync-ing)::
+
+  cd ../EXP_FES_origfric/
+  ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe .
+  ln -s ../opa_key_nosignedzero_key_diainstant_key_mpp_mpi_key_iomput_key_diaharm_fast_key_FES14_tides opa
+  ln -s ../../SHARED/namelist_ref .
+  ln -s ../../SHARED/domain_def_nemo.xml .
+  ln -s /work/n01/n01/jelt/Solent_surge/INPUTS bdydta
+
+  # Some diagnostic tools
+  ln -s /home/n01/n01/jelt/GitHub/NEMO_diag/plot_solver_stat.py .
+  ln -s /home/n01/n01/jelt/GitHub/NEMO_diag/Solent_SSH_anim.py .
+
+Restart from the more friction EXP_FES run to see what happens. (Not so bothered about a new spin up)
+
+Submit for 3 3hours
+
+**PENDING**
+
+
+
+
+
 **TO-DO**
 
 * Check changes to namelist_cfg
