@@ -2209,7 +2209,7 @@ The ORCA0083-N01 parent files. (This could be streamlined with some wildcards)::
   </ns0:netcdf>
 
 
-Run pynemo::
+Run pynemo (on branch ORCA0083)::
 
 
   cd $INPUTS
@@ -2535,10 +2535,34 @@ Hmm it doesn't seem to output anything.
 Perhaps start again with fresh XML files.
 
 
+---
+
+*19 June 2018*
+
+Check that my PyNEMO implementation matches James' output.
+::
+
+  livljobs6:
+  cd $INPUTS
+  vi namelist.bdy
+  ...
+  ln_dyn2d       = .true.               !  boundary conditions for barotropic fields
+  ln_dyn3d       = .true.               !  boundary conditions for baroclinic velocities
+  ln_tra         = .true.               !  boundary conditions for T and S
+  ...
+  ln_tide = .false.
 
 
+Rebuild PyNEMO for tides.
+run time 1729.83568501 = 28 mins
 
+Output::
 
+  coordinates.bdy.nc
+  SEAsia_bdyT_y1979m11.nc
+  SEAsia_bt_bdyT_y1979m11.nc
+  SEAsia_bdyU_y1979m11.nc
+  SEAsia_bdyV_y1979m11.nc
 
 
 
