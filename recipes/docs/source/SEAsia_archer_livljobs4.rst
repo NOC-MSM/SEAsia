@@ -2553,7 +2553,7 @@ Check that my PyNEMO implementation matches James' output.
   ln_tide = .false.
 
 
-Rebuild PyNEMO for tides.
+Rebuild PyNEMO for 3d fields (branch ORCA0083).
 run time 1729.83568501 = 28 mins
 
 Output::
@@ -2565,9 +2565,17 @@ Output::
   SEAsia_bdyV_y1979m11.nc
 
 
+The rimwidth doesn't get picked up for the u2d and u3d files. Though it does
+ for the T,S. Try again using the master branch.
+ Execution Time: 1601.68916202::
 
+  coordinates.bdy.nc
+  SEAsia_bdyT_y1979m11.nc
+  SEAsia_bt_bdyT_y1979m11.nc
+  SEAsia_bdyU_y1979m11.nc
+  SEAsia_bdyV_y1979m11.nc
 
-
+Not sure about the size of the velocity arrays. They don't use rimwidth != 1 ..
 
 
 
