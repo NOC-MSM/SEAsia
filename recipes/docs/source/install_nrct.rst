@@ -40,7 +40,7 @@ find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print
 .. note : 6 Nov. Following git clone you might want to do:
     git fetch
     git checkout Generalise-tide-input
-  to get the FES-tides branch
+  to get the FES-tides enabled branch
 
   You have to manually set the TPXO or FES data source in Python/pynemo/tide/nemo_bdy_tide3.py
 
