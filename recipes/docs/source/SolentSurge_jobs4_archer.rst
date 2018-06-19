@@ -1131,7 +1131,7 @@ Link in missing files (bad rsync-ing)::
 Restart from the more friction EXP_FES run to see what happens. (Not so bothered about a new spin up)
 
 Submit for 3 3hours
-
+Complete 2hr 11
 **PENDING**
 
 
@@ -1139,5 +1139,5 @@ Submit for 3 3hours
 
 
 **TO-DO**
-
+* 90m mapping could be 100x speed up.
 * Check changes to namelist_cfg
