@@ -24,6 +24,8 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+    <link rel="next" title="Build XIOS2 @ r1080" href="build_XIOS2.html" />
+    <link rel="prev" title="Setting up a East Africa with NEMO (ORCHESTRA) configuration" href="EAfrica.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -41,6 +43,8 @@
             
   <div class="section" id="build-nemo-orchestra-trunk-r8395">
 <h1>Build NEMO (ORCHESTRA) trunk &#64; r8395<a class="headerlink" href="#build-nemo-orchestra-trunk-r8395" title="Permalink to this headline">¶</a></h1>
+<p>You need to obtain a nemo account <a class="reference external" href="http://forge.ipsl.jussieu.fr/nemo/register">http://forge.ipsl.jussieu.fr/nemo/register</a>
+Suggest using the same unsernam as ARCHER account</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
 svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
 </pre></div>
@@ -49,16 +53,16 @@ svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8
 <div class="highlight-default"><div class="highlight"><pre><span></span>cp $WORK/$USER/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
 </pre></div>
 </div>
-<p>Make a new config directory structure:</p>
+<p>Make a new config directory structure (only say YES to OPA_SRC, unless you have other plans):</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR
 ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10 clean
 </pre></div>
 </div>
-<p>Edit the CPP flags:</p>
+<p>Edit the CPP flags (USE <strong>key_diaharm_fast</strong> instead of <strong>key_harm_ana</strong> for FES tides):</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>vi $CONFIG/cpp_$CONFIG.fcm
 
 bld::tool::fppkeys key_zdfgls        \
-                 key_diaharm       \
+                 key_harm_ana       \   # key_diaharm_fast
                  key_mpp_mpi       \
                  key_iomput        \
                  key_nosignedzero
@@ -69,10 +73,55 @@ bld::tool::fppkeys key_zdfgls        \
 cp $START_FILES/dommsk.F90 $CDIR/$CONFIG/MY_SRC/.
 </pre></div>
 </div>
+<p>Add a fix to permit vertical interpolation on-the-fly from initial conditions fields
+onto child grid:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/par_oce.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/dtatsd.F90  $CDIR/$CONFIG/MY_SRC/.
+</pre></div>
+</div>
+<p>&#8212;</p>
+<p>Choose one or the other of the following for treatment of tides:</p>
+<p>Add in POLCOMS harmonic analyisis (but old internal NEMO tides). This should speed things up...</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/diaharmana.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/step_oce.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/step.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/bdytides.F90 $CDIR/$CONFIG/MY_SRC/.
+</pre></div>
+</div>
+<p>Don&#8217;t take <code class="docutils literal"><span class="pre">sbctide.F90</span></code>, <code class="docutils literal"><span class="pre">tide.h90</span></code>, <code class="docutils literal"><span class="pre">tide_mod.F90</span></code>.</p>
+<p>I editted the output to replace the <code class="docutils literal"><span class="pre">*_x</span></code> and <code class="docutils literal"><span class="pre">*_y</span></code> components:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi diaharmana.F90
+...
+!      CALL iom_put( TRIM(Wave(ntide_all(ih))%cname_tide)//&#39;x_new&#39;//TRIM(suffix), cosamp2D(ih,:,:,jgrid) )
+!      CALL iom_put( TRIM(Wave(ntide_all(ih))%cname_tide)//&#39;y_new&#39;//TRIM(suffix), sinamp2D(ih,:,:,jgrid) )
+      CALL iom_put( TRIM(Wave(ntide_all(ih))%cname_tide)//&#39;x&#39;//TRIM(suffix), cosamp2D(ih,:,:,jgrid) )
+      CALL iom_put( TRIM(Wave(ntide_all(ih))%cname_tide)//&#39;y&#39;//TRIM(suffix), sinamp2D(ih,:,:,jgrid) )
+</pre></div>
+</div>
+<p>&#8212;</p>
+<p>Updated tides following <a class="reference external" href="FES2014_NEMO.rst">FES2014_NEMO.rst</a></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/diaharm_fast.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/sbctide.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/step.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/step_oce.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/tide_FES14.h90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/tideini.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/tide_mod.F90 $CDIR/$CONFIG/MY_SRC/.
+</pre></div>
+</div>
 <p>Build opa:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 </pre></div>
 </div>
+<dl class="docutils">
+<dt><strong>Note</strong> Make sure that any inital state files that are required by the</dt>
+<dd><p class="first">configuration are copied into the MY_SRC folder before building NEMO. E.g. for
+SWPacific, inital state files are required so that a constant temp and salinity</p>
+<blockquote class="last">
+<div>are set at the start of the simulation.</div></blockquote>
+</dd>
+</dl>
 </div>
 
 
@@ -84,6 +133,8 @@ cp $START_FILES/dommsk.F90 $CDIR/$CONFIG/MY_SRC/.
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="EAfrica.html" title="previous chapter">Setting up a East Africa with NEMO (ORCHESTRA) configuration</a></li>
+      <li>Next: <a href="build_XIOS2.html" title="next chapter">Build XIOS2 &#64; r1080</a></li>
   </ul></li>
 </ul>
 </div>

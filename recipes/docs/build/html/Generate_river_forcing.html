@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>To-Do List &#8212; NEMO-RELOC 0.1 documentation</title>
+    <title>Create river forcing &#8212; NEMO-RELOC 0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -39,14 +39,34 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="to-do-list">
-<h1>To-Do List<a class="headerlink" href="#to-do-list" title="Permalink to this headline">¶</a></h1>
-<p>Rather than do stuff it is easier to make a list of what should be done:</p>
-<ul class="simple">
-<li>Create empty notes with high level titles to populate the table of contents with aspirational notes that we want to make.</li>
-<li>Have more than two people edits this project</li>
-<li>Add other things to this list.</li>
-</ul>
+  <div class="section" id="create-river-forcing">
+<h1>Create river forcing<a class="headerlink" href="#create-river-forcing" title="Permalink to this headline">¶</a></h1>
+<p>A matlab (GCOMS?) script for generating a netCDF file of river forcing exists.
+For now I have put it in the PyNEMO repo.</p>
+<p>To run it needs a bathy_meter.nc and coordinates.nc file, as well as a river database.</p>
+<p>Check out PyNEMO / nrct if have already:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WORK/$USER
+git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
+
+cd nrct/rivers
+</pre></div>
+</div>
+<p>The idea is that the source data sits in <code class="docutils literal"><span class="pre">DATA</span></code> and the scripts sit in <code class="docutils literal"><span class="pre">mfiles</span></code>.</p>
+<p>Edit the run script:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">mfiles</span><span class="o">/</span><span class="n">runoff_interactive_iterative</span><span class="o">.</span><span class="n">m</span>
+</pre></div>
+</div>
+<p>Change the directory settings and the resolution of the configuration.
+Open matlab and run this script.</p>
+<p>Output:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>``river_test.nc``
+</pre></div>
+</div>
+<p>Copy to $INPUTS ():</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>scp river_test.nc $USER@login.archer.ac.uk:$INPUTS/$CONFIG_rivers.nc
+# scp river_test.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/SEAsia_rivers.nc
+</pre></div>
+</div>
 </div>
 
 
@@ -64,7 +84,7 @@
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/todo.txt"
+      <li><a href="_sources/Generate_river_forcing.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -90,7 +110,7 @@
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |
-      <a href="_sources/todo.txt"
+      <a href="_sources/Generate_river_forcing.txt"
           rel="nofollow">Page source</a>
     </div>
 

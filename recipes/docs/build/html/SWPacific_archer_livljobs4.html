@@ -24,6 +24,8 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+    <link rel="next" title="Setting up a East Africa with NEMO (ORCHESTRA) configuration" href="EAfrica.html" />
+    <link rel="prev" title="Setting up a SE Asia NEMO v4 configuration" href="SEAsia_archer_livljobs4.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -95,20 +97,28 @@ that I don&#8217;t care about. I did not bother to resolve this.</p>
 <p>In the following I build most stuff on ARCHER but the PyNEMO bits are done on livljobs4.
 (There was a problem with some java bits working on ARCHER)
 Starting on ARCHER:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>ssh login.archer.ac.uk
-
-export CONFIG=SWPacific
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ssh</span> <span class="n">login</span><span class="o">.</span><span class="n">archer</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">uk</span>
+</pre></div>
+</div>
+<p>It is quite convenient to define a temporary file with all the path names in.
+The first line defines the configuration name (assuming bash):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cat &gt; ~/temporary_path_names_for_NEMO_build &lt;&lt; EOL
+export CONFIG=LBay180
 export WORK=/work/n01/n01
-export WDIR=$WORK/$USER/$CONFIG
-export INPUTS=$WDIR/INPUTS
-export START_FILES=$WDIR/START_FILES
-export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
-export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
-export OLD_TDIR=$WORK/$USER/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/
-export EXP=$CDIR/$CONFIG/EXP00
+export WDIR=\$WORK/\$USER/\$CONFIG
+export INPUTS=\$WDIR/INPUTS
+export START_FILES=\$WDIR/START_FILES
+export CDIR=\$WDIR/trunk_NEMOGCM_r8395/CONFIG
+export TDIR=\$WDIR/trunk_NEMOGCM_r8395/TOOLS
+export EXP=\$CDIR/\$CONFIG/EXP00
 
 module swap PrgEnv-cray PrgEnv-intel
 module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+EOL
+</pre></div>
+</div>
+<p>Execute path settings:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">.</span> <span class="o">~/</span><span class="n">temporary_path_names_for_NEMO_build</span>
 </pre></div>
 </div>
 <p>&#8212;</p>
@@ -119,12 +129,16 @@ module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 <div class="highlight-default"><div class="highlight"><pre><span></span>mkdir $WDIR
 mkdir $INPUTS
 mkdir $START_FILES
-cp $WDIR/../LBay/START_FILES/dommsk.F90 $START_FILES/.
-cp $WDIR/../LBay/START_FILES/bdyini.F90 $START_FILES/.
-cp $WDIR/../LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
-cp $WDIR/../LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
-cp $WDIR/../SEAsia/START_FILES/usrdef_istate.F90 $START_FILES/.
-cp $WDIR/../SEAsia/START_FILES/usrdef_sbc.F90    $START_FILES/.
+</pre></div>
+</div>
+<p>At this point you need to beg, steal or borrow to fill your $START_FILES. A good place
+to look would be <code class="docutils literal"><span class="pre">$WORK/jelt/$CONFIG/START_FILES</span></code>. E.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $WORK/jelt/LBay/START_FILES/dommsk.F90 $START_FILES/.
+cp $WORK/jelt/LBay/START_FILES/bdyini.F90 $START_FILES/.
+cp $WORK/jelt/LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
+cp $WORK/jelt/LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
+cp $WORK/jelt/SEAsia/START_FILES/usrdef_istate.F90 $START_FILES/.
+cp $WORK/jelt/SEAsia/START_FILES/usrdef_sbc.F90    $START_FILES/.
 </pre></div>
 </div>
 <p>Checkout and build NEMO (ORCHESTRA) trunk &#64; r8395 <a href="#id3"><span class="problematic" id="id4">`build_opa_orchestra.html`_</span></a>.
@@ -134,17 +148,24 @@ Or just build (if it is already downloaded). Note here we use user defined</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR
 cp $START_FILES/usrdef_istate.F90 $CDIR/$CONFIG/MY_SRC/.
 cp $START_FILES/usrdef_sbc.F90    $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/dommsk.F90 $CDIR/$CONFIG/MY_SRC/.
 ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 </pre></div>
 </div>
 </div></blockquote>
-<p>&#8212;</p>
-<p>Checkout and build XIOS2 &#64; r1080 <a href="#id5"><span class="problematic" id="id6">`build_XIOS2.html`_</span></a>:</p>
+<p><strong>Note</strong> Make sure to copy across any inital state files into MY_SRC before building, this is important as the SWPacific requires a constant temp and salinity to be set at the start of the simulation. I used the generic recipe to build NEMO and missed these files.</p>
+<p>&#8212;
+<strong>NOTE</strong> You need to do this before making nemo
+Checkout and build XIOS2 &#64; r1080 <a href="#id5"><span class="problematic" id="id6">`build_XIOS2.html`_</span></a>:</p>
 <p>Or just link XIOS executable to the EXP directory:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
 </pre></div>
 </div>
 <p>&#8212;</p>
+<p>Note
+The NEMO executable is called ‘opa’ and found in your $EXP directory.
+This is automatically symbolically linked to &#8216;nemo.exe&#8217; found in $CDIR/$CONFIG/BLD/bin/</p>
 </div>
 <div class="section" id="build-tools">
 <h2>Build TOOLS<a class="headerlink" href="#build-tools" title="Permalink to this headline">¶</a></h2>
@@ -231,7 +252,7 @@ INPUTS:</p>
 <p>thopri downloaded, by parts, and merged 1 minute GEBCO data for (-30N :0N , -170E : 145E ).
 Method in <code class="docutils literal"><span class="pre">/work/thopri/NEMO/SWPacific/START_FILES/gebco_lon_convertor.py</span></code>
 Copy this to ARCHER:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>livljobs4$ rsync -utv /work/thopri/NEMO/SWPacific_ver3.6/START_FILES/GRIDONE_2D_140_-35.0_-165.0_5.0.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SWPacific/INPUTS/.
+<div class="highlight-default"><div class="highlight"><pre><span></span>livljobs4$ rsync -utv /work/thopri/NEMO/SWPacific_ver3.6/START_FILES/GRIDONE_2D_140_-35.0_-165.0_5.0.nc $USER@login.archer.ac.uk:/work/n01/n01/$USER/SWPacific/INPUTS/.
 </pre></div>
 </div>
 <p>Copy namelist for reshaping GEBCO data:</p>
@@ -340,9 +361,10 @@ jpjdta      =    1138   !  2nd    &quot;         &quot;    ( &gt;= jpj )
 jpjdta      =    382   !  2nd    &quot;         &quot;    ( &gt;= jpj )
 </pre></div>
 </div>
-<p>Somewhat arbitrarily I am going to use <strong>31</strong> <code class="docutils literal"><span class="pre">(jpkdta=31;</span> <span class="pre">rn_jpk=31)</span></code> levels.
+<p>I am going to use <strong>31</strong> levels <code class="docutils literal"><span class="pre">(jpkdta=75;</span> <span class="pre">rn_jpk=75)</span></code> levels.
 (Earlier I used 5 levels. This config gave me trouble. I&#8217;ve not revisited whether
 the number of levels was a problem).</p>
+<p>skip this and jump to the z-coordinates heading</p>
 <p>(didn&#8217;t work, though pehaps for reasons nothing to do with the coordinates...)</p>
 <blockquote>
 <div><p>(If I tried 5 levels then the function to compute the depth range breaks).
@@ -545,8 +567,10 @@ qsub -q short rs
 </div>
 <dl class="docutils">
 <dt>#Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores</dt>
-<dd><p class="first">the bits and bobs for a rebuild):</p>
-<div class="last highlight-default"><div class="highlight"><pre><span></span>rsync -uvt $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
+<dd><p class="first">the bits and bobs for a rebuild). Also fix the permission as it seems they are
+not readable by team members otherwise:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span>chmod a+rx $TDIR/DOMAINcfg/domain_cfg.nc
+rsync -uvt $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
 rsync -uvt $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
 </pre></div>
 </div>
@@ -562,7 +586,7 @@ If all the files are ready to go jump straight to <a href="#id9"><span class="pr
 <p>Follow SEAsia notes <a href="#id11"><span class="problematic" id="id12">`SEAsia_archer_livljobs4.rst`_</span></a> for PyNEMO bit. Changing
 instances of <cite>SEAsia</cite> for <cite>SWPacific</cite>.
 Note a lot of the files are actually used for a tide-only simulation but it is not
-trivial to prevent PyNEMO looking for them.</p>
+trivial to prevent PyNEMO looking for them. <em>Update 16Nov17: I think the following is now stand alone)</em></p>
 </div>
 </div>
 <hr class="docutils" />
@@ -655,6 +679,8 @@ generate 3 files</em></p>
     <span class="o">&lt;</span><span class="n">ns0</span><span class="p">:</span><span class="n">variable</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;gdepw&quot;</span> <span class="n">orgName</span><span class="o">=</span><span class="s2">&quot;gdepw_0&quot;</span> <span class="o">/&gt;</span>
     <span class="o">&lt;</span><span class="n">ns0</span><span class="p">:</span><span class="n">variable</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;e3u&quot;</span> <span class="n">orgName</span><span class="o">=</span><span class="s2">&quot;e3u_0&quot;</span> <span class="o">/&gt;</span>
     <span class="o">&lt;</span><span class="n">ns0</span><span class="p">:</span><span class="n">variable</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;e3v&quot;</span> <span class="n">orgName</span><span class="o">=</span><span class="s2">&quot;e3v_0&quot;</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="n">ns0</span><span class="p">:</span><span class="n">variable</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;e3t&quot;</span> <span class="n">orgName</span><span class="o">=</span><span class="s2">&quot;e3t_0&quot;</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="n">ns0</span><span class="p">:</span><span class="n">variable</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;e3w&quot;</span> <span class="n">orgName</span><span class="o">=</span><span class="s2">&quot;e3w_0&quot;</span> <span class="o">/&gt;</span>
     <span class="o">&lt;/</span><span class="n">ns0</span><span class="p">:</span><span class="n">netcdf</span><span class="o">&gt;</span>
   <span class="o">&lt;/</span><span class="n">ns0</span><span class="p">:</span><span class="n">aggregation</span><span class="o">&gt;</span>
 <span class="o">&lt;/</span><span class="n">ns0</span><span class="p">:</span><span class="n">netcdf</span><span class="o">&gt;</span>
@@ -893,19 +919,29 @@ aprun -b -n 5 -N 5 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
 exit
 </pre></div>
 </div>
+<p>Change the notification email to your own address:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sed</span> <span class="o">-</span><span class="n">i</span> <span class="s2">&quot;s/xxx@noc/$USER@noc/g&quot;</span> <span class="n">runscript</span>
+</pre></div>
+</div>
 <p>&#8212;</p>
 <p>Edit <code class="docutils literal"><span class="pre">namelist_cfg</span></code> to make sure it is OK</p>
 <p>Synchronise the namelist_cfg with the GitLab repo. (This is also done at the end
 of this repo):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">rsync</span> <span class="o">-</span><span class="n">uvt</span> <span class="n">jelt</span><span class="nd">@login</span><span class="o">.</span><span class="n">archer</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">uk</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">SWPacific</span><span class="o">/</span><span class="n">trunk_NEMOGCM_r8395</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">SWPacific</span><span class="o">/</span><span class="n">EXP00</span><span class="o">/</span><span class="n">namelist_cfg</span> <span class="n">SWPacific_EXP_namelist_cfg</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>e.g. rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/namelist_cfg SWPacific_EXP_namelist_cfg
 </pre></div>
 </div>
 <p>&#8212;</p>
 <p>Submit:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cd $EXP
 qsub -q short runscript
+
+**WOO HOO THIS WORKS. THE FOLLOWING ARE LIVE NOTES THAT MAY OR MAY NOT BE INTERESTING**
 </pre></div>
 </div>
+</div>
+</div>
+<div class="section" id="live-notes-probably-best-to-skip-this-section">
+<h2>Live notes (Probably best to skip this section)<a class="headerlink" href="#live-notes-probably-best-to-skip-this-section" title="Permalink to this headline">¶</a></h2>
 <p>Iterative debugging process. Configuration blew up around the boundary
 E.g.:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">stp_ctl</span> <span class="p">:</span> <span class="n">the</span> <span class="n">ssh</span> <span class="ow">is</span> <span class="n">larger</span> <span class="n">than</span> <span class="mi">10</span><span class="n">m</span>
@@ -936,7 +972,6 @@ the simulation. (Changed from <code class="docutils literal"><span class="pre">-
 in 18 mins:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">aprun</span> <span class="o">-</span><span class="n">b</span> <span class="o">-</span><span class="n">n</span> <span class="mi">20</span> <span class="o">-</span><span class="n">N</span> <span class="mi">20</span> <span class="o">./</span><span class="n">xios_server</span><span class="o">.</span><span class="n">exe</span> <span class="p">:</span> <span class="o">-</span><span class="n">n</span> <span class="mi">93</span> <span class="o">-</span><span class="n">N</span> <span class="mi">24</span> <span class="o">./</span><span class="n">opa</span>
 </pre></div>
-</div>
 </div>
 <div class="section" id="mpp-decomposition-for-land-suppression">
 <h3>MPP decomposition for land suppression<a class="headerlink" href="#mpp-decomposition-for-land-suppression" title="Permalink to this headline">¶</a></h3>
@@ -1005,18 +1040,20 @@ cn_ocerst_in    = &quot;SWPacific_00014400_restart_tide&quot;   !  suffix of oce
 </div>
 <div class="section" id="backup-to-repo-key-files">
 <h2>Backup to repo key files<a class="headerlink" href="#backup-to-repo-key-files" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">GitLab</span><span class="o">/</span><span class="n">NEMO</span><span class="o">-</span><span class="n">RELOC</span><span class="o">/</span><span class="n">docs</span><span class="o">/</span><span class="n">source</span>
-<span class="c1"># DOMANcfg namelist_cfg for domain_cfg.nc (for s-coordinates)</span>
-<span class="n">rsync</span> <span class="o">-</span><span class="n">utv</span> <span class="n">jelt</span><span class="nd">@login</span><span class="o">.</span><span class="n">archer</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">uk</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">SWPacific</span><span class="o">/</span><span class="n">trunk_NEMOGCM_r8395</span><span class="o">/</span><span class="n">TOOLS</span><span class="o">/</span><span class="n">DOMAINcfg</span><span class="o">/</span><span class="n">namelist_cfg</span> <span class="n">SWPacific_DOMAINcfg_namelist_cfg</span>
+<p>When I make changes I backup version of the key files in the repo to keep a track
+of what has changed:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd ~/GitLab/NEMO-RELOC/docs/source
+# DOMANcfg namelist_cfg for domain_cfg.nc (for s-coordinates)
+rsync -utv $USER@login.archer.ac.uk:/work/n01/n01/$USER/SWPacific/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/namelist_cfg SWPacific_DOMAINcfg_namelist_cfg
 
-<span class="c1"># EXP namelist_cfg (for s-coordinates)</span>
-<span class="n">rsync</span> <span class="o">-</span><span class="n">uvt</span> <span class="n">jelt</span><span class="nd">@login</span><span class="o">.</span><span class="n">archer</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">uk</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">SWPacific</span><span class="o">/</span><span class="n">trunk_NEMOGCM_r8395</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">SWPacific</span><span class="o">/</span><span class="n">EXP00</span><span class="o">/</span><span class="n">namelist_cfg</span> <span class="n">SWPacific_EXP_namelist_cfg</span>
+# EXP namelist_cfg (for s-coordinates)
+rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/namelist_cfg SWPacific_EXP_namelist_cfg
 
-<span class="c1"># PyNEMO namelist.bdy (for s-coordinates)</span>
-<span class="n">rsync</span> <span class="o">-</span><span class="n">utv</span> <span class="n">jelt</span><span class="nd">@livljobs4</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">NEMO</span><span class="o">/</span><span class="n">SWPacific</span><span class="o">/</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">namelist</span><span class="o">.</span><span class="n">bdy</span> <span class="n">SWPacific_namelist</span><span class="o">.</span><span class="n">bdy</span>
+# PyNEMO namelist.bdy (for s-coordinates)
+rsync -utv $USER@livljobs4:/work/$USER/NEMO/SWPacific/INPUTS/namelist.bdy SWPacific_namelist.bdy
 
-<span class="c1"># Python quick plot of SSH in the output.abort.nc file</span>
-<span class="n">rsync</span> <span class="o">-</span><span class="n">uvt</span> <span class="n">jelt</span><span class="nd">@login</span><span class="o">.</span><span class="n">archer</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">uk</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">SWPacific</span><span class="o">/</span><span class="n">trunk_NEMOGCM_r8395</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">SWPacific</span><span class="o">/</span><span class="n">EXP00</span><span class="o">/</span><span class="n">quickplotNEMO</span><span class="o">.</span><span class="n">py</span> <span class="n">quickplotNEMO</span><span class="o">.</span><span class="n">py</span>
+# Python quick plot of SSH in the output.abort.nc file
+rsync -uvt $USER@login.archer.ac.uk:/work/n01/n01/$USER/SWPacific/trunk_NEMOGCM_r8395/CONFIG/SWPacific/EXP00/quickplotNEMO.py quickplotNEMO.py
 </pre></div>
 </div>
 </div>
@@ -1048,6 +1085,9 @@ cn_ocerst_in    = &quot;SWPacific_00014400_restart_tide&quot;   !  suffix of oce
 <li><a class="reference internal" href="#statement-about-external-forcing-and-files">Statement about external forcing and files</a><ul>
 <li><a class="reference internal" href="#run-pynemo-nrct-to-generate-boundary-conditions">Run PyNEMO / NRCT to generate boundary conditions</a></li>
 <li><a class="reference internal" href="#run-the-configuration-on-archer-turn-on-the-tides">8. Run the configuration ON ARCHER. Turn on the tides</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#live-notes-probably-best-to-skip-this-section">Live notes (Probably best to skip this section)</a><ul>
 <li><a class="reference internal" href="#mpp-decomposition-for-land-suppression">MPP decomposition for land suppression</a></li>
 <li><a class="reference internal" href="#restart-run">Restart run</a></li>
 </ul>
@@ -1060,6 +1100,8 @@ cn_ocerst_in    = &quot;SWPacific_00014400_restart_tide&quot;   !  suffix of oce
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="SEAsia_archer_livljobs4.html" title="previous chapter">Setting up a SE Asia NEMO v4 configuration</a></li>
+      <li>Next: <a href="EAfrica.html" title="next chapter">Setting up a East Africa with NEMO (ORCHESTRA) configuration</a></li>
   </ul></li>
 </ul>
 </div>
