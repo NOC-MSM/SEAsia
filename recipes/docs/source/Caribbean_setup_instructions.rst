@@ -9,7 +9,11 @@ Based on: `<SEAsia_archer_livljobs4.rst>`_ and `<EAfricaSurge_jobs4_archer.rst>`
 Because I’m lazy and don’t get much joy from complicated compilation procedures,
 I’ve wrote a script which does most of the nitty gritty for you – so you can
 make a cup of tea while it’s working hard. However, you’re not excluded from
+<<<<<<< HEAD
 doing any work. So here are your preliminary jobs (on archer).
+=======
+ doing any work. So here are your preliminary jobs (on archer).
+>>>>>>> c41fc28d7f30db34283c1d2167a2f1f3fa96aa12
 
 1)	Go into archer and go to your working directory::
 
