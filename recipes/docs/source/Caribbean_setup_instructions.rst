@@ -11,6 +11,8 @@ I’ve wrote a script which does most of the nitty gritty for you – so you can
 make a cup of tea while it’s working hard. However, you’re not excluded from
  doing any work. So here are your preliminary jobs (on archer).
 
+---
+
 1)	Go into archer and go to your working directory::
 
   cd /work/n01/n01/$USER
