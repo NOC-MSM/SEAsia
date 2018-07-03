@@ -4,13 +4,12 @@ Caribbean setup instructions
 
 Ash Brereton, June 2018
 Machines: ARCHER
-Based on: SEAsia_archer_livljobs4.rst and EAfricaSurge_jobs4_archer.rst
+Based on: `<SEAsia_archer_livljobs4.rst>`_ and `<EAfricaSurge_jobs4_archer.rst>`_
 
 Because I’m lazy and don’t get much joy from complicated compilation procedures,
- I’ve wrote a script which does most of the nitty gritty for you – so you can
-  make a cup of tea while it’s working hard.
-However, you’re not excluded from doing any work. So here are your preliminary
- jobs (on archer).
+I’ve wrote a script which does most of the nitty gritty for you – so you can
+make a cup of tea while it’s working hard. However, you’re not excluded from
+doing any work. So here are your preliminary jobs (on archer).
 
 1)	Go into archer and go to your working directory::
 
@@ -55,11 +54,11 @@ co-ordinate indexes you found::
 
   vi  namelist_cfg
   ...
-   jpidta      =     544   !  1st lateral dimension ( >= jpi )
-   jpjdta      =     342   !  2nd    "         "    ( >= jpj )
-   jpkdta      =      75   !  number of levels      ( >= jpk )
-   jpiglo      =     544   !  1st dimension of global domain --> i =jpidta
-   jpjglo      =     342   !  2nd    -                  -    --> j  =jpjdta
+  jpidta      =     544   !  1st lateral dimension ( >= jpi )
+  jpjdta      =     342   !  2nd    "         "    ( >= jpj )
+  jpkdta      =      75   !  number of levels      ( >= jpk )
+  jpiglo      =     544   !  1st dimension of global domain --> i =jpidta
+  jpjglo      =     342   !  2nd    -                  -    --> j  =jpjdta
 
 Note, for reasons I don’t understand::
 
@@ -70,7 +69,8 @@ Note, for reasons I don’t understand::
 
 9)	Go the GEBCO and download bathymetry data a little bigger than your domain.
 Head to https://www.bodc.ac.uk/data/hosted_data_systems/gebco_gridded_bathymetry_data/
-Then put this file into the ``START_FILES`` directory. It should have the filename ``GRIDONE_2D...``
+Then put this file into the ``START_FILES`` directory. It should have the
+filename ``GRIDONE_2D...``
 
 
 10)	Everything should be ready to go. You should have signed up for a NEMO
@@ -82,8 +82,8 @@ as you’ll need to enter your password for first time use. If you have, then ru
   ./main.sh
 
 11)	This should put your bathymetry files, coordinate files etc into the INPUT
-directory. Note this it will take some time to install xios (30 mins) and compile
- nemo (15 mins) etc.
+directory. Note this it will take some time to install xios (30 mins) and
+ compile nemo (15 mins) etc.
 
 12)	 If you want to run my Caribbean instructions, copy and paste the following
  blindly::
