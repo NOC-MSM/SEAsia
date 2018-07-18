@@ -24,6 +24,8 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+    <link rel="next" title="Setting up a SE Asia NEMO v4 configuration" href="SEAsia_archer_livljobs4.html" />
+    <link rel="prev" title="Setting up a Liverpool Bay NEMO v4 configuration" href="LBay_archer_livljobs4.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -50,15 +52,17 @@
 <li>Build notes with:: ~/GitLab/NEMO-RELOC/docs$ make html</li>
 </ul>
 <p>Notes use a pragmatic combination of livljobs4 and archer. Will run on ARCHER.</p>
-<p>For this I use the ORCHESTRA realease of the trunk (&#64;r8395)</p>
+<p>Uses a pre-release of NEMO v4 (&#64;r8395)</p>
 <p>The summary procedure:
-#. ARCHER: Get code. Build tools. Generate coordinates, bathymetry, domain_cfg.nc
+#. ARCHER: Get code. Build tools.
+#. ARCHER: Using existing coordinates and bathymetry, generate domain_cfg.nc
 #. ARCHER: Generate initial conditions and atmospheric forcings
 #. LIVLJOBS4: Generate boundary conditions with NRCT/PyNEMO
 #. ARCHER: Run simulation</p>
 <div class="section" id="issues-that-arose">
 <h2>Issues that arose<a class="headerlink" href="#issues-that-arose" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
+<li>Resolution of the parent tidal forcing?</li>
 <li>...</li>
 </ul>
 </div>
@@ -97,21 +101,32 @@ EOL</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>mkdir $WDIR
 mkdir $INPUTS
 mkdir $START_FILES
+cp $WDIR/../LBay/START_FILES/dommsk.F90 $START_FILES/.
+cp $WDIR/../LBay/START_FILES/bdyini.F90 $START_FILES/.
+cp $WDIR/../SEAsia/START_FILES/usrdef_istate.F90 $START_FILES/.
+cp $WDIR/../SEAsia/START_FILES/usrdef_sbc.F90    $START_FILES/.
 </pre></div>
 </div>
-<p>If we were building from GEBCO and an ORCA12 grid we would also want:</p>
+<p>Since we were building from GEBCO and an ORCA12 grid we would also want:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cp $WDIR/../LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
 cp $WDIR/../LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
 </pre></div>
 </div>
-<p>Checkout and build NEMO (ORCHESTRA) trunk &#64; r8395 <a href="#id7"><span class="problematic" id="id8">`build_opa_orchestra.html`_</span></a>.
-Or just build:</p>
+<p>Checkout and build NEMO (ORCHESTRA) trunk &#64; r8395 <a href="#id5"><span class="problematic" id="id6">`build_opa_orchestra.html`_</span></a>.
+Or just build (if it is already downloaded). Note here we use user defined</p>
+<blockquote>
+<div><p>functions for the initial state (constant T and S) and surface forcing (zero forcing):</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR
+cp $START_FILES/usrdef_istate.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/usrdef_sbc.F90    $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/dommsk.F90 $CDIR/$CONFIG/MY_SRC/.
 ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 </pre></div>
 </div>
+</div></blockquote>
 <p>&#8212;</p>
-<p>Checkout and build XIOS2 &#64; r1080 <a href="#id9"><span class="problematic" id="id10">`build_XIOS2.html`_</span></a>:</p>
+<p>Checkout and build XIOS2 &#64; r1080 <a href="#id7"><span class="problematic" id="id8">`build_XIOS2.html`_</span></a>:</p>
 <p>Or just link XIOS executable to the EXP directory:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
 </pre></div>
@@ -203,8 +218,8 @@ get v3.6 running. The reason being that all the non-time stepping stuff, like
 grid generating, has been abstracted from the core OPA code and is now done as
 a pre-processing step, and output into an important file <code class="docutils literal"><span class="pre">domain_cfg.nc</span></code>.</p>
 <p>Copy essential files into DOMAINcfg directory:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
-cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
+<div class="highlight-default"><div class="highlight"><pre><span></span>rsync -uvt $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
+rsync -uvt $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
 </pre></div>
 </div>
 <p>Edit the template namelist_cfg with only the essenetial domain building stuff.
@@ -315,157 +330,19 @@ qsub -q short rs
 <dl class="docutils">
 <dt>Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores</dt>
 <dd><p class="first">the bits and bobs for a rebuild):</p>
-<div class="last highlight-default"><div class="highlight"><pre><span></span>cp $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
-cp $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
+<div class="last highlight-default"><div class="highlight"><pre><span></span>rsync -uvt $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
+rsync -uvt $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
 </pre></div>
 </div>
 </dd>
 </dl>
 <div class="section" id="generate-initial-conditions">
 <h3>4. Generate initial conditions<a class="headerlink" href="#generate-initial-conditions" title="Permalink to this headline">¶</a></h3>
-<p><strong>SKIP THIS FOR NOW</strong></p>
-<p>This is a bit of a pain because PyNEMO wont work until tracers and on. However
-much of the hard work setting up initial T,S conditions was done for a previous LBay
-config using AMM60, so I will copy that recipe here. <em>(The caveat is that some *
-*of the paths might assume I am working in the LBay not LBay180 config)</em></p>
-<p>Copy <code class="docutils literal"><span class="pre">make.macro</span></code> file and edit the path if necessary::
-<strong>FIX</strong> to the notes (copied from jdha instead): <code class="docutils literal"><span class="pre">cp</span> <span class="pre">$WDIR/INPUTS/make.macro</span> <span class="pre">./</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jdha</span><span class="o">/</span><span class="n">sosie</span><span class="o">/</span><span class="n">make</span><span class="o">.</span><span class="n">macro</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">sosie</span><span class="o">/.</span>
-
-<span class="n">vi</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">sosie</span><span class="o">/</span><span class="n">make</span><span class="o">.</span><span class="n">macro</span>
-<span class="c1"># Directory to install binaries:</span>
-<span class="n">INSTALL_DIR</span> <span class="o">=</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">local</span>
-</pre></div>
-</div>
-<p>Proceed with Step 6 (of Lighhouse Reef Readthedocs):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cd ~
-mkdir local
-svn co svn://svn.code.sf.net/p/sosie/code/trunk sosie
-cd sosie
-
-make
-make install
-export PATH=~/local/bin:$PATH
-cd $WDIR/INPUTS
-</pre></div>
-</div>
-<p>Obtain the fields to interpolate. Interpolate AMM60
-data. Get the namelists:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/initcd_votemper.namelist .
-cp $INPUTS/initcd_vosaline.namelist .
-</pre></div>
-</div>
-<p>Generate the actual files. Cut them out of something bigger. Use the same indices
-as used in coordinates.nc (note that the nco tools don&#8217;t like the
-parallel modules):</p>
-<p>Insert new method to use AMM60 data for initial conditions.
-/work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT
-AMM60_5d_20131013_20131129_grid_T.nc</p>
-<p>Find the AMM60 indices using FERRET on the bathy_meter.nc file: <code class="docutils literal"><span class="pre">shade</span> <span class="pre">log(Bathymetry[I=540:750,</span> <span class="pre">J=520:820])</span></code>
-<em>(This is old. I assume that these coords are for the whole S Irish Sea..)</em></p>
-<p>Note that the temperature and salinity variables are <code class="docutils literal"><span class="pre">thetao</span></code> and <code class="docutils literal"><span class="pre">so</span></code></p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-module load cray-netcdf cray-hdf5
-module load nco/4.5.0
-cd $WDIR/INPUTS
-
-ncks -d x,560,620 -d y,720,800 /work/n01/n01/kariho40/NEMO/NEMOGCM_jdha/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG/AMM60smago/EXP_notradiff/OUTPUT/AMM60_5d_20131013_20131129_grid_T.nc $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc
-</pre></div>
-</div>
-<p>Average over time and restore the parallel modules:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>ncwa -a time_counter $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc  $WDIR/INPUTS/cut_down_201310_LBay_grid_T.nc
-
-module unload nco cray-netcdf cray-hdf5
-module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-</pre></div>
-</div>
-<p>Edit namelists:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">initcd_votemper</span><span class="o">.</span><span class="n">namelist</span>
-<span class="n">cf_in</span>     <span class="o">=</span> <span class="s1">&#39;cut_down_201310_LBay_grid_T.nc&#39;</span>
-<span class="n">cv_in</span>     <span class="o">=</span> <span class="s1">&#39;thetao&#39;</span>
-<span class="n">cf_x_in</span>   <span class="o">=</span> <span class="s1">&#39;cut_down_201310_LBay_grid_T.nc&#39;</span>
-<span class="n">cv_out</span>   <span class="o">=</span> <span class="s1">&#39;thetao&#39;</span>
-<span class="n">csource</span>  <span class="o">=</span> <span class="s1">&#39;AMM60&#39;</span>
-<span class="n">ctarget</span>  <span class="o">=</span> <span class="s1">&#39;LBay&#39;</span>
-
-<span class="n">vi</span> <span class="n">initcd_vosaline</span><span class="o">.</span><span class="n">namelist</span>
-<span class="o">...</span>
-<span class="n">cv_out</span>   <span class="o">=</span> <span class="s1">&#39;so&#39;</span>
-<span class="o">...</span>
-</pre></div>
-</div>
-<p>Do stuff. I think the intention was for SOSIE to flood fill the land:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sosie</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span><span class="n">f</span> <span class="n">initcd_votemper</span><span class="o">.</span><span class="n">namelist</span>
-</pre></div>
-</div>
-<p>Creates:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">thetao_AMM60</span><span class="o">-</span><span class="n">LBay_2013</span><span class="o">.</span><span class="n">nc4</span>
-<span class="n">sosie_mapping_AMM60</span><span class="o">-</span><span class="n">LBay</span><span class="o">.</span><span class="n">nc</span>
-</pre></div>
-</div>
-<p>Repeat for salinity:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sosie</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span><span class="n">f</span> <span class="n">initcd_vosaline</span><span class="o">.</span><span class="n">namelist</span>
-</pre></div>
-</div>
-<p>Creates:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">so_AMM60</span><span class="o">-</span><span class="n">LBay_2013</span><span class="o">.</span><span class="n">nc4</span>
-</pre></div>
-</div>
-<p><em>15 Oct 2017 - this is where I actually pick up work done in LBay and copy to LBay180</em>
-.. note: mkdir $INPUTS</p>
-<blockquote>
-<div>cd $INPUTS
-cp $INPUTS/../../LBay/INPUTS/so_AMM60-LBay_2013.nc4 .
-cp $INPUTS/../../LBay/INPUTS/thetao_AMM60-LBay_2013.nc4 .
-cp $EXP/coordinates.nc .</div></blockquote>
-<p>Now do interpolation as before. First copy the namelists:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/namelist_reshape_bilin_initcd_votemper $INPUTS/.
-cp $START_FILES/namelist_reshape_bilin_initcd_vosaline $INPUTS/.
-</pre></div>
-</div>
-<p>Edit the input files:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>vi $INPUTS/namelist_reshape_bilin_initcd_votemper
-&amp;grid_inputs
-  input_file = &#39;thetao_AMM60-LBay_2013.nc4&#39;
-...
-
-&amp;interp_inputs
-  input_file = &quot;thetao_AMM60-LBay_2013.nc4&quot;
-...
-</pre></div>
-</div>
-<p>Simiarly for the <a href="#id1"><span class="problematic" id="id2">*</span></a>vosaline.nc file:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>vi $WDIR/INPUTS/namelist_reshape_bilin_initcd_vosaline
-&amp;grid_inputs
-  input_file = &#39;so_AMM60-LBay_2013.nc4&#39;
-...
-
-&amp;interp_inputs
-  input_file = &quot;so_AMM60-LBay_2013.nc4&quot;
-...
-</pre></div>
-</div>
-<p>This is where I cheekily use prebuild tools:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>export OLD_TDIR=$WORK/$USER/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-</pre></div>
-</div>
-<p>Produce the remap files:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
-</pre></div>
-</div>
-<p>Creates <code class="docutils literal"><span class="pre">remap_nemo_grid_R12.nc</span></code> and <code class="docutils literal"><span class="pre">remap_data_grid_R12.nc</span></code>. Then:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
-</pre></div>
-</div>
-<p>Creates <code class="docutils literal"><span class="pre">data_nemo_bilin_R12.nc</span></code>. Then:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
-</pre></div>
-</div>
-<p>Creates <code class="docutils literal"><span class="pre">initcd_votemper.nc</span></code>. Then:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
-</pre></div>
-</div>
-<p>Creates <code class="docutils literal"><span class="pre">initcd_vosaline.nc</span></code>.</p>
+<p>Skip this for a tide-only run. Using user defined constant T and S.</p>
+<dl class="docutils">
+<dt>For constant T and S use the user defined functions in <code class="docutils literal"><span class="pre">$CDIR/$CONFIG/MY_SRC</span></code>:</dt>
+<dd><code class="docutils literal"><span class="pre">usrdef_sbc.F90</span></code>  and <code class="docutils literal"><span class="pre">usrdef_istate.F90</span></code>.</dd>
+</dl>
 <p>THIS IS WHERE START WITH <strong>LIVLJOBS4</strong> to create boundary files with PyNEMO <em>(20 Sept 2017)</em>
 If all the files are ready to go jump straight to <a class="reference internal" href="#generate-boundary-conditions-with-pynemo-run-pynemo">7. Generate boundary conditions with PyNEMO: Run PyNEMO</a></p>
 </div>
@@ -523,7 +400,7 @@ has two input files: <code class="docutils literal"><span class="pre">inputs_src
 <code class="docutils literal"><span class="pre">inputs_dst.ncml</span></code> which remaps some variable names in the destination files.</p>
 <div class="section" id="generate-boundary-conditions-with-nrct-pynemo-create-netcdf-abstraction-wrapper">
 <h3>6. Generate boundary conditions with NRCT/PyNEMO: Create netcdf abstraction wrapper<a class="headerlink" href="#generate-boundary-conditions-with-nrct-pynemo-create-netcdf-abstraction-wrapper" title="Permalink to this headline">¶</a></h3>
-<p>First install PyNEMO <a href="#id11"><span class="problematic" id="id12">`install_nrct`_</span></a> if not already done so.</p>
+<p>First install PyNEMO <a href="#id9"><span class="problematic" id="id10">`install_nrct`_</span></a> if not already done so.</p>
 </div>
 <div class="section" id="a-generate-ncml-file-that-points-to-the-external-data">
 <h3>6a. Generate ncml file that points to the external data<a class="headerlink" href="#a-generate-ncml-file-that-points-to-the-external-data" title="Permalink to this headline">¶</a></h3>
@@ -732,7 +609,7 @@ in <code class="docutils literal"><span class="pre">inputs_dst.ncml</span></code
 </div>
 <div class="section" id="run-pynemo-nrct-to-generate-boundary-conditions">
 <h3>Run PyNEMO / NRCT to generate boundary conditions<a class="headerlink" href="#run-pynemo-nrct-to-generate-boundary-conditions" title="Permalink to this headline">¶</a></h3>
-<p>First install PyNEMO <a href="#id13"><span class="problematic" id="id14">`install_nrct`_</span></a> if not already done so.</p>
+<p>First install PyNEMO <a href="#id11"><span class="problematic" id="id12">`install_nrct`_</span></a> if not already done so.</p>
 <p>Generate the boundary conditions with PyNEMO</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>module load anaconda/2.1.0  # Want python2
 source activate nrct_env
@@ -770,8 +647,8 @@ Though there does not appear to be any land masking in the spacing variables but
 there is in the top_levels and bottom_levels variables.</p>
 </div>
 <hr class="docutils" />
-<div class="section" id="id3">
-<h3>6. Generate boundary conditions with NRCT/PyNEMO: Create netcdf abstraction wrapper<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id1">
+<h3>6. Generate boundary conditions with NRCT/PyNEMO: Create netcdf abstraction wrapper<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>In this section there are two stages.
 * generate a ncml file which describes the files needed to create boundary conditions
 * generate a namelist.bdy file which controls the actual boundary condition generation.</p>
@@ -890,8 +767,8 @@ vi NNA_inputs_src.ncml
 </pre></div>
 </div>
 </div>
-<div class="section" id="id4">
-<h3>6b. Generate the namelist.bdy file for PyNEMO / NRCT<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id2">
+<h3>6b. Generate the namelist.bdy file for PyNEMO / NRCT<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <p>Copy the NRCT template namelist.bdy from the START_FILES.:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>cd $INPUTS
 cp $START_FILES/namelist.bdy $INPUTS/.
@@ -911,7 +788,7 @@ cn_mask_file   = &#39;./mask.nc&#39;                   !  name of mask file (if 
 <dt>Now edit the pynemo namelist file. Add location of grid information. Note had to</dt>
 <dd><p class="first">hunt for a mesh.nc file. Incase this doesn&#8217;t work, there were a couple of
 options. (Tried both) Note also that mesh_zgr includes gdept_0, gdepw_0, e3t_0, e3u_0,
-e3v_0, e3w_0, so use ncml to convert to variables without <a href="#id5"><span class="problematic" id="id6">*</span></a>_0. (Also didn&#8217;t convert e3w_0).</p>
+e3v_0, e3w_0, so use ncml to convert to variables without <a href="#id3"><span class="problematic" id="id4">*</span></a>_0. (Also didn&#8217;t convert e3w_0).</p>
 <p class="last">Make sure the timestamps correspond to the input data.</p>
 </dd>
 </dl>
@@ -1751,7 +1628,7 @@ Boundary 2D tides looks suspiciously like something I want to switch on. Current
 <p>&amp;nambdy_tide   !  tidal forcing at open boundaries
 !&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
 <blockquote>
-<div>filtide      = &#8216;bdydta/<a href="#id15"><span class="problematic" id="id16">LBay_bdytide_rotT_</span></a>&#8216;         !  file name root of tidal forcing files
+<div>filtide      = &#8216;bdydta/<a href="#id13"><span class="problematic" id="id14">LBay_bdytide_rotT_</span></a>&#8216;         !  file name root of tidal forcing files
 ln_bdytide_2ddta = .false.                   !
 ln_bdytide_conj  = .false.                   !</div></blockquote>
 <p>Things now look like they fail with the bulk forcing. Only read in one variable
@@ -2177,10 +2054,10 @@ tname(9)     =   &#8216;M4&#8217;</div></blockquote>
 <li><a class="reference internal" href="#a-generate-ncml-file-that-points-to-the-external-data">6a. Generate ncml file that points to the external data</a></li>
 <li><a class="reference internal" href="#b-generate-the-namelist-bdy-file-for-pynemo-nrct">6b. Generate the namelist.bdy file for PyNEMO / NRCT</a></li>
 <li><a class="reference internal" href="#run-pynemo-nrct-to-generate-boundary-conditions">Run PyNEMO / NRCT to generate boundary conditions</a></li>
-<li><a class="reference internal" href="#id3">6. Generate boundary conditions with NRCT/PyNEMO: Create netcdf abstraction wrapper</a></li>
+<li><a class="reference internal" href="#id1">6. Generate boundary conditions with NRCT/PyNEMO: Create netcdf abstraction wrapper</a></li>
 <li><a class="reference internal" href="#a-generate-ncml-files">6a. Generate ncml files</a></li>
 <li><a class="reference internal" href="#nna-inputs-src-ncml">NNA_inputs_src.ncml</a></li>
-<li><a class="reference internal" href="#id4">6b. Generate the namelist.bdy file for PyNEMO / NRCT</a></li>
+<li><a class="reference internal" href="#id2">6b. Generate the namelist.bdy file for PyNEMO / NRCT</a></li>
 <li><a class="reference internal" href="#generate-boundary-conditions-with-pynemo-run-pynemo">7. Generate boundary conditions with PyNEMO: Run PyNEMO</a></li>
 <li><a class="reference internal" href="#namelist-bdy-nna">namelist.bdy_NNA</a></li>
 <li><a class="reference internal" href="#run-the-configuration-on-archer-turn-on-the-tides">8. Run the configuration ON ARCHER. Turn on the tides</a><ul>
@@ -2197,6 +2074,8 @@ tname(9)     =   &#8216;M4&#8217;</div></blockquote>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="LBay_archer_livljobs4.html" title="previous chapter">Setting up a Liverpool Bay NEMO v4 configuration</a></li>
+      <li>Next: <a href="SEAsia_archer_livljobs4.html" title="next chapter">Setting up a SE Asia NEMO v4 configuration</a></li>
   </ul></li>
 </ul>
 </div>

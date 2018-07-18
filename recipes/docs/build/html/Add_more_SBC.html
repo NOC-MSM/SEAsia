@@ -1,0 +1,276 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Add new SBC forcing to NEMO &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+    <link rel="next" title="Trouble Shooting" href="trouble_shooting.html" />
+    <link rel="prev" title="Rebuild the output and inspect" href="rebuild_and_inspect_NEMO_output.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="contents topic" id="table-of-contents">
+<p class="topic-title first">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#add-new-sbc-forcing-to-nemo" id="id1">Add new SBC forcing to NEMO</a><ul>
+<li><a class="reference internal" href="#create-a-module-for-initialisation-and-read-of-the-variables" id="id2">Create a module for initialisation and read of the variables</a></li>
+<li><a class="reference internal" href="#call-the-function-in-sbc-module" id="id3">Call the function in sbc module</a></li>
+<li><a class="reference internal" href="#others-to-run" id="id4">Others / to run</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="add-new-sbc-forcing-to-nemo">
+<h1><a class="toc-backref" href="#id1">Add new SBC forcing to NEMO</a><a class="headerlink" href="#add-new-sbc-forcing-to-nemo" title="Permalink to this headline">¶</a></h1>
+<p>For any reason, one might want to add extra forcing like wave conditions here. It&#8217;s fairly easy through the
+NEMO <strong>Input Data generic interface</strong>.</p>
+<p>This has been done in NEMO 4, revision 9395 and code can be found under
+<strong>/work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC</strong>
+on ARCHER.</p>
+<div class="section" id="create-a-module-for-initialisation-and-read-of-the-variables">
+<h2><a class="toc-backref" href="#id2">Create a module for initialisation and read of the variables</a><a class="headerlink" href="#create-a-module-for-initialisation-and-read-of-the-variables" title="Permalink to this headline">¶</a></h2>
+<p>You can use the <strong>OPA/SBC/sbcwave.F90</strong> as an example or the following</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>MODULE sbcNOCwave
+  USE iom            ! I/O manager library
+  USE in_out_manager ! I/O manager
+  USE lib_mpp        ! distribued memory computing library
+  USE fldread         ! read input fields
+
+  IMPLICIT NONE
+  PRIVATE
+
+  PUBLIC   sbc_noc_wave        ! routine called in sbcmod
+  PUBLIC   sbc_noc_wave_init   ! routine called in sbcmod
+  LOGICAL, PUBLIC ::   ln_hs
+
+  TYPE(FLD)       , ALLOCATABLE, DIMENSION(:)   :: sf_hs     ! structure of input fields (file informations, fields read) Drag Coefficient
+  REAL(wp), PUBLIC, ALLOCATABLE, DIMENSION(:,:) :: hs_wave
+
+  CONTAINS
+
+     SUBROUTINE sbc_noc_wave( kt )
+        USE wrk_nemo
+        INTEGER, INTENT( in  ) ::  kt       ! ocean time step
+        IF ( ln_hs ) THEN
+           CALL fld_read( kt, nn_fsbc, sf_hs )       !* read hs from external forcing
+           hs_wave(:,:) = sf_hs(1)%fnow(:,:,1) * tmask (:,:,1)
+           CALL iom_put( &#39;Hs_ERA5&#39;, hs_wave(:,:) )
+        ENDIF
+     END SUBROUTINE sbc_noc_wave
+
+     SUBROUTINE sbc_noc_wave_init
+        INTEGER                ::  ierror      ! return error code
+        INTEGER                ::  ios         ! Local integer output status for namelist read
+        CHARACTER(len=100)     ::  cn_dir      ! Root directory for location of drag coefficient files
+        TYPE(FLD_N)            ::  sn_hs       ! informations about the fields to be read
+        !!---------------------------------------------------------------------
+        NAMELIST/namsbc_noc_wave/  cn_dir, ln_hs, sn_hs
+        !!---------------------------------------------------------------------
+        REWIND( numnam_ref )              ! Namelist namsbc_wave in reference namelist : File for wave model
+        READ  ( numnam_ref, namsbc_noc_wave, IOSTAT = ios, ERR = 901 )
+   901  IF( ios /= 0 ) CALL ctl_nam ( ios , &#39;namsbc_noc_wave in reference namelist&#39;, lwp )
+        REWIND( numnam_cfg )              ! Namelist namsbc_wave in configuration namelist : File for wave model
+        READ  ( numnam_cfg, namsbc_noc_wave, IOSTAT = ios, ERR = 902 )
+   902  IF( ios /= 0 ) CALL ctl_nam ( ios , &#39;namsbc_noc_wave in configuration namelist&#39;, lwp )
+        IF(lwm) WRITE ( numond, namsbc_noc_wave )
+
+        IF ( ln_hs ) THEN
+           ALLOCATE( sf_hs(1), STAT=ierror )           !* allocate and fill sf_wave with sn_cdg
+           IF( ierror &gt; 0 )    CALL ctl_stop( &#39;STOP&#39;, &#39;sbc_noc_wave_init: unable to allocate sf_wave structure for hs&#39; )
+           ALLOCATE( sf_hs(1)%fnow(jpi,jpj,1)   )
+           IF( sn_hs%ln_tint ) ALLOCATE( sf_hs(1)%fdta(jpi,jpj,1,2) )
+           CALL fld_fill( sf_hs, (/ sn_hs /), cn_dir, &#39;sbc_noc_wave_init&#39;, &#39;NOC Wave module &#39;, &#39;namsbc_noc_wave&#39; )
+           ALLOCATE( hs_wave(jpi,jpj) )
+           hs_wave(:,:) = 0.0
+        ENDIF
+        IF(lwp) WRITE(numout,*) &quot;sbc_noc_wave_init&quot;
+      END SUBROUTINE sbc_noc_wave_init
+
+END MODULE sbcNOCwave
+</pre></div>
+</div>
+</div>
+<div class="section" id="call-the-function-in-sbc-module">
+<h2><a class="toc-backref" href="#id3">Call the function in sbc module</a><a class="headerlink" href="#call-the-function-in-sbc-module" title="Permalink to this headline">¶</a></h2>
+<p>In <strong>OPA/SBC/sbcmod.F90</strong>, the new module needs to be called in the header</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">USE</span> <span class="n">sbcNOCwave</span>
+</pre></div>
+</div>
+<p>Defined a new logical in the namelist (<strong>sbc_init</strong> routine)</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>NAMELIST/namsbc/ nn_fsbc  ,                                                    &amp;
+   &amp;             ln_usr   , ln_flx   , ln_blk       ,                          &amp;
+   &amp;             ln_cpl   , ln_mixcpl, nn_components, nn_limflx,               &amp;
+   &amp;             nn_ice   , nn_ice_embd,                                       &amp;
+   &amp;             ln_traqsr, ln_dm2dc ,                                         &amp;
+   &amp;             ln_rnf   , nn_fwb   , ln_ssr   , ln_isf    , ln_apr_dyn ,     &amp;
+   &amp;             ln_wave  ,                                                    &amp;
+!--- NB ---
+   &amp;             ln_noc_wave  ,                                                &amp;
+!--- END NB ---
+   &amp;             ln_cdgw  , ln_sdw   , ln_tauoc  , ln_stcor   ,                &amp;
+   &amp;             nn_lsm
+</pre></div>
+</div>
+<p>You can also add some comments in the section for the <em>ocean.output</em>. Then load your module</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>IF( ln_wave     )   CALL sbc_wave_init              ! surface wave initialisation
+!
+!--- NB ---
+IF( ln_noc_wave )   CALL sbc_noc_wave_init      ! surface wave initialisation
+!--- END NB ---
+END SUBROUTINE sbc_init
+</pre></div>
+</div>
+<p>Update the field at each time step</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>IF( ln_wave     )   CALL sbc_wave( kt )            ! surface waves
+!--- NB ---
+IF( ln_noc_wave )   CALL sbc_noc_wave( kt )        ! surface waves
+!--- END NB ---
+</pre></div>
+</div>
+<p>Finally, declare the logical you have created in <strong>OPA/SBC/sbc_oce.F90</strong></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>LOGICAL , PUBLIC ::   ln_wave        !: true if some coupling with wave model
+!--- NB
+LOGICAL , PUBLIC ::   ln_noc_wave    !: true if some coupling with wave model
+!--- END NB
+</pre></div>
+</div>
+</div>
+<div class="section" id="others-to-run">
+<h2><a class="toc-backref" href="#id4">Others / to run</a><a class="headerlink" href="#others-to-run" title="Permalink to this headline">¶</a></h2>
+<p>To output the parameters, you load, you can add in the module you created something like</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>IF ( ln_hs ) THEN
+   CALL fld_read( kt, nn_fsbc, sf_hs )       !* read hs from external forcing
+   hs_wave(:,:) = sf_hs(1)%fnow(:,:,1) * tmask (:,:,1)
+   CALL iom_put( &#39;Hs_ERA5&#39;, hs_wave(:,:) )
+ENDIF
+</pre></div>
+</div>
+<p>and ifor example, you will need to update the <strong>field_def_nemo-opa.xml</strong></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>&lt;!-- WAVES --&gt;
+&lt;field_group id=&quot;Waves_grid_T&quot; grid_ref=&quot;grid_T_2D&quot; operation=&quot;once&quot; &gt;
+   &lt;field id=&quot;Hs_ERA5&quot;    long_name=&quot;Hs from ERA5&quot;  unit=&quot;m&quot;      /&gt;
+&lt;/field_group&gt;
+</pre></div>
+</div>
+<p>and in <strong>file_def_nemo.xml</strong></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>&lt;file_group id=&quot;1ts&quot; output_freq=&quot;1ts&quot;  output_level=&quot;10&quot; enabled=&quot;.TRUE.&quot;&gt; &lt;!-- 1 time step files --&gt;
+  &lt;file id=&quot;Waves_grid_T&quot; name=&quot;Waves_grid_T&quot; description=&quot;ocean T grid variables&quot;  enabled=&quot;.TRUE.&quot;&gt;
+    &lt;field field_ref=&quot;Hs_ERA5&quot;   name=&quot;Hs_ERA5&quot;    operation=&quot;instant&quot; enabled=&quot;.TRUE.&quot; /&gt;
+  &lt;/file&gt;
+&lt;/file_group&gt;
+</pre></div>
+</div>
+<p>The namelist will need to specify a few things</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;namsbc_noc_wave   ! External fields from wave model
+!-----------------------------------------------------------------------
+!              !  file name  ! frequency (hours) ! variable     ! time interp. !  clim   ! &#39;yearly&#39;/ ! weights  ! rotation ! land/sea mask !
+!              !             !  (if &lt;0  months)  !   name       !   (logical)  !  (T/F)  ! &#39;monthly&#39; ! filename ! pairing  ! filename      !
+   sn_hs       =  &#39;SWPacific_hs0&#39;,    1          ,   &#39;swh&#39;      ,     .true.   , .false. , &#39;yearly&#39;  ,  &#39;weights_ERA5_SWpacific_bicubic.nc&#39; , &#39;&#39;       , &#39;&#39;
+!
+   cn_dir  = &#39;./&#39;  !  root directory for the location of drag coefficient files
+   ln_hs   = .true.
+/
+</pre></div>
+</div>
+<p>and in <strong>&amp;namsbc</strong></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ln_noc_wave</span> <span class="o">=</span> <span class="o">.</span><span class="n">true</span><span class="o">.</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Add new SBC forcing to NEMO</a><ul>
+<li><a class="reference internal" href="#create-a-module-for-initialisation-and-read-of-the-variables">Create a module for initialisation and read of the variables</a></li>
+<li><a class="reference internal" href="#call-the-function-in-sbc-module">Call the function in sbc module</a></li>
+<li><a class="reference internal" href="#others-to-run">Others / to run</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="rebuild_and_inspect_NEMO_output.html" title="previous chapter">Rebuild the output and inspect</a></li>
+      <li>Next: <a href="trouble_shooting.html" title="next chapter">Trouble Shooting</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Add_more_SBC.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/Add_more_SBC.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

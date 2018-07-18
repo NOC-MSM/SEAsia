@@ -1,0 +1,306 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Change to tides in NEMO &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="contents topic" id="table-of-contents">
+<p class="topic-title first">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#change-to-tides-in-nemo" id="id1">Change to tides in NEMO</a><ul>
+<li><a class="reference internal" href="#where-to-access-fes-2014" id="id2">Where to access FES 2014</a></li>
+<li><a class="reference internal" href="#code-changes-for-fes-2014" id="id3">Code changes for FES 2014</a></li>
+<li><a class="reference internal" href="#tidal-potential-due-to-long-period-and-love-number" id="id4">Tidal potential due to long-period and love number</a></li>
+<li><a class="reference internal" href="#restart-3d-and-fast-harmonic-analysis" id="id5">Restart, 3D and fast harmonic analysis</a></li>
+<li><a class="reference internal" href="#miscellaneous-important" id="id6">Miscellaneous / Important</a></li>
+<li><a class="reference internal" href="#examples" id="id7">Examples</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="change-to-tides-in-nemo">
+<h1><a class="toc-backref" href="#id1">Change to tides in NEMO</a><a class="headerlink" href="#change-to-tides-in-nemo" title="Permalink to this headline">¶</a></h1>
+<p>The documentation and final changes are mainly for NEMO 4 (trunk revision 9395 used for ORCHESTRA).
+This describes two significant changes:</p>
+<ul class="simple">
+<li>Internal treatment of tides</li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li>Increase the number of harmonic constituents processed by to 34 harmonic (to accomodate FES2014 tides)</li>
+<li>Switch to Doodson number notation from Schureman.</li>
+<li>Add in long period tides to the potential forcing.</li>
+<li>Add in variable Love number.</li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li>Harmonic analysis of tides</li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li>Switch to POLCOMS method</li>
+<li>Accomodate restarts in harmonic analysis (namelist contolled)</li>
+<li>Accomodate 3D harmonic analysis (namelist contolled)</li>
+</ul>
+</div></blockquote>
+<div class="section" id="where-to-access-fes-2014">
+<h2><a class="toc-backref" href="#id2">Where to access FES 2014</a><a class="headerlink" href="#where-to-access-fes-2014" title="Permalink to this headline">¶</a></h2>
+<p><strong>FES 2014</strong> (Finit-Element Solution) global tide database can be accessed, after registration, via the <strong>AVISO</strong> portal :</p>
+<blockquote>
+<div><a class="reference external" href="https://www.aviso.altimetry.fr/en/data/products/auxiliary-products/global-tide-fes.html">https://www.aviso.altimetry.fr/en/data/products/auxiliary-products/global-tide-fes.html</a></div></blockquote>
+<p>The FES2014 tides database includes 3 components:  tide elevations (amplitude and phase), tide currents (u and v) and tide
+loading on a 1/16°x1/16° grid including including 34 tidal components : K1, M2, M4 , N2 , O1 , P1 , Q1 , S1, S2 , K2 , 2N2,
+E2, J1, L2, La2, M3, M6, M8, Mf, MKS2, Mm, MN4, MS4, MSf, MSqm, Mtm, Mu2, N4, Nu2, R2, S4, Sa, Ssa, T2.</p>
+</div>
+<div class="section" id="code-changes-for-fes-2014">
+<h2><a class="toc-backref" href="#id3">Code changes for FES 2014</a><a class="headerlink" href="#code-changes-for-fes-2014" title="Permalink to this headline">¶</a></h2>
+<p>In order to use the FES data (or any other dataset), one needs to provide the information of the new constituents.
+The file <strong>NEMOGCM/NEMO/OPA_SRC/SBC/tide.h90</strong> needs to be  updated to contain information for the full set of tidal
+constituents used by NEMO. In the new package the <strong>tide.h90</strong> is named <strong>tide_FES14.h90</strong> and is activated through the
+cpp flag <strong>key_FES14_tides</strong>.</p>
+<p>This table mainly provides the equilibrium tide coefficients (<em>equitide</em>), the <em>Schureman</em>
+coefficients (similar to <em>Doodson</em> numbers but different) and the formulation needed. As an example, the Schureman vs
+Doodson numbers for M2</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">M2</span> <span class="p">:</span> <span class="n">Doodson</span>   <span class="p">:</span> <span class="mi">2</span>  <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span>
+     <span class="n">Schureman</span> <span class="p">:</span> <span class="mi">2</span> <span class="o">-</span><span class="mi">2</span> <span class="mi">2</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>The following document (see page 189 for some proposed values) seems to match implemented code :</dt>
+<dd><a class="reference external" href="https://docs.lib.noaa.gov/rescue/cgs_specpubs/QB275U35no981924.pdf">https://docs.lib.noaa.gov/rescue/cgs_specpubs/QB275U35no981924.pdf</a></dd>
+</dl>
+<p>The equitide parameter seems to be the equilibrium tide amplitude corrected with the C_n^m coefficient (see PDF p66). As
+I couldn&#8217;t figure out where the equitide component were coming from, I recomputed all of them using the same method
+for consistency. So all equitide were computed using the last epocs from Cartwright and Tayer (1971) multiplied by the
+corresponding coefficient of their Table 2 and using the equation 12. The equitide is only used for the tidal potential.
+And the tidal potential only account for lond-period, diurnal and semi-diurnal effects.</p>
+<p>As an example in their Table 4c (p66), M2 (Doodson 200000) has an amplitude of around 0.63186 m
+Table 2, give us a correction of m = 2, n = 2 (semi-diurnal)</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">0.63186</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">sqrt</span><span class="p">(</span> <span class="mi">5</span> <span class="o">/</span> <span class="mi">96</span> <span class="o">/</span> <span class="n">pi</span> <span class="p">)</span> <span class="o">=</span> <span class="mf">0.24407</span>
+</pre></div>
+</div>
+<p>Very close to the one defined originally in NEMO (which was <strong>0.242297</strong>). So to correct (to match what
+is implemented in <strong>NEMOGCM/NEMO/OPA_SRC/SBC/sbctide.F90</strong> - take care CT71 uses co-latitude)</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">long</span> <span class="n">wave</span> <span class="p">:</span> <span class="n">Amplitude</span> <span class="kn">from</span> <span class="nn">CT71</span> <span class="o">*</span> <span class="p">[</span> <span class="o">-</span><span class="mi">1</span>   <span class="o">*</span> <span class="n">sqrt</span><span class="p">(</span> <span class="mi">5</span> <span class="o">/</span>  <span class="mi">4</span> <span class="o">/</span> <span class="n">pi</span> <span class="p">)</span> <span class="p">]</span>
+<span class="n">diurnal</span>   <span class="p">:</span> <span class="n">Amplitude</span> <span class="kn">from</span> <span class="nn">CT71</span> <span class="o">*</span> <span class="p">[</span> <span class="o">-</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sqrt</span><span class="p">(</span> <span class="mi">5</span> <span class="o">/</span> <span class="mi">24</span> <span class="o">/</span> <span class="n">pi</span> <span class="p">)</span> <span class="p">]</span>
+<span class="n">semi</span><span class="o">-</span><span class="n">diur</span> <span class="p">:</span> <span class="n">Amplitude</span> <span class="kn">from</span> <span class="nn">CT71</span> <span class="o">*</span> <span class="p">[</span>  <span class="mi">3</span>   <span class="o">*</span> <span class="n">sqrt</span><span class="p">(</span> <span class="mi">5</span> <span class="o">/</span> <span class="mi">96</span> <span class="o">/</span> <span class="n">pi</span> <span class="p">)</span> <span class="p">]</span>
+</pre></div>
+</div>
+<p>ATTENTION: convention seems to be to have a positive coefficient and a 180 shift to represent negative
+value. To be confirmed though.</p>
+<dl class="docutils">
+<dt><strong>nutide</strong> is a flag integer [0 - longwave; 1 - diurnal; 2 - semi-diurnal; o/w</dt>
+<dd><ul class="first simple">
+<li>no tide potential] used to trigger the formulation of the tide potential.</li>
+</ul>
+<p class="last">See <strong>NEMOGCM/NEMO/OPA_SRC/SBC/sbctide.F90</strong> in function tide_init_potential.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="tidal-potential-due-to-long-period-and-love-number">
+<h2><a class="toc-backref" href="#id4">Tidal potential due to long-period and love number</a><a class="headerlink" href="#tidal-potential-due-to-long-period-and-love-number" title="Permalink to this headline">¶</a></h2>
+<p>The original code of NEMO was not accounting for tidal potential due to long-period. This has been added in
+<strong>NEMOGCM/NEMO/OPA_SRC/SBC/sbctide.F90</strong>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>IF    ( Wave(ntide(jk))%nutide == 1 )  THEN  ;  zcs = zcons * SIN( 2._wp*zlat )
+ELSEIF( Wave(ntide(jk))%nutide == 2 )  THEN  ;  zcs = zcons * COS( zlat )**2
+!--- NB 11/2017
+! Add tide potential for long period tides
+ELSEIF( Wave(ntide(jk))%nutide == 0 )  THEN  ;  zcs = zcons * (0.5_wp-1.5_wp*SIN(zlat)**2._wp)
+!--- END NB
+ELSE                                         ;  zcs = 0._wp
+ENDIF
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Further as the maximum number of constituents is hard coded, other routines were changed to extend this number:</dt>
+<dd><ul class="first last simple">
+<li>NEMOGCM/NEMO/OPA_SRC/SBC/tide_mod.F90</li>
+<li>NEMOGCM/NEMO/OPA_SRC/BDY/bdytides.F90</li>
+</ul>
+</dd>
+</dl>
+<p>The <strong>Love number</strong> was fixed to 0.7. It is now set-up in the namelist <strong>namelist nam_tide</strong> under <strong>dn_love_number</strong>.</p>
+</div>
+<div class="section" id="restart-3d-and-fast-harmonic-analysis">
+<h2><a class="toc-backref" href="#id5">Restart, 3D and fast harmonic analysis</a><a class="headerlink" href="#restart-3d-and-fast-harmonic-analysis" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>Two versions of tidal harmonic analysis co-exist in NEMO, the original one :</dt>
+<dd><ul class="first last simple">
+<li><strong>NEMOGCM/NEMO/OPA_SRC/SBC/diaharm.F90</strong></li>
+</ul>
+</dd>
+<dt>and a second one (developed by Enda from POLCOMS) which allows to output the harmonic analysis to a restart file :</dt>
+<dd><ul class="first last simple">
+<li><strong>NEMOGCM/NEMO/OPA_SRC/SBC/diaharm_fast.F90</strong></li>
+</ul>
+</dd>
+</dl>
+<p>Here we modified the second one in order to be able to select the constituents we want as the version
+analysis the full set of input constituents leading to <em>crazy</em> results if the period simulated is not
+appropriate (long enough). However we want to keep the possibility to have more constituents and long
+period constituents in our input harmonics for more accurate simulations and only do a tidal analysis
+of a few selcted constituents (in addition it fastens the computation).</p>
+<p>So now the code allow you to select which constituents you want to output. They need to be included in
+the input one. (we can imagine in the future extending this to any constituents could be outputed).</p>
+<p>To activate this harmonic analysis, you need to compile with the cpp flag <strong>key_diaharm_fast</strong> (This replaces either
+<strong>key_diaharm</strong> or <strong>key_diaharm_ana</strong>). Then a namelist need
+to be added:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;nam_diaharm_fast   !   Harmonic analysis of tidal constituents               (&quot;key_diaharm_fast&quot;)
+!-----------------------------------------------------------------------
+ln_diaharm_store = .true.
+ln_diaharm_compute = .true.
+ln_diaharm_read_restart = .true.
+ln_ana_ssh   = .true.
+ln_ana_uvbar = .false.
+ln_ana_bfric = .true.
+ln_ana_rho  = .false.
+ln_ana_uv3d = .true.
+ln_ana_w3d  = .false.
+tname(1) = &#39;O1&#39;,
+tname(2) = &#39;M2&#39;,
+/
+</pre></div>
+</div>
+<p>The code is able to analyse ssh (<strong>ln_ana_ssh</strong>), barotropic currents (<strong>ln_ana_uvbar</strong>), bottom friction (<strong>ln_ana_bfric</strong>),
+and 3D components: density (<strong>ln_ana_rho</strong>), horizontal velocities (<strong>ln_ana_uv3d</strong>) and vertical velocity (<strong>ln_ana_w3d</strong>).
+To activate it and write restart, <strong>ln_diaharm_store</strong> needs to be on. To output the results, <strong>ln_diaharm_compute</strong> and to
+restart from a previous run with harmonic analysis, <strong>ln_diaharm_read_restart</strong>.</p>
+<p>The code is been modified to allow flexibility and to be able to add new analysis in a straightforward way.</p>
+</div>
+<div class="section" id="miscellaneous-important">
+<h2><a class="toc-backref" href="#id6">Miscellaneous / Important</a><a class="headerlink" href="#miscellaneous-important" title="Permalink to this headline">¶</a></h2>
+<p>You need to update your xml files to include each components !!!</p>
+</div>
+<div class="section" id="examples">
+<h2><a class="toc-backref" href="#id7">Examples</a><a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>You can find the source code in ARCHER under <strong>/work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC</strong> using :</dt>
+<dd><ul class="first last simple">
+<li>bdyini.F90</li>
+<li>diaharm.F90</li>
+<li>diaharm_fast.F90</li>
+<li>sbctide.F90</li>
+<li>step.F90</li>
+<li>step_oce.F90</li>
+<li>tide_FES14.h90</li>
+<li>tideini.F90</li>
+<li>tide_mod.F90</li>
+</ul>
+</dd>
+<dt>Compilation flags</dt>
+<dd><ul class="first last simple">
+<li>key_FES14_tides</li>
+<li>key_diaharm_fast</li>
+</ul>
+</dd>
+<dt>Namelists and xml file examples can be found in <strong>/work/n01/n01/nibrun/RUNS/SWPacific/SIMU</strong> with :</dt>
+<dd><ul class="first last simple">
+<li>namelist_cfg</li>
+<li>namelist_ref</li>
+<li>file_def_nemo.xml</li>
+<li>field_def_nemo-opa.xml</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Change to tides in NEMO</a><ul>
+<li><a class="reference internal" href="#where-to-access-fes-2014">Where to access FES 2014</a></li>
+<li><a class="reference internal" href="#code-changes-for-fes-2014">Code changes for FES 2014</a></li>
+<li><a class="reference internal" href="#tidal-potential-due-to-long-period-and-love-number">Tidal potential due to long-period and love number</a></li>
+<li><a class="reference internal" href="#restart-3d-and-fast-harmonic-analysis">Restart, 3D and fast harmonic analysis</a></li>
+<li><a class="reference internal" href="#miscellaneous-important">Miscellaneous / Important</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/FES2014_NEMO.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/FES2014_NEMO.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

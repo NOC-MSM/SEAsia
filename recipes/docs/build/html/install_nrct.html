@@ -24,6 +24,8 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+    <link rel="next" title="Anatomy of the NRCT namelist.bdy" href="anatomy_namelist_bdy.html" />
+    <link rel="prev" title="Build and run SIREN tools" href="build_siren_tools.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -69,11 +71,15 @@ find  /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/ -name libjvm.so -print</p>
 export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
 unset SSH_ASKPASS # Didn&#39;t need this on ARCHER...
 git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
-cd nrct/Python
+cd $WORK/$USER/nrct/Python
 python setup.py build
 export PYTHONPATH=/login/$USER/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
 python setup.py install --prefix ~/.conda/envs/nrct_env
 cd $INPUTS
+</pre></div>
+</div>
+<p>Just do it:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pynemo</span> <span class="o">-</span><span class="n">s</span> <span class="n">namelist</span><span class="o">.</span><span class="n">bdy</span>
 </pre></div>
 </div>
 <p>&#8212;</p>
@@ -175,6 +181,8 @@ python setup.py install --prefix ~/.conda/envs/nrct_env
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="build_siren_tools.html" title="previous chapter">Build and run SIREN tools</a></li>
+      <li>Next: <a href="anatomy_namelist_bdy.html" title="next chapter">Anatomy of the NRCT namelist.bdy</a></li>
   </ul></li>
 </ul>
 </div>

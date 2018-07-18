@@ -1,0 +1,487 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Generate Initial conditions &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="generate-initial-conditions">
+<h1>Generate Initial conditions<a class="headerlink" href="#generate-initial-conditions" title="Permalink to this headline">¶</a></h1>
+<hr class="docutils" />
+<p><strong>10 May 2018: THIS IS NOT PROPERLY GENERALISED BECAUSE I&#8217;VE ONLY DONE IT ONCE!</strong></p>
+<p>For a new configuration you probably want to start with idealised, or homogenous
+initial conditions. This is done with user defined initial conditions <code class="docutils literal"><span class="pre">ln_usr</span></code>
+with the expression being compiled into the executable</p>
+<p>To use initial conditions from an existing T,S field you might need to do a bit
+of interpolation. It is advisable to let NEMO do the heavy lifting for vertical
+interpolation (rquiring some FORTRAN modifictions), though SOSIE tools can be user
+to do simple horizontal interpolation.</p>
+<div class="section" id="user-defined-initial-initial-conditions">
+<h2>User defined initial initial conditions<a class="headerlink" href="#user-defined-initial-initial-conditions" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>For constant T and S use the user defined functions in <code class="docutils literal"><span class="pre">$CDIR/$CONFIG/MY_SRC</span></code>:</dt>
+<dd><p class="first"><code class="docutils literal"><span class="pre">usrdef_sbc.F90</span></code>  and <code class="docutils literal"><span class="pre">usrdef_istate.F90</span></code>. Compile and save executable with
+telegraphic names that point to compile options. e.g.:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">nemo_notide_TSprofile</span><span class="o">.</span><span class="n">exe</span>
+<span class="n">nemo_tideonly_TSconst</span><span class="o">.</span><span class="n">exe</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div>
+<div class="section" id="building-t-s-field-initial-conditions-from-existing-fields">
+<h2>Building T,S field initial conditions from existing fields<a class="headerlink" href="#building-t-s-field-initial-conditions-from-existing-fields" title="Permalink to this headline">¶</a></h2>
+<p>Second time around we build 3D initial conditions
+<em>(27 Apr 2018)</em></p>
+<p><a href="#id1"><span class="problematic" id="id2">*</span></a>Since my parent and child are on the same grid I&#8217;m not sure I need all these steps.
+Indeed there is almost certainly a more efficient method with hindsight. However</p>
+<blockquote>
+<div>I am marching onwards*</div></blockquote>
+<p>Outline:</p>
+<ul class="simple">
+<li>Cut out rough domain T and S.</li>
+<li>Use SCRIP tools to remap onto configurations horizontal coords</li>
+<li>Use SOSIE to remove land by extrapolating water laterally.</li>
+<li>Interpolate on the fly in NEMO to convert z-level to hybrid coords.</li>
+</ul>
+<div class="section" id="rough-cut-some-initial-conditions-from-parent-global-dataset">
+<h3>Rough cut some initial conditions from parent (global) dataset<a class="headerlink" href="#rough-cut-some-initial-conditions-from-parent-global-dataset" title="Permalink to this headline">¶</a></h3>
+<p>Make cut down parent file using ORCA0083-N01.
+Copy parent file to ARCHER INPUTS (need to generalise / improve):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">livljobs4</span>
+<span class="n">scp</span> <span class="o">/</span><span class="n">projectsa</span><span class="o">/</span><span class="n">accord</span><span class="o">/</span><span class="n">ORCA0083</span><span class="o">/</span><span class="n">ORCA0083</span><span class="o">-</span><span class="n">N01_19791101d05T</span><span class="o">.</span><span class="n">nc</span> <span class="n">jelt</span><span class="nd">@login</span><span class="o">.</span><span class="n">archer</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">uk</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">SEAsia</span><span class="o">/</span><span class="n">INPUTS</span><span class="o">/.</span>
+</pre></div>
+</div>
+<p>Cut down based on coordintaes from <em>create coordinates</em> namelist. (Add a bit of
+a buffer):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+module load cray-netcdf cray-hdf5
+module load nco/4.5.0
+cd $WDIR/INPUTS
+
+ncks -d x,45,735 -d y,1245,1810 ORCA0083-N01_19791101d05T.nc $WDIR/INPUTS/cut_down_19791101d05_SEAsia_grid_T.nc
+</pre></div>
+</div>
+<p>Average over time and restore the parallel modules (Not necessary for this data with 1 time point):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#e.g. ncwa -a time_counter $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc  $WDIR/INPUTS/cut_down_201310_LBay_grid_T.nc</span>
+
+<span class="n">module</span> <span class="n">unload</span> <span class="n">nco</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="use-scrip-tools-to-remap-to-the-new-grid">
+<h3>Use SCRIP tools to remap to the new grid<a class="headerlink" href="#use-scrip-tools-to-remap-to-the-new-grid" title="Permalink to this headline">¶</a></h3>
+<p>Now do interpolation onto child lateral grid.  The <code class="docutils literal"><span class="pre">scrip</span></code> tools are build in <code class="docutils literal"><span class="pre">TDIR</span></code>
+e.g. in <a href="#id5"><span class="problematic" id="id6">`Build Tools&lt;SEAsia_archer_livljobs4.rst&gt;`_</span></a></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export OLD_TDIR=$WORK/$USER/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/
+</pre></div>
+</div>
+<p>First copy the namelists:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/namelist_reshape_bilin_initcd_votemper $INPUTS/.
+cp $START_FILES/namelist_reshape_bilin_initcd_vosaline $INPUTS/.
+</pre></div>
+</div>
+<p>Edit the input files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $INPUTS/namelist_reshape_bilin_initcd_votemper
+&amp;grid_inputs
+  input_file = &#39;cut_down_19791101d05_SEAsia_grid_T.nc&#39;
+...
+  input_name = &quot;votemper&quot;
+
+&amp;interp_inputs
+  input_file = &quot;cut_down_19791101d05_SEAsia_grid_T.nc&quot;
+  ...
+  input_vars = &quot;deptht&quot;, &quot;time_counter&quot;
+</pre></div>
+</div>
+<p>Similarly for the <a href="#id3"><span class="problematic" id="id4">*</span></a>vosaline.nc file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $INPUTS/namelist_reshape_bilin_initcd_vosaline
+&amp;grid_inputs
+  input_file = &#39;cut_down_19791101d05_SEAsia_grid_T.nc&#39;
+  ...
+  input_name = &quot;vosaline&quot;
+...
+
+&amp;interp_inputs
+  input_file = &#39;cut_down_19791101d05_SEAsia_grid_T.nc&#39;
+  ...
+  input_vars = &quot;deptht&quot;, &quot;time_counter&quot;
+</pre></div>
+</div>
+<p>Produce the remap files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_initcd_votemper
+</pre></div>
+</div>
+<p>Creates <code class="docutils literal"><span class="pre">remap_nemo_grid_R12.nc</span></code> and <code class="docutils literal"><span class="pre">remap_data_grid_R12.nc</span></code>. Then:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_initcd_votemper
+</pre></div>
+</div>
+<p>Creates <code class="docutils literal"><span class="pre">data_nemo_bilin_R12.nc</span></code>. Then:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
+</pre></div>
+</div>
+<p>Creates <code class="docutils literal"><span class="pre">initcd_votemper.nc</span></code>. Then:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
+</pre></div>
+</div>
+<p>Creates <code class="docutils literal"><span class="pre">initcd_vosaline.nc</span></code>.</p>
+<p>&#8212;</p>
+</div>
+<div class="section" id="use-sosie-tools-to-flood-fill-the-parent-initial-conditions">
+<h3>Use SOSIE tools to flood fill the parent initial conditions<a class="headerlink" href="#use-sosie-tools-to-flood-fill-the-parent-initial-conditions" title="Permalink to this headline">¶</a></h3>
+<p>Interpolating the T,S on z-levels onto hybrid levels can create water where
+there was previously only land. Convert all the land in the parent initial conditions
+to water by <cite>flooding</cite> the domain. This can be done with the SOSIE tool.</p>
+<p>Before building and using the tool first make a land mask file to tell the SOSIE
+what needs flooding. Use the salinity field to do this since we know the
+salinity field is zero on land. Using NCO tools (mask out the fresh coastal water
+as it makes a mess of the flood filling and subsequent z-interpolation):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">unload</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">nco</span><span class="o">/</span><span class="mf">4.5</span><span class="o">.</span><span class="mi">0</span>
+
+<span class="n">ncks</span> <span class="o">-</span><span class="n">d</span> <span class="n">time_counter</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span> <span class="o">-</span><span class="n">v</span> <span class="n">vosaline</span> <span class="n">initcd_vosaline</span><span class="o">.</span><span class="n">nc</span> <span class="n">sosie_initcd_mask</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncap2</span> <span class="o">-</span><span class="n">O</span> <span class="o">-</span><span class="n">s</span> <span class="s1">&#39;where(vosaline &lt;=30.) vosaline=0&#39;</span> <span class="n">sosie_initcd_mask</span><span class="o">.</span><span class="n">nc</span> <span class="n">sosie_initcd_mask</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncap2</span> <span class="o">-</span><span class="n">O</span> <span class="o">-</span><span class="n">s</span> <span class="s1">&#39;where(vosaline &gt;0.) vosaline=1&#39;</span> <span class="n">sosie_initcd_mask</span><span class="o">.</span><span class="n">nc</span> <span class="n">sosie_initcd_mask</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncrename</span> <span class="o">-</span><span class="n">v</span> <span class="n">vosaline</span><span class="p">,</span><span class="n">mask</span> <span class="n">sosie_initcd_mask</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>Restore modules:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">unload</span> <span class="n">nco</span><span class="o">/</span><span class="mf">4.5</span><span class="o">.</span><span class="mi">0</span>
+<span class="n">module</span> <span class="n">unload</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+</pre></div>
+</div>
+<p>This has created a file <code class="docutils literal"><span class="pre">initcd_mask</span></code> with a variable <code class="docutils literal"><span class="pre">mask</span></code>.</p>
+<p>Now build the SOSIE tool.
+Copy <code class="docutils literal"><span class="pre">make.macro</span></code> file and edit the path if necessary:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/make.macro /home/n01/n01/jelt/sosie/.
+
+vi /home/n01/n01/jelt/sosie/make.macro
+# Directory to install binaries:
+INSTALL_DIR = /home/n01/n01/jelt/local
+</pre></div>
+</div>
+<p>Install. This might be best done in a clean terminal:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd ~
+mkdir local
+git clone https://github.com/brodeau/sosie.git
+cd sosie
+
+make
+make install
+export PATH=~/local/bin:$PATH
+cd $WDIR/INPUTS
+</pre></div>
+</div>
+<p>Obtain the fields to interpolate. E.g interpolate AMM60 or ORCA
+data. Get the namelists:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/initcd_votemper.namelist $INPUTS/.
+cp $START_FILES/initcd_vosaline.namelist $INPUTS/.
+</pre></div>
+</div>
+<p>The sosie routine is VERY slow first time round (4hr 25 mins). This is when it
+makes a <code class="docutils literal"><span class="pre">sosie_mapping</span></code> file that can be reused for other variables.</p>
+<dl class="docutils">
+<dt>It is advisable to let NEMO do the vertical interpolation so only use SOSIE</dt>
+<dd><p class="first">tools for the flood filling. Though it can do other things.</p>
+<p>Edit namelists to the variables you want:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span>vi initcd_vosaline.namelist
+&amp;ninput
+ivect     = 0
+lregin    = F
+cf_in     = &#39;initcd_vosaline.nc&#39;
+cv_in     = &#39;vosaline&#39;
+cv_t_in   = &#39;time_counter&#39;
+jt1       = 0
+jt2       = 0
+jplev     = 0
+cf_x_in   = &#39;initcd_vosaline.nc&#39;
+cv_lon_in = &#39;x&#39;
+cv_lat_in = &#39;y&#39;
+cf_lsm_in = &#39;sosie_initcd_mask.nc&#39;
+cv_lsm_in = &#39;mask&#39;
+ldrown    = T
+...
+
+&amp;n3d
+cf_z_in  = &#39;initcd_vosaline.nc&#39;
+cv_z_in  = &#39;gdept&#39;
+cf_z_out = &#39;initcd_vosaline.nc&#39;
+cv_z_out = &#39;gdept&#39;
+cv_z_out_name = &#39;gdept&#39;
+ctype_z_in = &#39;z&#39;
+ctype_z_out = &#39;z&#39;
+/
+
+
+&amp;nhtarget
+lregout    = F
+cf_x_out   = &#39;initcd_vosaline.nc&#39;
+cv_lon_out = &#39;x&#39;
+cv_lat_out = &#39;y&#39;
+cf_lsm_out = &#39;&#39;
+cv_lsm_out = &#39;&#39;
+lmout      = F
+
+&amp;noutput
+cmethod  = &#39;bilin&#39;
+cv_t_out = &#39;time_counter&#39;
+cv_out   = &#39;vosaline&#39;
+cu_out   = &#39;psu&#39;
+cln_out  = &#39;Salinity&#39;
+cd_out   = &#39;.&#39;
+!!
+csource  = &#39;ORCA0083-N01&#39;
+ctarget  = &#39;SEAsia&#39;
+cextra   = &#39;1978&#39;
+/
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Similarly for <code class="docutils literal"><span class="pre">initcd_votemper.namelist</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">initcd_votemper</span><span class="o">.</span><span class="n">namelist</span>
+
+<span class="n">vosaline</span> <span class="o">--&gt;</span> <span class="n">votemper</span>
+<span class="o">...</span>
+<span class="n">cu_out</span>   <span class="o">=</span> <span class="s1">&#39;C&#39;</span>
+<span class="n">cln_out</span>  <span class="o">=</span> <span class="s1">&#39;Temperature&#39;</span>
+</pre></div>
+</div>
+<p>Executing SOSIE tools is fine in interactive mode if you already have generated
+the sosie_mapping file. (I.e. run it once before). For the first run I had to submit
+it as a serial job <strong>IT TOOK 4hrs 25m TO DO 3D</strong></p>
+<p>PBS submission script:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $INPUTS
+vi $INPUTS/sosie_initcd_T
+
+#!/bin/bash
+#PBS -N init_T
+#PBS -l select=serial=true:ncpus=1
+#PBS -l walltime=06:00:00
+#PBS -o init_T.log
+#PBS -e init_T.err
+#PBS -A n01-ACCORD
+###################################################
+
+module swap PrgEnv-cray PrgEnv-intel
+module load cray-hdf5-parallel
+module load cray-netcdf-hdf5parallel
+
+
+cd /home/n01/n01/jelt/sosie
+make clean
+make
+make install
+
+#set up paths
+cd /work/n01/n01/jelt/SEAsia/INPUTS
+
+/home/n01/n01/jelt/local/bin/sosie.x -f initcd_votemper.namelist
+
+# qsub -q serial &lt;filename&gt;
+###################################################
+</pre></div>
+</div>
+<p>Subsequent jobs can be in interactive mode:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">qsub</span> <span class="o">-</span><span class="n">q</span> <span class="n">serial</span> <span class="n">sosie_initcd_T</span>
+<span class="n">sosie</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span><span class="n">f</span> <span class="n">initcd_vosaline</span><span class="o">.</span><span class="n">namelist</span>
+<span class="c1">#sosie.x -f initcd_votemper.namelist</span>
+</pre></div>
+</div>
+<p>Whether as a serial job or from the commandline, the temperature process creates:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sosie_mapping_ORCA0083</span><span class="o">-</span><span class="n">N01</span><span class="o">-</span><span class="n">SEAsia</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">votemper_ORCA0083</span><span class="o">-</span><span class="n">N01</span><span class="o">-</span><span class="n">SEAsia_1978</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>And the salinity process creates:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vosaline_ORCA0083</span><span class="o">-</span><span class="n">N01</span><span class="o">-</span><span class="n">SEAsia_1978</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>Check these fields are OK.</p>
+<p>&#8212;
+By this stage should have initial conditions T and S files <code class="docutils literal"><span class="pre">votemper_ORCA0083-N01-SEAsia_1978.nc</span></code>
+and <code class="docutils literal"><span class="pre">vosaline_ORCA0083-N01-SEAsia_1978.nc</span></code> on the configurations horizontal grid
+and on the ORCA parent z-level grid.</p>
+</div>
+</div>
+<div class="section" id="interpolate-in-z-on-the-fly">
+<h2>Interpolate in z on the fly<a class="headerlink" href="#interpolate-in-z-on-the-fly" title="Permalink to this headline">¶</a></h2>
+<p>For vertical interpolation we let NEMO do the heavy lifting. This requires some changes
+to the FORTRAN using <code class="docutils literal"><span class="pre">par_oce.F90</span></code> and <code class="docutils literal"><span class="pre">dtatsd.F90</span></code> in <code class="docutils literal"><span class="pre">MY_SRC</span></code>. See
+<a class="reference external" href="build_opa_orchestra.rst">build_opa_orchestra.rst</a></p>
+<p>Maybe move the executable to something memorable e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR
+mv $CONFIG/BLD/bin/nemo.exe $CONFIG/BLD/bin/nemo_tide_nomet.exe
+</pre></div>
+</div>
+<p>To interpolate the initial conditions on-the-fly need to pass information to
+NEMO about the parent vertical grid and parent mask file. Appropriate variables
+are created in external files that are read into the namelist.</p>
+<p>These mask and depth variables need to be 4D variables, where length(t)=1.
+They can be created with NCO tools by manipulating a parent initial condition file.
+On archer, load the appropriate modules:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">unload</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">nco</span><span class="o">/</span><span class="mf">4.5</span><span class="o">.</span><span class="mi">0</span>
+</pre></div>
+</div>
+<p>If the depth (gdept) variable is 1D and the file has dimensions
+[time,z,y,x] then first we make it 3D and call it something like gdept_3D:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $INPUTS/
+ncap2 -O -s &#39;gdept_3D[z,y,x]=gdept&#39; initcd_votemper.nc tmp.nc
+</pre></div>
+</div>
+<p>Then add a time dimension:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ncap2</span> <span class="o">-</span><span class="n">O</span> <span class="o">-</span><span class="n">s</span> <span class="s1">&#39;gdept_4D[time_counter,z,y,x]=gdept_4D&#39;</span> <span class="n">tmp</span><span class="o">.</span><span class="n">nc</span> <span class="n">initcd_depth</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">rm</span> <span class="n">tmp</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>For the mask variable use one of the tracer variables (in this case salinity</dt>
+<dd><p class="first">and we know the land values are set to zero). NB if following progressively,
+a similar mask file (with a different limit salinity) was created in the SOSIE step
+<strong>DONT NEED THIS</strong>:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">ncks</span> <span class="o">-</span><span class="n">d</span> <span class="n">time_counter</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span> <span class="o">-</span><span class="n">v</span> <span class="n">vosaline</span> <span class="n">initcd_vosaline</span><span class="o">.</span><span class="n">nc</span> <span class="n">initcd_mask</span><span class="o">.</span><span class="n">nc</span>
+<span class="c1">#ncap2 -O -s &#39;where(vosaline &lt;=0.) vosaline=0&#39; initcd_mask.nc initcd_mask.nc</span>
+<span class="n">ncap2</span> <span class="o">-</span><span class="n">O</span> <span class="o">-</span><span class="n">s</span> <span class="s1">&#39;where(vosaline &lt;=0.) vosaline=1&#39;</span> <span class="n">initcd_mask</span><span class="o">.</span><span class="n">nc</span> <span class="n">initcd_mask</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncap2</span> <span class="o">-</span><span class="n">O</span> <span class="o">-</span><span class="n">s</span> <span class="s1">&#39;where(vosaline &gt;0.) vosaline=1&#39;</span> <span class="n">initcd_mask</span><span class="o">.</span><span class="n">nc</span> <span class="n">initcd_mask</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncrename</span> <span class="o">-</span><span class="n">v</span> <span class="n">vosaline</span><span class="p">,</span><span class="n">mask</span> <span class="n">initcd_mask</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Restore modules:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">unload</span> <span class="n">nco</span><span class="o">/</span><span class="mf">4.5</span><span class="o">.</span><span class="mi">0</span>
+<span class="n">module</span> <span class="n">unload</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+</pre></div>
+</div>
+<p>The resulting files are <code class="docutils literal"><span class="pre">initcd_mask.nc</span></code> and <code class="docutils literal"><span class="pre">initcd_depth.nc</span></code> which are read
+into the namelist.</p>
+<p>Edit, or add, new <strong>mask</strong> and <strong>depth</strong> variables to the namelist_cfg. Also
+add the logical switch to do vertical interpolation <code class="docutils literal"><span class="pre">ln_tsd_interp=T</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $EXP/../EXP_tide_initcd
+vi namelist_cfg
+
+!-----------------------------------------------------------------------
+&amp;namtsd        !   data : Temperature  &amp; Salinity
+!-----------------------------------------------------------------------
+!              !  file name                 ! frequency (hours) ! variable ! time interp.!  clim  ! &#39;yearly&#39;/ ! weights  ! rotation ! land/sea mask !
+!              !                            !  (if &lt;0  months)  !   name   !  (logical)  !  (T/F) ! &#39;monthly&#39; ! filename ! pairing  ! filename      !
+sn_tem  = &#39;votemper_ORCA0083-N01-SEAsia_1978.nc&#39;,         -12        ,&#39;votemper&#39; ,  .false.   , .true. , &#39;yearly&#39;   , &#39;&#39;   ,   &#39;&#39;    ,    &#39;&#39;
+sn_sal  = &#39;vosaline_ORCA0083-N01-SEAsia_1978.nc&#39;,         -12        ,&#39;vosaline&#39; ,  .false.   , .true. , &#39;yearly&#39;   , &#39;&#39;   ,   &#39;&#39;    ,    &#39;&#39;
+sn_dep  = &#39;initcd_depth.nc&#39;   ,         -12        ,&#39;gdept_4D&#39;,   .false.   , .true. , &#39;yearly&#39;   , &#39;&#39;  ,    &#39;&#39;    ,      &#39;&#39;
+sn_msk  = &#39;initcd_mask.nc&#39;    ,         -12        ,&#39;mask&#39;,       .false.   , .true. , &#39;yearly&#39;   , &#39;&#39;  ,    &#39;&#39;    ,      &#39;&#39;
+
+  !
+   cn_dir        = &#39;../../../../INPUTS/&#39;     !  root directory for the location of the runoff files
+   ln_tsd_init   = .true.   !  Initialisation of ocean T &amp; S with T &amp;S input data (T) or not (F)
+   ln_tsd_interp = .true.    !  Interpolation of T &amp; S in the verticalinput data (T) or not (F)
+   ln_tsd_tradmp = .false.   !  damping of ocean T &amp; S toward T &amp;S input data (T) or not (F)
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Generate Initial conditions</a><ul>
+<li><a class="reference internal" href="#user-defined-initial-initial-conditions">User defined initial initial conditions</a></li>
+<li><a class="reference internal" href="#building-t-s-field-initial-conditions-from-existing-fields">Building T,S field initial conditions from existing fields</a><ul>
+<li><a class="reference internal" href="#rough-cut-some-initial-conditions-from-parent-global-dataset">Rough cut some initial conditions from parent (global) dataset</a></li>
+<li><a class="reference internal" href="#use-scrip-tools-to-remap-to-the-new-grid">Use SCRIP tools to remap to the new grid</a></li>
+<li><a class="reference internal" href="#use-sosie-tools-to-flood-fill-the-parent-initial-conditions">Use SOSIE tools to flood fill the parent initial conditions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#interpolate-in-z-on-the-fly">Interpolate in z on the fly</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/generate_initial_conditions.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/generate_initial_conditions.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
