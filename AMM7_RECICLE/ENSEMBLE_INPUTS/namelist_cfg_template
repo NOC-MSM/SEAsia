@@ -202,7 +202,7 @@
    sn_wndi= 'uas'    ,24,   'uas_int',   .true.,  .false.,  'yearly',  'U_weights.nc','', ''
    sn_wndj= 'vas'    ,24,   'vas_int',   .true.,  .false.,  'yearly',  'U_weights.nc','', ''
 !
-   cn_dir      = './ATM/'      !  root directory for the location of the bulk files
+   cn_dir      = '../../ENSEMBLE_INPUTS/ATM/XXX_MODEL_XXX/'      !  root directory for the location of the bulk files
    ln_taudif   = .false.   !  HF tau contribution: use "mean of stress module - module of the mean stress" data 
    rn_zqt      = 2.        !  Air temperature and humidity reference height (m) (ln_bulk2z)
    rn_zu       = 10.        !  Wind vector reference height (m)                  (ln_bulk2z)
@@ -225,7 +225,7 @@
 !              !  file name  ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
 !              !             !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
    sn_kd490    =  'kd490'    ,       -1         , 'kd_490'   ,   .true.     , .true. , 'yearly'  , ''       , ''       , ''
-   cn_dir      = './'      !  root directory for the location of the runoff files
+   cn_dir      = '../../ENSEMBLE_INPUTS/'      !  root directory for the location of the runoff files
    ln_traqsr   = .true.    !  Light penetration (T) or not (F)
    ln_qsr_rgb  = .false.   !  RGB (Red-Green-Blue) light penetration
    nn_chldta   =   0       !  RGB : Chl data (=1) or cst value (=0)
@@ -244,7 +244,7 @@
    sn_t_rnf    = 'rivers'     ,      0       , 'rotemper',   .false.    , .false. , 'yearly'  , ''       , ''       ,   ''
    sn_dep_rnf  = 'rivers'     ,      24      , 'rodepth' ,   .false.    , .false. , 'yearly'  , ''       , ''       ,   ''
 
-   cn_dir       = './RIV/'      !  root directory for the location of the runoff files
+   cn_dir       = '../../ENSEMBLE_INPUTS/RIV/XXX_MODEL_XXX/'      !  root directory for the location of the runoff files
 !  ln_rnf_emp   = .false.   !  runoffs included into precipitation field (T) or into a file (F)
    ln_rnf_mouth = .false.   !  specific treatment at rivers mouths
    rn_hrnf      =  1000.e0  !  depth over which enhanced vertical mixing is used
@@ -389,7 +389,7 @@
    bn_v3d  =    'AMM7_sshdt_bdyV'     ,         -1        , 'vomecrty' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
    bn_tem  =    'AMM7_sshdt_bdyT'     ,         -1        , 'votemper' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
    bn_sal  =    'AMM7_sshdt_bdyT'     ,         -1        , 'vosaline' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
-   cn_dir  =    'BDY/'
+   cn_dir  =    '../../ENSEMBLE_INPUTS/BDY/XXX_MODEL_XXX/'
    ln_full_vel = .true.
 /
 !-----------------------------------------------------------------------
@@ -411,13 +411,13 @@
 !  bn_v3d  =    'amm7skag_bdyV'     ,      24     , 'vomecrty' ,     .true.     , .false. ,  'daily'  ,    ''    ,   ''   ,  ''
 !  bn_tem  =    'amm7skag_bdyT'     ,      24     , 'votemper' ,     .true.     , .false. ,  'daily'  ,    ''    ,   ''   ,  ''
 !  bn_sal  =    'amm7skag_bdyT'     ,      24     , 'vosaline' ,     .true.     , .false. ,  'daily'  ,    ''    ,   ''   ,  ''
-   cn_dir  =    'BDY_SKAG_CLIM/'
+   cn_dir  =    '../../ENSEMBLE_INPUTS/BDY_SKAG_CLIM/'
    ln_full_vel = .false.
 /
 !-----------------------------------------------------------------------
 &nambdy_tide     ! tidal forcing at open boundaries
 !-----------------------------------------------------------------------
-   filtide      = 'TIDE/amm7_bdytide_'      !  file name root of tidal forcing files
+   filtide      = '../../ENSEMBLE_INPUTS/TIDE/amm7_bdytide_'      !  file name root of tidal forcing files
 /
 !-----------------------------------------------------------------------
 &nambfr        !   bottom friction
