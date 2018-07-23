@@ -34,5 +34,14 @@ echo "AMM7_RECICLE OPA_SRC" >> cfg.txtgit init AMM7_RECICLE
 At this point you can checkout and compile XIOS or use a version you already have. If you're starting from scratch:
 
 ```
-# Choose an appropraite directory for your XIOS installation
+# Choose an appropriate directory for your XIOS installation
 cd $XIOS_DIR
+svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@703
+cd xios-1.0
+cp $WORK_DIR/NEMO-shelf/NEMOGCM/CONFIG/AMM7_RECICLE/arch_xios/* ./arch
+./make_xios --full --prod --arch XC30_ARCHER --netcdf_lib netcdf4_par --job 4
+```
+
+You can fold the ```make_xios``` command into a serial job.
+
+
