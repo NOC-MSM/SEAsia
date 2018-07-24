@@ -78,4 +78,4 @@ exit
 
 #  SCRIPTS/rst_lnk $NPROC $current_stp $nam
 #  SCRIPTS/rst_lnk_ice $NPROC $current_stp $nam
-
+# for l in {1..22}; do ln=`sed -n $l\p ../ENSEMBLE_CONTROL/model_list`; cp -R ENS_template ENS_$ln; done

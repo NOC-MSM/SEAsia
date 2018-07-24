@@ -133,7 +133,7 @@
    sn_tem  = 'inits', -1,'votemper',  .false.  , .true., 'monthly'   , ' '      , ' '
    sn_sal  = 'inits', -1,'vosaline',  .false.  , .true., 'monthly'   , ''       , ' '
 !   
-   cn_dir        = './'     !  root directory for the location of the runoff files
+   cn_dir        = '../../ENSEMBLE_INPUTS/INIT/XXX_MODEL_XXX/'     !  root directory for the location of the runoff files
    ln_tsd_init   = .true.  !  Initialisation of ocean T & S with T &S input data (T) or not (F)
    ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
 /
