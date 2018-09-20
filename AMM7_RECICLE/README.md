@@ -72,7 +72,7 @@ That should be enough to produce a valid executable. Now to copy the forcing dat
 
 ```
 cd AMM7_RECICLE/ENSEMBLE_INPUTS
-wget -r -np -nH --cut-dirs=3  --reject="index.html*" http://gws-access.ceda.ac.uk/public/recicle/config/
+wget -r -np -nH --cut-dirs=3 -erobots=off --reject="index.html*" http://gws-access.ceda.ac.uk/public/recicle/config/
 ```
 
 And finally link the XIOS binary to the configuration directory.
