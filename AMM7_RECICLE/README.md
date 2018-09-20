@@ -30,7 +30,7 @@ echo "AMM7_RECICLE/*" >> .git/info/sparse-checkout
 git pull --depth=1 origin master
 
 # Add it to the configuration list
-echo "AMM7_RECICLE OPA_SRC" >> cfg.txtgit init AMM7_RECICLE
+echo "AMM7_RECICLE OPA_SRC" >> cfg.txt
 ```
 
 At this point you can checkout and compile XIOS or use a version you already have. If you're starting from scratch:
