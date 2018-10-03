@@ -2578,16 +2578,72 @@ The rimwidth doesn't get picked up for the u2d and u3d files. Though it does
 Not sure about the size of the velocity arrays. They don't use rimwidth != 1 ..
 
 
+*(3 Oct 18)*
+Rebuild PyNEMO for 3d fields (branch ORCA0083). And execute (namelist.bdy as above)
+Build in environment ```nrct_env2``
+
+Try building tides separately ``ln_tides=.False.``. Otherwise problem with the rimwidth variable.
+Had to edit ``inputs_dst.ncml``  to remove e3t_0 and e3w_0 renaming.
+
+(30mins)::
+
+  pynemo -s namelist.bdy
+
+Generates::
+
+  coordinates.bdy.nc
+  SEAsia_bdyT_y1979m11.nc
+  SEAsia_bt_bdyT_y1979m11.nc
+  SEAsia_bdyU_y1979m11.nc
+  SEAsia_bdyV_y1979m11.nc
+
+Copy files from SAN to ARCHER::
+
+  livljobs4
+  cd $INPUTS
+  for file in  SEAsia_b*nc; do rsync -uvt $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
 
 
+Move to ARCHER::
+
+  cd $EXP/../EXP_openbcs
+
+Remove links to *_full* in forcing files
+
+vi namelist_cfg::
+
+  !-----------------------------------------------------------------------
+  &nambdy_dta    !  open boundaries - external data
+  !-----------------------------------------------------------------------
+  !              !  file name      ! frequency (hours) ! variable  ! time interp.!  clim   ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
+  !              !                 !  (if <0  months)  !   name    !  (logical)  !  (T/F ) ! 'monthly' ! filename ! pairing  ! filename      !
+     bn_ssh      = 'SEAsia_bt_bdyT', 24      , 'sossheig',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_u2d      = 'SEAsia_bdyU',  24        , 'vozocrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_v2d      = 'SEAsia_bdyV',  24        , 'vomecrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_u3d      = 'SEAsia_bdyU'   24        , 'vozocrtx',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_v3d      = 'SEAsia_bdyV'   24        , 'vomecrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_tem      = 'SEAsia_bdyT'   24        , 'votemper',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
+     bn_sal      = 'SEAsia_bdyT'   24        , 'vosaline',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
 
 
+     ...
+
+  !-----------------------------------------------------------------------
+  &nambdy_tide   !  tidal forcing at open boundaries
+  !-----------------------------------------------------------------------
+     filtide      = 'bdydta/SEAsia_bdytide_'         !  file name root of tidal forcing files
 
 
+Submit (nt=240) and see what happens::
 
+ qsub runscript
+ 5647332.sdb
 
+BROKE::
+ ModuleCmd_Switch.c(179):ERROR:152: Module 'PrgEnv-cray' is currently not loaded
+ > Error [CAttributeMap::operator[](const StdString& key)] : In file '/work/n01/n01/jelt/xios-2.0_r1080/src/attribute_map.cpp', line 56 -> [ key = domain_ref] key not found !
 
-
+Looks like something I broke in XIOS..
 
 
 
