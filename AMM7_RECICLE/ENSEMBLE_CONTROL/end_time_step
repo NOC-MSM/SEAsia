@@ -5,17 +5,14 @@ rdt=$2
 ndt=0
 day=86400
 
-for y in $( seq 1950 $year )
+for y in $( seq 1970 $year )
 do
 
 rem1=$((y%4))
 rem2=$((y%100))
 rem3=$((y%400))
 
-if [ ${y} = "1979" ]
-then
-       ntstp=$(( 120 * $day / $rdt ))
-elif [ ${rem3} = "0" ]
+if [ ${rem3} = "0" ]
 then
        ntstp=$(( 366 * $day / $rdt )) 
 elif [ ${rem2} = "0" -a ${rem3} != "0" ]

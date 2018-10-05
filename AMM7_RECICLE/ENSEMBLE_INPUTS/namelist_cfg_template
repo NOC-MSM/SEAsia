@@ -8,7 +8,7 @@
    cn_exp      =  "XXX_EXP_XXX"  !  experience name
    nn_it000 = XXX_TST_XXX
    nn_itend = XXX_TEN_XXX
-   nn_date0 = 19500101
+   nn_date0 = 19700101
    nn_rstctl = 2 !  restart control = 0 nit000 is not compared to the restart file value
                  !                  = 1 use ndate0 in namelist (not the value in the restart file)
                  !                  = 2 calendar parameters read in the restart file
@@ -130,12 +130,16 @@
 !-----------------------------------------------------------------------
 ! file name ! frequency (hours)    ! variable ! time interp. ! clim  !'yearly' or ! weights  ! rotation !
 !          !!  (if <0  months)     !   name   !  (logical)   ! (T/F) ! 'monthly'  ! filename ! pairing  !
-   sn_tem  = 'inits', -1,'votemper',  .false.  , .true., 'monthly'   , ' '      , ' '
-   sn_sal  = 'inits', -1,'vosaline',  .false.  , .true., 'monthly'   , ''       , ' '
+   sn_tem  = 'inits',     -1,    'votemper',   .false.    , .true. , 'monthly'  ,    ''    , ''
+   sn_sal  = 'inits',     -1,    'vosaline',   .false.    , .true. , 'monthly'  ,    ''    , ''
+   sn_dep  = 'inits',     -1,      'deptht',   .false.    , .true. , 'monthly'  ,    ''    , ''  
+   sn_msk  = 'inits',     -1,        'mask',   .false.    , .true. , 'monthly'  ,    ''    , ''    
 !   
-   cn_dir        = '../../ENSEMBLE_INPUTS/INIT/XXX_MODEL_XXX/'     !  root directory for the location of the runoff files
+   cn_dir        = './'     !  root directory for the location of the runoff files
    ln_tsd_init   = .true.  !  Initialisation of ocean T & S with T &S input data (T) or not (F)
+   ln_tsd_interp = .true.    !  Interpolation of T & S in the verticalinput data (T) or not (F)
    ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
+
 /
 !-----------------------------------------------------------------------
 &namsbc        !   Surface Boundary Condition (surface module)
@@ -156,7 +160,7 @@
                            !  =1 levitating ice with mass and salt exchange but no presure effect
                            !  =2 embedded sea-ice (full salt and mass exchanges and pressure)
    ln_dm2dc    = .false. ! .true.    !  daily mean to diurnal cycle on short wave  
-   ln_rnf      = .true.     !  runoffs                                   (T => fill namsbc_rnf)
+   ln_rnf      = .false.     !  runoffs                                   (T => fill namsbc_rnf)
    ln_ssr      = .false.    !  Sea Surface Restoring on T and/or S       (T => fill namsbc_ssr)  
    nn_fwb      = 0         !  FreshWater Budget: =0 unchecked  
                            !     =1 global mean of e-p-r set to zero at each time step
@@ -193,16 +197,16 @@
 !-----------------------------------------------------------------------
 !  !  file name       ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights  ! rotation !
 !  !                  !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  !
-   sn_humi= 'huss'   ,24,   'huss_int'   .true.,  .false.,  'yearly',  'T_weights.nc','' ,''
-   sn_prec= 'pr'     ,24,   'pr_int',    .true.,  .false.,  'yearly',  'T_weights.nc','' ,''
-   sn_qlw=  'rlds'   ,24,   'rlds_int',  .true.,  .false.,  'yearly',  'T_weights.nc','' ,''
-   sn_qsr=  'rsds'   ,24,   'rsds_int',  .true.,  .false.,  'yearly',  'T_weights.nc','', ''
-   sn_snow= 'prsn'   ,24,   'prsn_int',  .true.,  .false.,  'yearly',  'T_weights.nc','', ''
-   sn_tair= 'tas'    ,24,   'tas_int',   .true.,  .false.,  'yearly',  'T_weights.nc','', ''
-   sn_wndi= 'uas'    ,24,   'uas_int',   .true.,  .false.,  'yearly',  'U_weights.nc','', ''
-   sn_wndj= 'vas'    ,24,   'vas_int',   .true.,  .false.,  'yearly',  'U_weights.nc','', ''
-!
-   cn_dir      = '../../ENSEMBLE_INPUTS/ATM/XXX_MODEL_XXX/'      !  root directory for the location of the bulk files
+   sn_humi= 'huss_XXX_MDL_XXX'   ,24,   'huss'   .true.,  .false.,  'yearly',  'weights_bilin_XXX_EXP_XXX.nc','' ,''
+   sn_prec= 'pr_XXX_MDL_XXX'     ,24,   'pr',    .true.,  .false.,  'yearly',  'weights_bilin_XXX_EXP_XXX.nc','' ,''
+   sn_qlw=  'rlds_XXX_MDL_XXX'   ,24,   'rlds',  .true.,  .false.,  'yearly',  'weights_bilin_XXX_EXP_XXX.nc','' ,''
+   sn_qsr=  'rsds_XXX_MDL_XXX'   ,24,   'rsds',  .true.,  .false.,  'yearly',  'weights_bilin_XXX_EXP_XXX.nc','', ''
+   sn_snow= 'prsn_XXX_MDL_XXX'   ,24,   'prsn',  .true.,  .false.,  'yearly',  'weights_bilin_XXX_EXP_XXX.nc','', ''
+   sn_tair= 'tas_XXX_MDL_XXX'    ,24,   'tas',   .true.,  .false.,  'yearly',  'weights_bilin_XXX_EXP_XXX.nc','', ''
+   sn_wndi= 'uas_XXX_MDL_XXX'    ,24,   'uas',   .true.,  .false.,  'yearly',  'weights_bicubic_XXX_EXP_XXX.nc','', ''
+   sn_wndj= 'vas_XXX_MDL_XXX'    ,24,   'vas',   .true.,  .false.,  'yearly',  'weights_bicubic_XXX_EXP_XXX.nc','', ''
+
+   cn_dir      = './ATM/'      !  root directory for the location of the bulk files
    ln_taudif   = .false.   !  HF tau contribution: use "mean of stress module - module of the mean stress" data 
    rn_zqt      = 2.        !  Air temperature and humidity reference height (m) (ln_bulk2z)
    rn_zu       = 10.        !  Wind vector reference height (m)                  (ln_bulk2z)
@@ -225,7 +229,7 @@
 !              !  file name  ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
 !              !             !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
    sn_kd490    =  'kd490'    ,       -1         , 'kd_490'   ,   .true.     , .true. , 'yearly'  , ''       , ''       , ''
-   cn_dir      = '../../ENSEMBLE_INPUTS/'      !  root directory for the location of the runoff files
+   cn_dir      = './'      !  root directory for the location of the runoff files
    ln_traqsr   = .true.    !  Light penetration (T) or not (F)
    ln_qsr_rgb  = .false.   !  RGB (Red-Green-Blue) light penetration
    nn_chldta   =   0       !  RGB : Chl data (=1) or cst value (=0)
@@ -244,7 +248,7 @@
    sn_t_rnf    = 'rivers'     ,      0       , 'rotemper',   .false.    , .false. , 'yearly'  , ''       , ''       ,   ''
    sn_dep_rnf  = 'rivers'     ,      24      , 'rodepth' ,   .false.    , .false. , 'yearly'  , ''       , ''       ,   ''
 
-   cn_dir       = '../../ENSEMBLE_INPUTS/RIV/XXX_MODEL_XXX/'      !  root directory for the location of the runoff files
+   cn_dir       = './RIV/'      !  root directory for the location of the runoff files
 !  ln_rnf_emp   = .false.   !  runoffs included into precipitation field (T) or into a file (F)
    ln_rnf_mouth = .false.   !  specific treatment at rivers mouths
    rn_hrnf      =  1000.e0  !  depth over which enhanced vertical mixing is used
@@ -261,7 +265,7 @@
 ! !             !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
 ! ! sn_apr     = 'met'      ,       6          , 'MSL'     ,   .true.     , .false. , 'yearly'  ,'ERA_INT_AMM7_bilin' , '' , ' '
 ! ! sn_apr='CUT_ERAI_INCLUDE_MSLP',3,'MSL',.true.,.false.,'daily','weights_erai_amm7_bicubic.nc','','CUT_ERAI_LSM.nc'
-   sn_apr     = 'psl', 24,   'psl_int',   .true.,  .false.,  'yearly',  'T_weights.nc','', ''
+   sn_apr     = 'psl_XXX_MDL_XXX', 24,   'psl',   .true.,  .false.,  'yearly',  'weights_bilin_XXX_EXP_XXX.nc','', ''
    cn_dir     = './ATM/'         !  root directory for the location of the bulk files
    ln_ref_apr = .false.           !  ref. pressure: global mean Patm (T) or a constant (F)
    ln_apr_obc = .false.  	  !  inverse barometer added to OBC ssh data 
@@ -300,7 +304,7 @@
 !-----------------------------------------------------------------------
 &nam_tide      !   tide parameters (#ifdef key_tide)
 !-----------------------------------------------------------------------
-   ln_tide_pot   = .true.   !  use tidal potential forcing
+   ln_tide_pot   = .false.   !  use tidal potential forcing
    ln_tide_ramp  = .false.
    rdttideramp   =   0.0
    clname(1)     =   'Q1'   !  name of constituent
@@ -352,7 +356,7 @@
     ln_mask_file   = .false.              !  =T : read mask from file
     cn_mask_file   = ''                   !  name of mask file (if ln_mask_file=.TRUE.)
     cn_dyn2d       = 'flather','flather'     !
-    nn_dyn2d_dta   =  3,1 !1,1                 !  = 0, bdy data are equal to the initial state
+    nn_dyn2d_dta   =  0,0 !1,1                 !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
                                           !  = 2, use tidal harmonic forcing data from files
                                           !  = 3, use external data AND tidal harmonic forcing
@@ -360,7 +364,7 @@
     nn_dyn3d_dta  =  0,0                  !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
     cn_tra        =  'frs','frs'         ! 
-    nn_tra_dta    =  1,1  !1,1                  !  = 0, bdy data are equal to the initial state
+    nn_tra_dta    =  1,0  !1,1                  !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
     cn_ice_lim      =  'none','none'      !  
     nn_ice_lim_dta  =  0,0                !  = 0, bdy data are equal to the initial state
@@ -376,20 +380,21 @@
     nn_rimwidth   = 10,10                 !  width of the relaxation zone
     ln_vol        = .false.                !  total volume correction (see nn_volctl parameter)
     nn_volctl     = 1                     !  = 0, the total water flux across open boundaries is zero
+    nb_jpk_bdy    = XXX_JPK_XXX , -1                   ! number of levels in the bdy data (set < 0 if consistent with planned run)
 /
 !-----------------------------------------------------------------------
 &nambdy_dta      !  open boundaries - external data           ("key_bdy")
 !-----------------------------------------------------------------------
 !          !  file name  ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
 !          !             !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
-   bn_ssh =     'AMM7_sshdt_bt_bdyT'  ,         -1        , 'sossheig' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''  , ' '
-   bn_u2d =     'AMM7_sshdt_bdyU'     ,         -1        , 'vobtcrtx' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
-   bn_v2d =     'AMM7_sshdt_bdyV'     ,         -1        , 'vobtcrty' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
-   bn_u3d  =    'AMM7_sshdt_bdyU'     ,         -1        , 'vozocrtx' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
-   bn_v3d  =    'AMM7_sshdt_bdyV'     ,         -1        , 'vomecrty' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
-   bn_tem  =    'AMM7_sshdt_bdyT'     ,         -1        , 'votemper' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
-   bn_sal  =    'AMM7_sshdt_bdyT'     ,         -1        , 'vosaline' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
-   cn_dir  =    '../../ENSEMBLE_INPUTS/BDY/XXX_MODEL_XXX/'
+   bn_ssh =     'AMM7_bt_bdyT'  ,         -1        , 'sossheig' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''  , ' '
+   bn_u2d =     'AMM7_bdyU'     ,         -1        , 'vobtcrtx' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
+   bn_v2d =     'AMM7_bdyV'     ,         -1        , 'vobtcrty' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
+   bn_u3d  =    'AMM7_bdyU'     ,         -1        , 'vozocrtx' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
+   bn_v3d  =    'AMM7_bdyV'     ,         -1        , 'vomecrty' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
+   bn_tem  =    'AMM7_bdyT'     ,         -1        , 'votemper' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
+   bn_sal  =    'AMM7_bdyT'     ,         -1        , 'vosaline' ,     .true.     , .false. ,  'monthly'  ,    ''    ,   ''   ,   ''
+   cn_dir  =    'BDY/'
    ln_full_vel = .true.
 /
 !-----------------------------------------------------------------------
@@ -411,13 +416,13 @@
 !  bn_v3d  =    'amm7skag_bdyV'     ,      24     , 'vomecrty' ,     .true.     , .false. ,  'daily'  ,    ''    ,   ''   ,  ''
 !  bn_tem  =    'amm7skag_bdyT'     ,      24     , 'votemper' ,     .true.     , .false. ,  'daily'  ,    ''    ,   ''   ,  ''
 !  bn_sal  =    'amm7skag_bdyT'     ,      24     , 'vosaline' ,     .true.     , .false. ,  'daily'  ,    ''    ,   ''   ,  ''
-   cn_dir  =    '../../ENSEMBLE_INPUTS/BDY_SKAG_CLIM/'
+   cn_dir  =    'BDY_SKAG_CLIM/'
    ln_full_vel = .false.
 /
 !-----------------------------------------------------------------------
 &nambdy_tide     ! tidal forcing at open boundaries
 !-----------------------------------------------------------------------
-   filtide      = '../../ENSEMBLE_INPUTS/TIDE/amm7_bdytide_'      !  file name root of tidal forcing files
+   filtide      = 'TIDE/amm7_bdytide_'      !  file name root of tidal forcing files
 /
 !-----------------------------------------------------------------------
 &nambfr        !   bottom friction

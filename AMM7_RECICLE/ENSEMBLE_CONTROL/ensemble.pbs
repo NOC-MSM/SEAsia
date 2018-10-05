@@ -1,5 +1,5 @@
 #PBS -N AMM7_ENS
-#PBS -l select=16
+#PBS -l select=28
 #PBS -l walltime=00:20:00
 #PBS -A n01-Recicle
 
@@ -19,12 +19,13 @@ date
 
 year=1970
 
-for ens in HadGEM2-ES HadGEM2-CC
+for ens in HadGEM2-ES HadGEM2-CC GFDL-ESM2G GFDL-ESM2M
 do
 
   rdt=300
   bar=40
   nam=$ens
+  jpk=40
 
   if [ $year -eq 1970 ]
   then
@@ -35,33 +36,43 @@ do
     rst=".true."
   fi
   ten=`./end_time_step $year $rdt`
-
+  ten=288
   sed "s/XXX_EXP_XXX/$nam/g" ../ENSEMBLE_INPUTS/namelist_cfg_template > tmp_out ; mv tmp_out namelist
   sed "s/XXX_TST_XXX/$tst/g" namelist                                 > tmp_out ; mv tmp_out namelist
   sed "s/XXX_TEN_XXX/$ten/g" namelist                                 > tmp_out ; mv tmp_out namelist
   sed "s/XXX_RDT_XXX/$rdt/g" namelist                                 > tmp_out ; mv tmp_out namelist
+  sed "s/XXX_JPK_XXX/$jpk/g" namelist                                 > tmp_out ; mv tmp_out namelist
+  sed "s/XXX_MDL_XXX/$nam\_rcp85/g" namelist                          > tmp_out ; mv tmp_out namelist
   sed "s/XXX_RST_XXX/$rst/g" namelist                                 > tmp_out ; mv tmp_out ../ENSEMBLE_MEMBERS/ENS_$ens/namelist_cfg
+  rm namelist
 
 done
 
-for xp in `ls -d ../ENSEMBLE_MEMBERS/ENS_HadGEM2-E*`
+for xp in `ls -d ../ENSEMBLE_MEMBERS/ENS_HadGEM2* ../ENSEMBLE_MEMBERS/ENS_GFDL*`
 do
   cd $PBS_O_WORKDIR/$xp
   pwd
   echo "aprun -b -n $XIOCORES -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa &"
   cp namelist_cfg meta_out/namelist.$year
   aprun -b -n $OCEANCORES -N 24 ./opa   >&  stdouterr_nemo : -N $XIOCORES -n1 ./xios_server.exe >&  stdouterr_xios &
-
+  echo $xp
+  date
 done
 
+date
 wait
 
-for xp in `ls -d ../ENSEMBLE_MEMBERS/ENS_HadGEM2*`
+cd $PBS_O_WORKDIR
+for xp in `ls -d ../ENSEMBLE_MEMBERS/ENS_HadGEM2* ../ENSEMBLE_MEMBERS/ENS_GFDL*`
 do
   cd $PBS_O_WORKDIR/$xp
-  mv HadGEM2-ES*grid*.nc OUTPUTS 
-done
+  mdl=`echo $i  | sed s/ENS_//`
+  mv *_?d_*grid*.nc OUTPUTS &
+  echo $xp
+  date
 
+done
+wait
 #qsub process_months
 exit
 
@@ -78,4 +89,4 @@ exit
 
 #  SCRIPTS/rst_lnk $NPROC $current_stp $nam
 #  SCRIPTS/rst_lnk_ice $NPROC $current_stp $nam
-# for l in {1..22}; do ln=`sed -n $l\p ../ENSEMBLE_CONTROL/model_list`; cp -R ENS_template ENS_$ln; done
+
