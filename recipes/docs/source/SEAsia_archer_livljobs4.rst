@@ -1996,6 +1996,8 @@ Try lateral boundary conditions T,S,u
 Build the 3D boundary conditions from ORCA0083-N01
 ==================================================
 
+**The following gets a bit messy towards the end of this section and needs tidying up. But it seems to work**
+
 Use PyNEMO to generate 3D bcs on livljobs4::
 
   ssh livljobs4
@@ -2597,12 +2599,20 @@ Generates::
   SEAsia_bdyU_y1979m11.nc
   SEAsia_bdyV_y1979m11.nc
 
+
+
+.. also had to regenerate the tidal files and copy.
+ Caution the coordinates.bdy.nc for tides only should not be used as one needs
+ to set rimwidth=1 to get it to work
+
 Copy files from SAN to ARCHER::
 
   livljobs4
   cd $INPUTS
   for file in  SEAsia_b*nc; do rsync -uvt $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
+  rsync -uvt coordinates.bdy.nc $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/.
 
+Also copy coordinates.bdy.nc to EXP directory
 
 Move to ARCHER::
 
@@ -2631,26 +2641,81 @@ vi namelist_cfg::
   !-----------------------------------------------------------------------
   &nambdy_tide   !  tidal forcing at open boundaries
   !-----------------------------------------------------------------------
-     filtide      = 'bdydta/SEAsia_bdytide_'         !  file name root of tidal forcing files
+     filtide      = 'bdydta/SEAsia_bdytide_rotT_'         !  file name root of tidal forcing files
 
+This means that NEMO will take the 3d velocities and construct its own depth averaged
+and perturbation components.
+
+Restore missing namelist_cfg.nc file.
+Rsync and make a symbolic link from INPUTS::
+
+  livljobs6 INPUTS $ rsync -uvt domain_cfg.nc $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/.
+  ln -s /work/n01/n01/jelt/SEAsia/INPUTS/domain_cfg.nc domain_cfg.nc
+
+PENDING
 
 Submit (nt=240) and see what happens::
 
- qsub runscript
- 5647332.sdb
-
-BROKE::
- ModuleCmd_Switch.c(179):ERROR:152: Module 'PrgEnv-cray' is currently not loaded
- > Error [CAttributeMap::operator[](const StdString& key)] : In file '/work/n01/n01/jelt/xios-2.0_r1080/src/attribute_map.cpp', line 56 -> [ key = domain_ref] key not found !
-
-Looks like something I broke in XIOS..
+ qsub runscript_short
+ 5649089.sdb
 
 
-Tried again. After copying clean XML files.
-PENDING
+**The above needs tidying up. But it seems to work**
 
 
+The full ocean: Initial conditions, tides, rivers, open boundaries - no met
+===========================================================================
 
+directory: EXP_fullocean
+
+EXEC: ``nemo.exe``
+
+::
+  mkdir EXP_fullocean
+
+Copy files from EXP_tide_initcd to EXP_fullocean **ADDING IN -K keeps symlinks. I THINK**::
+
+  rsync -aPvt --exclude=*restart*nc --exclude=*_?d_*grid_?.nc EXP_tide_initcd/* EXP_fullocean/
+
+Need to add in:
+
+* open boundary conditions
+* rivers
+
+Get the executable in place (I think that the standard nemo.exe is OK)::
+
+  cd EXP_fullocean
+  rm opa
+  ln -s ../BLD/bin/nemo.exe opa
+
+
+Add rivers
+++++++++++
+
+::
+
+  cp ../EXP_openbcs/namelist_cfg namelist_cfg
+  vi namelist_cfg
+
+  ln_rnf      = .true.    !  runoffs                                   (T => fill namsbc_rnf)
+
+  sn_rnf      = 'SEAsia_rivers',        -1         , 'rorunoff',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
+  sn_cnf      = 'SEAsia_rivers',         0         , 'socoefr0',   .false.    , .true. , 'yearly'  , ''       , ''       , ''
+
+  cn_dir      = 'bdydta/'      !  root directory for the location of the runoff files
+  ln_rnf_mouth= .false.    !  specific treatment at rivers mouths
+
+Run on the standard queue::
+
+  jpni        =  12    ! standardqueue:12 ! shortqueue:11      !  jpni   number of processors following i (set automatically if < 1)
+  jpnj        =  8     !  jpnj   number of processors following j (set automatically if < 1)
+  jpnij       =  92    ! standardqueue:92 ! shortqueue:88 !  jpnij  number of local domains (set automatically if < 1)
+
+Submit::
+
+  qsub runscript
+
+NB I don't have Nico's tide mods in. They need to be restored.
 
 
 
