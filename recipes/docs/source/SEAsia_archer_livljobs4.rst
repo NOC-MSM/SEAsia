@@ -2716,7 +2716,7 @@ Submit::
   qsub runscript
 
 NB I don't have Nico's tide mods in. They need to be restored.
-
+30 days ran in 1h44.
 
 
 
