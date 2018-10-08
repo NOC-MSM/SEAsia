@@ -40,6 +40,7 @@
       !!----------------------------------------------------------------------
       USE in_out_manager  ! I/O Manager
       USE iom
+      USE bdy_oce
       !! 
       INTEGER :: ji, jj, jn, jproc, jarea     ! dummy loop indices
       INTEGER ::  inum                        ! temporary logical unit
@@ -67,11 +68,19 @@
       INTEGER,  DIMENSION(jpiglo,jpjglo) ::   &
          imask                                ! temporary global workspace
       REAL(wp), DIMENSION(jpiglo,jpjglo) ::   &
-         zdta, zdtaisf                     ! temporary data workspace
+         zdta, zdtaisf, zbdy                     ! temporary data workspace
       REAL(wp) ::   zidom , zjdom          ! temporary scalars
-
+#if defined key_bdy
+      NAMELIST/nambdy/ nb_bdy, ln_coords_file, cn_coords_file,         &
+         &             ln_mask_file, cn_mask_file, cn_dyn2d, nn_dyn2d_dta,     &
+         &             cn_dyn3d, nn_dyn3d_dta, cn_tra, nn_tra_dta,             &  
+         &             ln_tra_dmp, ln_dyn3d_dmp, rn_time_dmp, rn_time_dmp_out, &
+         &             cn_ice_lim, nn_ice_lim_dta,                           &
+         &             rn_ice_tem, rn_ice_sal, rn_ice_age,                 &
+         &             ln_vol, nn_volctl, nn_rimwidth, nb_jpk_bdy
+#endif
       ! read namelist for ln_zco
-      NAMELIST/namzgr/ ln_zco, ln_zps, ln_sco, ln_sco_interp, ln_isfcav
+      NAMELIST/namzgr/ ln_zco, ln_zps, ln_sco, ln_isfcav
 
       !!----------------------------------------------------------------------
       !!  OPA 9.0 , LOCEAN-IPSL (2005) 
@@ -137,6 +146,23 @@
       imask(:,:)=1
       WHERE ( zdta(:,:) - zdtaisf(:,:) <= 0. ) imask = 0
 
+      ! Adjust imask with bdy_msk if exists
+#if defined key_bdy
+      REWIND( numnam_ref )              ! Namelist nambdy in reference namelist : BDY
+      READ  ( numnam_ref, nambdy, IOSTAT = ios, ERR = 903)
+903   IF( ios /= 0 ) CALL ctl_nam ( ios , 'nambdy in reference namelist (mppini_2)', lwp )
+
+      REWIND( numnam_cfg )              ! Namelist nambdy in configuration namelist : BDY
+      READ  ( numnam_cfg, nambdy, IOSTAT = ios, ERR = 904 )
+904   IF( ios /= 0 ) CALL ctl_nam ( ios , 'nambdy in configuration namelist (mppini_2)', lwp )
+
+      IF( ln_mask_file ) THEN
+         CALL iom_open( cn_mask_file, inum )
+         CALL iom_get ( inum, jpdom_unknown, 'bdy_msk', zbdy)
+         CALL iom_close( inum )
+         WHERE ( zbdy(:,:) <= 0. ) imask = 0
+      ENDIF
+#endif
       !  1. Dimension arrays for subdomains
       ! -----------------------------------
 
