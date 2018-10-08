@@ -2719,6 +2719,77 @@ NB I don't have Nico's tide mods in. They need to be restored.
 30 days ran in 1h44.
 
 
+Add in FES tides. Tidal Potential and harmonic analyisis
+========================================================
+
+Following `<FES2014_Nemo.rst>`_.
+Changes to use FES2014 tides::
+
+  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/tide_FES14.h90 $CDIR/$CONFIG/MY_SRC/.
+
+Compile with flag *key_FES14_tides*
+
+Long period tidal potential and variable Love number adjustments (latter including a new namelist variable)::
+
+  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/sbctide.F90 $CDIR/$CONFIG/MY_SRC/.
+  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/tide_mod.F90 $CDIR/$CONFIG/MY_SRC/.
+  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/tideini.F90 $CDIR/$CONFIG/MY_SRC/.
+
+For restarts, 3d and fast harmonic analysis::
+
+  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/diaharm_fast.F90 $CDIR/$CONFIG/MY_SRC/.
+
+with new compilation key *key_diaharm_fast*
+
+The resulting compilation file is now::
+
+  vi $CDIR/$CONFIG/cpp_$CONFIG.fcm
+
+  bld::tool::fppkeys key_zdfgls        \
+                key_mpp_mpi       \
+                key_iomput        \
+                key_nosignedzero  \
+                key_FES14_tides   \
+                key_diaharm_fast
+
+
+Namelist changes::
+
+  !-----------------------------------------------------------------------
+  &nam_diaharm_fast   !   Harmonic analysis of tidal constituents               ("key_diaharm_fast")
+  !-----------------------------------------------------------------------
+  ln_diaharm_store = .true.
+  ln_diaharm_compute = .true.
+  ln_diaharm_read_restart = .false.
+  ln_ana_ssh   = .true.
+  ln_ana_uvbar = .false.
+  ln_ana_bfric = .false.
+  ln_ana_rho  = .false.
+  ln_ana_uv3d = .false.
+  ln_ana_w3d  = .false.
+  tname(1) = 'O1',
+  tname(2) = 'M2',
+  /
+  ...
+  !-----------------------------------------------------------------------
+  &nam_tide      !   tide parameters
+  !-----------------------------------------------------------------------
+     ln_tide     = .true.
+     ln_tide_pot = .true.    !  use tidal potential forcing
+     ln_tide_ramp= .true.   !
+     rdttideramp =    1.     !
+     dn_love_number = 0.69!   clname(1)   =  'M2'   !  name of constituent - all tidal components must be set in namelist_cfg
+   ...
+
+Changes to the XML file: ``file_def_nemo.xml`` and ``field_def_nemo-opa.xml`` which I already had
+
+
+Move the working executable *BLD/bin/nemo.exe --> nemo_8Oct18.exe*. Build::
+./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+
+Submitted run to check if it works. PENDING.
+
 
 
 
