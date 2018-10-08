@@ -19,13 +19,20 @@ date
 
 year=1970
 
-for ens in HadGEM2-ES HadGEM2-CC GFDL-ESM2G GFDL-ESM2M
+# Array pretending to be a Pythonic dictionary
+ARRAY=( "HadGEM2-ES:40"
+        "HadGEM2-CC:40"
+        "GFDL-ESM2G:50"
+        "GFDL-ESM2M:50" )
+
+
+for ens in "${ARRAY[@]}"
 do
 
   rdt=300
   bar=40
-  nam=$ens
-  jpk=40
+  nam="${ens%%:*}"
+  jpk="${ens##*:}"
 
   if [ $year -eq 1970 ]
   then
@@ -43,7 +50,7 @@ do
   sed "s/XXX_RDT_XXX/$rdt/g" namelist                                 > tmp_out ; mv tmp_out namelist
   sed "s/XXX_JPK_XXX/$jpk/g" namelist                                 > tmp_out ; mv tmp_out namelist
   sed "s/XXX_MDL_XXX/$nam\_rcp85/g" namelist                          > tmp_out ; mv tmp_out namelist
-  sed "s/XXX_RST_XXX/$rst/g" namelist                                 > tmp_out ; mv tmp_out ../ENSEMBLE_MEMBERS/ENS_$ens/namelist_cfg
+  sed "s/XXX_RST_XXX/$rst/g" namelist                                 > tmp_out ; mv tmp_out ../ENSEMBLE_MEMBERS/ENS_$nam/namelist_cfg
   rm namelist
 
 done
