@@ -140,8 +140,8 @@ The code is been modified to allow flexibility and to be able to add new analysi
 Miscellaneous / Important
 =========================
 
-You need to update your xml files to include each components !!!
-
+* You need to update your xml files to include each components !!!
+* All of the following F90 and h90 files are modified and need to be copied to MY_SRC
 
 Examples
 ========
