@@ -2731,13 +2731,16 @@ Compile with flag *key_FES14_tides*
 
 Long period tidal potential and variable Love number adjustments (latter including a new namelist variable)::
 
-  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/sbctide.F90 $CDIR/$CONFIG/MY_SRC/.
-  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/tide_mod.F90 $CDIR/$CONFIG/MY_SRC/.
-  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/tideini.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/sbctide.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/tide_mod.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/tideini.F90 $CDIR/$CONFIG/MY_SRC/.
 
 For restarts, 3d and fast harmonic analysis::
 
-  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/diaharm_fast.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/diaharm.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/diaharm_fast.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/step.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/step_oce.F90 $CDIR/$CONFIG/MY_SRC/.
 
 with new compilation key *key_diaharm_fast*
 
@@ -2783,12 +2786,75 @@ Namelist changes::
 
 Changes to the XML file: ``file_def_nemo.xml`` and ``field_def_nemo-opa.xml`` which I already had
 
-
 Move the working executable *BLD/bin/nemo.exe --> nemo_8Oct18.exe*. Build::
-./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+  cd $CDIR
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+Move the executable to something sensible::
+
+  mv nemo.exe nemo_FES14-tides_diaharm-fast.exe
+
+
+Generate FES tides boundary FILES
+=================================
+
+Rebuild PyNEMO for 3d fields (branch ORCA0083). And execute (namelist.bdy as above)
+Build in environment ```nrct_env2`` (wish I'd kept it as nrct_env...)
+
+On branch ``Generalise-tide-input`` . Then manually set FES as data source in ``Python/pynemo/tide/nemo_bdy_tide3.py``.
+Compile pynemo etc as in `<install_nrct.rst>`_
+
+In ``namelist.bdy`` set rimwidth=1 and turn off all the open bcs stuff::
+
+  ln_dyn2d       = .false.               !  boundary conditions for barotropic fields
+  ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
+  ln_tra         = .false.               !  boundary conditions for T and S
+
+Just use::
+
+   ln_tide = T
+
+Try building tides separately ``ln_tides=.False.``. Otherwise problem with the rimwidth variable.
+Had to edit ``inputs_dst.ncml``  to remove e3t_0 and e3w_0 renaming.
+
+(37mins)::
+
+  pynemo -s namelist.bdy
+
+Generates::
+
+  coordinates.bdy.nc
+  SEAsia_bdytide*nc
+
+Leave the coordinates.bdy.nc (want to use the rimwidth=9 one) and copy to ARCHER::
+
+  livljobs4
+  cd $INPUTS
+  for file in  SEAsia_bdytide*nc; do rsync -uvt $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
+
 
 
 Submitted run to check if it works. PENDING.
+Only runs for 15 mins.
+
+Try running EXP_openbcs for 2hours... This will read FES tidal boundary files...
+
+Link in the appropriate executable.
+ln -s BLD/bin/nemo_8Oct18.exe $EXP/../EXP_openbcs/opa
+
+PENDING. 5661999.sdb. (Only ran for 13 mins with Nico's tides in the executable).
+COMPLETED
+
+
+
+Also try EXP_fullocean without Nico's executable. (Namelist options might break it)
+cd EXP_fullocean
+ln -s BLD/bin/nemo_8Oct18.exe $EXP/../EXP_fullocean/opa
+
+qsub runscript
+Didn't work. Namelist issues.
+Recompile and resubmit for 2hrs
 
 
 
