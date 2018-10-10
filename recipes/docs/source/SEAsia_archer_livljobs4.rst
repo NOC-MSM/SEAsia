@@ -2856,6 +2856,49 @@ qsub runscript
 Didn't work. Namelist issues.
 Recompile and resubmit for 2hrs
 
+Blows up after 4 days with exceesive velocity through the sumba straits.
+Tried rdttideramp = 5. (formerly 1)
+
+**PENDING**
+
+
+The full forcing: Initial conditions, tides, rivers, open boundaries + met
+===========================================================================
+
+directory: EXP_fullforcing
+
+EXEC: ``nemo_8Oct18.exe``
+
+Note this is using old style of tidal implementation and can be updated to nemo_FES14-tides_diaharm-fast.exe later.
+::
+  mkdir EXP_fullforcing
+
+Copy files from EXP_fullocean to EXP_fullforcing **ADDING IN -K keeps symlinks. I THINK**::
+
+  rsync -aPvt --exclude=*restart*nc --exclude=*_?d_*grid_?.nc EXP_fullocean/* EXP_fullforcing/
+
+Need to add in:
+
+* met forcing
+
+Get the executable in place (I think that the standard nemo.exe is OK)::
+
+  cd EXP_fullforcing
+  rm opa
+  ln -s ../BLD/bin/nemo_8Oct18.exe opa
+
+Edit namelist_cfg::
+
+  ln_usr      = .false.    !  user defined formulation                  (T => check usrdef_sbc)
+  ln_flx      = .false.   !  flux formulation                          (T => fill namsbc_flx )
+  ln_blk      = .true.    !  Bulk formulation                          (T => fill namsbc_blk )
+  ...
+  ln_NCAR     = .true.   ! "NCAR"      algorithm   (Large and Yeager 2008)
+
+
+Submit: 5663365.sdb
+**PENDING**
+
 
 
 
@@ -2904,4 +2947,7 @@ Rebuild the output and inspect `rebuild_and_inspect_NEMO_output.rst`_
 ::
   qsub -q short rebuild.pbs
 
+Or (e.g.)::
+
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 24 output.abort 92
 ---
