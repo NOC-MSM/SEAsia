@@ -2856,7 +2856,7 @@ qsub runscript
 Didn't work. Namelist issues.
 Recompile and resubmit for 2hrs
 
-Blows up after 4 days with exceesive velocity through the sumba straits.
+Blows up after 4 days (15mins) with exceesive velocity through the sumba straits.
 Tried rdttideramp = 5. (formerly 1)
 
 **PENDING**
@@ -2867,7 +2867,15 @@ The full forcing: Initial conditions, tides, rivers, open boundaries + met
 
 directory: EXP_fullforcing
 
-EXEC: ``nemo_8Oct18.exe``
+In v4 SLP is needed to calculate air density. However in the old code it appears that
+air density was set at a constant, in the bulk core formulations, set at 1.22
+Plan:
+* Replace SLP variable in the namelist with a dummy variable, like temperature, so that the code does not break
+* In the fortran fix air density to 1.22
+
+
+
+EXEC: ``nemo_FES14-tides_diaharm-fast.exe``
 
 Note this is using old style of tidal implementation and can be updated to nemo_FES14-tides_diaharm-fast.exe later.
 ::
@@ -2885,7 +2893,7 @@ Get the executable in place (I think that the standard nemo.exe is OK)::
 
   cd EXP_fullforcing
   rm opa
-  ln -s ../BLD/bin/nemo_8Oct18.exe opa
+  ln -s ../BLD/bin/nemo_FES14-tides_diaharm-fast.exe opa
 
 Edit namelist_cfg::
 
@@ -2896,10 +2904,59 @@ Edit namelist_cfg::
   ln_NCAR     = .true.   ! "NCAR"      algorithm   (Large and Yeager 2008)
 
 
-Submit: 5663365.sdb
+Add in a dummy variable for Sea Level Pressure. This is expected. If it was real
+it would be used to calculate atmospheric density. Instead this is fixed to a constat = 1.22::
+
+  sn_slp      = 'cutdown_drowned_t2_DFS5.1.1'        ,         3         , 't2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , '' ! DUMMY variable. Fill with T
+
+Check the reference heights for the wind and T,q data::
+
+  rn_zqt      = 2.       !  Air temperature and humidity reference height (m)
+  rn_zu       = 10.       !  Wind vector reference height (m)
+
+
+Edit ``MY_SRC/sbcblk.F90`` to make air desnity constnat::
+
+  vi sbcblk.F90
+  FUNCTION rho_air( ptak, pqa, pslp )
+     ...
+     !
+     rho_air = 1.22 ! pslp / (  R_dry*ptak * ( 1._wp + rctv0*pqa )  ) ! jelt: 25 Oct 2018. Fix to make air density constant.
+     !
+  END FUNCTION rho_air
+
+
+Recompile::
+
+  cd $CDIR
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+Update executables so that:: ``../EXP_fullforcing/opa -> ../BLD/bin/nemo_FES14-tides_diaharm-fast.exe``
+
+submit on short queue::
+
+  qsub runscript_short
+  5695821.sdb
+
 **PENDING**
+Rivers get really hot. Try turning them off...
+
+ln_rnf      = .false.    !  runoffs                                   (T => fill namsbc_rnf)
+
+The SST heats up quite a but - but I am not sure about when my initial condition was
+taken. Temperatures are all sensible at least...
 
 
+
+
+**Next Steps:**
+
+* Also new plan to just use Global rivers rather than try and create a new (and
+different) set.
+
+* Use global met, not cutout DFS files
+
+* Add important EXP files to git. Add repo to GitHub.
 
 
 
