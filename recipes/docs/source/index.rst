@@ -77,6 +77,8 @@ modules once the process is common to more than one configuration.
 
   Add_more_SBC
 
+  FES2014_NEMO
+
 Trouble Shooting:
 =================
 .. toctree::
