@@ -1,0 +1,33 @@
+#!/bin/bash
+#PBS -N SEAsia
+#PBS -l select=5
+#PBS -l walltime=00:20:00
+#PBS -A n01-ACCORD
+# mail alert at (b)eginning, (e)nd and (a)bortion of execution
+#PBS -m bea
+#PBS -M jelt@noc.ac.uk
+#PBS -q short
+
+module swap PrgEnv-cray PrgEnv-intel
+module load cray-netcdf-hdf5parallel
+module load cray-hdf5-parallel
+
+export PBS_O_WORKDIR=$(readlink -f $PBS_O_WORKDIR)
+#  echo $(readlink -f $PBS_O_WORKDIR)
+# export OMP_NUM_THREADS=1
+
+cd $PBS_O_WORKDIR
+#
+  echo " ";
+  OCEANCORES=88
+  XIOSCORES=4
+ulimit -c unlimited
+ulimit -s unlimited
+
+rm -f core
+
+#aprun -n $OCEANCORES -N 24 ./opa
+aprun -b -n $XIOSCORES -N 4 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
+#aprun -b -n $XIOCORES -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
+
+exit
