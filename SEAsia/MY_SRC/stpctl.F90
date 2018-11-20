@@ -82,11 +82,11 @@ CONTAINS
       !
       IF( MOD( kt, nwrite ) == 1 .AND. lwp )   WRITE(numout,*) ' ==>> time-step= ',kt,' 3d speed2 max: ', velmax2
       !
-      IF( velmax2 > 20.e0 ) THEN
+      IF( velmax2 > 20.e0**2 ) THEN
          IF( lk_mpp ) THEN
-            CALL mpp_maxloc(ABS(un),umask,velmax2,ii,ij,ik)
+            CALL mpp_maxloc( un(:,:,:)**2+vn(:,:,:)**2,umask,velmax2,ii,ij,ik)
          ELSE
-            ilocu = MAXLOC( ABS( un(:,:,:) ) )
+            ilocu = MAXLOC( un(:,:,:)**2 + vn(:,:,:)**2 )
             ii = ilocu(1) + nimpp - 1
             ij = ilocu(2) + njmpp - 1
             ik = ilocu(3)
@@ -101,7 +101,7 @@ CONTAINS
          ENDIF
          kindic = -3
       ENDIF
-9400  FORMAT (' kt=',i6,' max abs(U): ',1pg11.4,', i j k: ',3i5)
+9400  FORMAT (' kt=',i6,' max abs(vel)**2: ',1pg11.4,', i j k: ',3i5)
       !
       !                                              !* Test minimum of salinity
       !                                              !  ------------------------
