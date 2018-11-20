@@ -2988,10 +2988,31 @@ kt=  1162 max abs(U):   2.633    , i j k:   535  320    1
 
 Resubmit with dt=100s. Runs for 20mins (1170 steps) without blow up.
 
+Ran until 1221 for 20mins with 200s Steps
+
+Resubmit to standard queue. (2hrs)::
+
+ stpctl: the speed is larger than 20 m/s
+ ======
+ kt=  2532 max abs(U):   2.841    , i j k:   535  320    1
+
+
+Ah. The error trapping assumes vel > 20, when it is triggering for vel^2 > 20.
+Fix in ``MY_SRC/stpctl.F90`` and recompile::
+
+    cd $CDIR
+    ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+Save in ``BLD/bin`` as ``nemo_FES14-tides_diaharm-fast.exe``
+
+Resubmit
+PENDING **5748307.sdb **
+
+
 
 ----
 
-Notes to add git to version control EXP FILES
+**Notes to add git to version control EXP FILES**
 
 # Now change to CONFIG directory
 cd NEMOGCM/CONFIG
