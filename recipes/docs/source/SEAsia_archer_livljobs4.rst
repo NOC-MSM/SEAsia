@@ -1743,12 +1743,20 @@ Finally turn rivers on::
   !-----------------------------------------------------------------------
   !              !  file name           ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
   !              !                      !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
-     sn_rnf      = 'SEAsia_rivers',        -1         , 'rorunoff',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
-     sn_cnf      = 'SEAsia_rivers',         0         , 'socoefr0',   .false.    , .true. , 'yearly'  , ''       , ''       , ''
-     ...
-     cn_dir      = 'bdydta/'      !  root directory for the location of the runoff files
-     ln_rnf_mouth= .false.    !  specific treatment at rivers mouths
+     sn_rnf      = 'bdydta/SEAsia_rivers',        -1         , 'rorunoff',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
+     sn_cnf      = 'bdydta/SEAsia_rivers',         0         , 'socoefr0',   .false.    , .true. , 'yearly'  , ''       , ''       , ''
+     sn_s_rnf    = 'runoffs'            ,        24         , 'rosaline',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
+     sn_t_rnf    = 'runoffs'            ,        24         , 'rotemper',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
+     sn_dep_rnf  = 'runoffs'            ,         0         , 'rodepth' ,   .false.    , .true. , 'yearly'  , ''       , ''       , ''
 
+     cn_dir      = './'      !  root directory for the location of the runoff files
+     ln_rnf_mouth= .false.    !  specific treatment at rivers mouths
+     ...
+     ln_rnf_depth_ini = .true. ! compute depth at initialisation from runoff file
+      rn_rnf_max  = 0.6865698 ! 5.735e-4  !  max value of the runoff climatologie over global domain ( ln_rnf_depth_ini = .true )
+      rn_dep_max  = 150.      !  depth over which runoffs is spread ( ln_rnf_depth_ini = .true )
+
+Had to add dir path to filename otherwise file was not found...
 
 Edit runscript::
 
@@ -2905,7 +2913,7 @@ Edit namelist_cfg::
 
 
 Add in a dummy variable for Sea Level Pressure. This is expected. If it was real
-it would be used to calculate atmospheric density. Instead this is fixed to a constat = 1.22::
+it would be used to calculate atmospheric density. Instead this is fixed to a constant = 1.22::
 
   sn_slp      = 'cutdown_drowned_t2_DFS5.1.1'        ,         3         , 't2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , '' ! DUMMY variable. Fill with T
 
@@ -2938,7 +2946,6 @@ submit on short queue::
   qsub runscript_short
   5695821.sdb
 
-**PENDING**
 Rivers get really hot. Try turning them off...
 
 ln_rnf      = .false.    !  runoffs                                   (T => fill namsbc_rnf)
@@ -2946,8 +2953,70 @@ ln_rnf      = .false.    !  runoffs                                   (T => fill
 The SST heats up quite a but - but I am not sure about when my initial condition was
 taken. Temperatures are all sensible at least...
 
+Try and fix the rivers. Turn them on again and address how the rivers enter the domain
+
+Edit namelist_cfg::
+
+  ln_rnf      = .true.    !  runoffs                                   (T => fill namsbc_rnf)
+  ...
+  sn_rnf      = 'bdydta/SEAsia_rivers',        -1         , 'rorunoff',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
+  sn_cnf      = 'bdydta/SEAsia_rivers',         0         , 'socoefr0',   .false.    , .true. , 'yearly'  , ''       , ''       , ''
+  sn_s_rnf    = 'runoffs'            ,        24         , 'rosaline',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
+  sn_t_rnf    = 'runoffs'            ,        24         , 'rotemper',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
+  sn_dep_rnf  = 'runoffs'            ,         0         , 'rodepth' ,   .false.    , .true. , 'yearly'  , ''       , ''       , ''
+
+  cn_dir      = './'      !  root directory for the location of the runoff files
+  ...
+  ln_rnf_depth_ini = .true. ! compute depth at initialisation from runoff file
+   rn_rnf_max  = 0.6865698 ! 5.735e-4  !  max value of the runoff climatologie over global domain ( ln_rnf_depth_ini = .true )
+   rn_dep_max  = 150.      !  depth over which runoffs is spread ( ln_rnf_depth_ini = .true )
+
+Had to add dir name into filename as it couldn't otherwise find the file...!
+rn_rnf_max value was calculated by loading in the river file and summing over
+all space to get a sum per month and picking the max value
+::
+    from netCDF4 import Dataset
+    import numpy as np
+    f = Dataset('bdydta/SEAsia_rivers.nc')
+    np.sum(np.sum(ro,axis=2),axis=1)
 
 
+qsub runscript_short
+
+Ran for 1162 w/ dt=360. Blew up with vel
+kt=  1162 max abs(U):   2.633    , i j k:   535  320    1
+
+Resubmit with dt=100s. Runs for 20mins (1170 steps) without blow up.
+
+
+----
+
+Notes to add git to version control EXP FILES
+
+# Now change to CONFIG directory
+cd NEMOGCM/CONFIG
+
+# Checkout configuration directory structure
+git init .
+git remote add origin git@github.com:NOC-MSM/NEMO_cfgs.git
+git config core.sparsecheckout true
+echo "SEAsia/*" >> .git/info/sparse-checkout
+git pull --depth=1 origin master
+
+Populate a git ignore file::
+
+  # ignores all *nc files recursive from the current folder
+  **nc
+
+  # Ignore all log and error files
+  **/SEAsia.o*
+  **/SEAsia.e*
+
+  # Ingore forcing data
+  **/bdydta/
+
+Add MY_SRC
+Add README
 
 **Next Steps:**
 
