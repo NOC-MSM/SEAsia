@@ -3008,6 +3008,7 @@ Save in ``BLD/bin`` as ``nemo_FES14-tides_diaharm-fast.exe``
 Resubmit
 PENDING **5748307.sdb **
 
+It works! Though the SST does heat up a bit (about 4 deg in 9 days)
 
 
 ----
