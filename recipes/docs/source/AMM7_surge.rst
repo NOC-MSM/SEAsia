@@ -74,3 +74,6 @@ Copy the tides from a AMM7 run (Note these are TPXO tides)::
   cp /work/n01/n01/nibrun/RUNS/AMM7/TEST/coordinates.bdy.nc .
 
 Get running with tides only. Then add met from Nico's wiki and :ref:`EAfrica_Surge`
+
+Something has broken. It worked but do not now. I think I've reverted all minor mods...
+It can only be a namlist_cfg change...
