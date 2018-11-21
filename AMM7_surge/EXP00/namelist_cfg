@@ -118,32 +118,43 @@
 &nam_tide      !   tide parameters
 !-----------------------------------------------------------------------
    ln_tide     = .true.
-   clname(1)     =   'Q1'   !  name of constituent
-   clname(2)     =   'O1'
-   clname(3)     =   'P1'
-   clname(4)     =   'K1'
-   clname(5)     =   '2N2'
-   clname(6)     =   'MU2'
-   clname(7)     =   'N2'
-   clname(8)     =   'NU2'
-   clname(9)     =   'M2'
-   clname(10)    =   'L2'
-   clname(11)    =   'T2'
-   clname(12)    =   'S2'
-   clname(13)    =   'K2'
-   clname(14)    =   'M4'
-   clname(15)    =   '2MK6'
-   clname(16)    =   '2MS6'
-   clname(17)    =   '2SM2'
-   clname(18)    =   '3M2S2'
-   clname(19)    =   'Lam2'
-   clname(20)    =   'M6'
-   clname(21)    =   'MK3'
-   clname(22)    =   'MN4'
-   clname(23)    =   'MNS2'
-   clname(24)    =   'MO3'
-   clname(25)    =   'MS4'
-   clname(26)    =   'MSN2'
+   ln_tide_ramp = .false.
+   rdttideramp =    1.
+   dn_love_number = 0.69
+   clname(1) ='2N2'
+   clname(2)='EPS2'
+   clname(3)='J1'
+   clname(4)='K1'
+   clname(5)='K2'
+   clname(6)='L2'
+   clname(7)='LA2'
+   clname(8)='M2'
+   clname(9)='M3'
+   clname(10)='M4'
+   clname(11)='M6'
+   clname(12)='M8'
+   clname(13)='MF'
+   clname(14)='MKS2'
+   clname(15)='MM'
+   clname(16)='MN4'
+   clname(17)='MS4'
+   clname(18)='MSF'
+   clname(19)='MSQM'
+   clname(20)='MTM'
+   clname(21)='MU2'
+   clname(22)='N2'
+   clname(23)='N4'
+   clname(24)='NU2'
+   clname(25)='O1'
+   clname(26)='P1'
+   clname(27)='Q1'
+   clname(28)='R2'
+   clname(29)='S1'
+   clname(30)='S2'
+   clname(31)='S4'
+   clname(32)='SA'
+   clname(33)='SSA'
+   clname(34)='T2'
 /
 !-----------------------------------------------------------------------
 &nambdy        !  unstructured open boundaries
@@ -320,11 +331,36 @@
 !-----------------------------------------------------------------------
 &nam_diaharm   !   Harmonic analysis of tidal constituents ('key_diaharm')
 !-----------------------------------------------------------------------
-    nit000_han = 52560     ! First time step used for harmonic analysis
-    nitend_han =105120     ! Last time step used for harmonic analysis
-    nstep_han  = 1         ! Time step frequency for harmonic analysis
-    tname(1)   = 'M2'      ! Name of tidal constituents
-    tname(2)   = 'S2'
+    nit000_han =  1      ! First time step used for harmonic analysis
+    nitend_han = 7200 ! 30*4 days    ! Last time step used for harmonic analysis
+    nstep_han  = 20  ! 5 mins       ! Time step frequency for harmonic analysis
+!    tname(1)   = 'M2'      ! Name of tidal constituents
+!    tname(2)   = 'S2'
+!    tname(3)   = 'K2'
+    tname(1)='K1'
+    tname(2)='K2'
+    tname(3)='M2'
+    tname(4)='M4'
+    tname(5)='N2'
+    tname(6)='O1'
+    tname(7)='P1'
+    tname(8)='Q1'
+    tname(9)='S2'
+/
+!-----------------------------------------------------------------------
+&nam_diaharm_fast   !   Harmonic analysis of tidal constituents               ("key_diaharm_fast")
+!-----------------------------------------------------------------------
+    ln_diaharm_store = .true.
+    ln_diaharm_compute = .true.
+    ln_diaharm_read_restart = .false.
+    ln_ana_ssh   = .true.
+    ln_ana_uvbar = .false.
+    ln_ana_bfric = .false.
+    ln_ana_rho  = .false.
+    ln_ana_uv3d = .false.
+    ln_ana_w3d  = .false.
+    tname(1) = 'O1',
+    tname(2) = 'M2',
 /
 !-----------------------------------------------------------------------
 &namdct        ! transports through sections
