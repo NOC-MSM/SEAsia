@@ -59,7 +59,7 @@
                            !     (also = the frequency of sea-ice model call)
    ln_usr = .true.
    ln_blk =  .false.
-   ln_apr_dyn  = .true.    !  Patm gradient added in ocean & ice Eqs.   (T => fill namsbc_apr )
+   ln_apr_dyn  = .false.    !  Patm gradient added in ocean & ice Eqs.   (T => fill namsbc_apr )
    nn_ice      = 0         !  =0 no ice boundary condition   ,
    ln_rnf      = .false.   !  Runoffs                                   (T => fill namsbc_rnf) 
    ln_ssr      = .false.   !  Sea Surface Restoring on T and/or S       (T => fill namsbc_ssr)
@@ -354,8 +354,8 @@
 !-----------------------------------------------------------------------
 &nam_diaharm_fast   !   Harmonic analysis of tidal constituents               ("key_diaharm_fast")
 !-----------------------------------------------------------------------
-    ln_diaharm_store = .true.
-    ln_diaharm_compute = .true.
+    ln_diaharm_store = .false.
+    ln_diaharm_compute = .false.
     ln_diaharm_read_restart = .false.
     ln_ana_ssh   = .true.
     ln_ana_uvbar = .false.
