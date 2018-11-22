@@ -1,0 +1,286 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>LBay practise prior to Setting up a Solomon Islands and Fiji NEMO configuration &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="lbay-practise-prior-to-setting-up-a-solomon-islands-and-fiji-nemo-configuration">
+<h1>LBay practise prior to Setting up a Solomon Islands and Fiji NEMO configuration<a class="headerlink" href="#lbay-practise-prior-to-setting-up-a-solomon-islands-and-fiji-nemo-configuration" title="Permalink to this headline">¶</a></h1>
+<p><em>(27 Sept 2017)</em>: Jeff put this on note on GitLab to help debug Tom&#8217;s process.
+<strong>It should be deleted or developed.</strong></p>
+<ul class="simple">
+<li>Build notes on creating 2D/3D tide model covering the Solomon Islands and Fiji.</li>
+<li>Geographical extent is currently 140 degrees W to 185 degrees W and 0 degrees to 30 degrees S</li>
+<li>Following Jeff&#8217;s Recipe notes for Liverpool Bay and Examples on pynemo website.</li>
+<li>Aim is to run this on Mobius</li>
+</ul>
+<div class="section" id="recipe-notes">
+<h2>Recipe Notes<a class="headerlink" href="#recipe-notes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>22/09/2017<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Working within Mobius</p>
+<p>Step One:-</p>
+<p>Define working and other directory, load relevent modules:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>      module purge
+      module load shared intel/compiler/64/14.0/2013_sp1.3.174 mvapich2/intel/64/2.0b slurm/14.03.0 cluster-tools/7.0
+export WDIR=/work/$USER/NEMO/Solo
+      export INPUTS=/work/$USER/NEMO/INPUTS
+      export MOBIUS=/work/thopri/NEMO/Mobius
+      export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+      export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+</pre></div>
+</div>
+<p>CDIR, TDIR and INPUTS do not currently exist. Lets make them!:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">Tom</span><span class="p">::</span>
+</pre></div>
+</div>
+<blockquote>
+<div>cd $WDIR
+cp $INPUTS/INPUTS.tar.gz $WDIR
+tar xvfz INPUTS.tar.gz
+rm INPUTS.tar.gz</div></blockquote>
+<p>Checkout NEMO and XIOS paynote to revision number:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
+svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/2014/dev_r4621_NOC4_BDY_VERT_INTERP@5709
+svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-1.0@629
+</pre></div>
+</div>
+<p>Need to get arch files from Ash&#8217;s files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR/xios-1.0
+cp $MOBIUS/arch* ./arch
+</pre></div>
+</div>
+<p>Compile XIOS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">make_xios</span> <span class="o">--</span><span class="n">full</span> <span class="o">--</span><span class="n">prod</span> <span class="o">--</span><span class="n">arch</span> <span class="n">mobius_intel</span>  <span class="o">--</span><span class="n">netcdf_lib</span> <span class="n">netcdf4_par</span> <span class="o">--</span><span class="n">jobs</span> <span class="mi">6</span>
+</pre></div>
+</div>
+<p>-rwxr-xr-x 1 thopri pol 11818229 Sep 26 14:38 /work/thopri/NEMO/Solo/xios-1.0/bin/xios_server.exe
+livljobs4 ARCH $ ls -l  /work/thopri/NEMO/Mobius/xios-1.0/bin/xios_server.exe
+-rwxr-xr-x 1 thopri pol 11852488 Sep 26 09:35 /work/thopri/NEMO/Mobius/xios-1.0/bin/xios_server.exe</p>
+<blockquote>
+<div>And that your $CDIR/../ARCH/arch-mobius_intel.fcm files points to the older one (in NEMO/Mobius)
+I am just building one. In Solo/.</div></blockquote>
+<p>Step two. Obtain and apply patches:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>      export CDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/CONFIG
+      export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+      cd $CDIR/../NEMO/OPA_SRC/SBC
+      patch -b &lt; $INPUTS/fldread.patch
+      cd ../DOM
+      patch -b &lt; $INPUTS/dommsk.patch
+      cd ../BDY
+      patch -b &lt; $INPUTS/bdyini.patch
+      cd $CDIR
+      rm $CDIR/../NEMO/OPA_SRC/TRD/trdmod.F90
+#cp $INPUTS/arch-* ../ARCH   # You don&#39;t want this. You want the mobius file from Ash::
+cp /scratch/ashbre/NEMO_xios/1arch-mobius_intel.fcm $CDIR/../ARCH/arch-mobius_intel.fcm
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h3>25/09/2017<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>Ok have got input.gz from Jeff. Will copy into INPUTS directory then untar (is that a word?) and remove tar file. Have ammended recipe from last week to account for new INPUTS file. So will now try and apply patches.</p>
+<p><strong>Patches applied successfully!</strong></p>
+<p>Copy some input files to new configuration path:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>./makenemo -n Solo -m mobius_intel -j 10 clean
+
+cp $INPUTS/cpp_LH_REEF.fcm $CDIR/Solo/cpp_Solo.fcm
+cp $INPUTS/dtatsd.F90 $CDIR/Solo/MY_SRC/
+</pre></div>
+</div>
+<p>Compile NEMO:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">makenemo</span> <span class="o">-</span><span class="n">n</span> <span class="n">Solo</span> <span class="o">-</span><span class="n">m</span> <span class="n">mobius_intel</span> <span class="o">-</span><span class="n">j</span> <span class="mi">10</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id3">
+<h3>26/09/2017<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>Not a day I want to relive</p>
+</div>
+<div class="section" id="id4">
+<h3>27/09/2017<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>New dawn new day and I am carrying on with Jeff&#8217;s recipe.</p>
+<p>To generate bathymetry, initial conditions and grid information we first need
+to compile some of the NEMO TOOLS (after a small bugfix - and to allow direct
+passing of arguments). For some reason GRIDGEN doesn’t like INTEL:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ssh</span> <span class="n">livljobs4</span>
+</pre></div>
+</div>
+<p>Copy PATHS again:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/$USER/NEMO/Solo
+export INPUTS=/work/$USER/NEMO/INPUTS
+export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+</pre></div>
+</div>
+<p>Apply patches:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>      cd $TDIR/WEIGHTS/src
+patch -b &lt; $INPUTS/scripinterp_mod.patch
+patch -b &lt; $INPUTS/scripinterp.patch
+patch -b &lt; $INPUTS/scrip.patch
+patch -b &lt; $INPUTS/scripshape.patch
+patch -b &lt; $INPUTS/scripgrid.patch
+</pre></div>
+</div>
+<p>Setup for PGI modules and compile:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR
+      cp /work/jelt/NEMO/SEAsia/INPUTS/arch-pgf90_linux_jb.fcm $TDIR/../ARCH/arch-pgf90_linux_jb.fcm
+
+      module add netcdf/gcc/4.1.3
+      module add pgi/15.4
+
+./maketools -n WEIGHTS -m pgf90_linux_jb
+./maketools -n REBUILD_NEMO -m pgf90_linux_jb
+./maketools -n GRIDGEN -m pgf90_linux_jb
+</pre></div>
+</div>
+<p>Next we use these tools.</p>
+</div>
+<div class="section" id="generate-new-coordinates-file">
+<h3>1. Generate new coordinates file<a class="headerlink" href="#generate-new-coordinates-file" title="Permalink to this headline">¶</a></h3>
+<p>Generate a <code class="docutils literal"><span class="pre">coordinates.nc</span></code> file from a parent NEMO grid at some resolution.
+<strong>Plan:</strong> Use tool <code class="docutils literal"><span class="pre">create_coordinates.exe</span></code> which reads cutting indices and
+parent grid location from <code class="docutils literal"><span class="pre">namelist.input</span></code> and outputs a new files with new
+resolution grid elements.</p>
+<p>First we need to figure out the indices for the new domain, from the parent grid.
+Move parent grid into INPUTS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#cp $INPUTS/coordinates_ORCA_R12.nc $WDIR/INPUTS/. # Doesn&#39;t work for me. As same directory</span>
+</pre></div>
+</div>
+<p>Inspect this parent coordinates file to define the boundary indices for the new config.</p>
+<p>Note, I used FERRET on Livljobs4:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">load</span> <span class="n">ferret</span>
+<span class="n">FERRET</span>
+<span class="n">use</span> <span class="n">coordinates_ORCA_R12</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">shade</span><span class="o">/</span><span class="n">i</span><span class="o">=</span><span class="mi">3385</span><span class="p">:</span><span class="mi">3392</span><span class="o">/</span><span class="n">j</span><span class="o">=</span><span class="mi">2251</span><span class="p">:</span><span class="mi">2266</span> <span class="n">NAV_LAT</span>
+<span class="n">shade</span><span class="o">/</span><span class="n">i</span><span class="o">=</span><span class="mi">3385</span><span class="p">:</span><span class="mi">3392</span><span class="o">/</span><span class="n">j</span><span class="o">=</span><span class="mi">2251</span><span class="p">:</span><span class="mi">2266</span> <span class="n">NAV_LON</span>
+</pre></div>
+</div>
+<p>Copy namelist file from LH_reef and edit with new indices, retaining use of
+ORCA_R12 as course parent grid. (I changed a path somewhere so had to add .. to
+<code class="docutils literal"><span class="pre">cn_parent_coordinate_file</span></code> path):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR/GRIDGEN
+cp $INPUTS/namelist_R12 ./
+vi namelist_R12
+...
+cn_parent_coordinate_file = &#39;../../../../../INPUTS/coordinates_ORCA_R12.nc&#39;
+...
+nn_imin = 3385
+nn_imax = 3392
+nn_jmin = 2251
+nn_jmax = 2266
+nn_rhox  = 7
+nn_rhoy = 7
+
+ln -s namelist_R12 namelist.input
+./create_coordinates.exe
+</pre></div>
+</div>
+<p>This generates <code class="docutils literal"><span class="pre">1_coordinates_ORCA_R12.nc</span></code>.</p>
+<p>THe next step is to copy this file into INPUTS. This is probably a bad idea as it
+confuses INPUTS required to build the configuration and INPUTS required to run
+the configuration. I propose that these are separated.
+Ideally create a new directory called START_FILES for all the patch files and parent grid data.
+Keep INPUTS for all the stuff that gets generated and is specific to the new config.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">LBay practise prior to Setting up a Solomon Islands and Fiji NEMO configuration</a><ul>
+<li><a class="reference internal" href="#recipe-notes">Recipe Notes</a><ul>
+<li><a class="reference internal" href="#id1">22/09/2017</a></li>
+<li><a class="reference internal" href="#id2">25/09/2017</a></li>
+<li><a class="reference internal" href="#id3">26/09/2017</a></li>
+<li><a class="reference internal" href="#id4">27/09/2017</a></li>
+<li><a class="reference internal" href="#generate-new-coordinates-file">1. Generate new coordinates file</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/LBay_mobius.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/LBay_mobius.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

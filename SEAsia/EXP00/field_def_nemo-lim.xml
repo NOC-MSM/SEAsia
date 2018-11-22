@@ -1,0 +1,183 @@
+<?xml version="1.0"?> 
+    <!-- $id$ -->
+    
+    <!-- 
+============================================================================================================
+=                                  definition of all existing variables                                    =
+=                                            DO NOT CHANGE                                                 =
+============================================================================================================
+    -->
+   <field_definition level="1" prec="4" operation="average" enabled=".TRUE." default_value="1.e20" > <!-- time step automaticaly defined -->
+
+      <field_group id="SBC" grid_ref="grid_T_2D" > <!-- time step automaticaly defined based on nn_fsbc -->
+
+         <!-- LIM2(only) fields -->
+         <field id="qsr_ai_cea"   long_name="Air-Ice downward solar heat flux (cell average)"              standard_name="surface_downwelling_shortwave_flux_in_air"          unit="W/m2"         />
+         <field id="qns_ai_cea"   long_name="Air-Ice downward non-solar heat flux (cell average)"                                                                             unit="W/m2"         />
+         <field id="qla_ai_cea"   long_name="Air-Ice downward Latent heat flux (cell average)"             standard_name="surface_downward_latent_heat_flux"                  unit="W/m2"         />         
+         <field id="qsr_io_cea"   long_name="Ice-Oce downward solar heat flux (cell average)"              standard_name="net_downward_shortwave_flux_at_sea_water_surface"   unit="W/m2"         />
+         <field id="qns_io_cea"   long_name="Ice-Oce downward non-solar heat flux (cell average)"                                                                             unit="W/m2"         />
+         <field id="iceprod_cea"  long_name="Ice production (cell average)"                                                                                                   unit="m/s"          />
+         <field id="iiceconc"     long_name="Ice concentration"                                            standard_name="sea_ice_area_fraction"                              unit="1"            />
+         <field id="ice_pres"     long_name="Ice presence"                                                                                                                    unit=""             />
+         <field id="ist_cea"      long_name="Ice surface temperature (cell average)"                       standard_name="surface_temperature"                                unit="degC"         />
+         <field id="ist_ipa"      long_name="Ice surface temperature (ice presence average)"               standard_name="surface_temperature"                                unit="degC"         />
+         <field id="u_imasstr"    long_name="Sea-ice mass transport along i-axis"                          standard_name="sea_ice_x_transport"                                unit="kg/s"         />
+         <field id="v_imasstr"    long_name="Sea-ice mass transport along j-axis"                          standard_name="sea_ice_y_transport"                                unit="kg/s"         />
+
+         <!-- LIM3 fields -->  
+         <field id="ice_cover"    long_name="Ice fraction"                                                 standard_name="sea_ice_area_fraction"                              unit="1"            />
+ 
+         <field id="snowthic_cea" long_name="Snow thickness (cell average)"                                standard_name="surface_snow_thickness"                             unit="m"            />
+         <field id="icethic_cea"  long_name="Ice thickness (cell average)"                                 standard_name="sea_ice_thickness"                                  unit="m"            />
+
+         <field id="uice_ipa"     long_name="Ice velocity along i-axis at I-point (ice presence average)"  standard_name="sea_ice_x_velocity"                                 unit="m/s"          />      
+         <field id="vice_ipa"     long_name="Ice velocity along j-axis at I-point (ice presence average)"  standard_name="sea_ice_y_velocity"                                 unit="m/s"          />               
+         <field id="utau_ice"     long_name="Wind stress along i-axis over the ice at i-point"             standard_name="surface_downward_x_stress"                          unit="N/m2"         />
+         <field id="vtau_ice"     long_name="Wind stress along j-axis over the ice at i-point"             standard_name="surface_downward_y_stress"                          unit="N/m2"         />
+         
+         <field id="iceconc"      long_name="ice concentration"                                            standard_name="sea_ice_area_fraction"                              unit="%"            />
+       	 <field id="isst"         long_name="sea surface temperature"                                      standard_name="sea_surface_temperature"                            unit="degC"         />
+         <field id="isss"         long_name="sea surface salinity"                                         standard_name="sea_surface_salinity"                               unit="1e-3"         /> 
+         <field id="qt_oce"       long_name="total flux at ocean surface"                                  standard_name="surface_downward_heat_flux_in_sea_water"            unit="W/m2"         />
+         <field id="qsr_oce"      long_name="solar heat flux at ocean surface"                             standard_name="net_downward_shortwave_flux_at_sea_water_surface"   unit="W/m2"         />
+         <field id="qns_oce"      long_name="non-solar heat flux at ocean surface"                                                                                            unit="W/m2"         />
+         <field id="qt_ice"       long_name="total heat flux at ice surface: sum over categories"          standard_name="surface_downward_heat_flux_in_air"                  unit="W/m2"         />
+         <field id="qsr_ice"      long_name="solar heat flux at ice surface: sum over categories"          standard_name="surface_downwelling_shortwave_flux_in_air"          unit="W/m2"         />
+         <field id="qns_ice"      long_name="non-solar heat flux at ice surface: sum over categories"                                                                         unit="W/m2"         />
+         <field id="qtr_ice"      long_name="solar heat flux transmitted through ice: sum over categories"                                                                    unit="W/m2"         />
+         <field id="qemp_ice"     long_name="Downward Heat Flux from E-P over ice"                                                                                            unit="W/m2"         />
+         <field id="micesalt"     long_name="Mean ice salinity"                                                                                                               unit="1e-3"         />
+         <field id="miceage"      long_name="Mean ice age"                                                                                                                    unit="years"        />
+         <field id="alb_ice"      long_name="Mean albedo over sea ice"                                                                                                        unit=""             />
+         <field id="albedo"       long_name="Mean albedo over sea ice and ocean"                                                                                              unit=""             />
+
+         <field id="iceage_cat"   long_name="Ice age for categories"                                       unit="days"   grid_ref="grid_T_3D_ncatice" />
+         <field id="iceconc_cat"  long_name="Ice concentration for categories"                             unit="%"      grid_ref="grid_T_3D_ncatice" />
+         <field id="icethic_cat"  long_name="Ice thickness for categories"                                 unit="m"      grid_ref="grid_T_3D_ncatice" />
+         <field id="snowthic_cat" long_name="Snow thicknessi for categories"                               unit="m"      grid_ref="grid_T_3D_ncatice" />
+         <field id="salinity_cat" long_name="Sea-Ice Bulk salinity for categories"                         unit="g/kg"   grid_ref="grid_T_3D_ncatice" />
+         <field id="brinevol_cat" long_name="Brine volume for categories"                                  unit="%"      grid_ref="grid_T_3D_ncatice" />
+         <field id="icetemp_cat"  long_name="Ice temperature for categories"                               unit="degC"   grid_ref="grid_T_3D_ncatice" />
+         <field id="snwtemp_cat"  long_name="Snow temperature for categories"                              unit="degC"   grid_ref="grid_T_3D_ncatice" />
+
+         <field id="micet"        long_name="Mean ice temperature"                                         unit="degC"     />
+         <field id="icehc"        long_name="ice total heat content"                                       unit="10^9J"    /> 
+         <field id="isnowhc"      long_name="snow total heat content"                                      unit="10^9J"    />
+         <field id="icest"        long_name="ice surface temperature"                                      unit="degC"     />
+         <field id="ibrinv"       long_name="brine volume"                                                 unit="%"        />
+         <field id="icecolf"      long_name="frazil ice collection thickness"                              unit="m"        />
+         <field id="icestr"       long_name="ice strength"                                                 unit="N/m"      />
+         <field id="icevel"       long_name="ice velocity"                                                 unit="m/s"      />
+         <field id="idive"        long_name="divergence"                                                   unit="1e-8s-1"  />
+         <field id="ishear"       long_name="shear"                                                        unit="1e-8s-1"  />
+         <field id="icevolu"      long_name="ice volume"                                                   unit="m"        />
+         <field id="snowvol"      long_name="snow volume"                                                  unit="m"        />
+         <field id="tau_icebfr"   long_name="ice friction on ocean bottom for landfast ice"                unit="N/2"      />
+
+         <field id="icetrp"       long_name="ice volume transport"                                         unit="m/day"          />
+         <field id="snwtrp"       long_name="snw volume transport"                                         unit="m/day"          />
+         <field id="saltrp"       long_name="salt content transport"                                       unit="1e-3*kg/m2/day" />
+         <field id="deitrp"       long_name="advected ice enthalpy"                                        unit="W/m2"           />
+         <field id="destrp"       long_name="advected snw enthalpy"                                        unit="W/m2"           />
+
+         <field id="sfxbri"       long_name="brine salt flux"                                              unit="1e-3*kg/m2/day" />
+         <field id="sfxdyn"       long_name="salt flux from ridging rafting"                               unit="1e-3*kg/m2/day" />
+         <field id="sfxres"       long_name="salt flux from lipupdate (resultant)"                         unit="1e-3*kg/m2/day" />
+         <field id="sfxbog"       long_name="salt flux from bot growth"                                    unit="1e-3*kg/m2/day" />
+         <field id="sfxbom"       long_name="salt flux from bot melt"                                      unit="1e-3*kg/m2/day" />
+         <field id="sfxsum"       long_name="salt flux from surf melt"                                     unit="1e-3*kg/m2/day" />
+         <field id="sfxlam"       long_name="salt flux from lateral melt"                                  unit="1e-3*kg/m2/day" />
+         <field id="sfxsni"       long_name="salt flux from snow-ice formation"                            unit="1e-3*kg/m2/day" />
+         <field id="sfxopw"       long_name="salt flux from open water ice formation"                      unit="1e-3*kg/m2/day" />
+         <field id="sfxsub"       long_name="salt flux from sublimation"                                   unit="1e-3*kg/m2/day" />
+         <field id="sfx"          long_name="salt flux total"                                              unit="1e-3*kg/m2/day" />
+
+         <field id="vfxbog"       long_name="daily bottom thermo ice prod."                                unit="m/day"   />
+         <field id="vfxdyn"       long_name="daily  dynamic ice prod."                                     unit="m/day"   />
+         <field id="vfxopw"       long_name="daily lateral thermo ice prod."                               unit="m/day"   />
+         <field id="vfxsni"       long_name="daily snowice ice prod."                                      unit="m/day"   />
+         <field id="vfxsum"       long_name="surface melt"                                                 unit="m/day"   />
+         <field id="vfxlam"       long_name="lateral melt"                                                 unit="m/day"   />
+         <field id="vfxbom"       long_name="bottom melt"                                                  unit="m/day"   />
+         <field id="vfxres"       long_name="daily resultant ice prod./melting from limupdate"             unit="m/day"   />
+         <field id="vfxice"       long_name="ice melt/growth"                                              unit="m/day"   />
+         <field id="vfxsnw"       long_name="snw melt/growth"                                              unit="m/day"   />
+         <field id="vfxsub"       long_name="snw sublimation"                                              unit="m/day"   />
+         <field id="vfxsub_err"   long_name="excess of snw sublimation sent to ocean"                      unit="m/day"   />
+         <field id="vfxspr"       long_name="snw precipitation on ice"                                     unit="m/day"   />
+         <field id="vfxthin"      long_name="daily thermo ice prod. for thin ice(20cm) + open water"      unit="m/day"   />
+
+         <field id="afxtot"       long_name="area tendency (total)"                                        unit="day-1"   />
+         <field id="afxdyn"       long_name="area tendency (dynamics)"                                     unit="day-1"   />
+         <field id="afxthd"       long_name="area tendency (thermo)"                                       unit="day-1"   />
+
+         <field id="hfxsum"       long_name="heat fluxes causing surface ice melt"                         unit="W/m2"  />
+         <field id="hfxbom"       long_name="heat fluxes causing bottom ice melt"                          unit="W/m2"  />
+         <field id="hfxbog"       long_name="heat fluxes causing bottom ice growth"                        unit="W/m2"  />
+         <field id="hfxdif"       long_name="heat fluxes causing ice temperature change"                   unit="W/m2"  />
+         <field id="hfxopw"       long_name="heat fluxes causing open water ice formation"                 unit="W/m2"  />
+         <field id="hfxsnw"       long_name="heat fluxes causing snow melt"                                unit="W/m2"  />
+         <field id="hfxerr"       long_name="heat fluxes error after heat diffusion"                       unit="W/m2"  />
+         <field id="hfxerr_rem"   long_name="heat fluxes error after remapping"                            unit="W/m2"  />
+         <field id="hfxout"       long_name="total heat fluxes received by the ocean"                      unit="W/m2"  />
+         <field id="hfxin"        long_name="total heat fluxes at the ice/ocean surface"                   unit="W/m2"  />
+
+         <!-- heat flux associated with mass exchange -->
+         <field id="hfxthd"       long_name="heat fluxes from ice-ocean mass exchange during thermo"       unit="W/m2"  />
+         <field id="hfxdyn"       long_name="heat fluxes from ice-ocean mass exchange during dynamic"      unit="W/m2"  />
+         <field id="hfxres"       long_name="heat fluxes from ice-ocean mass exchange during resultant"    unit="W/m2"  />
+         <field id="hfxsub"       long_name="heat fluxes from ice-atm. mass exchange during sublimation"   unit="W/m2"  />
+         <field id="hfxspr"       long_name="heat fluxes from ice-atm. mass exchange during snow precip"   unit="W/m2"  />
+
+         <!-- diags -->
+         <field id="hfxdhc"       long_name="Heat content variation in snow and ice"                       unit="W/m2" />
+         <field id="hfxtur"       long_name="turbulent heat flux at the ice base"                          unit="W/m2" />
+
+	 <!-- sbcssm variables -->
+         <field id="sst_m"    unit="degC" />
+         <field id="sss_m"    unit="psu"  />
+         <field id="ssu_m"    unit="m/s"  />
+         <field id="ssv_m"    unit="m/s"  />
+         <field id="ssh_m"    unit="m"    />
+         <field id="e3t_m"    unit="m"    />
+         <field id="frq_m"    unit="-"    />
+
+      </field_group>
+
+      <!-- LIM3 scalar variables -->
+      <field_group id="SBC_scalar"  grid_ref="grid_T_2D" >
+         <!-- available with ln_limdiaout -->
+         <field id="ibgfrcvoltop"    long_name="global mean ice/snow forcing at interface ice/snow-atm (volume equivalent ocean volume)"   unit="km3"       />
+         <field id="ibgfrcvolbot"    long_name="global mean ice/snow forcing at interface ice/snow-ocean (volume equivalent ocean volume)" unit="km3"       />
+         <field id="ibgfrctemtop"    long_name="global mean heat on top of ice/snw/ocean-atm "                                             unit="1e20J"     />
+         <field id="ibgfrctembot"    long_name="global mean heat below ice (on top of ocean) "                                             unit="1e20J"     />
+         <field id="ibgfrcsal"       long_name="global mean ice/snow forcing (salt equivalent ocean volume)"                               unit="pss*km3"   />
+         <field id="ibgfrchfxtop"    long_name="global mean heat flux on top of ice/snw/ocean-atm "                                        unit="W/m2"      />
+         <field id="ibgfrchfxbot"    long_name="global mean heat flux below ice (on top of ocean) "                                        unit="W/m2"      />
+ 
+         <field id="ibgvolume"       long_name="drift in ice/snow volume (equivalent ocean volume)"            unit="km3"        />
+         <field id="ibgsaltco"       long_name="drift in ice salt content (equivalent ocean volume)"           unit="pss*km3"    />
+         <field id="ibgheatco"       long_name="drift in ice/snow heat content"                                unit="1e20J"      />
+         <field id="ibgheatfx"       long_name="drift in ice/snow heat flux"                                   unit="W/m2"       />
+
+         <field id="ibgvol_tot"      long_name="global mean ice volume"                                        unit="km3"        />
+         <field id="sbgvol_tot"      long_name="global mean snow volume"                                       unit="km3"        />
+         <field id="ibgarea_tot"     long_name="global mean ice area"                                          unit="km2"        />
+         <field id="ibgsalt_tot"     long_name="global mean ice salt content"                                  unit="1e-3*km3"   />
+         <field id="ibgheat_tot"     long_name="global mean ice heat content"                                  unit="1e20J"      />
+         <field id="sbgheat_tot"     long_name="global mean snow heat content"                                 unit="1e20J"      />
+      </field_group>
+  
+      <!-- 
+============================================================================================================
+	-->
+      <!-- output variables for my configuration (example) --> 
+      
+      <field_group id="myvarICE" >
+         <field field_ref="icethic_cea"      name="sithic"     long_name="sea_ice_thickness"        />
+         <field field_ref="icevolu"          name="sivolu"  />
+         <field field_ref="iceconc"          name="siconc"  />
+      </field_group>    
+      
+   </field_definition>

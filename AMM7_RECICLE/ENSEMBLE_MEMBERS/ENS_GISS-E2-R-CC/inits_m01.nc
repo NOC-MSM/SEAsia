@@ -1,0 +1,1 @@
+../../ENSEMBLE_INPUTS/IC/ic_GISS-E2-R-CC_1970.nc

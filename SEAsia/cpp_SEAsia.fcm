@@ -1,0 +1,6 @@
+bld::tool::fppkeys key_zdfgls        \
+		key_mpp_mpi       \
+		key_iomput        \
+                key_nosignedzero \
+		key_FES14_tides \
+		key_diaharm_fast

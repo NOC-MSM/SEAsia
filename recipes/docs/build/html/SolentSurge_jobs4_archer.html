@@ -1,0 +1,1201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Setting up surge model for East Africa &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="setting-up-surge-model-for-east-africa">
+<span id="solent-surge"></span><h1>Setting up surge model for East Africa<a class="headerlink" href="#setting-up-surge-model-for-east-africa" title="Permalink to this headline">¶</a></h1>
+<p>To link to me use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>:ref:`Solent_surge`
+</pre></div>
+</div>
+<p><strong>NOTE</strong> This receipe is a copy from <a class="reference internal" href="EAfricaSurge_jobs4_archer.html#eafrica-surge"><span class="std std-ref">Setting up surge model for East Africa</span></a> and using a working
+version of the full 3D (constant T,S) in <cite>&lt;Solent_archer_livljobs_TCarta.rst&gt;_</cite></p>
+<p>Summary of the following:</p>
+<ol class="arabic simple">
+<li>Get and setup the Met Office NEMO v.4 surge code on Archer. <strong>Note</strong> two features of this code are: first, a namelist_cfg flag (ln_2d) which sets a constant temp
+and salinity, and second a namelist_cfg flag (ln_usr, ln_use_sbc) which allows the user to set all surface boundary conditions to zero or to read in wind and pressure.
+This is trunk revision 8814. For reference, the flag ln_2d appears in istate.f90 and ln_usr appears in sbcmod.f90 and sbcice_lim.F90.</li>
+<li>copy coordinates file</li>
+<li>copy bathymetry file</li>
+<li>Generate a domain configuration file suitable for surge model on Archer</li>
+<li>Generate tide boundary conditions on livljobs4</li>
+<li>Run with tides only forcing on Archer</li>
+<li>Output xml and running on Archer</li>
+</ol>
+<div class="section" id="a-get-and-build-met-surge-config">
+<h2>1a) Get and build Met Surge Config<a class="headerlink" href="#a-get-and-build-met-surge-config" title="Permalink to this headline">¶</a></h2>
+<p>Login to Archer</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ssh -l $USER login.archer.ac.uk
+</pre></div>
+</div>
+<p>Create file &#8216;temporary_path_names_for_NEMO_build_surge&#8217; and add the following</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export CONFIG=Solent_surge
+export WORK=/work/n01/n01
+export WDIR=/work/n01/n01/$USER/$CONFIG
+export INPUTS=$WDIR/INPUTS
+export START_FILES=$WDIR/START_FILES
+export CDIR=$WDIR/dev_r8814_surge_modelling_Nemo4/CONFIG
+export TDIR=$WDIR/dev_r8814_surge_modelling_Nemo4/TOOLS
+export EXP=$CDIR/$CONFIG/EXP00
+</pre></div>
+</div>
+<p>execute e.g.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">.</span> <span class="o">~/</span><span class="n">temporary_path_names_for_NEMO_build_surge</span>
+</pre></div>
+</div>
+<p>Get some required files</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>mkdir $WDIR
+mkdir $INPUTS
+mkdir $START_FILES
+cp $WORK/jelt/LBay/START_FILES/dommsk.F90 $START_FILES/.
+cp $WORK/jelt/LBay/START_FILES/bdyini.F90 $START_FILES/.
+cp $WORK/jelt/SEAsia/git_repo/SEAsia/MY_SRC/stpctl.F90 $START_FILES/.
+cp $WORK/jelt/LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
+cp $WORK/jelt/LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
+</pre></div>
+</div>
+<p>Files for improved tides and (last 2 items for) harmonic analysis:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC
+#cp bdyini.F90 $START_FILES/. # Already have this file
+cp step.F90 $START_FILES/.
+cp step_oce.F90 $START_FILES/.
+cp tideini.F90 $START_FILES/.
+cp tide_FES14.h90 $START_FILES/.
+cp sbctide.F90 $START_FILES/.
+cp tide_mod.F90 $START_FILES/.
+#cp bdytides.F90 $START_FILES/.
+cp diaharm_fast.F90 $START_FILES/.
+cp /work/n01/n01/nibrun/RUNS/SWPacific/SIMU/field_def_nemo-opa.xml $START_FILES/.
+</pre></div>
+</div>
+<p>Add a couple of extra lines into the field_def files. This is a glitch in the surge code,
+because it doesn&#8217;t expect you to not care about the winds:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $START_FILES/field_def_nemo-opa.xml
+line 338
+&lt;field id=&quot;wspd&quot;         long_name=&quot;wind speed module&quot;                     standard_name=&quot;wind_speed&quot;                                                           unit=&quot;m/s&quot;                            /&gt;
+&lt;field id=&quot;uwnd&quot;         long_name=&quot;u component of wind&quot;       unit=&quot;m/s&quot;         /&gt;
+&lt;field id=&quot;vwnd&quot;         long_name=&quot;v component of wind&quot;       unit=&quot;m/s&quot;        /&gt;
+</pre></div>
+</div>
+<p>Load modules</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">swap</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">cray</span> <span class="n">PrgEnv</span><span class="o">-</span><span class="n">intel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="n">hdf5parallel</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cray</span><span class="o">-</span><span class="n">hdf5</span><span class="o">-</span><span class="n">parallel</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="b-build-xios2-r1080">
+<h2>1b) Build XIOS2 &#64; r1080<a class="headerlink" href="#b-build-xios2-r1080" title="Permalink to this headline">¶</a></h2>
+<p>Follow instructions at <span class="xref std std-ref">build_XIOS2</span>
+(Note the final instruction to link the xios_server.exe may not work if the file structure has not been set
+up, leave it, we do it here anyway)</p>
+</div>
+<div class="section" id="c-build-nemo">
+<h2>1c) Build NEMO<a class="headerlink" href="#c-build-nemo" title="Permalink to this headline">¶</a></h2>
+<p>Get NEMO branch</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WDIR
+svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/UKMO/dev_r8814_surge_modelling_Nemo4/NEMOGCM dev_r8814_surge_modelling_Nemo4
+</pre></div>
+</div>
+<p>Get the correct archer compiler options file</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp /work/n01/n01/jelt/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
+</pre></div>
+</div>
+<p>Make NEMO</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $CDIR
+./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+</pre></div>
+</div>
+<p>If build finished then jump to next section. If build failed try</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10 clean
+</pre></div>
+</div>
+<p>Check compile flags (add new harmonic analysis and tide handling flags):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi $CDIR/$CONFIG/cpp_$CONFIG.fcm
+
+bld::tool::fppkeys  key_nosignedzero key_diainstant key_mpp_mpi key_iomput \
+                    key_diaharm_fast key_FES14_tides
+</pre></div>
+</div>
+<p>Minor edit to solver.stat output:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/stpctl.F90  $CDIR/$CONFIG/MY_SRC/.
+</pre></div>
+</div>
+<p>Copy in changes to harmonic analysis and tidal processing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/dommsk.F90  $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/bdyini.F90  $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/tideini.F90  $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/tide_mod.F90  $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/tide_FES14.h90  $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/step_oce.F90  $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/step.F90  $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/sbctide.F90  $CDIR/$CONFIG/MY_SRC/.
+cp $START_FILES/diaharm_fast.F90    $CDIR/$CONFIG/MY_SRC/.
+</pre></div>
+</div>
+<p>Build</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+</pre></div>
+</div>
+<p>Create a link to xios_server.exe</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
+</pre></div>
+</div>
+</div>
+<div class="section" id="generate-coordinates-file">
+<h2>2) Generate coordinates file<a class="headerlink" href="#generate-coordinates-file" title="Permalink to this headline">¶</a></h2>
+<p>Copy the coordinates file from Solent config:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp /work/n01/n01/jelt/Solent/INPUTS/coordinates.nc $INPUTS/coordinates.nc
+</pre></div>
+</div>
+</div>
+<div class="section" id="generate-bathymetry-file">
+<h2>3) Generate bathymetry file<a class="headerlink" href="#generate-bathymetry-file" title="Permalink to this headline">¶</a></h2>
+<p>Copy the bathymetry file from Solent config:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp /work/n01/n01/jelt/Solent/INPUTS/bathy_meter.nc $INPUTS/bathy_meter.nc
+</pre></div>
+</div>
+</div>
+<div class="section" id="generate-a-domain-configuration-file">
+<h2>4) Generate a domain configuration file<a class="headerlink" href="#generate-a-domain-configuration-file" title="Permalink to this headline">¶</a></h2>
+<p>Now generate a domain_cfg.nc file describing the vertial grid of the model.
+In previous NEMO versions this would have been part of the main namelist_cfg.</p>
+<p>Copy required files into DOMAINcfg directory</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
+cp $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
+</pre></div>
+</div>
+<p>Now edit the namelist_cfg file in the DOMAINcfg dirctory by following the instructions in <span class="xref std std-ref">build_domain_cfg_file.rst</span>
+for your desired domain setup. Here we use a 3 level s-coordinate set up</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;namrun        !   parameters of the run
+!-----------------------------------------------------------------------
+  nn_no       =       0   !  job number (no more used...)
+  cn_exp      =  &quot;domaincfg&quot;  !  experience name
+  nn_it000    =       1   !  first time step
+  nn_itend    =      75   !  last  time step (std 5475)
+/
+!-----------------------------------------------------------------------
+&amp;namcfg        !   parameters of the configuration
+!-----------------------------------------------------------------------
+  !
+  ln_e3_dep   = .true.   ! =T : e3=dk[depth] in discret sens.
+  !                       !      ===&gt;&gt;&gt; will become the only possibility in v4.0
+  !                       ! =F : e3 analytical derivative of depth function
+  !                       !      only there for backward compatibility test with v3.6
+  !                       !
+  cp_cfg      =  &quot;orca&quot;   !  name of the configuration
+  jp_cfg      =    3600   !  resolution of the configuration
+  jpidta      =    2410   !  1st lateral dimension ( &gt;= jpi )
+  jpjdta      =    1363   !  2nd    &quot;         &quot;    ( &gt;= jpj )
+  jpkdta      =       3   !  number of levels      ( &gt;= jpk )
+  jpiglo      =    2410   !  1st dimension of global domain --&gt; i =jpidta
+  jpjglo      =    1363   !  2nd    -                  -    --&gt; j  =jpjdta
+  jpizoom     =       1   !  left bottom (i,j) indices of the zoom
+  jpjzoom     =       1   !  in data domain indices
+  jperio      =       0   !  lateral cond. type (between 0 and 6)
+/
+!-----------------------------------------------------------------------
+&amp;namzgr        !   vertical coordinate
+!-----------------------------------------------------------------------
+  ln_zco      = .false.   !  z-coordinate - full    steps
+  ln_zps      = .false.   !  z-coordinate - partial steps
+  ln_sco      = .true.   !  s- or hybrid z-s-coordinate
+  ln_isfcav   = .false.   !  ice shelf cavity
+  ln_linssh   = .false.   !  linear free surface
+/
+!-----------------------------------------------------------------------
+&amp;namzgr_sco    !   s-coordinate or hybrid z-s-coordinate
+!-----------------------------------------------------------------------
+  ln_s_sh94   = .true.    !  Song &amp; Haidvogel 1994 hybrid S-sigma   (T)|
+  ln_s_sf12   = .false.   !  Siddorn &amp; Furner 2012 hybrid S-z-sigma (T)| if both are false the NEMO tanh stretching is applied
+  ln_sigcrit  = .false.   !  use sigma coordinates below critical depth (T) or Z coordinates (F) for Siddorn &amp; Furner stretch
+                          !  stretching coefficients for all functions
+  rn_sbot_min =   6.0     !  minimum depth of s-bottom surface (&gt;0) (m)
+  rn_sbot_max =   100.0  !  maximum depth of s-bottom surface (= ocean depth) (&gt;0) (m)
+  rn_hc       =   0.0     !  critical depth for transition to stretched coordinates
+         !!!!!!!  Envelop bathymetry
+  rn_rmax     =   0.3     !  maximum cut-off r-value allowed (0&lt;r_max&lt;1)
+         !!!!!!!  SH94 stretching coefficients  (ln_s_sh94 = .true.)
+  rn_theta    =   20.0    !  surface control parameter (0&lt;=theta&lt;=20)
+  rn_bb       =   0.8     !  stretching with SH94 s-sigma
+/
+!-----------------------------------------------------------------------
+&amp;namdom        !   space and time domain (bathymetry, mesh, timestep)
+!-----------------------------------------------------------------------
+  nn_msh      =    0      !  create (=1) a mesh file or not (=0)
+  rn_rdt      =   1.     !  time step for the dynamics (and tracer if nn_acc=0)
+  ppglam0     =  999999.0             !  longitude of first raw and column T-point (jphgr_msh = 1)
+  ppgphi0     =  999999.0             ! latitude  of first raw and column T-point (jphgr_msh = 1)
+  ppe1_deg    =  999999.0             !  zonal      grid-spacing (degrees)
+  ppe2_deg    =  999999.0             !  meridional grid-spacing (degrees)
+  ppe1_m      =  999999.0             !  zonal      grid-spacing (degrees)
+  ppe2_m      =  999999.0             !  meridional grid-spacing (degrees)
+  ppsur       =  999999.0             !  ORCA r4, r2 and r05 coefficients
+  ppa0        =  999999.0             ! (default coefficients)
+  ppa1        =  999999.0             !
+  ppkth       =      23.563           !
+  ppacr       =       9.0             !
+  ppdzmin     =       6.0             !  Minimum vertical spacing
+  pphmax      =    5720.              !  Maximum depth
+  ldbletanh   =  .FALSE.              !  Use/do not use double tanf function for vertical coordinates
+  ppa2        =  999999.              !  Double tanh function parameters
+  ppkth2      =  999999.              !
+  ppacr2      =  999999.
+/
+!-----------------------------------------------------------------------
+&amp;nameos        !   ocean physical parameters
+!-----------------------------------------------------------------------
+  ln_teos10   = .true.         !  = Use TEOS-10 equation of state
+/
+</pre></div>
+</div>
+<p>Build a script to run the executable (change the email)</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>#!/bin/bash
+#PBS -N domain_cfg
+#PBS -l walltime=00:20:00
+#PBS -l select=1
+#PBS -j oe
+#PBS -A n01-ACCORD
+# mail alert at (b)eginning, (e)nd and (a)bortion of execution
+#PBS -m bea
+#PBS -M jelt@noc.ac.uk
+#! -----------------------------------------------------------------------------
+
+# Change to the directory that the job was submitted from
+cd $PBS_O_WORKDIR
+
+# Set the number of threads to 1
+#   This prevents any system libraries from automatically
+#   using threading.
+export OMP_NUM_THREADS=1
+# Change to the directory that the job was submitted from
+ulimit -s unlimited
+
+#===============================================================
+# LAUNCH JOB
+#===============================================================
+echo `date` : Launch Job
+aprun -n 1 -N 1 ./make_domain_cfg.exe &gt;&amp;  stdouterr_cfg
+
+exit
+</pre></div>
+</div>
+<p>Check the executable is there (or add it e.g.):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ln -s /work/n01/n01/jelt/Solent/trunk_NEMOGCM_r8395/TOOLS/DOMAINcfg/make_domain_cfg.exe $TDIR/DOMAINcfg/.
+</pre></div>
+</div>
+<p>Run it</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $TDIR/DOMAINcfg
+qsub -q short rs
+</pre></div>
+</div>
+<p>Copy to EXP directory and also change permissions to ensure readable to others</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>chmod a+rx $TDIR/DOMAINcfg/domain_cfg.nc
+rsync -uvt $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
+</pre></div>
+</div>
+</div>
+<div class="section" id="generate-boundary-conditions">
+<h2>5) Generate boundary conditions<a class="headerlink" href="#generate-boundary-conditions" title="Permalink to this headline">¶</a></h2>
+<p>This is done for TPXO and FES data.</p>
+<p>livljobs4: get all the necessary files onto this machine:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $INPUTS
+rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/domain_cfg.nc .
+rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/coordinates.nc .
+rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/bathy_meter.nc .
+</pre></div>
+</div>
+<p>Need to generate 3 more files: A <code class="docutils literal"><span class="pre">namelist.bdy</span></code> which drives PyNEMO and which
+has two input files: <code class="docutils literal"><span class="pre">inputs_src.ncml</span></code> which points to the data source and
+<code class="docutils literal"><span class="pre">inputs_dst.ncml</span></code> which remaps some variable names in the destination files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="o">../../</span><span class="n">SWPacific</span><span class="o">/</span><span class="n">INPUTS</span><span class="o">/</span><span class="n">namelist</span><span class="o">.</span><span class="n">bdy</span> <span class="o">.</span>
+</pre></div>
+</div>
+<p>First install PyNEMO <a href="#id1"><span class="problematic" id="id2">`install_nrct`_</span></a> if not already done so. Use branch <code class="docutils literal"><span class="pre">Generalise-tide-input</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd /work/$USER/nrct
+git checkout Generalise-tide-input
+</pre></div>
+</div>
+<p>Copy across some parent mesh files and a mask file (even though they are not
+used. This is because this old version of PyNEMO didn&#8217;t anticipate tide-only usage):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $INPUTS
+cp ../../SEAsia/INPUTS/mesh_?gr_src.nc $INPUTS/.
+cp ../../SEAsia/INPUTS/mask_src.nc $INPUTS/.
+cp ../../SEAsia/INPUTS/inputs_dst.ncml $INPUTS/.
+cp ../../SEAsia/INPUTS/cut_inputs_src.ncml $INPUTS/.
+</pre></div>
+</div>
+<p>If I don&#8217;t make a boundary mask then it doesn&#8217;t work... This can also be done with
+the PyNEMO GUI. The mask variable takes values (-1 mask, 1 wet, 0 land). Get a
+template from domain_cfg.nc and then modify as desired around the boundary:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">load</span> <span class="n">nco</span><span class="o">/</span><span class="n">gcc</span><span class="o">/</span><span class="mf">4.4</span><span class="o">.</span><span class="mf">2.</span><span class="n">ncwa</span>
+<span class="n">rm</span> <span class="o">-</span><span class="n">f</span> <span class="n">bdy_mask</span><span class="o">.</span><span class="n">nc</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncks</span> <span class="o">-</span><span class="n">v</span> <span class="n">top_level</span> <span class="n">domain_cfg</span><span class="o">.</span><span class="n">nc</span> <span class="n">tmp1</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncrename</span> <span class="o">-</span><span class="n">h</span> <span class="o">-</span><span class="n">v</span> <span class="n">top_level</span><span class="p">,</span><span class="n">mask</span> <span class="n">tmp1</span><span class="o">.</span><span class="n">nc</span> <span class="n">tmp2</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncwa</span> <span class="o">-</span><span class="n">a</span> <span class="n">t</span> <span class="n">tmp2</span><span class="o">.</span><span class="n">nc</span> <span class="n">bdy_mask</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">rm</span> <span class="o">-</span><span class="n">f</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>In ipython:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">netCDF4</span>
+<span class="n">dset</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="s1">&#39;bdy_mask.nc&#39;</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,:]</span>  <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>     <span class="c1"># Southern boundary</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>    <span class="c1"># Northern boundary</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">][:,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>    <span class="c1"># Eastern boundary</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">][:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>        <span class="c1"># Western boundary</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Generate boundary conditions for both TPXO and FES2014 data. Here shown for TPXO.
+Set the data source in <code class="docutils literal"><span class="pre">nemo_bdy_tide3.py</span></code>. I think it is a good idea to add
+the data source (TPXO here) to the output file name <code class="docutils literal"><span class="pre">sn_fn</span></code>.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>::</dt>
+<dd><p class="first">vi namelist.bdy</p>
+<p>!!&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+!! NEMO/OPA  : namelist for BDY generation tool
+!!
+!!             User inputs for generating open boundary conditions
+!!             employed by the BDY module in NEMO. Boundary data
+!!             can be set up for v3.2 NEMO and above.
+!!
+!!             More info here.....
+!!
+!!&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</p>
+<p>!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;
+!   vertical coordinate
+!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
+<blockquote>
+<div><p>ln_zco      = .true.   !  z-coordinate - full    steps   (T/F)
+ln_zps      = .false.    !  z-coordinate - partial steps   (T/F)
+ln_sco      = .false.   !  s- or hybrid z-s-coordinate    (T/F)
+rn_hmin     =   -5     !  min depth of the ocean (&gt;0) or</p>
+<blockquote>
+<div>!  min number of ocean level (&lt;0)</div></blockquote>
+</div></blockquote>
+<p>!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;
+!   s-coordinate or hybrid z-s-coordinate
+!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
+<blockquote>
+<div><p>rn_sbot_min =   10.     !  minimum depth of s-bottom surface (&gt;0) (m)
+rn_sbot_max = 7000.     !  maximum depth of s-bottom surface</p>
+<blockquote>
+<div>!  (= ocean depth) (&gt;0) (m)</div></blockquote>
+<p>ln_s_sigma  = .false.   !  hybrid s-sigma coordinates
+rn_hc       =  50.0    !  critical depth with s-sigma</p>
+</div></blockquote>
+<p>!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;
+!  grid information
+!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
+<blockquote>
+<div>sn_src_hgr = &#8216;./mesh_hgr_src.nc&#8217;   !  parent /grid/
+sn_src_zgr = &#8216;./mesh_zgr_src.nc&#8217;   !  parent
+sn_dst_hgr = &#8216;./domain_cfg.nc&#8217;
+sn_dst_zgr = &#8216;./inputs_dst.ncml&#8217; ! rename output variables
+sn_src_msk = &#8216;./mask_src.nc&#8217;       ! parent
+sn_bathy   = &#8216;./bathy_meter.nc&#8217;</div></blockquote>
+<p>!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;
+!  I/O
+!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
+<blockquote>
+<div>sn_src_dir = &#8216;./cut_inputs_src.ncml&#8217;       ! src_files/&#8217;
+sn_dst_dir = &#8216;/work/jelt/NEMO/Solent_surge/INPUTS/&#8217;
+sn_fn      = &#8216;Solent_surge_TPXO&#8217;                 ! prefix for output files
+nn_fv      = -1e20                     !  set fill value for output files
+nn_src_time_adj = 0                                    ! src time adjustment
+sn_dst_metainfo = &#8216;metadata info: jelt&#8217;</div></blockquote>
+<p>!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;
+!  unstructured open boundaries
+!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
+<blockquote>
+<div>ln_coords_file = .true.               !  =T : produce bdy coordinates files
+cn_coords_file = &#8216;coordinates.bdy.nc&#8217; !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
+ln_mask_file   = .true.              !  =T : read mask from file
+cn_mask_file   = &#8216;./bdy_mask.nc&#8217;                   !  name of mask file (if ln_mask_file=.TRUE.)
+ln_dyn2d       = .false.               !  boundary conditions for barotropic fields
+ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
+ln_tra         = .false.               !  boundary conditions for T and S
+ln_ice         = .false.               !  ice boundary condition
+nn_rimwidth    = 1                    !  width of the relaxation zone</div></blockquote>
+<p>!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;
+!  unstructured open boundaries tidal parameters
+!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
+<blockquote>
+<div>ln_tide        = .true.               !  =T : produce bdy tidal conditions</div></blockquote>
+<p>!TESTING
+!               clname(1) =&#8217;M2&#8217;
+!               clname(2)=&#8217;S2&#8217;
+!               clname(3)=&#8217;K2&#8217;
+!TPXO
+clname(1)=&#8217;m2&#8217;
+clname(2)=&#8217;s2&#8217;
+clname(3)=&#8217;n2&#8217;
+clname(4)=&#8217;k2&#8217;
+clname(5)=&#8217;k1&#8217;
+clname(6)=&#8217;o1&#8217;
+clname(7)=&#8217;p1&#8217;
+clname(8)=&#8217;q1&#8217;
+clname(9)=&#8217;mf&#8217;
+clname(10)=&#8217;mm&#8217;
+clname(11)=&#8217;m4&#8217;
+clname(12)=&#8217;ms4&#8217;
+clname(13)=&#8217;mn4&#8217;
+!FES
+!       clname(1) =&#8216;2N2&#8217;
+!       clname(2)=&#8217;EPS2&#8217;
+!       clname(3)=&#8217;J1&#8217;
+!       clname(4)=&#8217;K1&#8217;
+!       clname(5)=&#8217;K2&#8217;
+!       clname(6)=&#8217;L2&#8217;
+!       clname(7)=&#8217;LA2&#8217;
+!       clname(8)=&#8217;M2&#8217;
+!       clname(9)=&#8217;M3&#8217;
+!       clname(10)=&#8217;M4&#8217;
+!       clname(11)=&#8217;M6&#8217;
+!       clname(12)=&#8217;M8&#8217;
+!       clname(13)=&#8217;MF&#8217;
+!       clname(14)=&#8217;MKS2&#8217;
+!       clname(15)=&#8217;MM&#8217;
+!       clname(16)=&#8217;MN4&#8217;
+!       clname(17)=&#8217;MS4&#8217;
+!       clname(18)=&#8217;MSF&#8217;
+!       clname(19)=&#8217;MSQM&#8217;
+!       clname(20)=&#8217;MTM&#8217;
+!       clname(21)=&#8217;MU2&#8217;
+!       clname(22)=&#8217;N2&#8217;
+!       clname(23)=&#8217;N4&#8217;
+!       clname(24)=&#8217;NU2&#8217;
+!       clname(25)=&#8217;O1&#8217;
+!       clname(26)=&#8217;P1&#8217;
+!       clname(27)=&#8217;Q1&#8217;
+!       clname(28)=&#8217;R2&#8217;
+!       clname(29)=&#8217;S1&#8217;
+!       clname(30)=&#8217;S2&#8217;
+!       clname(31)=&#8217;S4&#8217;
+!       clname(32)=&#8217;SA&#8217;
+!       clname(33)=&#8217;SSA&#8217;
+!       clname(34)=&#8217;T2&#8217;</p>
+<blockquote>
+<div>ln_trans       = .false.
+sn_tide_h     = &#8216;/work/jelt/tpxo7.2/h_tpxo7.2.nc&#8217;
+sn_tide_u     = &#8216;/work/jelt/tpxo7.2/u_tpxo7.2.nc&#8217;</div></blockquote>
+<p>!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;
+!  Time information
+!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
+<blockquote>
+<div>nn_year_000     = 1979        !  year start
+nn_year_end     = 1979        !  year end
+nn_month_000    = 11          !  month start (default = 1 is years&gt;1)
+nn_month_end    = 11          !  month end (default = 12 is years&gt;1)
+sn_dst_calendar = &#8216;gregorian&#8217; !  output calendar format
+nn_base_year    = 1978        !  base year for time counter
+sn_tide_grid    = &#8216;/work/jelt/tpxo7.2/grid_tpxo7.2.nc&#8217;</div></blockquote>
+<p>!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;
+!  Additional parameters
+!&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
+<blockquote class="last">
+<div><p>nn_wei  = 1                   !  smoothing filter weights
+rn_r0   = 0.041666666         !  decorrelation distance use in gauss</p>
+<blockquote>
+<div>!  smoothing onto dst points. Need to
+!  make this a funct. of dlon</div></blockquote>
+<dl class="docutils">
+<dt>sn_history  = &#8216;bdy files produced by jelt from ORCA0083-N01&#8217;</dt>
+<dd>!  history for netcdf file</dd>
+</dl>
+<p>ln_nemo3p4  = .true.          !  else presume v3.2 or v3.3
+nn_alpha    = 0               !  Euler rotation angle
+nn_beta     = 0               !  Euler rotation angle
+nn_gamma    = 0               !  Euler rotation angle
+rn_mask_max_depth = 7000.0    !  Maximum depth to be ignored for the mask
+rn_mask_shelfbreak_dist = 60    !  Distance from the shelf break</p>
+</div></blockquote>
+</dd>
+</dl>
+</div></blockquote>
+<p>Generate the boundary conditions with PyNEMO</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>module load anaconda/2.1.0  # Want python2
+source activate nrct_env
+cd $INPUTS
+export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+export PYTHONPATH=/login/$USER/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
+
+pynemo -s namelist.bdy
+</pre></div>
+</div>
+<p>This creates:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">coordinates</span><span class="o">.</span><span class="n">bdy</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_M4_grid_T</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_MM_grid_T</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_MN4_grid_T</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_MS4_grid_T</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_M2_grid_T</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_N2_grid_T</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_S2_grid_T</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_K1_grid_T</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_K2_grid_T</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_P1_grid_T</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_O1_grid_T</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_MF_grid_T</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_Q1_grid_T</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_M4_grid_U</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_MM_grid_U</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_MN4_grid_U</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_MS4_grid_U</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_M2_grid_U</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_N2_grid_U</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_S2_grid_U</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_K1_grid_U</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_K2_grid_U</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_P1_grid_U</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_O1_grid_U</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_MF_grid_U</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_Q1_grid_U</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_M4_grid_V</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_MM_grid_V</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_MN4_grid_V</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_MS4_grid_V</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_M2_grid_V</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_N2_grid_V</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_S2_grid_V</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_K1_grid_V</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_K2_grid_V</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_P1_grid_V</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_O1_grid_V</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_MF_grid_V</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_TPXO_bdytide_rotT_Q1_grid_V</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>Move the Solent*nc files to a directory <code class="docutils literal"><span class="pre">TPXO</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>mkdir $INPUTS/TPXO
+mv Solent_surge_TPXO_bdytide_rotT_*nc TPXO/.
+</pre></div>
+</div>
+<p>&#8212;
+(There might still be a bit of confusion about directory names beig Solent or Solent_surge)</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>livljobs4
+cd /work/jelt/NEMO/Solent/INPUTS
+
+cd TPXO
+for file in Solent_*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/TPXO/$file ; done
+rsync -utv coordinates.bdy.nc $USER@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/TPXO/.
+
+cd ../FES
+for file in Solent_*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/FES/$file ; done
+rsync -utv coordinates.bdy.nc $USER@login.archer.ac.uk:/work/n01/n01/jelt/Solent/INPUTS/FES/.
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-model-with-tidal-forcing-at-the-boundaries-on-archer">
+<h2>6) Running model with tidal forcing at the boundaries on ARCHER<a class="headerlink" href="#running-model-with-tidal-forcing-at-the-boundaries-on-archer" title="Permalink to this headline">¶</a></h2>
+<p>Copy files to EXP directory</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $EXP
+rsync -tuv $INPUTS/bathy_meter.nc $EXP/.
+rsync -tuv $INPUTS/coordinates.nc $EXP/.
+rsync -tuv $INPUTS/coordinates.bdy.nc $EXP/.
+</pre></div>
+</div>
+<p>Link to the tide data</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>ln -s $INPUTS $EXP/bdydta
+</pre></div>
+</div>
+<p>Edit the namelist_cfg file. <strong>Note additions for key_diaharm_fast</strong> <cite>&lt;FES2014_NEMO.rst&gt;_</cite>
+Also note additional love number <code class="docutils literal"><span class="pre">dn_love_number</span></code>
+(chanage the lateral diffusion to laplacian = 25)</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>!-----------------------------------------------------------------------
+&amp;namrun        !   parameters of the run
+!-----------------------------------------------------------------------
+  cn_exp      =  &quot;Solent_surge_FES&quot;  !  experience name
+  nn_it000    = 1   !  first time step
+  nn_itend    =  43200    !  last  time step (for dt = 6 min, 240*dt = 1 day)
+  nn_date0    =  20130101 !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+  nn_time0    =       0   !  initial time of day in hhmm
+  nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+  ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
+    nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
+    nn_rstctl   =    2            !  restart control ==&gt; activated only if ln_rstart=T
+    !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
+    !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
+    !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
+    cn_ocerst_in    = &quot;Solent_surge_00043920_restart&quot;   !  suffix of ocean restart name (input)
+    cn_ocerst_indir = &quot;./Restart_files&quot;         !  directory from which to read input ocean restarts
+    cn_ocerst_out   = &quot;restart&quot;   !  suffix of ocean restart name (output)
+    cn_ocerst_outdir= &quot;./Restart_files&quot;         !  directory in which to write output ocean restarts
+  nn_istate   =       0   !  output the initial state (1) or not (0)
+  nn_stock    =   43200    !  frequency of creation of a restart file (modulo referenced to 1)
+  nn_write    =   43200    !  frequency of write in the output file   (modulo referenced to nit000)
+/
+!-----------------------------------------------------------------------
+&amp;namcfg        !   parameters of the configuration
+!-----------------------------------------------------------------------
+   ln_read_cfg = .true.   !  (=T) read the domain configuration file
+                          !  (=F) user defined configuration  ==&gt;&gt;&gt;  see usrdef(_...) modules
+   cn_domcfg = &quot;domain_cfg&quot;         ! domain configuration filename
+/
+!-----------------------------------------------------------------------
+&amp;namdom        !   space and time domain (bathymetry, mesh, timestep)
+!-----------------------------------------------------------------------
+   ln_2d        = .true.  !  (=T) run in 2D barotropic mode (no tracer processes or vertical diffusion)
+   rn_rdt      =   1.    !  time step for the dynamics (and tracer if nn_acc=0)
+/
+
+!-----------------------------------------------------------------------
+&amp;namtsd    !   data : Temperature  &amp; Salinity
+!-----------------------------------------------------------------------
+   ln_tsd_init   = .false.   !  Initialisation of ocean T &amp; S with T &amp;S input data (T) or not (F)
+   ln_tsd_tradmp = .false.   !  damping of ocean T &amp; S toward T &amp;S input data (T) or not (F)
+/
+!-----------------------------------------------------------------------
+&amp;namsbc        !   Surface Boundary Condition (surface module)
+!-----------------------------------------------------------------------
+   nn_fsbc     = 1         !  frequency of surface boundary condition computation
+                           !     (also = the frequency of sea-ice model call)
+   ln_usr = .true.
+   ln_blk =  .false.
+   ln_apr_dyn  = .false.    !  Patm gradient added in ocean &amp; ice Eqs.   (T =&gt; fill namsbc_apr )
+   nn_ice      = 0         !  =0 no ice boundary condition   ,
+   ln_rnf      = .false.   !  Runoffs                                   (T =&gt; fill namsbc_rnf)
+   ln_ssr      = .false.   !  Sea Surface Restoring on T and/or S       (T =&gt; fill namsbc_ssr)
+   ln_traqsr   = .false.   !  Light penetration in the ocean            (T =&gt; fill namtra_qsr)
+   nn_fwb      = 0         !  FreshWater Budget: =0 unchecked
+/
+!-----------------------------------------------------------------------
+&amp;namsbc_usr  !   namsbc_surge   surge model fluxes
+!-----------------------------------------------------------------------
+   ln_use_sbc  = .false.    ! (T) to turn on surge fluxes (wind and pressure only)
+                            ! (F) for no fluxes (ie tide only case)
+
+!
+!              !  file name                    ! frequency (hours) ! variable  ! time interp. !  clim  ! &#39;yearly&#39;/ ! weights  ! rotation !
+!              !                               !  (if &lt;0  months)  !   name    !   (logical)  !  (T/F) ! &#39;monthly&#39; ! filename ! pairing  !
+   sn_wndi     = &#39;windspd_u_amm7&#39;              ,       1           ,&#39;x_wind&#39;,   .true.     , .false. , &#39;daily&#39;  ,&#39;&#39; , &#39;&#39;
+   sn_wndj     = &#39;windspd_v_amm7&#39;              ,       1           ,&#39;y_wind&#39;,   .true.     , .false. , &#39;daily&#39;  ,&#39;&#39; , &#39;&#39;
+   cn_dir      = &#39;./fluxes/&#39;          !  root directory for the location of the bulk files
+   rn_vfac     = 1.                   !  multiplicative factor for ocean/ice velocity
+                                      !  in the calculation of the wind stress (0.=absolute winds or 1.=relative winds)
+   rn_charn_const = 0.0275
+/
+!-----------------------------------------------------------------------
+&amp;namtra_qsr    !   penetrative solar radiation
+!-----------------------------------------------------------------------
+   ln_traqsr   = .false.   !  Light penetration (T) or not (F)
+   nn_chldta   =      0    !  RGB : Chl data (=1) or cst value (=0)
+/
+!-----------------------------------------------------------------------
+&amp;namsbc_apr    !   Atmospheric pressure used as ocean forcing or in bulk
+!-----------------------------------------------------------------------
+!          !  file name  ! frequency (hours) ! variable  ! time interp. !  clim  ! &#39;yearly&#39;/ ! weights  ! rotation ! land/sea mask !
+!          !             !  (if &lt;0  months)  !   name    !   (logical)  !  (T/F) ! &#39;monthly&#39; ! filename ! pairing  ! filename      !
+   sn_apr= &#39;pressure_amm7&#39;,        1         ,   &#39;air_pressure_at_sea_level&#39; ,    .true.    , .false., &#39;daily&#39;   ,  &#39;&#39;      ,   &#39;&#39;     ,  &#39;&#39;
+   cn_dir      = &#39;./fluxes/&#39;!  root directory for the location of the bulk files
+   rn_pref     = 101200.    !  reference atmospheric pressure   [N/m2]/
+   ln_ref_apr  = .false.    !  ref. pressure: global mean Patm (T) or a constant (F)
+   ln_apr_obc  = .true.     !  inverse barometer added to OBC ssh data
+/
+!-----------------------------------------------------------------------
+&amp;namlbc        !   lateral momentum boundary condition
+!-----------------------------------------------------------------------
+!   rn_shlat    =     0     !  shlat = 0  !  0 &lt; shlat &lt; 2  !  shlat = 2  !  2 &lt; shlat
+                           !  free slip  !   partial slip  !   no slip   ! strong slip
+/
+
+!-----------------------------------------------------------------------
+&amp;nam_tide      !   tide parameters
+!-----------------------------------------------------------------------
+   ln_tide     = .true.
+   ln_tide_ramp = .true.
+   rdttideramp =    0.166 # 4 hours
+   dn_love_number = 0.69
+   clname(1)     =   &#39;M2&#39;   !  name of constituent
+   clname(2)     =   &#39;S2&#39;
+   clname(3)     =   &#39;K2&#39;
+/
+!-----------------------------------------------------------------------
+&amp;nambdy        !  unstructured open boundaries
+!-----------------------------------------------------------------------
+   ln_bdy     = .true.
+   nb_bdy         = 1                    !  number of open boundary sets
+   cn_coords_file = &#39;bdydta/FES/coordinates.bdy.nc&#39; !  bdy coordinates files
+   cn_dyn2d       = &#39;flather&#39;            !
+   nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
+                                         !  = 1, bdy data are read in &#39;bdydata   .nc&#39; files
+                                         !  = 2, use tidal harmonic forcing data from files
+                                         !  = 3, use external data AND tidal harmonic forcing
+   cn_tra        =  &#39;frs&#39;                !
+   nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
+                                         !  = 1, bdy data are read in &#39;bdydata   .nc&#39; files
+   nn_rimwidth   = 1                    !  width of the relaxation zone
+/
+!-----------------------------------------------------------------------
+&amp;nambdy_tide     ! tidal forcing at open boundaries
+!-----------------------------------------------------------------------
+   filtide      = &#39;bdydta/FES/Solent_bdytide_rotT_&#39;         !  file name root of tidal forcing files
+   ln_bdytide_2ddta = .false.
+/
+!-----------------------------------------------------------------------
+&amp;nambfr        !   bottom friction
+!-----------------------------------------------------------------------
+   nn_bfr      =    2      !  type of bottom friction :   = 0 : free slip,  = 1 : linear friction
+                           !                              = 2 : nonlinear friction
+   rn_bfri2    =    2.4e-3 !  bottom drag coefficient (non linear case)
+   rn_bfeb2    =    0.0e0  !  bottom turbulent kinetic energy background  (m2/s2)
+   ln_loglayer =   .false. !  loglayer bottom friction (only effect when nn_bfr = 2)
+   rn_bfrz0    =    0.003  !  bottom roughness (only effect when ln_loglayer = .true.)
+/
+!-----------------------------------------------------------------------
+&amp;nambbc        !   bottom temperature boundary condition
+!-----------------------------------------------------------------------
+   ln_trabbc   = .false.   !  Apply a geothermal heating at the ocean bottom
+/
+!-----------------------------------------------------------------------
+&amp;nambbl        !   bottom boundary layer scheme
+!-----------------------------------------------------------------------
+   nn_bbl_ldf  =  0      !  diffusive bbl (=1)   or not (=0)
+/
+!-----------------------------------------------------------------------
+&amp;nameos        !   ocean physical parameters
+!-----------------------------------------------------------------------
+   ln_teos10   = .true.         !  = Use TEOS-10 equation of state
+/
+!-----------------------------------------------------------------------
+&amp;namdyn_vor    !   option of physics/algorithm (not control by CPP keys)
+!-----------------------------------------------------------------------
+   ln_dynvor_een = .true.  !  energy &amp; enstrophy scheme
+/
+!-----------------------------------------------------------------------
+&amp;namdyn_hpg    !   Hydrostatic pressure gradient option
+!-----------------------------------------------------------------------
+   ln_hpg_zps  = .false.   !  z-coordinate - partial steps (interpolation)
+   ln_hpg_sco  = .true.    !  s-coordinate (Standard Jacobian scheme)
+/
+!-----------------------------------------------------------------------
+&amp;namdyn_spg    !   surface pressure gradient   (CPP key only)
+!-----------------------------------------------------------------------
+   ln_dynspg_ts = .true.    ! split-explicit free surface
+   ln_bt_auto =    .true.           !  Set nn_baro automatically to be just below
+                                       !  a user defined maximum courant number (rn_bt_cmax)
+/
+!-----------------------------------------------------------------------
+&amp;namdyn_ldf    !   lateral diffusion on momentum
+!-----------------------------------------------------------------------
+   !                       !  Type of the operator :
+   ln_dynldf_blp  =  .false.   !  bilaplacian operator
+   ln_dynldf_lap    = .true.  !  bilaplacian operator
+   !                       !  Direction of action  :
+   ln_dynldf_lev  =  .true.   !  iso-level
+                           !  Coefficient
+   rn_ahm_0     = 25.0      !  horizontal laplacian eddy viscosity   [m2/s]
+   rn_bhm_0     = -1.0e+9   !  horizontal bilaplacian eddy viscosity [m4/s]
+/
+!-----------------------------------------------------------------------
+&amp;namzdf        !   vertical physics
+!-----------------------------------------------------------------------
+   rn_avm0     =   0.1e-6  !  vertical eddy viscosity   [m2/s]          (background Kz if not &quot;key_zdfcst&quot;)
+   rn_avt0     =   0.1e-6  !  vertical eddy diffusivity [m2/s]          (background Kz if not &quot;key_zdfcst&quot;)
+   ln_zdfevd   = .false.   !  enhanced vertical diffusion (evd) (T) or not (F)
+   nn_evdm     =    1      !  evd apply on tracer (=0) or on tracer and momentum (=1)
+/
+!-----------------------------------------------------------------------
+&amp;nam_diaharm   !   Harmonic analysis of tidal constituents (&#39;key_diaharm&#39;)
+!-----------------------------------------------------------------------
+    nit000_han = 1     ! First time step used for harmonic analysis
+    nitend_han = 43200     ! Last time step used for harmonic analysis
+    nstep_han  = 5         ! Time step frequency for harmonic analysis
+    tname(1)   = &#39;M2&#39;      ! Name of tidal constituents
+    tname(2)   = &#39;S2&#39;
+    tname(3)   = &#39;K2&#39;
+/
+!-----------------------------------------------------------------------
+&amp;nam_diaharm_fast   !   Harmonic analysis of tidal constituents               (&quot;key_diaharm_fast&quot;)
+!-----------------------------------------------------------------------
+    ln_diaharm_store = .false.
+    ln_diaharm_compute = .false.
+    ln_diaharm_read_restart = .false.
+    ln_ana_ssh   = .true.
+    ln_ana_uvbar = .false.
+    ln_ana_bfric = .false.
+    ln_ana_rho  = .false.
+    ln_ana_uv3d = .false.
+    ln_ana_w3d  = .false.
+    tname(1) = &#39;M2&#39;
+    tname(2) = &#39;S2&#39;
+    tname(3) = &#39;K2&#39;
+/
+!-----------------------------------------------------------------------
+&amp;namwad       !   Wetting and Drying namelist
+!-----------------------------------------------------------------------
+   ln_wd = .false.   !: key to turn on/off wetting/drying (T: on, F: off)
+   rn_wdmin1=0.1     !: minimum water depth on dried cells
+   rn_wdmin2 = 0.01  !: tolerrance of minimum water depth on dried cells
+   rn_wdld   = 20.0  !: land elevation below which wetting/drying will be considered
+   nn_wdit   =   10  !: maximum number of iteration for W/D limiter
+/
+</pre></div>
+</div>
+</div>
+<div class="section" id="output-xml-and-running">
+<h2>9) Output xml and running<a class="headerlink" href="#output-xml-and-running" title="Permalink to this headline">¶</a></h2>
+<p>Edit to have 1 hr SSH output</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi file_def_nemo.xml
+...
+&lt;file_group id=&quot;1h&quot; output_freq=&quot;1h&quot;  output_level=&quot;10&quot; enabled=&quot;.TRUE.&quot;&gt; &lt;!-- 1h files --&gt;
+ &lt;file id=&quot;file19&quot; name_suffix=&quot;_SSH&quot; description=&quot;ocean T grid variables&quot; &gt;
+   &lt;field field_ref=&quot;ssh&quot;          name=&quot;zos&quot;      operation=&quot;instant&quot;   /&gt;
+ &lt;/file&gt;
+&lt;/file_group&gt;
+
+&lt;file_group id=&quot;tidal_harmonics&quot; output_freq=&quot;1h&quot;  output_level=&quot;10&quot; enabled=&quot;.TRUE.&quot;&gt; &lt;!-- 1d files --&gt;
+  &lt;file id=&quot;tidalanalysis.grid_T&quot; name=&quot;harmonic_grid_T&quot; description=&quot;ocean T grid variables&quot;  enabled=&quot;.TRUE.&quot;&gt;
+    &lt;field field_ref=&quot;S2amp_ssh&quot; name=&quot;S2amp_ssh&quot;       operation=&quot;instant&quot; enabled=&quot;.TRUE.&quot; /&gt;
+    &lt;field field_ref=&quot;S2pha_ssh&quot; name=&quot;S2pha_ssh&quot;     operation=&quot;instant&quot; enabled=&quot;.TRUE.&quot; /&gt;
+    &lt;field field_ref=&quot;M2amp_ssh&quot; name=&quot;M2amp_ssh&quot;       operation=&quot;instant&quot; enabled=&quot;.TRUE.&quot; /&gt;
+    &lt;field field_ref=&quot;M2pha_ssh&quot; name=&quot;M2pha_ssh&quot;     operation=&quot;instant&quot; enabled=&quot;.TRUE.&quot; /&gt;
+    &lt;field field_ref=&quot;K2amp_ssh&quot; name=&quot;K2amp_ssh&quot;       operation=&quot;instant&quot; enabled=&quot;.TRUE.&quot; /&gt;
+    &lt;field field_ref=&quot;K2pha_ssh&quot; name=&quot;K2pha_ssh&quot;     operation=&quot;instant&quot; enabled=&quot;.TRUE.&quot; /&gt;
+  &lt;/file&gt;
+
+  &lt;!-- OUTPUT HARMONIC 2D U FIELDS --&gt;
+  &lt;file id=&quot;tidalanalysis.grid_U&quot; name=&quot;harmonic_grid_U&quot; description=&quot;ocean U grid variables&quot;  enabled=&quot;.TRUE.&quot;&gt;
+        &lt;field id=&quot;S2amp_u2d&quot;    long_name=&quot;S2 u2D harmonic Amplitude&quot;     unit=&quot;m/s&quot;      /&gt;
+        &lt;field id=&quot;S2pha_u2d&quot;    long_name=&quot;S2 u2D harmonic Phase&quot;         unit=&quot;m/s&quot;      /&gt;
+        &lt;field id=&quot;M2amp_u2d&quot;    long_name=&quot;M2 u2D harmonic Amplitude&quot;     unit=&quot;m/s&quot;      /&gt;
+        &lt;field id=&quot;M2pha_u2d&quot;    long_name=&quot;M2 u2D harmonic Phase&quot;         unit=&quot;m/s&quot;      /&gt;
+        &lt;field id=&quot;K2amp_u2d&quot;    long_name=&quot;K2 u2D harmonic Amplitude&quot;     unit=&quot;m/s&quot;      /&gt;
+        &lt;field id=&quot;K2pha_u2d&quot;    long_name=&quot;K2 u2D harmonic Phase&quot;         unit=&quot;m/s&quot;      /&gt;
+  &lt;/file&gt;
+
+  &lt;!-- OUTPUT HARMONIC 2D V FIELDS --&gt;
+  &lt;file id=&quot;tidalanalysis.grid_V&quot; name=&quot;harmonic_grid_V&quot; description=&quot;ocean V grid variables&quot;  enabled=&quot;.TRUE.&quot;&gt;
+        &lt;field id=&quot;S2amp_v2d&quot;     long_name=&quot;S2 v2D harmonic Amplitude&quot;     unit=&quot;m/s&quot;      /&gt;
+        &lt;field id=&quot;S2pha_v2d&quot;     long_name=&quot;S2 v2D harmonic Phase&quot;         unit=&quot;m/s&quot;      /&gt;
+        &lt;field id=&quot;M2amp_v2d&quot;     long_name=&quot;M2 v2D harmonic Amplitude&quot;     unit=&quot;m/s&quot;      /&gt;
+        &lt;field id=&quot;M2pha_v2d&quot;     long_name=&quot;M2 v2D harmonic Phase&quot;         unit=&quot;m/s&quot;      /&gt;
+        &lt;field id=&quot;K2amp_v2d&quot;     long_name=&quot;K2 v2D harmonic Amplitude&quot;     unit=&quot;m/s&quot;      /&gt;
+        &lt;field id=&quot;K2pha_v2d&quot;     long_name=&quot;K2 v2D harmonic Phase&quot;         unit=&quot;m/s&quot;      /&gt;
+  &lt;/file&gt;
+&lt;/file_group&gt;
+</pre></div>
+</div>
+<p>Get field_def_nemo-opa.xml:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp $START_FILES/field_def_nemo-opa.xml $EXP/.
+</pre></div>
+</div>
+<p>Ensure that file_def_nemo.xml is pointed to</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vim context_nemo.xml
+...
+&lt;!--
+==============================================================================================
+    NEMO context
+==============================================================================================
+--&gt;
+&lt;context id=&quot;nemo&quot;&gt;
+&lt;!-- $id$ --&gt;
+&lt;!-- Fields definition --&gt;
+    &lt;field_definition src=&quot;./field_def_nemo-opa.xml&quot;/&gt;   &lt;!--  NEMO ocean dynamics                     --&gt;
+
+&lt;!-- Files definition --&gt;
+    &lt;file_definition src=&quot;./file_def_nemo.xml&quot;/&gt;     &lt;!--  NEMO ocean dynamics                     --&gt;
+    &lt;!--
+...
+&lt;/context&gt;
+</pre></div>
+</div>
+<p>Create short queue runscript (Change the email address)</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>#!/bin/bash
+# ---------------------------
+#===============================================================
+# CLUSTER BITS
+#===============================================================
+#PBS -N SolentSurg
+#PBS -l select=5
+#PBS -l walltime=00:20:00
+#PBS -A n01-ACCORD
+#PBS -j oe
+#PBS -r n
+# mail alert at (b)eginning, (e)nd and (a)bortion of execution
+#PBS -m bea
+#PBS -M jelt@noc.ac.uk
+
+module swap PrgEnv-cray PrgEnv-intel
+module load cray-netcdf-hdf5parallel
+module load cray-hdf5-parallel
+
+export PBS_O_WORKDIR=$(readlink -f $PBS_O_WORKDIR)
+# Change to the direcotry that the job was submitted from
+cd $PBS_O_WORKDIR
+
+
+# Set the number of threads to 1
+#   This prevents any system libraries from automatically
+#   using threading.
+export OMP_NUM_THREADS=1
+# Change to the directory that the job was submitted from
+ulimit -s unlimited
+ulimit -c unlimited
+
+export NEMOproc=96 #550
+export XIOSproc=1
+
+#===============================================================
+# LAUNCH JOB
+#===============================================================
+echo `date` : Launch Job
+aprun -b -n 5 -N 5 ./xios_server.exe : -n $NEMOproc -N 24 ./opa
+exit
+</pre></div>
+</div>
+<p>Submit the job</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $EXP
+qsub -q short runscript
+</pre></div>
+</div>
+<p>&#8212;</p>
+<div class="section" id="experiments-tpxo">
+<h3>Experiments: TPXO<a class="headerlink" href="#experiments-tpxo" title="Permalink to this headline">¶</a></h3>
+<p>Initially TPXO forcing is used. Then FES2014 forcing is used. These go into
+experiments <code class="docutils literal"><span class="pre">EXP_TPXO</span></code> and <code class="docutils literal"><span class="pre">EXP_FES</span></code>. E.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export EXP=$CDIR/$CONFIG/EXP_TPXO
+</pre></div>
+</div>
+<p>The simulations are run in two steps. Initially there is a spin up with ramped
+tides, then there is the run with 5 min frequency SSH, ubar and vbar output.</p>
+<ul class="simple">
+<li>Spin up</li>
+</ul>
+<p>nn_it000    =  1   !  first time step
+nn_itend    =  7200
+ln_restart = F
+Increase bottom friction by 10
+rn_brfi2 = 2.3e-2
+rn_rdt = 1.
+rn_ahm_0     = 10.0
+ln_tide_ramp = .true.
+rdttideramp =    0.1666
+filtide      = &#8216;bdydta/TPXO/<a href="#id3"><span class="problematic" id="id4">Solent_bdytide_rotT_</span></a>&#8216;</p>
+<p>Worked ran to 7200. (Did in two stages, not one as suggested by nn_iten=14400)
+Retarted. Ran and past peak in vel2 and sum(ssh2).
+nt = 14400</p>
+<ul class="simple">
+<li>Production run</li>
+</ul>
+<p>13 hours in 6 x 20mins + 10mins = 2 hours 10mins
+14401 &#8211;&gt; 14400 + 46,800 = 61200</p>
+<p>Restart for a long run and leave.
+ln_restart = .true.
+ln_tide_ramp = .false.</p>
+<p>nn_it000    =  14401   !  first time step
+nn_itend    =  61200</p>
+</div>
+<div class="section" id="experiments-fes">
+<h3>Experiments: FES<a class="headerlink" href="#experiments-fes" title="Permalink to this headline">¶</a></h3>
+<p>export EXP=$CDIR/$CONFIG/EXP_FES</p>
+<p>ln -s /work/n01/n01/jelt/Solent_surge/dev_r8814_surge_modelling_Nemo4/CONFIG/Solent_surge/BLD/bin/nemo.exe $EXP/../EXP_FES/opa
+rm $EXP/field_def_nemo-opa.xml
+cp $START_FILES/field_def_nemo-opa.xml $EXP/.</p>
+<ul class="simple">
+<li>Spin up</li>
+</ul>
+<p>nn_it000    =  1   !  first time step
+nn_itend    =  7200
+ln_restart = F
+Increase bottom friction by 10
+rn_brfi2 = 2.3e-2
+rn_rdt = 1.
+rn_ahm_0     = 10.0
+ln_tide_ramp = .true.
+rdttideramp =    0.1666
+filtide      = &#8216;bdydta/FES/<a href="#id5"><span class="problematic" id="id6">Solent_bdytide_rotT_</span></a>&#8216;</p>
+<p>Try a cold start with no tide ramp.
+Keep the ramp. You do get spikes o/w</p>
+<p>7200 takes just over 20mins. Does not complete restart output.</p>
+<p>Double spin up and put on longer queue</p>
+<p>nn_it000    =  1   !  first time step
+nn_itend    =  14400
+ln_restart = F
+Increase bottom friction by 10
+rn_brfi2 = 2.3e-2
+rn_rdt = 1.
+rn_ahm_0     = 10.0
+ln_tide_ramp = .true.
+rdttideramp =    0.1666
+cn_coords_file = &#8216;bdydta/FES/coordinates.bdy.nc&#8217; !  bdy coordinates files
+filtide      = &#8216;bdydta/FES/<a href="#id7"><span class="problematic" id="id8">Solent_bdytide_rotT_</span></a>&#8216;</p>
+<p>Submit on 1hr queue.
+ran in 41 mins 14400s</p>
+<ul class="simple">
+<li>Production run</li>
+</ul>
+<p>13 hours in 6 x 20mins + 10mins = 2 hours 10mins
+14401 &#8211;&gt; 14400 + 46,800 = 61200</p>
+<p>nn_it000    = 14401   !  first time step
+nn_itend    = 61200     !  last  time step (for dt = 6 min, 240.dt = 1 day)
+nn_date0    =  20130101 !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+nn_time0    =       0   !  initial time of day in hhmm
+nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+ln_rstart   =  .true.  !  start from rest (F) or from a restart file (T)
+ln_tide_ramp = .false.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">file_def_nemo</span><span class="o">.</span><span class="n">xml</span>
+<span class="o">...</span>
+<span class="o">&lt;</span><span class="n">file_group</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;5mi&quot;</span> <span class="n">output_freq</span><span class="o">=</span><span class="s2">&quot;5mi&quot;</span>  <span class="n">output_level</span><span class="o">=</span><span class="s2">&quot;10&quot;</span> <span class="n">enabled</span><span class="o">=</span><span class="s2">&quot;.TRUE.&quot;</span> <span class="o">&gt;</span>
+ <span class="o">&lt;</span><span class="n">file</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;file19&quot;</span> <span class="n">name_suffix</span><span class="o">=</span><span class="s2">&quot;_5min&quot;</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;ocean T,U,V grid variables&quot;</span> <span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">field</span> <span class="n">field_ref</span><span class="o">=</span><span class="s2">&quot;ssh&quot;</span>          <span class="n">name</span><span class="o">=</span><span class="s2">&quot;zos&quot;</span> <span class="n">operation</span><span class="o">=</span><span class="s2">&quot;instant&quot;</span>     <span class="o">/&gt;</span>
+  <span class="o">&lt;</span><span class="n">field</span> <span class="n">field_ref</span><span class="o">=</span><span class="s2">&quot;ubar&quot;</span>         <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ubar&quot;</span> <span class="n">operation</span><span class="o">=</span><span class="s2">&quot;instant&quot;</span>     <span class="o">/&gt;</span>
+  <span class="o">&lt;</span><span class="n">field</span> <span class="n">field_ref</span><span class="o">=</span><span class="s2">&quot;vbar&quot;</span>         <span class="n">name</span><span class="o">=</span><span class="s2">&quot;vbar&quot;</span> <span class="n">operation</span><span class="o">=</span><span class="s2">&quot;instant&quot;</span>     <span class="o">/&gt;</span>
+ <span class="o">&lt;/</span><span class="n">file</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">file_group</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Submit for 3hours</p>
+<p>completed in 2hr 17:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Solent_surge_5mi_20130101_20130101_5min</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Solent_surge_1h_20130101_20130101_SSH</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>Plot animation with <code class="docutils literal"><span class="pre">Solent_SSH_anim_zoom.py</span></code></p>
+<p>&#8212;</p>
+<p>FES2014 harmonic fields look really good compared with TPXO forced AMM60. So it
+is worth treating the FES2014, rather than the TPXO, forced run as the most promising.
+To that end I restore the bed friction in an FES run and see what SSH amplitudes result:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>rsync -vutr $EXP/../EXP_FES $EXP/../EXP_FES_origfric
+</pre></div>
+</div>
+<p>Then tidy the files in this new directory. e.g. remove all the restarts and <cite>ln -s</cite> instead.</p>
+<p>Change the bottom friction:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>vi namelist_cfg
+...
+rn_bfri2    =    2.4e-3 !  bottom drag coefficient (non linear case)
+</pre></div>
+</div>
+<p>Link in missing files (bad rsync-ing):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd ../EXP_FES_origfric/
+ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe .
+ln -s ../opa_key_nosignedzero_key_diainstant_key_mpp_mpi_key_iomput_key_diaharm_fast_key_FES14_tides opa
+ln -s ../../SHARED/namelist_ref .
+ln -s ../../SHARED/domain_def_nemo.xml .
+ln -s /work/n01/n01/jelt/Solent_surge/INPUTS bdydta
+
+# Some diagnostic tools
+ln -s /home/n01/n01/jelt/GitHub/NEMO_diag/plot_solver_stat.py .
+ln -s /home/n01/n01/jelt/GitHub/NEMO_diag/Solent_SSH_anim.py .
+</pre></div>
+</div>
+<p>Restart from the more friction EXP_FES run to see what happens. (Not so bothered about a new spin up)</p>
+<p>Submit for 3 3hours
+Complete 2hr 11
+<strong>PENDING</strong></p>
+<p><strong>TO-DO</strong>
+* 90m mapping could be 100x speed up.
+* Check changes to namelist_cfg</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Setting up surge model for East Africa</a><ul>
+<li><a class="reference internal" href="#a-get-and-build-met-surge-config">1a) Get and build Met Surge Config</a></li>
+<li><a class="reference internal" href="#b-build-xios2-r1080">1b) Build XIOS2 &#64; r1080</a></li>
+<li><a class="reference internal" href="#c-build-nemo">1c) Build NEMO</a></li>
+<li><a class="reference internal" href="#generate-coordinates-file">2) Generate coordinates file</a></li>
+<li><a class="reference internal" href="#generate-bathymetry-file">3) Generate bathymetry file</a></li>
+<li><a class="reference internal" href="#generate-a-domain-configuration-file">4) Generate a domain configuration file</a></li>
+<li><a class="reference internal" href="#generate-boundary-conditions">5) Generate boundary conditions</a></li>
+<li><a class="reference internal" href="#running-model-with-tidal-forcing-at-the-boundaries-on-archer">6) Running model with tidal forcing at the boundaries on ARCHER</a></li>
+<li><a class="reference internal" href="#output-xml-and-running">9) Output xml and running</a><ul>
+<li><a class="reference internal" href="#experiments-tpxo">Experiments: TPXO</a></li>
+<li><a class="reference internal" href="#experiments-fes">Experiments: FES</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/SolentSurge_jobs4_archer.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/SolentSurge_jobs4_archer.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

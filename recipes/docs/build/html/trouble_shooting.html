@@ -1,0 +1,266 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Trouble Shooting &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+    <link rel="next" title="Changing namelist_cfg from v3.6 to v4" href="updating_namelist_cfg_from_v3.6_to_v4.html" />
+    <link rel="prev" title="Add new SBC forcing to NEMO" href="Add_more_SBC.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="contents topic" id="table-of-contents">
+<p class="topic-title first">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#trouble-shooting" id="id1">Trouble Shooting</a><ul>
+<li><a class="reference internal" href="#mysterious-fail-either-no-clue-of-xios-xml-netcdf-hint" id="id2">Mysterious fail. Either no clue of XIOS / XML / netcdf hint</a></li>
+<li><a class="reference internal" href="#my-configuration-blows-up" id="id3">My configuration blows up</a></li>
+<li><a class="reference internal" href="#memory-error-for-combining-outputs-archer" id="id4">Memory error for combining outputs (ARCHER)</a></li>
+<li><a class="reference internal" href="#pynemo-on-livl-server" id="id5">Pynemo on livl server</a></li>
+<li><a class="reference internal" href="#my-old-code-doesn-t-work-anymore" id="id6">My old code doesn&#8217;t work anymore</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="trouble-shooting">
+<h1><a class="toc-backref" href="#id1">Trouble Shooting</a><a class="headerlink" href="#trouble-shooting" title="Permalink to this headline">¶</a></h1>
+<p>Things to try if your new configuration isn&#8217;t working</p>
+<div class="section" id="mysterious-fail-either-no-clue-of-xios-xml-netcdf-hint">
+<h2><a class="toc-backref" href="#id2">Mysterious fail. Either no clue of XIOS / XML / netcdf hint</a><a class="headerlink" href="#mysterious-fail-either-no-clue-of-xios-xml-netcdf-hint" title="Permalink to this headline">¶</a></h2>
+<p>The XML control of I/O, and in particular formatting and content of the <code class="docutils literal"><span class="pre">iodef.xml</span></code> files (and its kin) are <strong>extremely</strong> sensitive to errors.</p>
+<p>Several times an inconsistency in the xml files, or a typo, can lead to a NEMO failure with little or no debugging info.</p>
+<p>E.g. top line of <code class="docutils literal"><span class="pre">iodef.xml</span></code>. Switching from</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">file_definition</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;one_file&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;@expname@_@freq@_@startdate@_@enddate@&quot;</span> <span class="n">sync_freq</span><span class="o">=</span><span class="s2">&quot;10d&quot;</span> <span class="n">min_digits</span><span class="o">=</span><span class="s2">&quot;4&quot;</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>to</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">file_definition</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;multiple_file&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;@expname@_@freq@_@startdate@_@enddate@&quot;</span> <span class="n">sync_freq</span><span class="o">=</span><span class="s2">&quot;10d&quot;</span> <span class="n">min_digits</span><span class="o">=</span><span class="s2">&quot;4&quot;</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Can mean the difference between a nice weekend or a bad one. It seems that if you decide to use multi XIOS cores, you need
+to use the second option (<strong>multiple_file</strong>).</p>
+<p>If a run suddenly stops without any errors in your NEMO <strong>ocean.output</strong> or in the cluster error/output files, it could
+come from the memory of the XIOS server (you probably get in the error file something like &#8220;OOM killer terminated this process.&#8221;).
+A way to pass over this is to use more nodes, and using a single core per node to access the full memory of the node.
+An example for Archer, using 1 core of 12 nodes:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>aprun -b -n 12 -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./nemo.exe
+</pre></div>
+</div>
+</div>
+<div class="section" id="my-configuration-blows-up">
+<h2><a class="toc-backref" href="#id3">My configuration blows up</a><a class="headerlink" href="#my-configuration-blows-up" title="Permalink to this headline">¶</a></h2>
+<p>This can happen for a host of reasons...</p>
+<p>#. Probaby the first thing to check is whether it is behaving without all the
+add-on forcings. Is it stable if you turn everything off? Is it stable with</p>
+<blockquote>
+<div>clamped initial condition temperature and salinity, and boundary velocities</div></blockquote>
+<dl class="docutils">
+<dt>It is a good idea to try and 20 day &#8216;initial condition&#8217; run to make sure there</dt>
+<dd>are no surprises.</dd>
+<dt>Compile with <code class="docutils literal"><span class="pre">usrdef_istate.F90</span></code> and  <code class="docutils literal"><span class="pre">usrdef_sbc.F90</span></code> in <code class="docutils literal"><span class="pre">MY_SRC</span></code>. Then</dt>
+<dd><p class="first">edit the <code class="docutils literal"><span class="pre">namelist_cfg</span></code> to turn off forcings (checking there are no inconsistencies):</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span>&amp;namsbc        !   Surface Boundary Condition (surface module)
+!-----------------------------------------------------------------------
+                   ! Type of air-sea fluxes
+   ln_usr      = .true.    !  user defined formulation                  (T =&gt; check usrdef_sbc)
+
+...
+
+!-----------------------------------------------------------------------
+&amp;nam_tide      !   tide parameters
+!-----------------------------------------------------------------------
+  ln_tide     = .true.
+  ln_tide_pot = .false.    !  use tidal potential forcing
+
+...
+
+&amp;nambdy        !  unstructured open boundaries
+!-----------------------------------------------------------------------
+   ln_bdy         = .true.              !  Use unstructured open boundaries
+   nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state
+   nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
+   nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>#. Tidal models can blow up at, or near, the boundaries. This can happen for a number
+of reasons: Does the domain have amphidromes near the boundary? This can result
+large spatial gradients in velocity that can cause problems.</p>
+<p>#. If the configuration blows up at, or near, the boundary modify the boundary mask to blank it out.
+This means that new boundary files will need to be generated for the new effective boundary location</p>
+<p><strong>Update</strong>. Modification of the mask is not such good advice. If there is a problem
+with an island or some significant bathymetry feature appearing on the child grid</p>
+<blockquote>
+<div>but not in the parent, then this maybe a good idea.</div></blockquote>
+<p>Note the PyNEMO mask takes three value. One each for mask(-1), wet points (1) and dry points (0).
+E.g. Start with with the land mask from <code class="docutils literal"><span class="pre">domain_cfg.nc</span></code> and introduce boundary masking. First
+create a mask file from a template. (Using <strong>livljobs4</strong>):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">module</span> <span class="n">load</span> <span class="n">nco</span><span class="o">/</span><span class="n">gcc</span><span class="o">/</span><span class="mf">4.4</span><span class="o">.</span><span class="mf">2.</span><span class="n">ncwa</span>
+<span class="n">rm</span> <span class="o">-</span><span class="n">f</span> <span class="n">bdy_mask</span><span class="o">.</span><span class="n">nc</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncks</span> <span class="o">-</span><span class="n">v</span> <span class="n">top_level</span> <span class="n">domain_cfg</span><span class="o">.</span><span class="n">nc</span> <span class="n">tmp1</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncrename</span> <span class="o">-</span><span class="n">h</span> <span class="o">-</span><span class="n">v</span> <span class="n">top_level</span><span class="p">,</span><span class="n">mask</span> <span class="n">tmp1</span><span class="o">.</span><span class="n">nc</span> <span class="n">tmp2</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">ncwa</span> <span class="o">-</span><span class="n">a</span> <span class="n">t</span> <span class="n">tmp2</span><span class="o">.</span><span class="n">nc</span> <span class="n">bdy_mask</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">rm</span> <span class="o">-</span><span class="n">f</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<p>In ipython manually edit the mask locations:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">netCDF4</span>
+<span class="n">dset</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="s1">&#39;bdy_mask.nc&#39;</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">,:]</span>  <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">][:,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">][:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">dset</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Then <code class="docutils literal"><span class="pre">bdy_mask.nc</span></code> can be specified in the PyNEMO <code class="docutils literal"><span class="pre">namelist.bdy</span></code>. The PyNEMO</dt>
+<dd>generated files contain the bdy_msk variable, for use in the NEMO <code class="docutils literal"><span class="pre">namelist_cfg</span></code></dd>
+</dl>
+<p>Run PyNEMO again. Run NEMO again.</p>
+<p>&#8212;</p>
+<p>If the bdy_msk does not appear to be functional. Perhaps missing updates to the
+OPA source:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
+cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/dommsk.F90 $CDIR/$CONFIG/MY_SRC/dommsk.F90
+</pre></div>
+</div>
+<p>&#8212;</p>
+<ol class="arabic simple">
+<li>If the model is blowing up at the boundary and the water is deep. Check the time step. Deepwater waves are fast.</li>
+</ol>
+<p>&#8212;</p>
+<ol class="arabic simple">
+<li>If the model is blowing up at the boundary and the water is shallow. Have the tidal transports be mapped from parent to child grid correctly?</li>
+</ol>
+<p>&#8212;</p>
+</div>
+<div class="section" id="memory-error-for-combining-outputs-archer">
+<h2><a class="toc-backref" href="#id4">Memory error for combining outputs (ARCHER)</a><a class="headerlink" href="#memory-error-for-combining-outputs-archer" title="Permalink to this headline">¶</a></h2>
+<p>If your configuration becomes massive, combining the output might bring memory issues on <strong>ARCHER</strong> login nodes.
+A solution is to submit on the post-processing node. However post-processing nodes and computing nodes have different
+architecture and you need to recompile your tools for it. Basically on those node the compiler shortcuts (ftn, CC, ...)
+are not recognized so you need to alter them depending on the compiler. for example with intel, <strong>ftn</strong> becomes <strong>ifort</strong>.</p>
+<dl class="docutils">
+<dt>More details can be find on the ARCHER documentation :</dt>
+<dd><a class="reference external" href="http://www.archer.ac.uk/documentation/user-guide/development.php#sec-4.7">http://www.archer.ac.uk/documentation/user-guide/development.php#sec-4.7</a></dd>
+</dl>
+</div>
+<div class="section" id="pynemo-on-livl-server">
+<h2><a class="toc-backref" href="#id5">Pynemo on livl server</a><a class="headerlink" href="#pynemo-on-livl-server" title="Permalink to this headline">¶</a></h2>
+<p>I (Nico) could not manage to install pynemo locally on my work computer (worked fine at home). I change my anaconda set-up to install the
+environments in the <strong>/work</strong> instead of <strong>/login</strong> through the <strong>.condarc</strong>. Finally the only way I manage to install it was to reverse
+my environment to the <strong>/login</strong> default one. It seems weird to not work in the other way and it&#8217;s not very class was of sorting this but
+at least it works. I guess it&#8217;s only due to <em>java virtual machine</em> path not properly path trhough but still... the error I got was the
+following</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">File</span> <span class="s2">&quot;/work/nibrun/nico-conda/nrct_env/lib/python2.7/site-packages/jnius/reflect.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">162</span><span class="p">,</span> <span class="ow">in</span> <span class="n">autoclass</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">find_javaclass</span><span class="p">(</span><span class="n">clsname</span><span class="p">)</span>
+<span class="n">File</span> <span class="s2">&quot;jnius_export_func.pxi&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">23</span><span class="p">,</span> <span class="ow">in</span> <span class="n">jnius</span><span class="o">.</span><span class="n">find_javaclass</span> <span class="p">(</span><span class="n">jnius</span><span class="o">/</span><span class="n">jnius</span><span class="o">.</span><span class="n">c</span><span class="p">:</span><span class="mi">12356</span><span class="p">)</span>
+<span class="n">jnius</span><span class="o">.</span><span class="n">JavaException</span><span class="p">:</span> <span class="n">Class</span> <span class="ow">not</span> <span class="n">found</span> <span class="s1">&#39;ucar/nc2/dataset/NetcdfDataset&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="my-old-code-doesn-t-work-anymore">
+<h2><a class="toc-backref" href="#id6">My old code doesn&#8217;t work anymore</a><a class="headerlink" href="#my-old-code-doesn-t-work-anymore" title="Permalink to this headline">¶</a></h2>
+<p>Old code can fail is the compilers are updated but the new runs only partially re-compile the code leading to inconsistencies.
+E.g. old compilers buid the XIOS that are linked to using a new compile of OPA.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Trouble Shooting</a><ul>
+<li><a class="reference internal" href="#mysterious-fail-either-no-clue-of-xios-xml-netcdf-hint">Mysterious fail. Either no clue of XIOS / XML / netcdf hint</a></li>
+<li><a class="reference internal" href="#my-configuration-blows-up">My configuration blows up</a></li>
+<li><a class="reference internal" href="#memory-error-for-combining-outputs-archer">Memory error for combining outputs (ARCHER)</a></li>
+<li><a class="reference internal" href="#pynemo-on-livl-server">Pynemo on livl server</a></li>
+<li><a class="reference internal" href="#my-old-code-doesn-t-work-anymore">My old code doesn&#8217;t work anymore</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Add_more_SBC.html" title="previous chapter">Add new SBC forcing to NEMO</a></li>
+      <li>Next: <a href="updating_namelist_cfg_from_v3.6_to_v4.html" title="next chapter">Changing namelist_cfg from v3.6 to v4</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/trouble_shooting.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/trouble_shooting.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

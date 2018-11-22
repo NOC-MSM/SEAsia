@@ -1,0 +1,59 @@
+THIS IS WORK IN PROGRESS. I.e. IT SEEMS LIKE A GOOD IDEA BUT IS NOT COMPLETE OR IN A SETTLED FORMAT
+
+
+EXP00
+=====
+
+Main dev directory
+
+
+EXP01
+=====
+25 Jan 18
+Experiments to test rn_rdt limits.
+Also turing on lateral diffusion of momentum.
+
+
+
+
+!-----------------------------------------------------------------------
+&namtra_ldf    !   lateral diffusion scheme for tracers                 (default: NO diffusion)
+!-----------------------------------------------------------------------
+   !                       !  Operator type:
+   !                           !  no diffusion: set ln_traldf_lap=..._blp=F
+   ln_traldf_lap   =  .true.  !    laplacian operator
+   ln_traldf_blp   =  .false.  !  bilaplacian operator
+   !
+   !                       !  Direction of action:
+   ln_traldf_lev   =  .false.  !  iso-level
+   ln_traldf_hor   =  .false.  !  horizontal (geopotential)
+   ln_traldf_iso   =  .true.  !  iso-neutral (standard operator)
+   ln_traldf_triad =  .false.  !  iso-neutral (triad    operator)
+
+
+
+   rn_rdt      =  360.     !  time step for the dynamics (and tracer if nn_acc=0)
+dt=360 blew up.
+Trying 300s. bloew up
+Trying 200s. Blews up at kt=26
+
+
+EXP_hpg_err
+==========
+No forcing. T(z),S(z) profiles. Clamped T(z),S(z) boundaries. Start from rest.
+Compiled without tidal analysis: I.e. NO key_harm_ana
+EXEC: nemo_notide_TSprofile.exe
+
+nt = 1200, dt=6mins. 5 days in 20 mins
+--> 2*30 days in 2*2 hours. nt = 2*7200
+
+Plan: grep Umax from solver.stat  Check for stability.
+
+EXP_tideonly
+============
+
+Only tidal forcing. constant T and S
+Include: key_harm_ana
+EXEC: nemo_tideonyl_TSconst.exe
+
+

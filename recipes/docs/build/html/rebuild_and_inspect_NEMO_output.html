@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Rebuild the output and inspect &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+    <link rel="next" title="Add new SBC forcing to NEMO" href="Add_more_SBC.html" />
+    <link rel="prev" title="MPP decomposition for land suppression" href="MPP_decomp_land_suppression.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="rebuild-the-output-and-inspect">
+<h1>Rebuild the output and inspect<a class="headerlink" href="#rebuild-the-output-and-inspect" title="Permalink to this headline">¶</a></h1>
+<p>Rebuild the NEMO output. If you have followed the path definition thing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">.</span> <span class="o">~/</span><span class="n">temporary_path_names_for_NEMO_build</span>
+</pre></div>
+</div>
+<p>Otherwise do something like:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export WDIR=/work/n01/n01/jelt/LBay/
+export TDIR=$WDIR/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+</pre></div>
+</div>
+<p>&#8212;</p>
+<p>Rebuild the <strong>OUTPUT</strong>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export filehead=Lbay_1h_20000101_20000130
+export nproc=5
+
+$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 $filehead_SSH $nproc
+$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 $filehead_Tides $nproc
+</pre></div>
+</div>
+<p>Should remove individual processor files once the build is verified:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>rm $filehead_SSH_00??.nc
+rm $filehead_Tides_00??.nc
+</pre></div>
+</div>
+<p>&#8212;</p>
+<p>Rebuild the <strong>ABORT</strong> files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 output.abort 93
+</pre></div>
+</div>
+<p>#Should remove individual processor files once the build is verified:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>rm output.abort_00??.nc
+</pre></div>
+</div>
+<p>&#8212;</p>
+<p>Rebuild the <strong>RESTART</strong> files (note 3 processors were recovered / not used because of land):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export nproc=93
+$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 $CONFIG_00004800_restart_tide $nproc
+$TDIR/REBUILD_NEMO/rebuild_nemo -t 24 $CONFIG_00004800_restart $nproc
+</pre></div>
+</div>
+<p>#Should remove individual processor files once the build is verified:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>rm $CONFIG_00004800_restart_tide_00??.nc
+rm $CONFIG_00004800_restart_00??.nc
+</pre></div>
+</div>
+<p>&#8212;</p>
+<p>Inspect on ARCHER:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $EXP
+module load anaconda
+python quickplotNEMO.py
+</pre></div>
+</div>
+<p>&#8212;</p>
+<p>Inspect locally e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scp</span> <span class="n">jelt</span><span class="nd">@login</span><span class="o">.</span><span class="n">archer</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">uk</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">trunk_NEMOGCM_r8395</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">EXP00</span><span class="o">/</span><span class="n">Lbay_1d_20000101_20000130_Tides</span><span class="o">.</span><span class="n">nc</span> <span class="o">.</span>
+<span class="n">scp</span> <span class="n">jelt</span><span class="nd">@login</span><span class="o">.</span><span class="n">archer</span><span class="o">.</span><span class="n">ac</span><span class="o">.</span><span class="n">uk</span><span class="p">:</span><span class="o">/</span><span class="n">work</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">n01</span><span class="o">/</span><span class="n">jelt</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">trunk_NEMOGCM_r8395</span><span class="o">/</span><span class="n">CONFIG</span><span class="o">/</span><span class="n">LBay</span><span class="o">/</span><span class="n">EXP00</span><span class="o">/</span><span class="n">Lbay_1h_20000101_20000130_SSH</span><span class="o">.</span><span class="n">nc</span> <span class="o">.</span>
+
+<span class="n">ferret</span>
+<span class="n">use</span> <span class="n">Lbay_1d_20000101_20000110_Tides</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">plot</span> <span class="o">/</span><span class="n">i</span><span class="o">=</span><span class="mi">25</span><span class="o">/</span><span class="n">j</span><span class="o">=</span><span class="mi">70</span> <span class="n">SOSSHEIG</span>
+</pre></div>
+</div>
+<p>Use some python to inspection of the domain_cfg.nc file or ssh, Tide output. See:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd /Users/jeff/GitLab/NEMO-RELOC/docs/source
+$ipython
+&gt;&gt; run quickplotNEMO.py
+</pre></div>
+</div>
+<p>&#8212;</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="MPP_decomp_land_suppression.html" title="previous chapter">MPP decomposition for land suppression</a></li>
+      <li>Next: <a href="Add_more_SBC.html" title="next chapter">Add new SBC forcing to NEMO</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rebuild_and_inspect_NEMO_output.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/rebuild_and_inspect_NEMO_output.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

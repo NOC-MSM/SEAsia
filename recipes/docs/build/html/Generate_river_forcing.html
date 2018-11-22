@@ -1,0 +1,121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Create river forcing &#8212; NEMO-RELOC 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="NEMO-RELOC 0.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="create-river-forcing">
+<h1>Create river forcing<a class="headerlink" href="#create-river-forcing" title="Permalink to this headline">¶</a></h1>
+<p>A matlab (GCOMS?) script for generating a netCDF file of river forcing exists.
+For now I have put it in the PyNEMO repo.</p>
+<p>To run it needs a bathy_meter.nc and coordinates.nc file, as well as a river database.</p>
+<p>Check out PyNEMO / nrct if have already:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>cd $WORK/$USER
+git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
+
+cd nrct/rivers
+</pre></div>
+</div>
+<p>The idea is that the source data sits in <code class="docutils literal"><span class="pre">DATA</span></code> and the scripts sit in <code class="docutils literal"><span class="pre">mfiles</span></code>.</p>
+<p>Edit the run script:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="n">mfiles</span><span class="o">/</span><span class="n">runoff_interactive_iterative</span><span class="o">.</span><span class="n">m</span>
+</pre></div>
+</div>
+<p>Change the directory settings and the resolution of the configuration.
+Open matlab and run this script.</p>
+<p>Output:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>``river_test.nc``
+</pre></div>
+</div>
+<p>Copy to $INPUTS ():</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>scp river_test.nc $USER@login.archer.ac.uk:$INPUTS/$CONFIG_rivers.nc
+# scp river_test.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/SEAsia_rivers.nc
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Generate_river_forcing.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, NOC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/Generate_river_forcing.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

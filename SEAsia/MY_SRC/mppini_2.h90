@@ -1,0 +1,574 @@
+   SUBROUTINE mpp_init2
+      !!----------------------------------------------------------------------
+      !!                  ***  ROUTINE mpp_init2  ***
+      !!
+      !! * Purpose :   Lay out the global domain over processors.
+      !!     FOR USING THIS VERSION, A PREPROCESSING TRAITMENT IS RECOMMENDED
+      !!     FOR DEFINING BETTER CUTTING OUT.
+      !!       This routine requires the presence of the domain configuration file.
+      !!       In this version, the land processors are avoided and the adress
+      !!     processor (nproc, narea,noea, ...) are calculated again.
+      !!     The jpnij parameter can be lesser than jpni x jpnj
+      !!     and this jpnij parameter must be calculated before with an
+      !!     algoritmic preprocessing program.
+      !!
+      !! ** Method  :   Global domain is distributed in smaller local domains.
+      !!      Periodic condition is a function of the local domain position
+      !!      (global boundary or neighbouring domain) and of the global
+      !!      periodic
+      !!      Type :         jperio global periodic condition
+      !!                     nperio local  periodic condition
+      !!
+      !! ** Action :        nimpp     : longitudinal index 
+      !!                    njmpp     : latitudinal  index
+      !!                    nperio    : lateral condition type 
+      !!                    narea     : number for local area
+      !!                    nlci      : first dimension
+      !!                    nlcj      : second dimension
+      !!                    nproc     : number for local processor
+      !!                    noea      : number for local neighboring processor
+      !!                    nowe      : number for local neighboring processor
+      !!                    noso      : number for local neighboring processor
+      !!                    nono      : number for local neighboring processor
+      !!
+      !! History :       !  1994-11  (M. Guyon)  Original code
+      !!  OPA            !  1995-04  (J. Escobar, M. Imbard)
+      !!                 !  1998-02  (M. Guyon)  FETI method
+      !!                 !  1998-05  (M. Imbard, J. Escobar, L. Colombet )  SHMEM and MPI versions
+      !!  NEMO      1.0  !  2004-01  (G. Madec, J.M Molines)  F90 : free form , north fold jpni > 1
+      !!            4.0  !  2016-06  (G. Madec)  use domain configuration file instead of bathymetry file
+      !!----------------------------------------------------------------------
+      USE in_out_manager  ! I/O Manager
+      USE iom
+      USE bdy_oce
+      !! 
+      INTEGER :: ji, jj, jn, jproc, jarea     ! dummy loop indices
+      INTEGER ::  inum                        ! temporary logical unit
+      INTEGER ::  idir                        ! temporary integers
+      INTEGER ::  jstartrow                   ! temporary integers
+      INTEGER ::   ios                        ! Local integer output status for namelist read
+      INTEGER ::   &
+         ii, ij, ifreq, il1, il2,          &  ! temporary integers
+         icont, ili, ilj,                  &  !    "          "
+         isurf, ijm1, imil,                &  !    "          "
+         iino, ijno, iiso, ijso,           &  !    "          " 
+         iiea, ijea, iiwe, ijwe,           &  !    "          "
+         iinw, ijnw, iine, ijne,           &  !    "          "
+         iisw, ijsw, iise, ijse,           &  !    "          "
+         iresti, irestj, iproc                !    "          "
+      INTEGER, DIMENSION(jpnij) ::   &
+         iin, ijn          
+      INTEGER, DIMENSION(jpni,jpnj) ::   &
+         iimppt, ijmppt, ilci  , ilcj  ,   &  ! temporary workspace
+         ipproc, ibondj, ibondi, ipolj ,   &  !    "           "
+         ilei  , ilej  , ildi  , ildj  ,   &  !    "           "
+         ioea  , iowe  , ioso  , iono  ,   &  !    "           "
+         ione  , ionw  , iose  , iosw  ,   &  !    "           "
+         ibne  , ibnw  , ibse  , ibsw         !    "           "
+      INTEGER,  DIMENSION(jpiglo,jpjglo) ::   imask               ! global workspace
+      REAL(wp), DIMENSION(jpiglo,jpjglo) ::   zbot, ztop, zbdy          ! global workspace
+      REAL(wp) ::   zidom , zjdom          ! local scalars
+      NAMELIST/nambdy/ ln_bdy, nb_bdy, ln_coords_file, cn_coords_file,         &
+         &             ln_mask_file, cn_mask_file, cn_dyn2d, nn_dyn2d_dta,     &
+         &             cn_dyn3d, nn_dyn3d_dta, cn_tra, nn_tra_dta,             &  
+         &             ln_tra_dmp, ln_dyn3d_dmp, rn_time_dmp, rn_time_dmp_out, &
+         &             cn_ice_lim, nn_ice_lim_dta,                           &
+         &             rn_ice_tem, rn_ice_sal, rn_ice_age,                 &
+         &             ln_vol, nn_volctl, nn_rimwidth, nb_jpk_bdy
+      !!----------------------------------------------------------------------
+      !! NEMO/OPA 4.0 , NEMO Consortium (2016)
+      !! $Id: mppini_2.h90 7832 2017-03-24 12:49:13Z jamesharle $
+      !! Software governed by the CeCILL licence     (NEMOGCM/NEMO_CeCILL.txt)
+      !!----------------------------------------------------------------------
+
+      IF(lwp)WRITE(numout,*)
+      IF(lwp)WRITE(numout,*) 'mpp_init_2 : Message Passing MPI'
+      IF(lwp)WRITE(numout,*) '~~~~~~~~~~'
+      IF(lwp)WRITE(numout,*) ' '
+
+      IF( jpni*jpnj < jpnij )   CALL ctl_stop( ' jpnij > jpni x jpnj impossible' )
+
+      ! 0. initialisation
+      ! -----------------
+      CALL iom_open( cn_domcfg, inum )
+      !
+      !                                   ! ocean top and bottom level
+      CALL iom_get( inum, jpdom_unknown, 'bottom_level' , zbot    )  ! nb of ocean T-points
+      CALL iom_get( inum, jpdom_unknown, 'top_level'    , ztop    )  ! nb of ocean T-points (ISF)
+      !
+      CALL iom_close( inum )
+      !
+      ! 2D ocean mask (=1 if at least one level of the water column is ocean, =0 otherwise)
+      WHERE( zbot(:,:) > 0 )                   ;   imask(:,:) = 1
+      ELSEWHERE                                ;   imask(:,:) = 0
+      END WHERE
+
+      ! Adjust imask with bdy_msk if exists
+
+      REWIND( numnam_ref )              ! Namelist nambdy in reference namelist : BDY
+      READ  ( numnam_ref, nambdy, IOSTAT = ios, ERR = 903)
+903   IF( ios /= 0 ) CALL ctl_nam ( ios , 'nambdy in reference namelist (mppini_2)', lwp )
+
+      REWIND( numnam_cfg )              ! Namelist nambdy in configuration namelist : BDY
+      READ  ( numnam_cfg, nambdy, IOSTAT = ios, ERR = 904 )
+904   IF( ios /= 0 ) CALL ctl_nam ( ios , 'nambdy in configuration namelist (mppini_2)', lwp )
+
+      IF( ln_bdy .AND. ln_mask_file ) THEN
+         CALL iom_open( cn_mask_file, inum )
+         CALL iom_get ( inum, jpdom_unknown, 'bdy_msk', zbdy)
+         CALL iom_close( inum )
+         WHERE ( zbdy(:,:) <= 0. ) imask = 0
+      ENDIF
+
+      !  1. Dimension arrays for subdomains
+      ! -----------------------------------
+
+      !  Computation of local domain sizes ilci() ilcj()
+      !  These dimensions depend on global sizes jpni,jpnj and jpiglo,jpjglo
+      !  The subdomains are squares leeser than or equal to the global
+      !  dimensions divided by the number of processors minus the overlap
+      !  array.
+
+      nreci=2*jpreci
+      nrecj=2*jprecj
+      iresti = 1 + MOD( jpiglo - nreci -1 , jpni )
+      irestj = 1 + MOD( jpjglo - nrecj -1 , jpnj )
+
+#if defined key_nemocice_decomp
+      ! Change padding to be consistent with CICE
+      ilci(1:jpni-1      ,:) = jpi
+      ilci(jpni          ,:) = jpiglo - (jpni - 1) * (jpi - nreci)
+
+      ilcj(:,      1:jpnj-1) = jpj
+      ilcj(:,          jpnj) = jpjglo - (jpnj - 1) * (jpj - nrecj)
+#else
+      ilci(1:iresti      ,:) = jpi
+      ilci(iresti+1:jpni ,:) = jpi-1
+
+      ilcj(:,      1:irestj) = jpj
+      ilcj(:, irestj+1:jpnj) = jpj-1
+#endif
+
+      nfilcit(:,:) = ilci(:,:)
+
+      IF(lwp) WRITE(numout,*)
+      IF(lwp) WRITE(numout,*) ' mpp_init2: defines mpp subdomains'
+      IF(lwp) WRITE(numout,*) ' ~~~~~~  ----------------------'
+      IF(lwp) WRITE(numout,*)
+      IF(lwp) WRITE(numout,*) 'iresti=',iresti,' irestj=',irestj
+      IF(lwp) WRITE(numout,*)
+      IF(lwp) WRITE(numout,*) 'jpni=',jpni,' jpnj=',jpnj
+
+      zidom = nreci + sum(ilci(:,1) - nreci ) 
+      IF(lwp) WRITE(numout,*)
+      IF(lwp) WRITE(numout,*)' sum ilci(i,1)=',zidom,' jpiglo=',jpiglo
+
+      zjdom = nrecj + sum(ilcj(1,:) - nrecj ) 
+      IF(lwp) WRITE(numout,*) ' sum ilcj(1,j)=',zjdom,' jpjglo=',jpjglo
+      IF(lwp) WRITE(numout,*)
+
+
+      !  2. Index arrays for subdomains
+      ! -------------------------------
+
+      iimppt(:,:) = 1
+      ijmppt(:,:) = 1
+      ipproc(:,:) = -1
+
+      IF( jpni > 1 )THEN
+         DO jj = 1, jpnj
+            DO ji = 2, jpni
+               iimppt(ji,jj) = iimppt(ji-1,jj) + ilci(ji-1,jj) - nreci
+            END DO
+         END DO
+      ENDIF
+      nfiimpp(:,:) = iimppt(:,:)
+
+      IF( jpnj > 1 )THEN
+         DO jj = 2, jpnj
+            DO ji = 1, jpni
+               ijmppt(ji,jj) = ijmppt(ji,jj-1) + ilcj(ji,jj-1) - nrecj
+            END DO
+         END DO
+      ENDIF
+
+
+      ! 3. Subdomain description in the Regular Case
+      ! --------------------------------------------
+
+      nperio = 0
+      icont = -1
+      DO jarea = 1, jpni*jpnj
+         ii = 1 + MOD(jarea-1,jpni)
+         ij = 1 +    (jarea-1)/jpni
+         ili = ilci(ii,ij)
+         ilj = ilcj(ii,ij)
+         ibondj(ii,ij) = -1
+         IF( jarea >  jpni          )   ibondj(ii,ij) = 0
+         IF( jarea >  (jpnj-1)*jpni )   ibondj(ii,ij) = 1
+         IF( jpnj  == 1             )   ibondj(ii,ij) = 2
+         ibondi(ii,ij) = 0
+         IF( MOD(jarea,jpni) == 1 )   ibondi(ii,ij) = -1
+         IF( MOD(jarea,jpni) == 0 )   ibondi(ii,ij) =  1
+         IF( jpni            == 1 )   ibondi(ii,ij) =  2
+
+         ! 2.4 Subdomain neighbors
+
+         iproc = jarea - 1
+         ioso(ii,ij) = iproc - jpni
+         iowe(ii,ij) = iproc - 1
+         ioea(ii,ij) = iproc + 1
+         iono(ii,ij) = iproc + jpni
+         ildi(ii,ij) = 1 + jpreci
+         ilei(ii,ij) = ili -jpreci
+         ionw(ii,ij) = iono(ii,ij) - 1
+         ione(ii,ij) = iono(ii,ij) + 1
+         iosw(ii,ij) = ioso(ii,ij) - 1
+         iose(ii,ij) = ioso(ii,ij) + 1
+         ibsw(ii,ij) = 1
+         ibnw(ii,ij) = 1
+         IF( MOD(iproc,jpni) == 0 ) THEN
+            ibsw(ii,ij) = 0
+            ibnw(ii,ij) = 0
+         ENDIF
+         ibse(ii,ij) = 1
+         ibne(ii,ij) = 1
+         IF( MOD(iproc,jpni) == jpni-1 ) THEN
+            ibse(ii,ij) = 0
+            ibne(ii,ij) = 0
+         ENDIF
+         IF( iproc < jpni ) THEN
+            ibsw(ii,ij) = 0
+            ibse(ii,ij) = 0
+         ENDIF
+         IF( iproc >= (jpnj-1)*jpni ) THEN
+            ibnw(ii,ij) = 0
+            ibne(ii,ij) = 0
+         ENDIF
+         IF( ibondi(ii,ij) == -1 .OR. ibondi(ii,ij) == 2 ) ildi(ii,ij) = 1
+         IF( ibondi(ii,ij) ==  1 .OR. ibondi(ii,ij) == 2 ) ilei(ii,ij) = ili
+         ildj(ii,ij) =  1  + jprecj
+         ilej(ii,ij) = ilj - jprecj
+         IF( ibondj(ii,ij) == -1 .OR. ibondj(ii,ij) == 2 ) ildj(ii,ij) = 1
+         IF( ibondj(ii,ij) ==  1 .OR. ibondj(ii,ij) == 2 ) ilej(ii,ij) = ilj
+
+         ! warning ii*ij (zone) /= nproc (processors)!
+
+         IF( jperio == 1 .OR. jperio == 4 .OR. jperio == 6 ) THEN
+            IF( jpni == 1 )THEN
+               ibondi(ii,ij) = 2
+               nperio = 1
+            ELSE
+               ibondi(ii,ij) = 0
+            ENDIF
+            IF( MOD(jarea,jpni) == 0 ) THEN
+               ioea(ii,ij) = iproc - (jpni-1)
+               ione(ii,ij) = ione(ii,ij) - jpni
+               iose(ii,ij) = iose(ii,ij) - jpni
+            ENDIF
+            IF( MOD(jarea,jpni) == 1 ) THEN
+               iowe(ii,ij) = iproc + jpni - 1
+               ionw(ii,ij) = ionw(ii,ij) + jpni
+               iosw(ii,ij) = iosw(ii,ij) + jpni 
+            ENDIF
+            ibsw(ii,ij) = 1
+            ibnw(ii,ij) = 1
+            ibse(ii,ij) = 1
+            ibne(ii,ij) = 1
+            IF( iproc < jpni ) THEN
+               ibsw(ii,ij) = 0
+               ibse(ii,ij) = 0
+            ENDIF
+            IF( iproc >= (jpnj-1)*jpni ) THEN
+               ibnw(ii,ij) = 0
+               ibne(ii,ij) = 0
+            ENDIF
+         ENDIF
+         ipolj(ii,ij) = 0
+         IF( jperio == 3 .OR. jperio == 4 ) THEN
+            ijm1 = jpni*(jpnj-1)
+            imil = ijm1+(jpni+1)/2
+            IF( jarea > ijm1 ) ipolj(ii,ij) = 3
+            IF( MOD(jpni,2) == 1 .AND. jarea == imil ) ipolj(ii,ij) = 4
+            IF( ipolj(ii,ij) == 3 ) iono(ii,ij) = jpni*jpnj-jarea+ijm1   ! MPI rank of northern neighbour
+         ENDIF
+         IF( jperio == 5 .OR. jperio == 6 ) THEN
+            ijm1 = jpni*(jpnj-1)
+            imil = ijm1+(jpni+1)/2
+            IF( jarea > ijm1) ipolj(ii,ij) = 5
+            IF( MOD(jpni,2) == 1 .AND. jarea == imil ) ipolj(ii,ij) = 6
+            IF( ipolj(ii,ij) == 5) iono(ii,ij) = jpni*jpnj-jarea+ijm1    ! MPI rank of northern neighbour
+         ENDIF
+
+         ! Check wet points over the entire domain to preserve the MPI communication stencil
+         isurf = 0
+         DO jj = 1, ilj
+            DO  ji = 1, ili
+               IF( imask(ji+iimppt(ii,ij)-1, jj+ijmppt(ii,ij)-1) == 1)   isurf = isurf+1
+            END DO
+         END DO
+
+         IF(isurf /= 0) THEN
+            icont = icont + 1
+            ipproc(ii,ij) = icont
+            iin(icont+1) = ii
+            ijn(icont+1) = ij
+         ENDIF
+      END DO
+
+      nfipproc(:,:) = ipproc(:,:)
+
+      ! Control
+      IF(icont+1 /= jpnij) THEN
+         WRITE(ctmp1,*) ' jpni =',jpni,' jpnj =',jpnj
+         WRITE(ctmp2,*) ' jpnij =',jpnij, '< jpni x jpnj' 
+         WRITE(ctmp3,*) ' ***********, mpp_init2 finds jpnij=',icont+1
+         CALL ctl_stop( ' Eliminate land processors algorithm', '', ctmp1, ctmp2, '', ctmp3 )
+      ENDIF
+
+      ! 4. Subdomain print
+      ! ------------------
+
+      IF(lwp) THEN
+         ifreq = 4
+         il1 = 1
+         DO jn = 1,(jpni-1)/ifreq+1
+            il2 = MIN(jpni,il1+ifreq-1)
+            WRITE(numout,*)
+            WRITE(numout,9400) ('***',ji=il1,il2-1)
+            DO jj = jpnj, 1, -1
+               WRITE(numout,9403) ('   ',ji=il1,il2-1)
+               WRITE(numout,9402) jj, (ilci(ji,jj),ilcj(ji,jj),ji=il1,il2)
+               WRITE(numout,9404) (ipproc(ji,jj),ji=il1,il2)
+               WRITE(numout,9403) ('   ',ji=il1,il2-1)
+               WRITE(numout,9400) ('***',ji=il1,il2-1)
+            END DO
+            WRITE(numout,9401) (ji,ji=il1,il2)
+            il1 = il1+ifreq
+         END DO
+ 9400     FORMAT('     ***',20('*************',a3))
+ 9403     FORMAT('     *     ',20('         *   ',a3))
+ 9401     FORMAT('        ',20('   ',i3,'          '))
+ 9402     FORMAT(' ',i3,' *  ',20(i3,'  x',i3,'   *   '))
+ 9404     FORMAT('     *  ',20('      ',i3,'   *   '))
+      ENDIF
+
+
+      ! 5. neighbour treatment
+      ! ----------------------
+
+      DO jarea = 1, jpni*jpnj
+         iproc = jarea-1
+         ii = 1 + MOD(jarea-1,jpni)
+         ij = 1 +    (jarea-1)/jpni
+         IF( ipproc(ii,ij) == -1 .AND. iono(ii,ij) >= 0   &
+            .AND. iono(ii,ij) <= jpni*jpnj-1 ) THEN
+            iino = 1 + MOD(iono(ii,ij),jpni)
+            ijno = 1 +    (iono(ii,ij))/jpni
+              ! Need to reverse the logical direction of communication 
+              ! for northern neighbours of northern row processors (north-fold)
+              ! i.e. need to check that the northern neighbour only communicates
+              ! to the SOUTH (or not at all) if this area is land-only (#1057)
+            idir = 1
+            IF( ij .eq. jpnj .AND. ijno .eq. jpnj ) idir = -1    
+            IF( ibondj(iino,ijno) == idir ) ibondj(iino,ijno)=2
+            IF( ibondj(iino,ijno) == 0 ) ibondj(iino,ijno) = -idir
+         ENDIF
+         IF( ipproc(ii,ij) == -1 .AND. ioso(ii,ij) >= 0   &
+            .AND. ioso(ii,ij) <= jpni*jpnj-1 ) THEN
+            iiso = 1 + MOD(ioso(ii,ij),jpni)
+            ijso = 1 +    (ioso(ii,ij))/jpni
+            IF( ibondj(iiso,ijso) == -1 ) ibondj(iiso,ijso) = 2
+            IF( ibondj(iiso,ijso) ==  0 ) ibondj(iiso,ijso) = 1
+         ENDIF
+         IF( ipproc(ii,ij) == -1 .AND. ioea(ii,ij) >= 0   &
+            .AND. ioea(ii,ij) <= jpni*jpnj-1) THEN
+            iiea = 1 + MOD(ioea(ii,ij),jpni)
+            ijea = 1 +    (ioea(ii,ij))/jpni
+            IF( ibondi(iiea,ijea) == 1 ) ibondi(iiea,ijea) = 2
+            IF( ibondi(iiea,ijea) == 0 ) ibondi(iiea,ijea) = -1
+         ENDIF
+         IF( ipproc(ii,ij) == -1 .AND. iowe(ii,ij) >= 0   &
+            .AND. iowe(ii,ij) <= jpni*jpnj-1) THEN
+            iiwe = 1 + MOD(iowe(ii,ij),jpni)
+            ijwe = 1 +    (iowe(ii,ij))/jpni
+            IF( ibondi(iiwe,ijwe) == -1 ) ibondi(iiwe,ijwe) = 2
+            IF( ibondi(iiwe,ijwe) ==  0 ) ibondi(iiwe,ijwe) = 1
+         ENDIF
+         IF( ipproc(ii,ij) == -1 .AND. ibne(ii,ij) == 1 ) THEN
+            iine = 1 + MOD(ione(ii,ij),jpni)
+            ijne = 1 +    (ione(ii,ij))/jpni
+            IF( ibsw(iine,ijne) == 1 ) ibsw(iine,ijne) = 0
+         ENDIF
+         IF( ipproc(ii,ij) == -1 .AND. ibsw(ii,ij) == 1 ) THEN
+            iisw = 1 + MOD(iosw(ii,ij),jpni)
+            ijsw = 1 +    (iosw(ii,ij))/jpni
+            IF( ibne(iisw,ijsw) == 1 ) ibne(iisw,ijsw) = 0
+         ENDIF
+         IF( ipproc(ii,ij) == -1 .AND. ibnw(ii,ij) == 1 ) THEN
+            iinw = 1 + MOD(ionw(ii,ij),jpni)
+            ijnw = 1 +    (ionw(ii,ij))/jpni
+            IF( ibse(iinw,ijnw) == 1 ) ibse(iinw,ijnw)=0
+         ENDIF
+         IF( ipproc(ii,ij) == -1 .AND. ibse(ii,ij) == 1 ) THEN
+            iise = 1 + MOD(iose(ii,ij),jpni)
+            ijse = 1 +    (iose(ii,ij))/jpni
+            IF( ibnw(iise,ijse) == 1 ) ibnw(iise,ijse) = 0
+         ENDIF
+      END DO
+
+
+      ! 6. Change processor name
+      ! ------------------------
+
+      nproc = narea-1
+      ii = iin(narea)
+      ij = ijn(narea)
+
+      ! set default neighbours
+      noso = ioso(ii,ij)
+      nowe = iowe(ii,ij)
+      noea = ioea(ii,ij)
+      nono = iono(ii,ij) 
+      npse = iose(ii,ij)
+      npsw = iosw(ii,ij)
+      npne = ione(ii,ij)
+      npnw = ionw(ii,ij)
+
+      ! check neighbours location
+      IF( ioso(ii,ij) >= 0 .AND. ioso(ii,ij) <= (jpni*jpnj-1) ) THEN 
+         iiso = 1 + MOD(ioso(ii,ij),jpni)
+         ijso = 1 +    (ioso(ii,ij))/jpni
+         noso = ipproc(iiso,ijso)
+      ENDIF
+      IF( iowe(ii,ij) >= 0 .AND. iowe(ii,ij) <= (jpni*jpnj-1) ) THEN 
+         iiwe = 1 + MOD(iowe(ii,ij),jpni)
+         ijwe = 1 +    (iowe(ii,ij))/jpni
+         nowe = ipproc(iiwe,ijwe)
+      ENDIF
+      IF( ioea(ii,ij) >= 0 .AND. ioea(ii,ij) <= (jpni*jpnj-1) ) THEN 
+         iiea = 1 + MOD(ioea(ii,ij),jpni)
+         ijea = 1 +    (ioea(ii,ij))/jpni
+         noea = ipproc(iiea,ijea)
+      ENDIF
+      IF( iono(ii,ij) >= 0 .AND. iono(ii,ij) <= (jpni*jpnj-1) ) THEN 
+         iino = 1 + MOD(iono(ii,ij),jpni)
+         ijno = 1 +    (iono(ii,ij))/jpni
+         nono = ipproc(iino,ijno)
+      ENDIF
+      IF( iose(ii,ij) >= 0 .AND. iose(ii,ij) <= (jpni*jpnj-1) ) THEN 
+         iise = 1 + MOD(iose(ii,ij),jpni)
+         ijse = 1 +    (iose(ii,ij))/jpni
+         npse = ipproc(iise,ijse)
+      ENDIF
+      IF( iosw(ii,ij) >= 0 .AND. iosw(ii,ij) <= (jpni*jpnj-1) ) THEN 
+         iisw = 1 + MOD(iosw(ii,ij),jpni)
+         ijsw = 1 +    (iosw(ii,ij))/jpni
+         npsw = ipproc(iisw,ijsw)
+      ENDIF
+      IF( ione(ii,ij) >= 0 .AND. ione(ii,ij) <= (jpni*jpnj-1) ) THEN 
+         iine = 1 + MOD(ione(ii,ij),jpni)
+         ijne = 1 +    (ione(ii,ij))/jpni
+         npne = ipproc(iine,ijne)
+      ENDIF
+      IF( ionw(ii,ij) >= 0 .AND. ionw(ii,ij) <= (jpni*jpnj-1) ) THEN 
+         iinw = 1 + MOD(ionw(ii,ij),jpni)
+         ijnw = 1 +    (ionw(ii,ij))/jpni
+         npnw = ipproc(iinw,ijnw)
+      ENDIF
+      nbnw = ibnw(ii,ij)
+      nbne = ibne(ii,ij)
+      nbsw = ibsw(ii,ij)
+      nbse = ibse(ii,ij)
+      nlcj = ilcj(ii,ij)  
+      nlci = ilci(ii,ij)  
+      nldi = ildi(ii,ij)
+      nlei = ilei(ii,ij)
+      nldj = ildj(ii,ij)
+      nlej = ilej(ii,ij)
+      nbondi = ibondi(ii,ij)
+      nbondj = ibondj(ii,ij)
+      nimpp = iimppt(ii,ij)  
+      njmpp = ijmppt(ii,ij)  
+      DO jproc = 1, jpnij
+         ii = iin(jproc)
+         ij = ijn(jproc)
+         nimppt(jproc) = iimppt(ii,ij)  
+         njmppt(jproc) = ijmppt(ii,ij)  
+         nlcjt(jproc) = ilcj(ii,ij)
+         nlcit(jproc) = ilci(ii,ij)
+         nldit(jproc) = ildi(ii,ij)
+         nleit(jproc) = ilei(ii,ij)
+         nldjt(jproc) = ildj(ii,ij)
+         nlejt(jproc) = ilej(ii,ij)
+      END DO
+
+      ! Save processor layout in ascii file
+      IF (lwp) THEN
+         CALL ctl_opn( inum, 'layout.dat', 'REPLACE', 'FORMATTED', 'SEQUENTIAL', -1, numout, .FALSE., narea )
+         WRITE(inum,'(a)') '   jpnij     jpi     jpj     jpk  jpiglo  jpjglo'
+         WRITE(inum,'(6i8)') jpnij,jpi,jpj,jpk,jpiglo,jpjglo
+         WRITE(inum,'(a)') 'NAREA nlci nlcj nldi nldj nlei nlej nimpp njmpp'
+
+        DO  jproc = 1, jpnij
+         WRITE(inum,'(9i5)') jproc, nlcit(jproc), nlcjt(jproc), &
+                                      nldit(jproc), nldjt(jproc), &
+                                      nleit(jproc), nlejt(jproc), &
+                                      nimppt(jproc), njmppt(jproc)
+        END DO
+        CLOSE(inum)   
+      END IF
+
+      ! Defined npolj, either 0, 3 , 4 , 5 , 6
+      ! In this case the important thing is that npolj /= 0
+      ! Because if we go through these line it is because jpni >1 and thus
+      ! we must use lbcnorthmpp, which tests only npolj =0 or npolj /= 0
+
+      npolj = 0
+      ij = ijn(narea)
+
+      IF( jperio == 3 .OR. jperio == 4 ) THEN
+         IF( ij == jpnj ) npolj = 3
+      ENDIF
+
+      IF( jperio == 5 .OR. jperio == 6 ) THEN
+         IF( ij == jpnj ) npolj = 5
+      ENDIF
+
+      ! Periodicity : no corner if nbondi = 2 and nperio != 1
+
+      IF(lwp) THEN
+         WRITE(numout,*) ' nproc  = ', nproc
+         WRITE(numout,*) ' nowe   = ', nowe  , ' noea   =  ', noea
+         WRITE(numout,*) ' nono   = ', nono  , ' noso   =  ', noso
+         WRITE(numout,*) ' nbondi = ', nbondi
+         WRITE(numout,*) ' nbondj = ', nbondj
+         WRITE(numout,*) ' npolj  = ', npolj
+         WRITE(numout,*) ' nperio = ', nperio
+         WRITE(numout,*) ' nlci   = ', nlci
+         WRITE(numout,*) ' nlcj   = ', nlcj
+         WRITE(numout,*) ' nimpp  = ', nimpp
+         WRITE(numout,*) ' njmpp  = ', njmpp
+         WRITE(numout,*) ' nreci  = ', nreci  , ' npse   = ', npse
+         WRITE(numout,*) ' nrecj  = ', nrecj  , ' npsw   = ', npsw
+         WRITE(numout,*) ' jpreci = ', jpreci , ' npne   = ', npne
+         WRITE(numout,*) ' jprecj = ', jprecj , ' npnw   = ', npnw
+         WRITE(numout,*)
+      ENDIF
+
+      IF( nperio == 1 .AND. jpni /= 1 ) CALL ctl_stop( ' mpp_init2: error on cyclicity' )
+
+      ! Prepare mpp north fold
+
+      IF( jperio >= 3 .AND. jperio <= 6 .AND. jpni > 1 ) THEN
+         CALL mpp_ini_north
+         IF(lwp) WRITE(numout,*) ' mpp_init2 : North fold boundary prepared for jpni >1'
+      ENDIF
+
+      CALL FLUSH(numout)
+
+      ! Prepare NetCDF output file (if necessary)
+      CALL mpp_init_ioipsl
+
+
+   END SUBROUTINE mpp_init2

@@ -1,0 +1,99 @@
+#PBS -N AMM7_ENS
+#PBS -l select=28
+#PBS -l walltime=00:20:00
+#PBS -A n01-Recicle
+
+## PBS_O_WORKDIR = directory from which the batch job is launched.
+echo "PBS_O_WORKDIR = " $PBS_O_WORKDIR
+cd $PBS_O_WORKDIR
+export NPROC=`qstat -f $PBS_JOBID | grep mppwidth | awk '{print $3}'`
+echo "Running on $NPROC cores"
+
+OCEANCORES=146
+XIOCORES=1
+
+ulimit -c unlimited
+ulimit -s unlimited
+
+date
+
+year=1970
+
+# Array pretending to be a Pythonic dictionary
+ARRAY=( "HadGEM2-ES:40"
+        "HadGEM2-CC:40"
+        "GFDL-ESM2G:50"
+        "GFDL-ESM2M:50" )
+
+
+for ens in "${ARRAY[@]}"
+do
+
+  rdt=300
+  bar=40
+  nam="${ens%%:*}"
+  jpk="${ens##*:}"
+
+  if [ $year -eq 1970 ]
+  then
+    tst=1
+    rst=".false."
+  else
+    tst=`./end_time_step $(( $year - 1 )) $rdt` ; tst=$(( $tst +1 ))
+    rst=".true."
+  fi
+  ten=`./end_time_step $year $rdt`
+  ten=288
+  sed "s/XXX_EXP_XXX/$nam/g" ../ENSEMBLE_INPUTS/namelist_cfg_template > tmp_out ; mv tmp_out namelist
+  sed "s/XXX_TST_XXX/$tst/g" namelist                                 > tmp_out ; mv tmp_out namelist
+  sed "s/XXX_TEN_XXX/$ten/g" namelist                                 > tmp_out ; mv tmp_out namelist
+  sed "s/XXX_RDT_XXX/$rdt/g" namelist                                 > tmp_out ; mv tmp_out namelist
+  sed "s/XXX_JPK_XXX/$jpk/g" namelist                                 > tmp_out ; mv tmp_out namelist
+  sed "s/XXX_MDL_XXX/$nam\_rcp85/g" namelist                          > tmp_out ; mv tmp_out namelist
+  sed "s/XXX_RST_XXX/$rst/g" namelist                                 > tmp_out ; mv tmp_out ../ENSEMBLE_MEMBERS/ENS_$nam/namelist_cfg
+  rm namelist
+
+done
+
+for xp in `ls -d ../ENSEMBLE_MEMBERS/ENS_HadGEM2* ../ENSEMBLE_MEMBERS/ENS_GFDL*`
+do
+  cd $PBS_O_WORKDIR/$xp
+  pwd
+  echo "aprun -b -n $XIOCORES -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa &"
+  cp namelist_cfg meta_out/namelist.$year
+  aprun -b -n $OCEANCORES -N 24 ./opa   >&  stdouterr_nemo : -N $XIOCORES -n1 ./xios_server.exe >&  stdouterr_xios &
+  echo $xp
+  date
+done
+
+date
+wait
+
+cd $PBS_O_WORKDIR
+for xp in `ls -d ../ENSEMBLE_MEMBERS/ENS_HadGEM2* ../ENSEMBLE_MEMBERS/ENS_GFDL*`
+do
+  cd $PBS_O_WORKDIR/$xp
+  mdl=`echo $i  | sed s/ENS_//`
+  mv *_?d_*grid*.nc OUTPUTS &
+  echo $xp
+  date
+
+done
+wait
+#qsub process_months
+exit
+
+#current_stp=`sed -n 1,1p time.step`
+#if [ ! $current_stp -eq $ten ]
+#then 
+#    exit
+#  fi
+
+#  cp ocean.output meta_out/ocean.output.$year
+#  cp namelist_ice meta_out/namelist_ice.$year
+#  cp solver.stat meta_out/solver.stat.$year
+#  cp time.step meta_out/time.step.$year
+
+#  SCRIPTS/rst_lnk $NPROC $current_stp $nam
+#  SCRIPTS/rst_lnk_ice $NPROC $current_stp $nam
+
