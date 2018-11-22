@@ -1,1 +1,0 @@
-../../ENSEMBLE_INPUTS/coordinates.skagbdy.nc

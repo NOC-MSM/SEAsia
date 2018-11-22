@@ -1,1 +1,0 @@
-../../ENSEMBLE_INPUTS/IC/ic_CanESM2_1970.nc
