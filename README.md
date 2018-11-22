@@ -2,7 +2,7 @@
 NEMO configurations
 
 Each configuration directory should be laid out in the following manner, to
-faciliate configuration archival and sharing:
+facilitate configuration archival and sharing:
 
 <pre>
 MYCONFIG
@@ -36,5 +36,7 @@ MYCONFIG
 | |____runscript
 |____MY_SRC
 | |____*.F90
+|____INPUTS
+| |____namelist.bdy
 |____README.md
 </pre>

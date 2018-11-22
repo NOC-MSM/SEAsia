@@ -9,7 +9,9 @@ Suggest using the same unsernam as ARCHER account
   cd $WDIR
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
 
-Use my XIOS file (see ``%XIOS_HOME``). Copy from *store*::
+Use my XIOS file (see ``%XIOS_HOME``). Copy from *store*. Note that you are
+compiling with a particular version of XIOS in mind. This must match the
+xios_server.exe that is called at model run time::
 
   cp $WORK/$USER/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
 

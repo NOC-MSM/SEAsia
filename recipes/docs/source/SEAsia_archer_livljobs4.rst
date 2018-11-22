@@ -3008,6 +3008,7 @@ Save in ``BLD/bin`` as ``nemo_FES14-tides_diaharm-fast.exe``
 Resubmit
 PENDING **5748307.sdb **
 
+It works! Though the SST does heat up a bit (about 4 deg in 9 days)
 
 
 ----
@@ -3063,12 +3064,22 @@ Backup to repo key files
   rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/namelist_cfg SEAsia_EXP_namelist_cfg
 
   # PyNEMO namelist.bdy
-  rsync -utv jelt@livljobs4:/work/jelt/NEMO/SEAsia/INPUTS/namelist.bdy SEAsia_namelist.bdy
+  #rsync -utv jelt@livljobs4:/work/jelt/NEMO/SEAsia/INPUTS/namelist.bdy SEAsia_namelist.bdy
 
   # Python quick plot of SSH in the output.abort.nc file
   rsync -uvt jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/EXP00/quickplotNEMO.py quickplotNEMO.py
 
+Add PyNEMO namelist.bdy to git repo::
 
+  cd $INPUTS/../..
+
+  git init .
+  git remote add origin git@github.com:NOC-MSM/NEMO_cfgs.git
+  git config core.sparsecheckout true
+  echo "SEAsia/INPUTS/*" >> .git/info/sparse-checkout
+
+  git add SEAsia/INPUTS/namelist.bdy
+  git commit -m 'add namelist.bdy'
 ---
 
 
