@@ -155,16 +155,6 @@ MONSooN::
   cd /projects/jcomp/fred/SURGE/AMM7_INPUTS
   scp amm7_surge_domain_cfg.nc jelt@login.archer.ac.uk:$INPUTS/domain_cfg.nc
 
-.. note: update to FES
-  #Copy the tides from a AMM7 run (Note these are TPXO tides)::
-  #
-  #  cp /work/n01/n01/nibrun/RUNS/AMM7/TEST/bdy/amm7_bdytide*nc $INPUTS/.
-  #  cp /work/n01/n01/nibrun/RUNS/AMM7/TEST/coordinates.bdy.nc .
-  #
-  #Get running with tides only. Then add met from Nico's wiki and :ref:`EAfrica_Surge`
-  #
-  #Something has broken. It worked but do not now. I think I've reverted all minor mods...
-  #It can only be a namlist_cfg change...
 
 
 Generate tidal boundary conditions
@@ -233,16 +223,6 @@ In ipython::
   dset.variables['mask'][:,0] = -1        # Western boundary
   dset.close()
 
-.. delete
-  ny,nx = numpy.shape(dset.variables['mask'][:])
-
-  [x1,y1] = [500, ny]
-  [x2,y2] = [nx, 300]
-  for i in range(x1,nx):
-    for j in range(y2,ny):
-      if j*(x2-x1) + i*(y1-y2) -y1*x2+y2*x1 > 0:
-        dset.variables['mask'][j,i] = -1
-  dset.close()
 
 
 Make a bathymetry file from envolope bathymetry variable ``hbatt``
