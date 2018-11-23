@@ -75,15 +75,14 @@ Put *xml file into EXP. If git cloning it is already there::
   rsync -uvt /work/n01/n01/nibrun/RUNS/SWPacific/SIMU/field_def_nemo-opa.xml $EXP/.
 
 
-.. Note: I think that this is no longer required.
-  Add a couple of extra lines into the field_def files. This is a glitch in the surge code,
-  because it doesn't expect you to not care about the winds::
+Add a couple of extra lines into the field_def files. This is a glitch in the surge code,
+because it doesn't expect you to not care about the winds::
 
-    vi $EXP/field_def_nemo-opa.xml
-    line 338
-    <field id="wspd"         long_name="wind speed module"                     standard_name="wind_speed"                                                           unit="m/s"                            />
-    <field id="uwnd"         long_name="u component of wind"       unit="m/s"         />
-    <field id="vwnd"         long_name="v component of wind"       unit="m/s"        />
+  vi $EXP/field_def_nemo-opa.xml
+  line 338
+  <field id="wspd"         long_name="wind speed module"                     standard_name="wind_speed"                                                           unit="m/s"                            />
+  <field id="uwnd"         long_name="u component of wind"       unit="m/s"         />
+  <field id="vwnd"         long_name="v component of wind"       unit="m/s"        />
 
 
 Load modules ::
@@ -414,3 +413,49 @@ Updates to the namelist_cfg to reflect the new files.
 ARCHER:
 
 It works!!
+
+
+Backup to git repo
+==================
+
+Not sure about the following. It is definiately a good idea not to try and write
+to master, especially if --force is used on a spare checkout; you might
+overwrite the the whole repo with null ...
+Perhaps the safest way is to create new CONFIG direction from the recipe repo
+(from a linux box), push changes and then pull it down as a sparse repo to a
+ new branch on ARCHER.
+::
+
+  cd $CDIR
+
+  git init .
+  git remote add -f origin git@github.com:NOC-MSM/NEMO_cfgs.git
+  git config core.sparsecheckout true
+
+
+Specify the folders I want::
+
+  echo $CONFIG/* >> .git/info/sparse-checkout
+
+Last but not least, update your empty repo with the state from the remote. (And
+set the upstream remote master)::
+
+git checkout -b amm7
+cd AMM7_SURGE/EXP00
+git add namelist_* *xml runscript
+git commit -m 'add runtime files'
+
+git push --set-upstream origin amm7
+
+To merge amm7 with master do something like::
+
+  git checkout master
+  git checkout other_branch .
+  (with period)
+
+This will make full copy of other_branch to current (master): Then make regular commit::
+
+  git add --all
+  git commit -m "* copy other_branch to master working tree"
+
+---
