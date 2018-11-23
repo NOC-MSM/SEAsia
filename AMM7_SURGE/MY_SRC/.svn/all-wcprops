@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/nemo/svn/!svn/ver/9244/branches/UKMO/dev_r8814_surge_modelling_Nemo4/NEMOGCM/CONFIG/AMM7_SURGE/MY_SRC
+END
+usrdef_sbc.F90
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/nemo/svn/!svn/ver/9244/branches/UKMO/dev_r8814_surge_modelling_Nemo4/NEMOGCM/CONFIG/AMM7_SURGE/MY_SRC/usrdef_sbc.F90
+END
+usrdef_istate.F90
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/nemo/svn/!svn/ver/9120/branches/UKMO/dev_r8814_surge_modelling_Nemo4/NEMOGCM/CONFIG/AMM7_SURGE/MY_SRC/usrdef_istate.F90
+END
