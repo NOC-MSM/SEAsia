@@ -5,9 +5,9 @@
 !-----------------------------------------------------------------------
 &namrun        !   parameters of the run
 !-----------------------------------------------------------------------
-  cn_exp      =  "AMM7_surge"  !  experience name
+  cn_exp      =  "AMM7_SURGE"  !  experience name
   nn_it000    =  1   !  first time step
-  nn_itend    = 7200   ! plus 30*4 days
+  nn_itend    = 7200 !  365 days 8 per hour ! 70080   ! plus 30*4 days
   nn_date0    =  20180601 !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
   nn_time0    =       0   !  initial time of day in hhmm
   nn_leapy    =       1   !  Leap year calendar (1) or not (0)
@@ -17,7 +17,7 @@
     !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
     !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
     !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
-    cn_ocerst_in    = "AMM7_surge_00576000_restart"   !  suffix of ocean restart name (input)
+    cn_ocerst_in    = "AMM7_SURGE_00007200_restart"   !  suffix of ocean restart name (input)
     cn_ocerst_indir = "./Restart_files"         !  directory from which to read input ocean restarts
     cn_ocerst_out   = "restart"   !  suffix of ocean restart name (output)
     cn_ocerst_outdir= "./Restart_files"         !  directory in which to write output ocean restarts
@@ -36,7 +36,7 @@
 &namdom        !   space and time domain (bathymetry, mesh, timestep)
 !-----------------------------------------------------------------------
    ln_2d        = .true.  !  (=T) run in 2D barotropic mode (no tracer processes or vertical diffusion)
-   rn_rdt      =   15.    !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_rdt      =   450    !  time step for the dynamics (and tracer if nn_acc=0)
 /
 
 !-----------------------------------------------------------------------
@@ -103,7 +103,7 @@
 &nam_tide      !   tide parameters
 !-----------------------------------------------------------------------
    ln_tide     = .true.
-   ln_tide_ramp = .false.
+   ln_tide_ramp = .true.
    rdttideramp =    1.
    dn_love_number = 0.69
 !   clname(1)     =   'M2'   !  name of constituent
@@ -171,7 +171,7 @@
 !-----------------------------------------------------------------------
    nn_bfr      =    2      !  type of bottom friction :   = 0 : free slip,  = 1 : linear friction
                            !                              = 2 : nonlinear friction
-   rn_bfri2    =    2.4e-2 !  bottom drag coefficient (non linear case)
+   rn_bfri2    =    2.4e-3 !  bottom drag coefficient (non linear case)
    rn_bfeb2    =    0.0e0  !  bottom turbulent kinetic energy background  (m2/s2)
    ln_loglayer =   .false. !  loglayer bottom friction (only effect when nn_bfr = 2)
    rn_bfrz0    =    0.003  !  bottom roughness (only effect when ln_loglayer = .true.)

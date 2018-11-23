@@ -1,5 +1,5 @@
 
-.. _AMM7_surge:
+.. _AMM7_SURGE:
 
 *****************************************
 Setting up AMM7 surge model
@@ -18,7 +18,7 @@ Login to Archer ::
 
 Create file 'temporary_path_names_for_NEMO_build_surge' and add the following ::
 
-  export CONFIG=AMM7_surge
+  export CONFIG=AMM7_SURGE
   export WORK=/work/n01/n01
   export WDIR=/work/n01/n01/$USER/$CONFIG
   export INPUTS=$WDIR/INPUTS
@@ -31,32 +31,120 @@ execute e.g. ::
 
   . ~/temporary_path_names_for_NEMO_build_surge
 
-Make the paths that would normally be created in the buid method.
+Get the code::
+
+  mkdir $WDIR
+  mkdir $INPUTS
+  cd $WDIR
+  svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/UKMO/dev_r8814_surge_modelling_Nemo4/NEMOGCM dev_r8814_surge_modelling_Nemo4
+
+Or make the paths that would normally be created in the buid method.
  (Here we grab prebuilt files)::
 
-    mkdir /work/n01/n01/jelt/AMM7_surge
-    mkdir /work/n01/n01/jelt/AMM7_surge/INPUTS
-    mkdir /work/n01/n01/jelt/AMM7_surge/dev_r8814_surge_modelling_Nemo4/
-    mkdir /work/n01/n01/jelt/AMM7_surge/dev_r8814_surge_modelling_Nemo4/CONFIG
-    mkdir /work/n01/n01/jelt/AMM7_surge/dev_r8814_surge_modelling_Nemo4/CONFIG/AMM7_surge
-    mkdir /work/n01/n01/jelt/AMM7_surge/dev_r8814_surge_modelling_Nemo4/CONFIG/AMM7_surge/EXP0
+    #mkdir $CDIR/$CONFIG/MY_SRC/
+    #mkdir /work/n01/n01/jelt/AMM7_SURGE/dev_r8814_surge_modelling_Nemo4/
+    #mkdir /work/n01/n01/jelt/AMM7_SURGE/dev_r8814_surge_modelling_Nemo4/CONFIG
+    #mkdir /work/n01/n01/jelt/AMM7_SURGE/dev_r8814_surge_modelling_Nemo4/CONFIG/AMM7_surge
+    #mkdir /work/n01/n01/jelt/AMM7_SURGE/dev_r8814_surge_modelling_Nemo4/CONFIG/AMM7_surge/EXP00
 
     ln -s $INPUTS $EXP/bdydta
 
+Put files into MY_SRC / get (git) files from MY_SRC::
+
+  rsync -uvt $WORK/jelt/LBay/START_FILES/dommsk.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt $WORK/jelt/LBay/START_FILES/bdyini.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/MY_SRC/stpctl.F90 $CDIR/$CONFIG/MY_SRC/.
+  #I.e.   rsync -uvt $WORK/$USER/*/git_repo/SEAsia/MY_SRC/stpctl.F90 $CDIR/$CONFIG/MY_SRC/.
+
+Files for improved tides and (last 2 items for) harmonic analysis::
+
+  cd /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC
+  #cp bdyini.F90 $CDIR/$CONFIG/MY_SRC/. # Already have this file
+  rsync -uvt step.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt step_oce.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt tideini.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt tide_FES14.h90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt sbctide.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt tide_mod.F90 $CDIR/$CONFIG/MY_SRC/.
+  #cp bdytides.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt diaharm.F90 $CDIR/$CONFIG/MY_SRC/.
+  rsync -uvt diaharm_fast.F90 $CDIR/$CONFIG/MY_SRC/.
+
+Put *xml file into EXP. If git cloning it is already there::
+
+  rsync -uvt /work/n01/n01/nibrun/RUNS/SWPacific/SIMU/field_def_nemo-opa.xml $EXP/.
+
+
+Add a couple of extra lines into the field_def files. This is a glitch in the surge code,
+because it doesn't expect you to not care about the winds::
+
+  vi $EXP/field_def_nemo-opa.xml
+  line 338
+  <field id="wspd"         long_name="wind speed module"                     standard_name="wind_speed"                                                           unit="m/s"                            />
+  <field id="uwnd"         long_name="u component of wind"       unit="m/s"         />
+  <field id="vwnd"         long_name="v component of wind"       unit="m/s"        />
+
+
+Load modules ::
+
+  module load cray-netcdf-hdf5parallel/4.4.1.1
+  module load cray-hdf5-parallel/1.10.0.1
+  module swap PrgEnv-cray PrgEnv-intel/5.2.82
+
+1b) Build XIOS2 @ r1242
+======================
+
+Follow instructions at :ref:`build_XIOS2`
+(Note the final instruction to link the xios_server.exe may not work if the file structure has not been set
+up, leave it, we do it here anyway)
+
+
 Copy XIOS executable from working domain::
 
-  ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
+  ln -s /work/n01/n01/$USER/xios-2.0_r1242/bin/xios_server.exe $EXP/xios_server.exe
+  #ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
 
-Copy compiled surge code from MASSMO experiment::
+
+1c) Build NEMO
+=============
+
+Alreadty got NEMO branch ::
+
+    #cd $WDIR
+    #svn co http://forge.ipsl.jussieu.fr/nemo/svn/branches/UKMO/dev_r8814_surge_modelling_Nemo4/NEMOGCM dev_r8814_surge_modelling_Nemo4
+
+
+
+Copy files required to build nemo.exe . Or get it from git repo. Or get it here.
+(Use the FES ready version).
+The compile flags::
+
+  vi $CDIR/$CONFIG/cpp_AMM7_SURGE.fcm
+  bld::tool::fppkeys  key_nosignedzero key_diainstant key_mpp_mpi key_iomput  \
+                      key_diaharm_fast key_FES14_tides
+
+The compiler options (get from git repo download, or find elsewhere)::
+
+  cp $CDIR/$CONFIG/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
+  #cp $WORK/$USER/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/.
+
+
+Make NEMO ::
+
+  cd $CDIR
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+
+#Copy compiled surge code from MASSMO experiment::
 
   # A version that will run with Nico tide modifications
-  ln -s /work/n01/n01/jelt/MASSMO5_surge/dev_r8814_surge_modelling_Nemo4/CONFIG/MASSMO5_surge/BLD/bin/nemo.exe $EXP/opa
+  #ln -s /work/n01/n01/jelt/MASSMO5_surge/dev_r8814_surge_modelling_Nemo4/CONFIG/MASSMO5_surge/BLD/bin/nemo.exe $EXP/opa
   # A version that will run with the _Old Tides_
   #ln -s /work/n01/n01/jelt/Solent_surge/dev_r8814_surge_modelling_Nemo4/CONFIG/Solent_surge/BLD/bin/nemo.exe $EXP/opa
 
 Copy across some EXP files (added a PBS -q short to runscript)::
 
-  cp /work/n01/n01/jelt/MASSMO5_surge/dev_r8814_surge_modelling_Nemo4/CONFIG/AMM7_SURGE/EXP00/* $EXP/.
+  #cp /work/n01/n01/jelt/MASSMO5_surge/dev_r8814_surge_modelling_Nemo4/CONFIG/AMM7_SURGE/EXP00/* $EXP/.
   cp /work/n01/n01/jelt/MASSMO5_surge/dev_r8814_surge_modelling_Nemo4/CONFIG/MASSMO5_surge/EXP00/runscript $EXP/.
 
 
@@ -65,18 +153,8 @@ Copy across domain_cfg.nc
 MONSooN::
 
   cd /projects/jcomp/fred/SURGE/AMM7_INPUTS
-  scp amm7_surge_domain_cfg.nc jelt@login.archer.ac.uk:$EXP/.
+  scp amm7_surge_domain_cfg.nc jelt@login.archer.ac.uk:$INPUTS/domain_cfg.nc
 
-
-Copy the tides from a AMM7 run (Note these are TPXO tides)::
-
-  cp /work/n01/n01/nibrun/RUNS/AMM7/TEST/bdy/amm7_bdytide*nc $INPUTS/.
-  cp /work/n01/n01/nibrun/RUNS/AMM7/TEST/coordinates.bdy.nc .
-
-Get running with tides only. Then add met from Nico's wiki and :ref:`EAfrica_Surge`
-
-Something has broken. It worked but do not now. I think I've reverted all minor mods...
-It can only be a namlist_cfg change...
 
 
 Generate tidal boundary conditions
@@ -89,8 +167,8 @@ so some of the error checking for 3D boundary conditions is not needed but has
 to be satisfied. So, get all the necessary files onto this machine.
 This contains the grid::
 
-  cd $INPUTS
-  rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/domain_cfg.nc .
+  ls $INPUTS/domain_cfg.nc
+  #rsync -uvrt jelt@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/domain_cfg.nc .
 
 This is used to ...::
 
@@ -145,16 +223,6 @@ In ipython::
   dset.variables['mask'][:,0] = -1        # Western boundary
   dset.close()
 
-.. delete
-  ny,nx = numpy.shape(dset.variables['mask'][:])
-
-  [x1,y1] = [500, ny]
-  [x2,y2] = [nx, 300]
-  for i in range(x1,nx):
-    for j in range(y2,ny):
-      if j*(x2-x1) + i*(y1-y2) -y1*x2+y2*x1 > 0:
-        dset.variables['mask'][j,i] = -1
-  dset.close()
 
 
 Make a bathymetry file from envolope bathymetry variable ``hbatt``
@@ -324,14 +392,50 @@ git commit namelist.bdy::
 Updates to the namelist_cfg to reflect the new files.
 ARCHER:
 
-Does not timestep::
+It works!!
 
-  tail ocean.output
 
-  ...
-  dia_25h_init : Output 25 hour mean diagnostics
-  ~~~~~~~~~~~~
-  Namelist nam_dia25h : set 25h outputs
-  Switch for 25h diagnostics (T) or not (F)  ln_dia25h  =  F
+Backup to git repo
+==================
 
-  AAAAAAAA
+Not sure about the following. It is definiately a good idea not to try and write
+to master, especially if --force is used on a spare checkout; you might
+overwrite the the whole repo with null ...
+Perhaps the safest way is to create new CONFIG direction from the recipe repo
+(from a linux box), push changes and then pull it down as a sparse repo to a
+ new branch on ARCHER.
+::
+
+  cd $CDIR
+
+  git init .
+  git remote add -f origin git@github.com:NOC-MSM/NEMO_cfgs.git
+  git config core.sparsecheckout true
+
+
+Specify the folders I want::
+
+  echo $CONFIG/* >> .git/info/sparse-checkout
+
+Last but not least, update your empty repo with the state from the remote. (And
+set the upstream remote master)::
+
+git checkout -b amm7
+cd AMM7_SURGE/EXP00
+git add namelist_* *xml runscript
+git commit -m 'add runtime files'
+
+git push --set-upstream origin amm7
+
+To merge amm7 with master do something like::
+
+  git checkout master
+  git checkout other_branch .
+  (with period)
+
+This will make full copy of other_branch to current (master): Then make regular commit::
+
+  git add --all
+  git commit -m "* copy other_branch to master working tree"
+
+---

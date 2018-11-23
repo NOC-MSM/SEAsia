@@ -1,0 +1,120 @@
+<!--
+ ============================================================================================== 
+    NEMO context
+============================================================================================== 
+-->
+<context id="nemo">
+<!-- $id$ -->
+<!-- Fields definition -->
+    <field_definition src="./field_def_nemo-opa.xml"/>   <!--  NEMO ocean dynamics                     -->
+
+<!-- Files definition -->
+    <file_definition src="./file_def_nemo-opa.xml"/>     <!--  NEMO ocean dynamics                     -->
+    <!-- 
+============================================================================================================
+= grid definition = = DO NOT CHANGE =
+============================================================================================================
+    -->
+    
+    <axis_definition>
+      <axis id="deptht" long_name="Vertical T levels" unit="m" positive="down" />
+      <axis id="depthu" long_name="Vertical U levels" unit="m" positive="down" />
+      <axis id="depthv" long_name="Vertical V levels" unit="m" positive="down" />
+      <axis id="depthw" long_name="Vertical W levels" unit="m" positive="down" />
+      <axis id="nfloat" long_name="Float number"      unit="-"                 />
+      <axis id="icbcla"  long_name="Iceberg class"      unit="1"               />
+      <axis id="ncatice" long_name="Ice category"       unit="1"               />
+      <axis id="iax_20C" long_name="20 degC isotherm"   unit="degC"            />
+      <axis id="iax_28C" long_name="28 degC isotherm"   unit="degC"            />
+    </axis_definition>
+ 
+    <domain_definition src="./domain_def_nemo.xml"/>
+  
+    <grid_definition>    
+
+        <!--  -->
+       <grid id="grid_T_2D" >
+         <domain id="grid_T" />
+       </grid>
+        <!--  -->
+       <grid id="grid_T_3D_ncatice" >
+         <domain id="grid_T" />
+         <axis id="ncatice" />
+       </grid>
+        <!--  -->
+       <grid id="grid_T_3D" >
+         <domain id="grid_T" />
+         <axis id="deptht" />
+       </grid>
+        <!--  -->
+       <grid id="grid_U_2D" >
+         <domain id="grid_U" />
+       </grid>
+        <!--  -->
+       <grid id="grid_U_3D" >
+         <domain id="grid_U" />
+         <axis id="depthu" />
+       </grid>
+        <!--  -->
+       <grid id="grid_V_2D" >
+         <domain id="grid_V" />
+       </grid>
+        <!--  -->
+       <grid id="grid_V_3D" >
+         <domain id="grid_V" />
+         <axis id="depthv" />
+       </grid>
+        <!--  -->
+       <grid id="grid_W_2D" >
+         <domain id="grid_W" />
+       </grid>
+        <!--  -->
+       <grid id="grid_W_3D" >
+         <domain id="grid_W" />
+         <axis id="depthw" />
+       </grid>
+        <!--  -->
+       <grid id="grid_1point" >
+         <domain domain_ref="1point"/>
+       </grid>
+        <!--  -->
+       <grid id="grid_T_nfloat" >
+         <domain id="grid_T" />
+         <axis id="nfloat" />
+       </grid>
+        <!--  -->
+       <grid id="grid_EqT" >
+         <domain domain_ref="EqT" />
+       </grid>
+        <!--  -->
+       <grid id="grid_znl_T_2D">
+         <domain id="gznl" />
+       </grid>
+        <!--  -->
+       <grid id="grid_znl_T_3D">
+         <domain id="gznl" />
+         <axis id="deptht" />
+       </grid>
+        <!--  -->
+       <grid id="grid_znl_W_3D">
+         <domain id="gznl" />
+         <axis id="depthw" />
+       </grid>
+
+      <grid id="grid_ptr_T_2D">
+       <domain id="ptr" />
+      </grid>
+
+      <grid id="grid_ptr_T_3D">
+       <domain id="ptr" />
+         <axis id="deptht" />
+       </grid>
+
+      <grid id="grid_ptr_W_3D">
+       <domain id="ptr" />
+         <axis id="depthw" />
+      </grid>
+
+    </grid_definition>   
+
+</context>
