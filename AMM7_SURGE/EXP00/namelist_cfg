@@ -6,12 +6,12 @@
 &namrun        !   parameters of the run
 !-----------------------------------------------------------------------
   cn_exp      =  "AMM7_SURGE"  !  experience name
-  nn_it000    =  7201   !  first time step
-  nn_itend    = 77280 !  365 days 8 per hour ! 70080   ! plus 30*4 days
+  nn_it000    =  1   !  first time step
+  nn_itend    = 7200 !  365 days 8 per hour ! 70080   ! plus 30*4 days
   nn_date0    =  20180601 !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
   nn_time0    =       0   !  initial time of day in hhmm
   nn_leapy    =       1   !  Leap year calendar (1) or not (0)
-  ln_rstart   =  .true.  !  start from rest (F) or from a restart file (T)
+  ln_rstart   =  .false.  !  start from rest (F) or from a restart file (T)
     nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
     nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
     !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
@@ -22,8 +22,8 @@
     cn_ocerst_out   = "restart"   !  suffix of ocean restart name (output)
     cn_ocerst_outdir= "./Restart_files"         !  directory in which to write output ocean restarts
   nn_istate   =       0   !  output the initial state (1) or not (0)
-  nn_stock    =  70080  ! 30 days  !  frequency of creation of a restart file (modulo referenced to 1)
-  nn_write    =  70080  ! 30 days  !  frequency of write in the output file   (modulo referenced to nit000)
+  nn_stock    =  7200  ! 30 days  !  frequency of creation of a restart file (modulo referenced to 1)
+  nn_write    =  7200  ! 30 days  !  frequency of write in the output file   (modulo referenced to nit000)
 /
 !-----------------------------------------------------------------------
 &namcfg        !   parameters of the configuration
