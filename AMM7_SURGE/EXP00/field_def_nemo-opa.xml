@@ -19,7 +19,6 @@
       
       <field_group id="grid_T" grid_ref="grid_T_2D" >
          <field id="e3t"          long_name="T-cell thickness"   standard_name="cell_thickness"   unit="m"   grid_ref="grid_T_3D"/>
-         <field id="e3t_surf"     long_name="T-cell thickness"   field_ref="e3t"  standard_name="cell_thickness"   unit="m"   grid_ref="grid_T_SFC"/>
          <field id="e3t_0"        long_name="Initial T-cell thickness"   standard_name="ref_cell_thickness"   unit="m"   grid_ref="grid_T_3D"/>
 
          <field id="toce"         long_name="temperature"         standard_name="sea_water_potential_temperature"   unit="degC"     grid_ref="grid_T_3D"/>
@@ -103,82 +102,217 @@
          <field id="e3tdef"       long_name="T-cell thickness deformation"                                       unit="%"   grid_ref="grid_T_3D" />
       </field_group>
 
-      <!-- Tides -->
+      <!-- WAVES -->
+      <field_group id="Waves_grid_T" grid_ref="grid_T_2D" operation="once" >
+         <field id="Hs_ERA5"    long_name="Hs from ERA5"  unit="m"      />
+      </field_group>
 
+      <!-- Tides -->
       <field_group id="Tides_T" grid_ref="grid_T_2D" operation="once" >
-         <!-- tidal composante -->
-         <field id="M2x"          long_name="M2 Elevation harmonic real part "                             unit="m"        />
-         <field id="M2y"          long_name="M2 Elevation harmonic imaginary part"                         unit="m"        />
-         <field id="S2x"          long_name="S2 Elevation harmonic real part "                             unit="m"        />
-         <field id="S2y"          long_name="S2 Elevation harmonic imaginary part"                         unit="m"        />
-         <field id="N2x"          long_name="N2 Elevation harmonic real part "                             unit="m"        />
-         <field id="N2y"          long_name="N2 Elevation harmonic imaginary part"                         unit="m"        />
-         <field id="K1x"          long_name="K1 Elevation harmonic real part "                             unit="m"        />
-         <field id="K1y"          long_name="K1 Elevation harmonic imaginary part"                         unit="m"        />
-         <field id="O1x"          long_name="O1 Elevation harmonic real part "                             unit="m"        />
-         <field id="O1y"          long_name="O1 Elevation harmonic imaginary part"                         unit="m"        />
-         <field id="Q1x"          long_name="Q1 Elevation harmonic real part "                             unit="m"        />
-         <field id="Q1y"          long_name="Q1 Elevation harmonic imaginary part"                         unit="m"        />
-         <field id="M4x"          long_name="M4 Elevation harmonic real part "                             unit="m"        />
-         <field id="M4y"          long_name="M4 Elevation harmonic imaginary part"                         unit="m"        />
-         <field id="K2x"          long_name="K2 Elevation harmonic real part "                             unit="m"        />
-         <field id="K2y"          long_name="K2 Elevation harmonic imaginary part"                         unit="m"        />
-         <field id="P1x"          long_name="P1 Elevation harmonic real part "                             unit="m"        />
-         <field id="P1y"          long_name="P1 Elevation harmonic imaginary part"                         unit="m"        />
-         <field id="Mfx"          long_name="Mf Elevation harmonic real part "                             unit="m"        />
-         <field id="Mfy"          long_name="Mf Elevation harmonic imaginary part"                         unit="m"        />
-         <field id="Mmx"          long_name="Mm Elevation harmonic real part "                             unit="m"        />
-         <field id="Mmy"          long_name="Mm Elevation harmonic imaginary part"                         unit="m"        />
+         <!-- tidal composante diaharm SSH -->
+         <field id="O1x"      long_name="O1  X comp"     unit="m/s"      />
+         <field id="O1y"    long_name="O1  Y comp"         unit="m/s"      />
+         <field id="K1x"      long_name="K1  X comp"     unit="m/s"      />
+         <field id="K1y"    long_name="K1  Y comp"         unit="m/s"      />
+         <field id="Q1x"      long_name="Q1  X comp"     unit="m/s"      />
+         <field id="Q1y"    long_name="Q1  Y comp"         unit="m/s"      />
+         <field id="P1x"      long_name="P1  X comp"     unit="m/s"      />
+         <field id="P1y"    long_name="P1  Y comp"         unit="m/s"      />
+         <field id="M2x"      long_name="M2  X comp"     unit="m/s"      />
+         <field id="M2y"    long_name="M2  Y comp"         unit="m/s"      />
+         <field id="S2x"      long_name="S2  X comp"     unit="m/s"      />
+         <field id="S2y"    long_name="S2  Y comp"         unit="m/s"      />
+         <field id="K2x"      long_name="K2  X comp"     unit="m/s"      />
+         <field id="K2y"    long_name="K2  Y comp"         unit="m/s"      />
+         <field id="N2x"      long_name="N2  X comp"     unit="m/s"      />
+         <field id="N2y"    long_name="N2  Y comp"         unit="m/s"      />
+         <field id="M4x"      long_name="M4  X comp"     unit="m/s"      />
+         <field id="M4y"    long_name="M4  Y comp"         unit="m/s"      />
+
+         <!-- tidal composante diaharmana SSH -->
+         <field id="O1amp_ssh"    long_name="O1  harmonic Amplitude"     unit="m/s"      />
+         <field id="O1pha_ssh"    long_name="O1  harmonic Phase"         unit="m/s"      />
+         <field id="K1amp_ssh"    long_name="K1  harmonic Amplitude"     unit="m/s"      />
+         <field id="K1pha_ssh"    long_name="K1  harmonic Phase"         unit="m/s"      />
+         <field id="Q1amp_ssh"    long_name="Q1  harmonic Amplitude"     unit="m/s"      />
+         <field id="Q1pha_ssh"    long_name="Q1  harmonic Phase"         unit="m/s"      />
+         <field id="P1amp_ssh"    long_name="P1  harmonic Amplitude"     unit="m/s"      />
+         <field id="P1pha_ssh"    long_name="P1  harmonic Phase"         unit="m/s"      />
+         <field id="M2amp_ssh"    long_name="M2  harmonic Amplitude"     unit="m/s"      />
+         <field id="M2pha_ssh"    long_name="M2  harmonic Phase"         unit="m/s"      />
+         <field id="S2amp_ssh"    long_name="S2  harmonic Amplitude"     unit="m/s"      />
+         <field id="S2pha_ssh"    long_name="S2  harmonic Phase"         unit="m/s"      />
+         <field id="K2amp_ssh"    long_name="K2  harmonic Amplitude"     unit="m/s"      />
+         <field id="K2pha_ssh"    long_name="K2  harmonic Phase"         unit="m/s"      />
+         <field id="N2amp_ssh"    long_name="N2  harmonic Amplitude"     unit="m/s"      />
+         <field id="N2pha_ssh"    long_name="N2  harmonic Phase"         unit="m/s"      />
+         <field id="M4amp_ssh"    long_name="M4  harmonic Amplitude"     unit="m/s"      />
+         <field id="M4pha_ssh"    long_name="M4  harmonic Phase"         unit="m/s"      />
+
       </field_group>
 	 
       <field_group id="Tides_U" grid_ref="grid_U_2D" operation="once" >
-         <field id="M2x_u"        long_name="M2 current barotrope along i-axis harmonic real part "        unit="m/s"      />
-         <field id="M2y_u"        long_name="M2 current barotrope along i-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="S2x_u"        long_name="S2 current barotrope along i-axis harmonic real part "        unit="m/s"      />
-         <field id="S2y_u"        long_name="S2 current barotrope along i-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="N2x_u"        long_name="N2 current barotrope along i-axis harmonic real part "        unit="m/s"      />
-         <field id="N2y_u"        long_name="N2 current barotrope along i-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="K1x_u"        long_name="K1 current barotrope along i-axis harmonic real part "        unit="m/s"      />
-         <field id="K1y_u"        long_name="K1 current barotrope along i-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="O1x_u"        long_name="O1 current barotrope along i-axis harmonic real part "        unit="m/s"      />
-         <field id="O1y_u"        long_name="O1 current barotrope along i-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="Q1x_u"        long_name="Q1 current barotrope along i-axis harmonic real part "        unit="m/s"      />
-         <field id="Q1y_u"        long_name="Q1 current barotrope along i-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="M4x_u"        long_name="M4 current barotrope along i-axis harmonic real part "        unit="m/s"      />
-         <field id="M4y_u"        long_name="M4 current barotrope along i-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="K2x_u"        long_name="K2 current barotrope along i-axis harmonic real part "        unit="m/s"      />
-         <field id="K2y_u"        long_name="K2 current barotrope along i-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="P1x_u"        long_name="P1 current barotrope along i-axis harmonic real part "        unit="m/s"      />
-         <field id="P1y_u"        long_name="P1 current barotrope along i-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="Mfx_u"        long_name="Mf current barotrope along i-axis harmonic real part "        unit="m/s"      />
-         <field id="Mfy_u"        long_name="Mf current barotrope along i-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="Mmx_u"        long_name="Mm current barotrope along i-axis harmonic real part "        unit="m/s"      />
-         <field id="Mmy_u"        long_name="Mm current barotrope along i-axis harmonic imaginary part "   unit="m/s"      />
+
+         <!-- tidal composante diaharm Barotropic U Velocity and bottom friction -->
+         <field id="O1x_u2d"      long_name="O1 u2D X comp"     unit="m/s"      />
+         <field id="O1y_u2d"    long_name="O1 u2D Y comp"         unit="m/s"      />
+         <field id="K1x_u2d"      long_name="K1 u2D X comp"     unit="m/s"      />
+         <field id="K1y_u2d"    long_name="K1 u2D Y comp"         unit="m/s"      />
+         <field id="Q1x_u2d"      long_name="Q1 u2D X comp"     unit="m/s"      />
+         <field id="Q1y_u2d"    long_name="Q1 u2D Y comp"         unit="m/s"      />
+         <field id="P1x_u2d"      long_name="P1 u2D X comp"     unit="m/s"      />
+         <field id="P1y_u2d"    long_name="P1 u2D Y comp"         unit="m/s"      />
+         <field id="M2x_u2d"      long_name="M2 u2D X comp"     unit="m/s"      />
+         <field id="M2y_u2d"    long_name="M2 u2D Y comp"         unit="m/s"      />
+         <field id="S2x_u2d"      long_name="S2 u2D X comp"     unit="m/s"      />
+         <field id="S2y_u2d"    long_name="S2 u2D Y comp"         unit="m/s"      />
+         <field id="K2x_u2d"      long_name="K2 u2D X comp"     unit="m/s"      />
+         <field id="K2y_u2d"    long_name="K2 u2D Y comp"         unit="m/s"      />
+         <field id="N2x_u2d"      long_name="N2 u2D X comp"     unit="m/s"      />
+         <field id="N2y_u2d"    long_name="N2 u2D Y comp"         unit="m/s"      />
+         <field id="M4x_u2d"      long_name="M4 u2D X comp"     unit="m/s"      />
+         <field id="M4y_u2d"    long_name="M4 u2D Y comp"         unit="m/s"      />
+
+         <field id="O1x_tabx"      long_name="O1 tabx X comp"     unit="m/s"      />
+         <field id="O1y_tabx"    long_name="O1 tabx Y comp"         unit="m/s"      />
+         <field id="K1x_tabx"      long_name="K1 tabx X comp"     unit="m/s"      />
+         <field id="K1y_tabx"    long_name="K1 tabx Y comp"         unit="m/s"      />
+         <field id="Q1x_tabx"      long_name="Q1 tabx X comp"     unit="m/s"      />
+         <field id="Q1y_tabx"    long_name="Q1 tabx Y comp"         unit="m/s"      />
+         <field id="P1x_tabx"      long_name="P1 tabx X comp"     unit="m/s"      />
+         <field id="P1y_tabx"    long_name="P1 tabx Y comp"         unit="m/s"      />
+         <field id="M2x_tabx"      long_name="M2 tabx X comp"     unit="m/s"      />
+         <field id="M2y_tabx"    long_name="M2 tabx Y comp"         unit="m/s"      />
+         <field id="S2x_tabx"      long_name="S2 tabx X comp"     unit="m/s"      />
+         <field id="S2y_tabx"    long_name="S2 tabx Y comp"         unit="m/s"      />
+         <field id="K2x_tabx"      long_name="K2 tabx X comp"     unit="m/s"      />
+         <field id="K2y_tabx"    long_name="K2 tabx Y comp"         unit="m/s"      />
+         <field id="N2x_tabx"      long_name="N2 tabx X comp"     unit="m/s"      />
+         <field id="N2y_tabx"    long_name="N2 tabx Y comp"         unit="m/s"      />
+         <field id="M4x_tabx"      long_name="M4 tabx X comp"     unit="m/s"      />
+         <field id="M4y_tabx"    long_name="M4 tabx Y comp"         unit="m/s"      />
+
+         <!-- tidal composante diaharmana Barotropic U Velocity and bottom friction -->
+         <field id="O1amp_u2d"    long_name="O1 u2D harmonic Amplitude"     unit="m/s"      />
+         <field id="O1pha_u2d"    long_name="O1 u2D harmonic Phase"         unit="m/s"      />
+         <field id="K1amp_u2d"    long_name="K1 u2D harmonic Amplitude"     unit="m/s"      />
+         <field id="K1pha_u2d"    long_name="K1 u2D harmonic Phase"         unit="m/s"      />
+         <field id="Q1amp_u2d"    long_name="Q1 u2D harmonic Amplitude"     unit="m/s"      />
+         <field id="Q1pha_u2d"    long_name="Q1 u2D harmonic Phase"         unit="m/s"      />
+         <field id="P1amp_u2d"    long_name="P1 u2D harmonic Amplitude"     unit="m/s"      />
+         <field id="P1pha_u2d"    long_name="P1 u2D harmonic Phase"         unit="m/s"      />
+         <field id="M2amp_u2d"    long_name="M2 u2D harmonic Amplitude"     unit="m/s"      />
+         <field id="M2pha_u2d"    long_name="M2 u2D harmonic Phase"         unit="m/s"      />
+         <field id="S2amp_u2d"    long_name="S2 u2D harmonic Amplitude"     unit="m/s"      />
+         <field id="S2pha_u2d"    long_name="S2 u2D harmonic Phase"         unit="m/s"      />
+         <field id="K2amp_u2d"    long_name="K2 u2D harmonic Amplitude"     unit="m/s"      />
+         <field id="K2pha_u2d"    long_name="K2 u2D harmonic Phase"         unit="m/s"      />
+         <field id="N2amp_u2d"    long_name="N2 u2D harmonic Amplitude"     unit="m/s"      />
+         <field id="N2pha_u2d"    long_name="N2 u2D harmonic Phase"         unit="m/s"      />
+         <field id="M4amp_u2d"    long_name="M4 u2D harmonic Amplitude"     unit="m/s"      />
+         <field id="M4pha_u2d"    long_name="M4 u2D harmonic Phase"         unit="m/s"      />
+
+         <field id="O1amp_ubfr"    long_name="O1 bfrU harmonic Amplitude"     unit="m/s"      />
+         <field id="O1pha_ubfr"    long_name="O1 bfrU harmonic Phase"         unit="m/s"      />
+         <field id="K1amp_ubfr"    long_name="K1 bfrU harmonic Amplitude"     unit="m/s"      />
+         <field id="K1pha_ubfr"    long_name="K1 bfrU harmonic Phase"         unit="m/s"      />
+         <field id="Q1amp_ubfr"    long_name="Q1 bfrU harmonic Amplitude"     unit="m/s"      />
+         <field id="Q1pha_ubfr"    long_name="Q1 bfrU harmonic Phase"         unit="m/s"      />
+         <field id="P1amp_ubfr"    long_name="P1 bfrU harmonic Amplitude"     unit="m/s"      />
+         <field id="P1pha_ubfr"    long_name="P1 bfrU harmonic Phase"         unit="m/s"      />
+         <field id="M2amp_ubfr"    long_name="M2 bfrU harmonic Amplitude"     unit="m/s"      />
+         <field id="M2pha_ubfr"    long_name="M2 bfrU harmonic Phase"         unit="m/s"      />
+         <field id="S2amp_ubfr"    long_name="S2 bfrU harmonic Amplitude"     unit="m/s"      />
+         <field id="S2pha_ubfr"    long_name="S2 bfrU harmonic Phase"         unit="m/s"      />
+         <field id="K2amp_ubfr"    long_name="K2 bfrU harmonic Amplitude"     unit="m/s"      />
+         <field id="K2pha_ubfr"    long_name="K2 bfrU harmonic Phase"         unit="m/s"      />
+         <field id="N2amp_ubfr"    long_name="N2 bfrU harmonic Amplitude"     unit="m/s"      />
+         <field id="N2pha_ubfr"    long_name="N2 bfrU harmonic Phase"         unit="m/s"      />
+         <field id="M4amp_ubfr"    long_name="M4 bfrU harmonic Amplitude"     unit="m/s"      />
+         <field id="M4pha_ubfr"    long_name="M4 bfrU harmonic Phase"         unit="m/s"      />
+
       </field_group>
 	 
       <field_group id="Tides_V" grid_ref="grid_V_2D" operation="once" >
-         <field id="M2x_v"        long_name="M2 current barotrope along j-axis harmonic real part "        unit="m/s"      />
-         <field id="M2y_v"        long_name="M2 current barotrope along j-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="S2x_v"        long_name="S2 current barotrope along j-axis harmonic real part "        unit="m/s"      />
-         <field id="S2y_v"        long_name="S2 current barotrope along j-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="N2x_v"        long_name="N2 current barotrope along j-axis harmonic real part "        unit="m/s"      />
-         <field id="N2y_v"        long_name="N2 current barotrope along j-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="K1x_v"        long_name="K1 current barotrope along j-axis harmonic real part "        unit="m/s"      />
-         <field id="K1y_v"        long_name="K1 current barotrope along j-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="O1x_v"        long_name="O1 current barotrope along j-axis harmonic real part "        unit="m/s"      />
-         <field id="O1y_v"        long_name="O1 current barotrope along j-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="Q1x_v"        long_name="Q1 current barotrope along j-axis harmonic real part "        unit="m/s"      />
-         <field id="Q1y_v"        long_name="Q1 current barotrope along j-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="M4x_v"        long_name="M4 current barotrope along j-axis harmonic real part "        unit="m/s"      />
-         <field id="M4y_v"        long_name="M4 current barotrope along j-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="K2x_v"        long_name="K2 current barotrope along j-axis harmonic real part "        unit="m/s"      />
-         <field id="K2y_v"        long_name="K2 current barotrope along j-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="P1x_v"        long_name="P1 current barotrope along j-axis harmonic real part "        unit="m/s"      />
-         <field id="P1y_v"        long_name="P1 current barotrope along j-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="Mfx_v"        long_name="Mf current barotrope along j-axis harmonic real part "        unit="m/s"      />
-         <field id="Mfy_v"        long_name="Mf current barotrope along j-axis harmonic imaginary part "   unit="m/s"      />
-         <field id="Mmx_v"        long_name="Mm current barotrope along j-axis harmonic real part "        unit="m/s"      />
-         <field id="Mmy_v"        long_name="Mm current barotrope along j-axis harmonic imaginary part "   unit="m/s"      />	 
+
+         <!-- tidal composante diaharm Barotropic V Velocity and bottom friction -->
+         <field id="O1x_v2d"      long_name="O1 v2D X comp"     unit="m/s"      />
+         <field id="O1y_v2d"    long_name="O1 v2D Y comp"         unit="m/s"      />
+         <field id="K1x_v2d"      long_name="K1 v2D X comp"     unit="m/s"      />
+         <field id="K1y_v2d"    long_name="K1 v2D Y comp"         unit="m/s"      />
+         <field id="Q1x_v2d"      long_name="Q1 v2D X comp"     unit="m/s"      />
+         <field id="Q1y_v2d"    long_name="Q1 v2D Y comp"         unit="m/s"      />
+         <field id="P1x_v2d"      long_name="P1 v2D X comp"     unit="m/s"      />
+         <field id="P1y_v2d"    long_name="P1 v2D Y comp"         unit="m/s"      />
+         <field id="M2x_v2d"      long_name="M2 v2D X comp"     unit="m/s"      />
+         <field id="M2y_v2d"    long_name="M2 v2D Y comp"         unit="m/s"      />
+         <field id="S2x_v2d"      long_name="S2 v2D X comp"     unit="m/s"      />
+         <field id="S2y_v2d"    long_name="S2 v2D Y comp"         unit="m/s"      />
+         <field id="K2x_v2d"      long_name="K2 v2D X comp"     unit="m/s"      />
+         <field id="K2y_v2d"    long_name="K2 v2D Y comp"         unit="m/s"      />
+         <field id="N2x_v2d"      long_name="N2 v2D X comp"     unit="m/s"      />
+         <field id="N2y_v2d"    long_name="N2 v2D Y comp"         unit="m/s"      />
+         <field id="M4x_v2d"      long_name="M4 v2D X comp"     unit="m/s"      />
+         <field id="M4y_v2d"    long_name="M4 v2D Y comp"         unit="m/s"      />
+
+         <field id="O1x_taby"      long_name="O1 taby X comp"     unit="m/s"      />
+         <field id="O1y_taby"    long_name="O1 taby Y comp"         unit="m/s"      />
+         <field id="K1x_taby"      long_name="K1 taby X comp"     unit="m/s"      />
+         <field id="K1y_taby"    long_name="K1 taby Y comp"         unit="m/s"      />
+         <field id="Q1x_taby"      long_name="Q1 taby X comp"     unit="m/s"      />
+         <field id="Q1y_taby"    long_name="Q1 taby Y comp"         unit="m/s"      />
+         <field id="P1x_taby"      long_name="P1 taby X comp"     unit="m/s"      />
+         <field id="P1y_taby"    long_name="P1 taby Y comp"         unit="m/s"      />
+         <field id="M2x_taby"      long_name="M2 taby X comp"     unit="m/s"      />
+         <field id="M2y_taby"    long_name="M2 taby Y comp"         unit="m/s"      />
+         <field id="S2x_taby"      long_name="S2 taby X comp"     unit="m/s"      />
+         <field id="S2y_taby"    long_name="S2 taby Y comp"         unit="m/s"      />
+         <field id="K2x_taby"      long_name="K2 taby X comp"     unit="m/s"      />
+         <field id="K2y_taby"    long_name="K2 taby Y comp"         unit="m/s"      />
+         <field id="N2x_taby"      long_name="N2 taby X comp"     unit="m/s"      />
+         <field id="N2y_taby"    long_name="N2 taby Y comp"         unit="m/s"      />
+         <field id="M4x_taby"      long_name="M4 taby X comp"     unit="m/s"      />
+         <field id="M4y_taby"    long_name="M4 taby Y comp"         unit="m/s"      />
+
+         <!-- tidal composante diaharmana Barotropic V Velocity and bottom friction -->
+         <field id="O1amp_v2d"    long_name="O1 v2D harmonic Amplitude"     unit="m/s"      />
+         <field id="O1pha_v2d"    long_name="O1 v2D harmonic Phase"         unit="m/s"      />
+         <field id="K1amp_v2d"    long_name="K1 v2D harmonic Amplitude"     unit="m/s"      />
+         <field id="K1pha_v2d"    long_name="K1 v2D harmonic Phase"         unit="m/s"      />
+         <field id="Q1amp_v2d"    long_name="Q1 v2D harmonic Amplitude"     unit="m/s"      />
+         <field id="Q1pha_v2d"    long_name="Q1 v2D harmonic Phase"         unit="m/s"      />
+         <field id="P1amp_v2d"    long_name="P1 v2D harmonic Amplitude"     unit="m/s"      />
+         <field id="P1pha_v2d"    long_name="P1 v2D harmonic Phase"         unit="m/s"      />
+         <field id="M2amp_v2d"    long_name="M2 v2D harmonic Amplitude"     unit="m/s"      />
+         <field id="M2pha_v2d"    long_name="M2 v2D harmonic Phase"         unit="m/s"      />
+         <field id="S2amp_v2d"    long_name="S2 v2D harmonic Amplitude"     unit="m/s"      />
+         <field id="S2pha_v2d"    long_name="S2 v2D harmonic Phase"         unit="m/s"      />
+         <field id="K2amp_v2d"    long_name="K2 v2D harmonic Amplitude"     unit="m/s"      />
+         <field id="K2pha_v2d"    long_name="K2 v2D harmonic Phase"         unit="m/s"      />
+         <field id="N2amp_v2d"    long_name="N2 v2D harmonic Amplitude"     unit="m/s"      />
+         <field id="N2pha_v2d"    long_name="N2 v2D harmonic Phase"         unit="m/s"      />
+         <field id="M4amp_v2d"    long_name="M4 v2D harmonic Amplitude"     unit="m/s"      />
+         <field id="M4pha_v2d"    long_name="M4 v2D harmonic Phase"         unit="m/s"      />
+
+         <field id="O1amp_vbfr"    long_name="O1 bfrV harmonic Amplitude"     unit="m/s"      />
+         <field id="O1pha_vbfr"    long_name="O1 bfrV harmonic Phase"         unit="m/s"      />
+         <field id="K1amp_vbfr"    long_name="K1 bfrV harmonic Amplitude"     unit="m/s"      />
+         <field id="K1pha_vbfr"    long_name="K1 bfrV harmonic Phase"         unit="m/s"      />
+         <field id="Q1amp_vbfr"    long_name="Q1 bfrV harmonic Amplitude"     unit="m/s"      />
+         <field id="Q1pha_vbfr"    long_name="Q1 bfrV harmonic Phase"         unit="m/s"      />
+         <field id="P1amp_vbfr"    long_name="P1 bfrV harmonic Amplitude"     unit="m/s"      />
+         <field id="P1pha_vbfr"    long_name="P1 bfrV harmonic Phase"         unit="m/s"      />
+         <field id="M2amp_vbfr"    long_name="M2 bfrV harmonic Amplitude"     unit="m/s"      />
+         <field id="M2pha_vbfr"    long_name="M2 bfrV harmonic Phase"         unit="m/s"      />
+         <field id="S2amp_vbfr"    long_name="S2 bfrV harmonic Amplitude"     unit="m/s"      />
+         <field id="S2pha_vbfr"    long_name="S2 bfrV harmonic Phase"         unit="m/s"      />
+         <field id="K2amp_vbfr"    long_name="K2 bfrV harmonic Amplitude"     unit="m/s"      />
+         <field id="K2pha_vbfr"    long_name="K2 bfrV harmonic Phase"         unit="m/s"      />
+         <field id="N2amp_vbfr"    long_name="N2 bfrV harmonic Amplitude"     unit="m/s"      />
+         <field id="N2pha_vbfr"    long_name="N2 bfrV harmonic Phase"         unit="m/s"      />
+         <field id="M4amp_vbfr"    long_name="M4 bfrV harmonic Amplitude"     unit="m/s"      />
+         <field id="M4pha_vbfr"    long_name="M4 bfrV harmonic Phase"         unit="m/s"      />
+
       </field_group>
 
       <!-- SBC -->
@@ -202,9 +336,10 @@
          <field id="erp"          long_name="Surface Water Flux: Damping"           standard_name="water_flux_out_of_sea_water_due_to_newtonian_relaxation"              unit="kg/m2/s"                        />
          <field id="taum"         long_name="wind stress module"                    standard_name="magnitude_of_surface_downward_stress"                                 unit="N/m2"                           />
          <field id="wspd"         long_name="wind speed module"                     standard_name="wind_speed"                                                           unit="m/s"                            />
-         <field id="uwnd"         long_name="u component of wind"       unit="m/s"          grid_ref="grid_U_2D"     />
-         <field id="vwnd"         long_name="v component of wind"       unit="m/s"          grid_ref="grid_V_2D"    />
-         
+         <field id="wspd"         long_name="wind speed module"                     standard_name="wind_speed"                                                           unit="m/s"                            />
+         <field id="uwnd"         long_name="u component of wind"       unit="m/s"         />
+   	 <field id="vwnd"         long_name="v component of wind"       unit="m/s"        />
+  
          <!-- * variable relative to atmospheric pressure forcing : available with ln_apr_dyn -->
          <field id="ssh_ib"       long_name="Inverse barometer sea surface height"  standard_name="sea_surface_height_correction_due_to_air_pressure_at_low_frequency"   unit="m"        />
 
@@ -564,21 +699,8 @@
 ============================================================================================================
     -->
 
-   <!-- variables available with ln_tra_trd -->
-   <!-- Asselin trends  calculated on odd time steps-->
-   <field_group id="trendT_odd"  grid_ref="grid_T_3D">
-      <field id="ttrd_atf"      long_name="temperature-trend: asselin time filter"       unit="degree_C/s" />
-      <field id="strd_atf"      long_name="salinity   -trend: asselin time filter"       unit="0.001/s" />
-      <!-- Thickness weighted versions: -->
-      <field id="ttrd_atf_e3t"      unit="degC/s * m"  >  ttrd_atf * e3t </field>
-      <field id="strd_atf_e3t"      unit="1e-3/s * m"  >  strd_atf * e3t </field>
-      <!-- OMIP  layer-integrated trends -->
-      <field id="ttrd_atf_li"      long_name="layer integrated heat-trend: asselin time filter "       unit="W/m^2" > ttrd_atf_e3t * 1026.0 * 3991.86795711963  </field>
-      <field id="strd_atf_li"      long_name="layer integrated salt   -trend: asselin time filter "       unit="kg/(m^2 s)" > strd_atf_e3t * 1026.0 * 0.001 </field>
-    </field_group>
-
-    <!-- Other trends  calculated on even time steps-->
-    <field_group id="trendT_even" grid_ref="grid_T_3D">
+    <field_group id="trendT" grid_ref="grid_T_3D">
+       <!-- variables available with ln_tra_trd -->
        <field id="ttrd_xad"      long_name="temperature-trend: i-advection"                                                                                          unit="degC/s"                        />
        <field id="strd_xad"      long_name="salinity   -trend: i-advection"                                                                                          unit="1e-3/s"                        />
        <field id="ttrd_yad"      long_name="temperature-trend: j-advection"                                                                                          unit="degC/s"                        />
@@ -611,10 +733,14 @@
        <field id="strd_bbl"      long_name="salinity   -trend: bottom boundary layer"     unit="1e-3/s" />
        <field id="ttrd_npc"      long_name="temperature-trend: non-penetrative conv."     unit="degC/s" />
        <field id="strd_npc"      long_name="salinity   -trend: non-penetrative conv."     unit="1e-3/s" />
-       <field id="ttrd_qns"      long_name="temperature-trend: non-solar flux + runoff"   unit="degC/s" grid_ref="grid_T_2D" />
-       <field id="strd_cdt"      long_name="salinity   -trend: C/D term       + runoff"   unit="degC/s" grid_ref="grid_T_2D" />
+       <field id="ttrd_qns"      long_name="temperature-trend: non-solar flux + runoff"   unit="degC/s" />
+       <field id="strd_cdt"      long_name="salinity   -trend: C/D term       + runoff"   unit="degC/s" />
        <field id="ttrd_qsr"      long_name="temperature-trend: solar penetr. heating"     unit="degC/s" />
        <field id="ttrd_bbc"      long_name="temperature-trend: geothermal heating"        unit="degC/s" />
+       <field id="ttrd_atf"      long_name="temperature-trend: asselin time filter"       unit="degC/s" />
+       <field id="strd_atf"      long_name="salinity   -trend: asselin time filter"       unit="1e-3/s" />
+       <field id="ttrd_tot"      long_name="temperature-trend: total model trend"         unit="degC/s" />
+       <field id="strd_tot"      long_name="salinity   -trend: total model trend"         unit="1e-3/s" />
 
        <!-- Thickness weighted versions: -->
        <field id="ttrd_xad_e3t"      unit="degC/s * m" >  ttrd_xad * e3t </field>
@@ -651,37 +777,12 @@
        <field id="strd_cdt_e3t"      unit="degC/s * m"  >  strd_cdt * e3t_surf </field>
        <field id="ttrd_qsr_e3t"      unit="degC/s * m"  >  ttrd_qsr * e3t </field>
        <field id="ttrd_bbc_e3t"      unit="degC/s * m"  >  ttrd_bbc * e3t </field>
-
-       <!-- OMIP  layer-integrated trends -->
-       <field id="ttrd_totad_li"    long_name="layer integrated heat-trend : total advection"       unit="W/m^2"     > ttrd_totad_e3t * 1026.0 * 3991.86795711963 </field>
-       <field id="strd_totad_li"    long_name="layer integrated salt   -trend : total advection"      unit="kg/(m^2 s)"    > strd_totad_e3t * 1026.0 * 0.001  </field>
-       <field id="ttrd_evd_li"      long_name="layer integrated heat-trend : EVD convection"         unit="W/m^2"    > ttrd_evd_e3t * 1026.0 * 3991.86795711963 </field>
-       <field id="strd_evd_li"      long_name="layer integrated salt   -trend : EVD convection"      unit="kg/(m^2 s)"  > strd_evd_e3t * 1026.0 * 0.001  </field>
-       <field id="ttrd_iso_li"      long_name="layer integrated heat-trend : isopycnal diffusion"    unit="W/m^2" > ttrd_iso_e3t * 1026.0 * 3991.86795711963 </field>
-       <field id="strd_iso_li"      long_name="layer integrated salt   -trend : isopycnal diffusion"   unit="kg/(m^2 s)" > strd_iso_e3t * 1026.0 * 0.001  </field>
-       <field id="ttrd_zdfp_li"     long_name="layer integrated heat-trend : pure vert. diffusion"   unit="W/m^2" > ttrd_zdfp_e3t * 1026.0 * 3991.86795711963 </field>
-       <field id="strd_zdfp_li"     long_name="layer integrated salt   -trend : pure vert. diffusion"   unit="kg/(m^2 s)" > strd_zdfp_e3t * 1026.0 * 0.001  </field>
-       <field id="ttrd_qns_li"      long_name="layer integrated heat-trend : non-solar flux + runoff"   unit="W/m^2" grid_ref="grid_T_2D"> ttrd_qns_e3t * 1026.0 * 3991.86795711963 </field>
-       <field id="ttrd_qsr_li"      long_name="layer integrated heat-trend : solar flux"   unit="W/m^2"  grid_ref="grid_T_3D"> ttrd_qsr_e3t * 1026.0 * 3991.86795711963 </field>
-       <field id="ttrd_bbl_li"      long_name="layer integrated heat-trend: bottom boundary layer "     unit="W/m^2" > ttrd_bbl_e3t * 1026.0 * 3991.86795711963 </field>
-       <field id="strd_bbl_li"      long_name="layer integrated salt   -trend: bottom boundary layer "     unit="kg/(m^2 s)" > strd_bbl_e3t * 1026.0 * 0.001  </field>
-       <field id="ttrd_evd_li"      long_name="layer integrated heat -trend: evd convection "       unit="W/m^2" >ttrd_evd_e3t * 1026.0 * 3991.86795711963  </field>
-       <field id="strd_evd_li"      long_name="layer integrated salt -trend: evd convection "       unit="kg/(m^2 s)" > strd_evd_e3t * 1026.0 * 0.001  </field>
-
-    </field_group>
-
-    <!--  Total trends calculated every time step-->
-    <field_group id="trendT" grid_ref="grid_T_3D">
-       <field id="ttrd_tot"      long_name="temperature-trend: total model trend"         unit="degC/s" />
-       <field id="strd_tot"      long_name="salinity   -trend: total model trend"         unit="1e-3/s" />
-       <!-- Thickness weighted versions: -->
+       <field id="ttrd_atf_e3t"      unit="degC/s * m"  >  ttrd_atf * e3t </field>
+       <field id="strd_atf_e3t"      unit="1e-3/s * m"  >  strd_atf * e3t </field>
        <field id="ttrd_tot_e3t"      unit="degC/s * m"  >  ttrd_tot * e3t </field>
        <field id="strd_tot_e3t"      unit="1e-3/s * m"  >  strd_tot * e3t </field>
-       <!-- OMIP  layer-integrated total trends -->
-       <field id="ttrd_tot_li"      long_name="layer integrated heat-trend: total model trend :"         unit="W/m^2" > ttrd_tot_e3t * 1026.0 * 3991.86795711963 </field>
-       <field id="strd_tot_li"      long_name="layer integrated salt   -trend: total model trend :"         unit="kg/(m^2 s)" > strd_tot_e3t * 1026.0 * 0.001  </field>
 
-       <!-- **** these trends have not been apportioned to all/even/odd ts yet **** -->
+
        <!-- variables available with ln_KE_trd -->
        <field id="ketrd_hpg"     long_name="ke-trend: hydrostatic pressure gradient"          unit="W/s^3"                        />
        <field id="ketrd_spg"     long_name="ke-trend: surface     pressure gradient"          unit="W/s^3"                        />
@@ -772,19 +873,6 @@
 ============================================================================================================
     -->
 
-     <field_group id="TRD" >
-          <field field_ref="ttrd_totad_li"   name="opottempadvect"  />
-          <field field_ref="ttrd_iso_li"     name="opottemppmdiff"  />
-          <field field_ref="ttrd_zdfp_li"    name="opottempdiff"  />
-          <field field_ref="ttrd_evd_li"     name="opottempevd" />
-          <field field_ref="strd_evd_li"     name="osaltevd" />
-          <field field_ref="ttrd_qns_li"     name="opottempqns"  />
-          <field field_ref="ttrd_qsr_li"     name="rsdoabsorb" operation="accumulate" />
-          <field field_ref="strd_totad_li"   name="osaltadvect" />
-          <field field_ref="strd_iso_li"     name="osaltpmdiff"  />
-          <field field_ref="strd_zdfp_li"    name="osaltdiff" />
-    </field_group>
-    
     <field_group id="mooring" >
        <field field_ref="toce"         name="thetao"   long_name="sea_water_potential_temperature"      />
        <field field_ref="soce"         name="so"       long_name="sea_water_salinity"                   />
@@ -905,6 +993,201 @@
        <field id="avm25h"              name="vertical viscosity 25h mean"        unit="m2/s" />
        <field id="tke25h"              name="turbulent kinetic energy 25h mean" />
        <field id="mxln25h"             name="mixing length 25h mean"             unit="m" />
+    </field_group>
+
+      <!-- Tides -->
+
+    <field_group id="Tides3D_T" grid_ref="grid_T_3D" operation="once" >
+
+         <!-- tidal composante diaharm density -->
+         <field id="O1x_dzi"      long_name="O1 dzi X comp"     unit="m/s"      />
+         <field id="O1y_dzi"    long_name="O1 dzi Y comp"         unit="m/s"      />
+         <field id="K1x_dzi"      long_name="K1 dzi X comp"     unit="m/s"      />
+         <field id="K1y_dzi"    long_name="K1 dzi Y comp"         unit="m/s"      />
+         <field id="Q1x_dzi"      long_name="Q1 dzi X comp"     unit="m/s"      />
+         <field id="Q1y_dzi"    long_name="Q1 dzi Y comp"         unit="m/s"      />
+         <field id="P1x_dzi"      long_name="P1 dzi X comp"     unit="m/s"      />
+         <field id="P1y_dzi"    long_name="P1 dzi Y comp"         unit="m/s"      />
+         <field id="M2x_dzi"      long_name="M2 dzi X comp"     unit="m/s"      />
+         <field id="M2y_dzi"    long_name="M2 dzi Y comp"         unit="m/s"      />
+         <field id="S2x_dzi"      long_name="S2 dzi X comp"     unit="m/s"      />
+         <field id="S2y_dzi"    long_name="S2 dzi Y comp"         unit="m/s"      />
+         <field id="K2x_dzi"      long_name="K2 dzi X comp"     unit="m/s"      />
+         <field id="K2y_dzi"    long_name="K2 dzi Y comp"         unit="m/s"      />
+         <field id="N2x_dzi"      long_name="N2 dzi X comp"     unit="m/s"      />
+         <field id="N2y_dzi"    long_name="N2 dzi Y comp"         unit="m/s"      />
+         <field id="M4x_dzi"      long_name="M4 dzi X comp"     unit="m/s"      />
+         <field id="M4y_dzi"    long_name="M4 dzi Y comp"         unit="m/s"      />
+
+         <field id="O1x_ro"      long_name="O1 ro X comp"     unit="m/s"      />
+         <field id="O1y_ro"    long_name="O1 ro Y comp"         unit="m/s"      />
+         <field id="K1x_ro"      long_name="K1 ro X comp"     unit="m/s"      />
+         <field id="K1y_ro"    long_name="K1 ro Y comp"         unit="m/s"      />
+         <field id="Q1x_ro"      long_name="Q1 ro X comp"     unit="m/s"      />
+         <field id="Q1y_ro"    long_name="Q1 ro Y comp"         unit="m/s"      />
+         <field id="P1x_ro"      long_name="P1 ro X comp"     unit="m/s"      />
+         <field id="P1y_ro"    long_name="P1 ro Y comp"         unit="m/s"      />
+         <field id="M2x_ro"      long_name="M2 ro X comp"     unit="m/s"      />
+         <field id="M2y_ro"    long_name="M2 ro Y comp"         unit="m/s"      />
+         <field id="S2x_ro"      long_name="S2 ro X comp"     unit="m/s"      />
+         <field id="S2y_ro"    long_name="S2 ro Y comp"         unit="m/s"      />
+         <field id="K2x_ro"      long_name="K2 ro X comp"     unit="m/s"      />
+         <field id="K2y_ro"    long_name="K2 ro Y comp"         unit="m/s"      />
+         <field id="N2x_ro"      long_name="N2 ro X comp"     unit="m/s"      />
+         <field id="N2y_ro"    long_name="N2 ro Y comp"         unit="m/s"      />
+         <field id="M4x_ro"      long_name="M4 ro X comp"     unit="m/s"      />
+         <field id="M4y_ro"    long_name="M4 ro Y comp"         unit="m/s"      />
+
+
+         <!-- tidal composante diaharmana density -->
+         <field id="O1amp_rho"    long_name="O1 rhd harmonic Amplitude"     unit="m/s"      />
+         <field id="O1pha_rho"    long_name="O1 rhd harmonic Phase"         unit="m/s"      />
+         <field id="K1amp_rho"    long_name="K1 rhd harmonic Amplitude"     unit="m/s"      />
+         <field id="K1pha_rho"    long_name="K1 rhd harmonic Phase"         unit="m/s"      />
+         <field id="Q1amp_rho"    long_name="Q1 rhd harmonic Amplitude"     unit="m/s"      />
+         <field id="Q1pha_rho"    long_name="Q1 rhd harmonic Phase"         unit="m/s"      />
+         <field id="P1amp_rho"    long_name="P1 rhd harmonic Amplitude"     unit="m/s"      />
+         <field id="P1pha_rho"    long_name="P1 rhd harmonic Phase"         unit="m/s"      />
+         <field id="M2amp_rho"    long_name="M2 rhd harmonic Amplitude"     unit="m/s"      />
+         <field id="M2pha_rho"    long_name="M2 rhd harmonic Phase"         unit="m/s"      />
+         <field id="S2amp_rho"    long_name="S2 rhd harmonic Amplitude"     unit="m/s"      />
+         <field id="S2pha_rho"    long_name="S2 rhd harmonic Phase"         unit="m/s"      />
+         <field id="K2amp_rho"    long_name="K2 rhd harmonic Amplitude"     unit="m/s"      />
+         <field id="K2pha_rho"    long_name="K2 rhd harmonic Phase"         unit="m/s"      />
+         <field id="N2amp_rho"    long_name="N2 rhd harmonic Amplitude"     unit="m/s"      />
+         <field id="N2pha_rho"    long_name="N2 rhd harmonic Phase"         unit="m/s"      />
+         <field id="M4amp_rho"    long_name="M4 rhd harmonic Amplitude"     unit="m/s"      />
+         <field id="M4pha_rho"    long_name="M4 rhd harmonic Phase"         unit="m/s"      />
+
+    </field_group>
+
+    <field_group id="Tides3D_T" grid_ref="grid_U_3D" operation="once" >
+
+         <!-- tidal composante diaharm 3D U Velocity -->
+         <field id="O1x_u3d"      long_name="O1 u3D X comp"     unit="m/s"      />
+         <field id="O1y_u3d"    long_name="O1 u3D Y comp"         unit="m/s"      />
+         <field id="K1x_u3d"      long_name="K1 u3D X comp"     unit="m/s"      />
+         <field id="K1y_u3d"    long_name="K1 u3D Y comp"         unit="m/s"      />
+         <field id="Q1x_u3d"      long_name="Q1 u3D X comp"     unit="m/s"      />
+         <field id="Q1y_u3d"    long_name="Q1 u3D Y comp"         unit="m/s"      />
+         <field id="P1x_u3d"      long_name="P1 u3D X comp"     unit="m/s"      />
+         <field id="P1y_u3d"    long_name="P1 u3D Y comp"         unit="m/s"      />
+         <field id="M2x_u3d"      long_name="M2 u3D X comp"     unit="m/s"      />
+         <field id="M2y_u3d"    long_name="M2 u3D Y comp"         unit="m/s"      />
+         <field id="S2x_u3d"      long_name="S2 u3D X comp"     unit="m/s"      />
+         <field id="S2y_u3d"    long_name="S2 u3D Y comp"         unit="m/s"      />
+         <field id="K2x_u3d"      long_name="K2 u3D X comp"     unit="m/s"      />
+         <field id="K2y_u3d"    long_name="K2 u3D Y comp"         unit="m/s"      />
+         <field id="N2x_u3d"      long_name="N2 u3D X comp"     unit="m/s"      />
+         <field id="N2y_u3d"    long_name="N2 u3D Y comp"         unit="m/s"      />
+         <field id="M4x_u3d"      long_name="M4 u3D X comp"     unit="m/s"      />
+         <field id="M4y_u3d"    long_name="M4 u3D Y comp"         unit="m/s"      />
+
+         <!-- tidal composante diaharmana 3D U Velocity -->
+         <field id="O1amp_u3d"    long_name="O1 u3D harmonic Amplitude"     unit="m/s"      />
+         <field id="O1pha_u3d"    long_name="O1 u3D harmonic Phase"         unit="m/s"      />
+         <field id="K1amp_u3d"    long_name="K1 u3D harmonic Amplitude"     unit="m/s"      />
+         <field id="K1pha_u3d"    long_name="K1 u3D harmonic Phase"         unit="m/s"      />
+         <field id="Q1amp_u3d"    long_name="Q1 u3D harmonic Amplitude"     unit="m/s"      />
+         <field id="Q1pha_u3d"    long_name="Q1 u3D harmonic Phase"         unit="m/s"      />
+         <field id="P1amp_u3d"    long_name="P1 u3D harmonic Amplitude"     unit="m/s"      />
+         <field id="P1pha_u3d"    long_name="P1 u3D harmonic Phase"         unit="m/s"      />
+         <field id="M2amp_u3d"    long_name="M2 u3D harmonic Amplitude"     unit="m/s"      />
+         <field id="M2pha_u3d"    long_name="M2 u3D harmonic Phase"         unit="m/s"      />
+         <field id="S2amp_u3d"    long_name="S2 u3D harmonic Amplitude"     unit="m/s"      />
+         <field id="S2pha_u3d"    long_name="S2 u3D harmonic Phase"         unit="m/s"      />
+         <field id="K2amp_u3d"    long_name="K2 u3D harmonic Amplitude"     unit="m/s"      />
+         <field id="K2pha_u3d"    long_name="K2 u3D harmonic Phase"         unit="m/s"      />
+         <field id="N2amp_u3d"    long_name="N2 u3D harmonic Amplitude"     unit="m/s"      />
+         <field id="N2pha_u3d"    long_name="N2 u3D harmonic Phase"         unit="m/s"      />
+         <field id="M4amp_u3d"    long_name="M4 u3D harmonic Amplitude"     unit="m/s"      />
+         <field id="M4pha_u3d"    long_name="M4 u3D harmonic Phase"         unit="m/s"      />
+    </field_group>
+
+    <field_group id="Tides3D_V" grid_ref="grid_V_3D" operation="once" >
+
+         <!-- tidal composante diaharm 3D V Velocity -->
+         <field id="O1x_v3d"      long_name="O1 v3D X comp"     unit="m/s"      />
+         <field id="O1y_v3d"    long_name="O1 v3D Y comp"         unit="m/s"      />
+         <field id="K1x_v3d"      long_name="K1 v3D X comp"     unit="m/s"      />
+         <field id="K1y_v3d"    long_name="K1 v3D Y comp"         unit="m/s"      />
+         <field id="Q1x_v3d"      long_name="Q1 v3D X comp"     unit="m/s"      />
+         <field id="Q1y_v3d"    long_name="Q1 v3D Y comp"         unit="m/s"      />
+         <field id="P1x_v3d"      long_name="P1 v3D X comp"     unit="m/s"      />
+         <field id="P1y_v3d"    long_name="P1 v3D Y comp"         unit="m/s"      />
+         <field id="M2x_v3d"      long_name="M2 v3D X comp"     unit="m/s"      />
+         <field id="M2y_v3d"    long_name="M2 v3D Y comp"         unit="m/s"      />
+         <field id="S2x_v3d"      long_name="S2 v3D X comp"     unit="m/s"      />
+         <field id="S2y_v3d"    long_name="S2 v3D Y comp"         unit="m/s"      />
+         <field id="K2x_v3d"      long_name="K2 v3D X comp"     unit="m/s"      />
+         <field id="K2y_v3d"    long_name="K2 v3D Y comp"         unit="m/s"      />
+         <field id="N2x_v3d"      long_name="N2 v3D X comp"     unit="m/s"      />
+         <field id="N2y_v3d"    long_name="N2 v3D Y comp"         unit="m/s"      />
+         <field id="M4x_v3d"      long_name="M4 v3D X comp"     unit="m/s"      />
+         <field id="M4y_v3d"    long_name="M4 v3D Y comp"         unit="m/s"      />
+
+         <!-- tidal composante diaharmana 3D V Velocity -->
+         <field id="O1amp_v3d"    long_name="O1 v3D harmonic Amplitude"     unit="m/s"      />
+         <field id="O1pha_v3d"    long_name="O1 v3D harmonic Phase"         unit="m/s"      />
+         <field id="K1amp_v3d"    long_name="K1 v3D harmonic Amplitude"     unit="m/s"      />
+         <field id="K1pha_v3d"    long_name="K1 v3D harmonic Phase"         unit="m/s"      />
+         <field id="Q1amp_v3d"    long_name="Q1 v3D harmonic Amplitude"     unit="m/s"      />
+         <field id="Q1pha_v3d"    long_name="Q1 v3D harmonic Phase"         unit="m/s"      />
+         <field id="P1amp_v3d"    long_name="P1 v3D harmonic Amplitude"     unit="m/s"      />
+         <field id="P1pha_v3d"    long_name="P1 v3D harmonic Phase"         unit="m/s"      />
+         <field id="M2amp_v3d"    long_name="M2 v3D harmonic Amplitude"     unit="m/s"      />
+         <field id="M2pha_v3d"    long_name="M2 v3D harmonic Phase"         unit="m/s"      />
+         <field id="S2amp_v3d"    long_name="S2 v3D harmonic Amplitude"     unit="m/s"      />
+         <field id="S2pha_v3d"    long_name="S2 v3D harmonic Phase"         unit="m/s"      />
+         <field id="K2amp_v3d"    long_name="K2 v3D harmonic Amplitude"     unit="m/s"      />
+         <field id="K2pha_v3d"    long_name="K2 v3D harmonic Phase"         unit="m/s"      />
+         <field id="N2amp_v3d"    long_name="N2 v3D harmonic Amplitude"     unit="m/s"      />
+         <field id="N2pha_v3d"    long_name="N2 v3D harmonic Phase"         unit="m/s"      />
+         <field id="M4amp_v3d"    long_name="M4 v3D harmonic Amplitude"     unit="m/s"      />
+         <field id="M4pha_v3d"    long_name="M4 v3D harmonic Phase"         unit="m/s"      />
+    </field_group>
+
+    <field_group id="Tides3D_W" grid_ref="grid_W_3D" operation="once" >
+
+         <!-- tidal composante diaharm 3D W Velocity -->
+         <field id="O1x_w3d"      long_name="O1 w3D X comp"     unit="m/s"      />
+         <field id="O1y_w3d"    long_name="O1 w3D Y comp"         unit="m/s"      />
+         <field id="K1x_w3d"      long_name="K1 w3D X comp"     unit="m/s"      />
+         <field id="K1y_w3d"    long_name="K1 w3D Y comp"         unit="m/s"      />
+         <field id="Q1x_w3d"      long_name="Q1 w3D X comp"     unit="m/s"      />
+         <field id="Q1y_w3d"    long_name="Q1 w3D Y comp"         unit="m/s"      />
+         <field id="P1x_w3d"      long_name="P1 w3D X comp"     unit="m/s"      />
+         <field id="P1y_w3d"    long_name="P1 w3D Y comp"         unit="m/s"      />
+         <field id="M2x_w3d"      long_name="M2 w3D X comp"     unit="m/s"      />
+         <field id="M2y_w3d"    long_name="M2 w3D Y comp"         unit="m/s"      />
+         <field id="S2x_w3d"      long_name="S2 w3D X comp"     unit="m/s"      />
+         <field id="S2y_w3d"    long_name="S2 w3D Y comp"         unit="m/s"      />
+         <field id="K2x_w3d"      long_name="K2 w3D X comp"     unit="m/s"      />
+         <field id="K2y_w3d"    long_name="K2 w3D Y comp"         unit="m/s"      />
+         <field id="N2x_w3d"      long_name="N2 w3D X comp"     unit="m/s"      />
+         <field id="N2y_w3d"    long_name="N2 w3D Y comp"         unit="m/s"      />
+         <field id="M4x_w3d"      long_name="M4 w3D X comp"     unit="m/s"      />
+         <field id="M4y_w3d"    long_name="M4 w3D Y comp"         unit="m/s"      />
+
+         <!-- tidal composante diaharmana 3D W Velocity -->
+         <field id="O1amp_w3d"    long_name="O1 w3D harmonic Amplitude"     unit="m/s"      />
+         <field id="O1pha_w3d"    long_name="O1 w3D harmonic Phase"         unit="m/s"      />
+         <field id="K1amp_w3d"    long_name="K1 w3D harmonic Amplitude"     unit="m/s"      />
+         <field id="K1pha_w3d"    long_name="K1 w3D harmonic Phase"         unit="m/s"      />
+         <field id="Q1amp_w3d"    long_name="Q1 w3D harmonic Amplitude"     unit="m/s"      />
+         <field id="Q1pha_w3d"    long_name="Q1 w3D harmonic Phase"         unit="m/s"      />
+         <field id="P1amp_w3d"    long_name="P1 w3D harmonic Amplitude"     unit="m/s"      />
+         <field id="P1pha_w3d"    long_name="P1 w3D harmonic Phase"         unit="m/s"      />
+         <field id="M2amp_w3d"    long_name="M2 w3D harmonic Amplitude"     unit="m/s"      />
+         <field id="M2pha_w3d"    long_name="M2 w3D harmonic Phase"         unit="m/s"      />
+         <field id="S2amp_w3d"    long_name="S2 w3D harmonic Amplitude"     unit="m/s"      />
+         <field id="S2pha_w3d"    long_name="S2 w3D harmonic Phase"         unit="m/s"      />
+         <field id="K2amp_w3d"    long_name="K2 w3D harmonic Amplitude"     unit="m/s"      />
+         <field id="K2pha_w3d"    long_name="K2 w3D harmonic Phase"         unit="m/s"      />
+         <field id="N2amp_w3d"    long_name="N2 w3D harmonic Amplitude"     unit="m/s"      />
+         <field id="N2pha_w3d"    long_name="N2 w3D harmonic Phase"         unit="m/s"      />
+         <field id="M4amp_w3d"    long_name="M4 w3D harmonic Amplitude"     unit="m/s"      />
+         <field id="M4pha_w3d"    long_name="M4 w3D harmonic Phase"         unit="m/s"      />
     </field_group>
 
      <!-- 
