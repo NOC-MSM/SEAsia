@@ -5,14 +5,14 @@
 #===============================================================
 #PBS -N AMM7_SURGE
 #PBS -l select=5
-#PBS -l walltime=00:20:00
+#PBS -l walltime=01:00:00
 #PBS -A n01-ACCORD
 #PBS -j oe
 #PBS -r n
 # mail alert at (b)eginning, (e)nd and (a)bortion of execution
 #PBS -m bea
 #PBS -M jelt@noc.ac.uk
-#PBS -q short
+##PBS -q short
 
 module swap PrgEnv-cray PrgEnv-intel
 module load cray-netcdf-hdf5parallel
