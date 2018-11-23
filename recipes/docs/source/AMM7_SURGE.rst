@@ -1,5 +1,5 @@
 
-.. _AMM7_surge:
+.. _AMM7_SURGE:
 
 *****************************************
 Setting up AMM7 surge model
