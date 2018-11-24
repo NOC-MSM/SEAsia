@@ -129,10 +129,10 @@
 !-----------------------------------------------------------------------
 !              !  file name     ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
 !              !                !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
-   sn_tem  = 'votemper_ORCA0083-N06-SEAsia_1958.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
-   sn_sal  = 'vosaline_ORCA0083-N06-SEAsia_1958.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
-   sn_dep  = 'initcd_depth.nc'   ,         -12        ,'gdept_4D',   .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
-   sn_msk  = 'initcd_mask.nc'    ,         -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
+   sn_tem  = 'N01/votemper_ORCA0083-N01-SEAsia_1978.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+   sn_sal  = 'N01/vosaline_ORCA0083-N01-SEAsia_1978.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+   sn_dep  = 'N01/initcd_depth.nc'   ,         -12        ,'gdept_4D',   .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
+   sn_msk  = 'N01/initcd_mask.nc'    ,         -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
  
   !
    cn_dir        = '../../../../INPUTS/'     !  root directory for the location of the runoff files
@@ -1042,9 +1042,9 @@
                            !  buffer blocking send or immediate non-blocking sends, resp.
    nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
    ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
-   jpni        =  11    ! standardqueue:12 ! shortqueue:11      !  jpni   number of processors following i (set automatically if < 1)
+   jpni        =  12    ! standardqueue:12 ! shortqueue:11      !  jpni   number of processors following i (set automatically if < 1)
    jpnj        =  8     !  jpnj   number of processors following j (set automatically if < 1)
-   jpnij       =  88    ! standardqueue:92 ! shortqueue:88 !  jpnij  number of local domains (set automatically if < 1)
+   jpnij       =  92    ! standardqueue:92 ! shortqueue:88 !  jpnij  number of local domains (set automatically if < 1)
 /
 !-----------------------------------------------------------------------
 &namctl        !   Control prints
