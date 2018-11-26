@@ -66,10 +66,16 @@ modules once the process is common to more than one configuration.
   build_and_create_coordinates
 
   build_siren_tools
+  
+  build_domain_cfg_file
 
   install_nrct
 
   anatomy_namelist_bdy
+  
+  generate_initial_conditions
+  
+  Generate_river_forcing
 
   MPP_decomp_land_suppression
 
