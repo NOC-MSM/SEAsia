@@ -10,7 +10,7 @@ Check out PyNEMO / nrct if have already::
 
   cd $WORK/$USER
   git clone https://jpolton@bitbucket.org/jdha/nrct.git nrct  # Give jpolton@bitbucket passwd
-
+  git checkout -b rivers # change branch to see the river stuff
   cd nrct/rivers
 
 The idea is that the source data sits in ``DATA`` and the scripts sit in ``mfiles``.
