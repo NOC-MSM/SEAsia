@@ -3010,6 +3010,15 @@ PENDING **5748307.sdb **
 
 It works! Though the SST does heat up a bit (about 4 deg in 9 days)
 
+----
+
+*(1 March 2019)*
+Edit namelist for queue
+Submit 6026543.sdb
+Ran to 20min completion. (2.8 days)
+
+Submit for 2hrs: 6026571.sdb
+**THIS WORKED. HAVE STABLE RESTARTS**
 
 ----
 
