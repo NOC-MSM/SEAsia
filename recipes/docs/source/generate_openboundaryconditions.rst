@@ -85,8 +85,8 @@ From 2013 time counter from 1900. Need to accomodate this.
 
 
 
-# Generate pynemo namelist files in INPUTS directory where the necessary pynemo
-input files sit
+Generate pynemo namelist files in INPUTS directory where the necessary pynemo
+input files sit (you have to put them there)
 ::
 
   livljobs6 ~ $
@@ -99,40 +99,41 @@ input files sit
 
   cd /gws/nopw/j04/campus/pseudoDropBox/SEAsia/INPUTS
 
+Then run the scipt to generate namelist files::
 
-#!/bin/bash
+  #!/bin/bash
 
-export PATH_PYNEMO_OUTPUTS=/gws/nopw/j04/campus/pseudoDropBox/SEAsia/INPUTS/
-export PATH_TO_NCML=/gws/nopw/j04/nemo_vol5/jdha/ORCA0083-N006/NCML/
-export YEAR_START=1970
-export YEAR_END=2015
+  export PATH_PYNEMO_OUTPUTS=/gws/nopw/j04/campus/pseudoDropBox/SEAsia/INPUTS/
+  export PATH_TO_NCML=/gws/nopw/j04/nemo_vol5/jdha/ORCA0083-N006/NCML/
+  export YEAR_START=1970
+  export YEAR_END=2015
 
-cd $PATH_PYNEMO_OUTPUTS
+  cd $PATH_PYNEMO_OUTPUTS
 
-for y in $(seq $YEAR_START $YEAR_END)
-  do
-  # Write the namelist file for the whole year
-  echo year: $y
-  sed "s/YEAR_START/$y/g" namelist.bdy_TEMPLATE > tmp1.bdy
-  sed "s/YEAR_END/$y/g"   tmp1.bdy > tmp2.bdy
-  sed "s?YYYY_NCML_FILE?$PATH_TO_NCML\ORCA0083_N06_$y.ncml?" tmp2.bdy > tmp3.bdy
-  sed "s?DST_DIR?$PATH_PYNEMO_OUTPUTS?" tmp3.bdy > tmp4.bdy
-  # If the year is before 2013 the ORCA0083-N006 nn_base_year = 1950
-  if [ $y -lt 2013 ]
-  then
-    sed 's/NN_BASE_YEAR/1950/g' tmp4.bdy > namelist_$y.bdy
-    echo Use nn_base_year = 1950
-  elif [ $y -ge 2013 ]
-  then
-    sed 's/NN_BASE_YEAR/1900/g' tmp4.bdy > namelist_$y.bdy
-    echo Use nn_base_year = 1900
-  else
-    echo Panic
-  fi
+  for y in $(seq $YEAR_START $YEAR_END)
+    do
+    # Write the namelist file for the whole year
+    echo year: $y
+    sed "s/YEAR_START/$y/g" namelist.bdy_TEMPLATE > tmp1.bdy
+    sed "s/YEAR_END/$y/g"   tmp1.bdy > tmp2.bdy
+    sed "s?YYYY_NCML_FILE?$PATH_TO_NCML\ORCA0083_N06_$y.ncml?" tmp2.bdy > tmp3.bdy
+    sed "s?DST_DIR?$PATH_PYNEMO_OUTPUTS?" tmp3.bdy > tmp4.bdy
+    # If the year is before 2013 the ORCA0083-N006 nn_base_year = 1950
+    if [ $y -lt 2013 ]
+    then
+      sed 's/NN_BASE_YEAR/1950/g' tmp4.bdy > namelist_$y.bdy
+      echo Use nn_base_year = 1950
+    elif [ $y -ge 2013 ]
+    then
+      sed 's/NN_BASE_YEAR/1900/g' tmp4.bdy > namelist_$y.bdy
+      echo Use nn_base_year = 1900
+    else
+      echo Panic
+    fi
 
-  rm tmp?.bdy
+    rm tmp?.bdy
 
-  # Submit PyNEMO
-  #pynemo -s namelist_$y.bdy
+    # Submit PyNEMO
+    #pynemo -s namelist_$y.bdy
 
-done
+  done
