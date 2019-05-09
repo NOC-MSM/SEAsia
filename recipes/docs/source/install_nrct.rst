@@ -121,8 +121,8 @@ Check the library list with ``pip freeze``::
   python setup.py install --prefix $HOME/anaconda/envs/nrct_env
 
 
-Have a try to use pynemo in ``/gws/nopw/j04/campus/pseudoDropBox/SEAsia``. Copy
-to home space on JASMIN from livljobs6 (e.g.)::
+That should complete the build. Now copy all the necessary input files to a target space
+E.g. (with having setup sshfs)::
 
   livljobs6 INPUTS> scp namelist.bdy jelt@jasmin-login1.ceda.ac.uk:tmp/.
 
@@ -131,13 +131,12 @@ Then move to gws using compute server (jasmin-sci1.ceda.ac.uk)::
   mv ~/tmp/*  /gws/nopw/j04/campus/pseudoDropBox/SEAsia/INPUTS/.
 
 
-Try out pynemo (jasmin-sci1.ceda.ac.uk)::
+Execute pynemo (jasmin-sci1.ceda.ac.uk). Exmaple::
 
   cd /gws/nopw/j04/campus/pseudoDropBox/SEAsia/INPUTS/
   export PATH=/home/users/jelt/anaconda/bin:$PATH
   source activate nrct_env # If required
-  # export LD_LIBRARY=/opt/local/lib/gcc48/gcj-4.8.2-14/:$LD_LIBRARY_PATH # I had this but think it is wrong / did nothing
-  python setup.py build
+
   export PYTHONPATH=$HOME/anaconda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
 
   module load java/1.8.0
@@ -145,7 +144,7 @@ Try out pynemo (jasmin-sci1.ceda.ac.uk)::
 
   pynemo -s namelist.bdy # e.g. tested on thredds_namelist_jan14.bdy
 
-
+Outputs:
   ---
 
 In progress builds on other machines
