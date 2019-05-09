@@ -12,7 +12,12 @@ For the purposes of progress I am going to do the open bcs extraction using
 pynemo install on JASMIN ``<install_nrct.rst>_``. This might be better done
 mounting the JASMIN fileserver over SSHFS https://github.com/jdha/PyNEMO/wiki/SSHFS
 
-This is an implementation of James' notes: https://github.com/jdha/PyNEMO/wiki/Accessing-data:-Hints-and-Tips
+The following started as an implementation of James' notes: https://github.com/jdha/PyNEMO/wiki/Accessing-data:-Hints-and-Tips
+But then he produced NCML files that took away all the pain. So jump to the next
+section
+
+Building NCML files
+===================
 
 On the target machine, where the files are to be generated, create a directory
 to store the symbolically linked inputs and outputs. The inputs should be stored
@@ -64,6 +69,11 @@ interpolate to the start and end of the year.
     done
   done
 
+*INCOMPLETE because James did it*
+
+
+Using James' NCML files
+=======================
 
 Now James has already set up NCML files for 1970 - 2015
 /gws/nopw/j04/nemo_vol5/jdha/ORCA0083-N006/NCML
