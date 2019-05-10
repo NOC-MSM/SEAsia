@@ -28,7 +28,7 @@
    cn_exp      =    "SEAsia"  !  experience name
    nn_it000    =  1   !  first time step
    nn_itend    =  7200  ! 1 days. 10day=14400   !  last  time step (std 5475)
-   nn_date0    =  19791101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+   nn_date0    =  19600101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
    ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
@@ -118,7 +118,7 @@
    nn_msh      =    0      !  create (>0) a mesh file or not (=0)
    rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
    !
-   rn_rdt      =  200 ! 360.     !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_rdt      =  100 ! 360.     !  time step for the dynamics (and tracer if nn_acc=0)
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module
@@ -129,15 +129,15 @@
 !-----------------------------------------------------------------------
 !              !  file name     ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
 !              !                !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
-   sn_tem  = 'N06/votemper_ORCA0083-N06-SEAsia_1958.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
-   sn_sal  = 'N06/vosaline_ORCA0083-N06-SEAsia_1958.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+   sn_tem  = 'N06/votemper_ORCA0083-N06-SEAsia_1960.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+   sn_sal  = 'N06/vosaline_ORCA0083-N06-SEAsia_1960.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
    sn_dep  = 'N06/initcd_depth.nc'   ,         -12        ,'gdept_4D',   .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
    sn_msk  = 'N06/initcd_mask.nc'    ,         -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
  
   !
    cn_dir        = '../../../../INPUTS/'     !  root directory for the location of the runoff files
    ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
-   ln_tsd_interp = .true.    !  Interpolation of T & S in the verticalinput data (T) or not (F)
+   ln_tsd_interp = .false.    !  Interpolation of T & S in the verticalinput data (T) or not (F)
    ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
 /
 !-----------------------------------------------------------------------
@@ -589,25 +589,19 @@
     ln_mask_file   = .false.              !  =T : read mask from file
     cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
     cn_dyn2d       = 'flather'               !
-    nn_dyn2d_dta   =  2                  !  = 0, bdy data are equal to the initial state
+    nn_dyn2d_dta   =  3                  !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
                                           !  = 2, use tidal harmonic forcing data from files
                                           !  = 3, use external data AND tidal harmonic forcing
     cn_dyn3d      =  'specified'               !
-    nn_dyn3d_dta  =  1                    !  = 0, bdy data are equal to the initial state
+    nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
     cn_tra        =  'frs'               !
-    nn_tra_dta    =  1                    !  = 0, bdy data are equal to the initial state
+    nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
-    cn_ice_lim      =  'none'             !
-    nn_ice_lim_dta  =  0                  !  = 0, bdy data are equal to the initial state
-                                          !  = 1, bdy data are read in 'bdydata   .nc' files
-    rn_ice_tem      = 270.                !  lim3 only: arbitrary temperature of incoming sea ice
-    rn_ice_sal      = 10.                 !  lim3 only:      --   salinity           --
-    rn_ice_age      = 30.                 !  lim3 only:      --   age                --
 
     ln_tra_dmp    =.false.                !  open boudaries conditions for tracers
-    ln_dyn3d_dmp  =.true.                !  open boundary condition for baroclinic velocities
+    ln_dyn3d_dmp  =.false.                !  open boundary condition for baroclinic velocities
     rn_time_dmp   =  1.                   ! Damping time scale in days
     rn_time_dmp_out =  150.                 ! Outflow damping time scale
     nn_rimwidth   = 9                    !  width of the relaxation zone
@@ -627,14 +621,6 @@
    bn_v3d      = 'SEAsia_bdyV'   24        , 'vomecrty',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
    bn_tem      = 'SEAsia_bdyT'   24        , 'votemper',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
    bn_sal      = 'SEAsia_bdyT'   24        , 'vosaline',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
-! for lim2
-!   bn_frld    = 'amm12_bdyT_ice',         24        , 'ileadfra',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
-!   bn_hicif   = 'amm12_bdyT_ice',         24        , 'iicethic',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
-!   bn_hsnif   = 'amm12_bdyT_ice',         24        , 'isnowthi',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
-! for lim3
-!   bn_a_i     = 'amm12_bdyT_ice',         24        , 'ileadfra',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
-!   bn_ht_i    = 'amm12_bdyT_ice',         24        , 'iicethic',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
-!   bn_ht_s    = 'amm12_bdyT_ice',         24        , 'isnowthi',    .true.   , .false. ,  'daily'  ,    ''    ,   ''     ,     ''
 
    cn_dir      = 'bdydta/' !  root directory for the location of the bulk files
    ln_full_vel = .true.   ! If true NEMO takes the 3d velocities as bt+bc 
