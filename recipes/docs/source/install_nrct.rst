@@ -144,7 +144,13 @@ Execute pynemo (jasmin-sci1.ceda.ac.uk). Exmaple::
 
   pynemo -s namelist.bdy # e.g. tested on thredds_namelist_jan14.bdy
 
-Outputs:
+Outputs e.g. (depending on the flags set etc)::
+
+  coordinates.bdy.nc
+  SEAsia_bdyT_y1979m11.nc
+  SEAsia_bt_bdyT_y1979m11.nc
+  SEAsia_bdyU_y1979m11.nc
+  SEAsia_bdyV_y1979m11.nc
   ---
 
 In progress builds on other machines
