@@ -3020,6 +3020,13 @@ Ran to 20min completion. (2.8 days)
 Submit for 2hrs: 6026571.sdb
 **THIS WORKED. HAVE STABLE RESTARTS**
 
+*(10 May 2019)*
+Last run seemed to have crashed with a  core dump. Try the 20min short queue
+again,
+XIOS had been updated.
+6195159.sdb
+
+
 ----
 
 **Notes to add git to version control EXP FILES**
