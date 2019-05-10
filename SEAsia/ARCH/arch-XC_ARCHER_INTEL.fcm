@@ -32,7 +32,7 @@
 #
 %NCDF_HOME           $NETCDF_DIR
 %HDF5_HOME           $HDF5_DIR
-%XIOS_HOME           /work/n01/n01/jdha/2017/xios/trunk
+%XIOS_HOME           /work/n01/n01/jelt/XIOS
 #OASIS_HOME          
 
 %NCDF_INC            -I%NCDF_HOME/include -I%HDF5_HOME/include
@@ -44,8 +44,8 @@
 
 %CPP	             cpp
 %FC                  ftn
-%FCFLAGS             -integer-size 32 -real-size 64 -O3 -fp-model source -zero -fpp -warn all
-%FFLAGS              -integer-size 32 -real-size 64 -O3 -fp-model source -zero -fpp -warn all
+%FCFLAGS             -integer-size 32 -real-size 64 -g -O3 -fp-model source -zero -fpp -warn all
+%FFLAGS              -integer-size 32 -real-size 64 -g -O3 -fp-model source -zero -fpp -warn all
 %LD                  CC -Wl,"--allow-multiple-definition"
 %FPPFLAGS            -P -C -traditional
 %LDFLAGS
