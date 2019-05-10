@@ -1042,9 +1042,9 @@
                            !  buffer blocking send or immediate non-blocking sends, resp.
    nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
    ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
-   jpni        =  12    ! standardqueue:12 ! shortqueue:11      !  jpni   number of processors following i (set automatically if < 1)
+   jpni        =  11    ! standardqueue:12 ! shortqueue:11      !  jpni   number of processors following i (set automatically if < 1)
    jpnj        =  8     !  jpnj   number of processors following j (set automatically if < 1)
-   jpnij       =  92    ! standardqueue:92 ! shortqueue:88 !  jpnij  number of local domains (set automatically if < 1)
+   jpnij       =  88    ! standardqueue:92 ! shortqueue:88 !  jpnij  number of local domains (set automatically if < 1)
 /
 !-----------------------------------------------------------------------
 &namctl        !   Control prints
