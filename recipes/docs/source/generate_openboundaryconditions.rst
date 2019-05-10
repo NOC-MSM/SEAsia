@@ -117,19 +117,7 @@ Then run the scipt to generate namelist files::
     sed "s/YEAR_START/$y/g" namelist.bdy_TEMPLATE > tmp1.bdy
     sed "s/YEAR_END/$y/g"   tmp1.bdy > tmp2.bdy
     sed "s?YYYY_NCML_FILE?$PATH_TO_NCML\ORCA0083_N06_$y.ncml?" tmp2.bdy > tmp3.bdy
-    sed "s?DST_DIR?$PATH_PYNEMO_OUTPUTS?" tmp3.bdy > tmp4.bdy
-    # If the year is before 2013 the ORCA0083-N006 nn_base_year = 1950
-    if [ $y -lt 2013 ]
-    then
-      sed 's/NN_BASE_YEAR/1950/g' tmp4.bdy > namelist_$y.bdy
-      echo Use nn_base_year = 1950
-    elif [ $y -ge 2013 ]
-    then
-      sed 's/NN_BASE_YEAR/1900/g' tmp4.bdy > namelist_$y.bdy
-      echo Use nn_base_year = 1900
-    else
-      echo Panic
-    fi
+    sed "s?DST_DIR?$PATH_PYNEMO_OUTPUTS?" tmp3.bdy > namelist_$y.bdy
 
     rm tmp?.bdy
 
