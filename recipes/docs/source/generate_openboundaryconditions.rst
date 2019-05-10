@@ -105,7 +105,7 @@ Then run the scipt to generate namelist files::
 
   export PATH_PYNEMO_OUTPUTS=/gws/nopw/j04/campus/pseudoDropBox/SEAsia/INPUTS/
   export PATH_TO_NCML=/gws/nopw/j04/nemo_vol5/jdha/ORCA0083-N006/NCML/
-  export YEAR_START=1970
+  export YEAR_START=1960
   export YEAR_END=2015
 
   cd $PATH_PYNEMO_OUTPUTS
