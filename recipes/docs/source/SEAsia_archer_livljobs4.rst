@@ -515,6 +515,7 @@ Edit namelist to reflect source filenames (just a year change)::
   &grid_inputs
       input_file = 'cutdown_drowned_precip_DFS5.1.1_y1979.nc'
 
+
   vi $WDIR/INPUTS/namelist_reshape_bicubic_atmos
   ...
   &grid_inputs
@@ -547,6 +548,65 @@ Generates ``data_nemo_bicubic_atmos.nc``. Then::
   $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
 
 Generates ``weights_bicubic_atmos.nc``.
+
+
+
+*(10 May 2019)*
+5. Generate weights for atm forcing (without cutting the source files down)
++++++++++++++++++++++++++++++++++++
+
+Initially use zero atm forcing. Specified in usr defined functions in MY_SRC.
+
+Second time around add in met forcing. Originally I tried cutting the forcing
+files down from the orginals used to force the global model, but this makes no
+sense if I can just change the weights files instead.
+
+
+Obtain namelist files and data file::
+
+  cp $START_FILES/namelist_reshape_bilin_atmos $INPUTS/.
+  cp $START_FILES/namelist_reshape_bicubic_atmos $INPUTS/.
+
+Edit namelist to reflect source filenames (just a year change)::
+
+  vi $WDIR/INPUTS/namelist_reshape_bilin_atmos
+  ...
+  &grid_inputs
+    input_file = '/work/n01/n01/acc/DFS/DFS5.2/1960/drowned_precip_DFS5.2_y1960.nc'
+
+  vi $WDIR/INPUTS/namelist_reshape_bicubic_atmos
+  ...
+  &grid_inputs
+  input_file = '/work/n01/n01/acc/DFS/DFS5.2/1960/drowned_precip_DFS5.2_y1960.nc'
+
+
+Setup weights files for the atmospheric forcing. Use the pre-compiled tools::
+
+  export OLD_TDIR=$WORK/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
+
+Setup weights files for the atmospheric forcing::
+
+  cd $INPUTS
+  $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
+
+Generate  remap files ``remap_nemo_grid_atmos.nc`` and ``remap_data_grid_atmos.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
+
+Generates ``data_nemo_bilin_atmos.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bilin_atmos
+
+Generates ``weights_bilinear_atmos.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bicubic_atmos
+
+Generates ``data_nemo_bicubic_atmos.nc``. Then::
+
+  $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
+
+Generates ``weights_bicubic_atmos.nc``.
+
 
 
 *(27 Apr 2018)*
@@ -3026,6 +3086,77 @@ again,
 XIOS had been updated.
 6195159.sdb
 
+Ran for 20 mins (2.9 days)
+
+Try from Jan 1960
+Generate initial conditions from 1 5d output in Jan 1960
+`<generate_initial_conditions.rst>`_
+
+Generate open boundary conditions
+`<generate_openboundaryconditions.rst>`_
+
+Need to copy pynemo files across and submit::
+
+livljobs4:
+cd /scratch/jelt
+rsync -uvt jelt@jasmin-xfer1.ceda.ac.uk:/gws/nopw/j04/campus/pseudoDropBox/SEAsia/INPUTS/coordinates.bdy.nc .
+rsync -uvt jelt@jasmin-xfer1.ceda.ac.uk:/gws/nopw/j04/campus/pseudoDropBox/SEAsia/INPUTS/SEAsia_bdyT_y1960m01.nc .
+rsync -uvt jelt@jasmin-xfer1.ceda.ac.uk:/gws/nopw/j04/campus/pseudoDropBox/SEAsia/INPUTS/SEAsia_bdyU_y1960m01.nc .
+rsync -uvt jelt@jasmin-xfer1.ceda.ac.uk:/gws/nopw/j04/campus/pseudoDropBox/SEAsia/INPUTS/SEAsia_bdyV_y1960m01.nc .
+rsync -uvt jelt@jasmin-xfer1.ceda.ac.uk:/gws/nopw/j04/campus/pseudoDropBox/SEAsia/INPUTS/SEAsia_bt_bdyT_y1960m01.nc .
+
+rsync -uvt coordinates.bdy.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/.
+rsync -uvt SEAsia_bdyT_y1960m01.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/.
+rsync -uvt SEAsia_bdyU_y1960m01.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/.
+rsync -uvt SEAsia_bdyV_y1960m01.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/.
+rsync -uvt SEAsia_bt_bdyT_y1960m01.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/.
+
+rm SEAsia_bdyT_y1960m01.nc SEAsia_bdyU_y1960m01.nc SEAsia_bdyV_y1960m01.nc
+rm SEAsia_bt_bdyT_y1960m01.nc coordinates.bdy.nc
+
+
+Qsub 6195579.sdb
+
+::
+
+  stp_ctl : the ssh is larger than 10m
+   =======
+   kt=   535 max ssh:   16.00    , i j:   682  351
+
+Stable with tides + 2D forcing (ec87ad0)
+
+It looks like the surface heating is too strong.
+
+Made some modifications to light penetration schemes (in line with N06
+namelist_cfg `<http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N06/domain/namelist_cfg>`_)
+git:commit f0fcc7f
+
+*PENDING* 6197300.sdb
+Does it improve the SST drift?
+Also noted that N06 uses SST and SSS restoring (it looks to a LEVITUS climatology
+monthly for sss and contant for sst...)
+This has not been implemented.
+
+Drift still occurs at the surface.
+Try and turn on later baroclinic boundaries just to check it is not a vertical
+discretisation issue.
+kt=     7 max abs(vel)**2:   3099.    , i j k:   682  338   58
+
+I think that the intial conditions and bcs are on different vertical grids.
+Test with no mometum at the boundary just temperature.
+It runs with initial condtions T/S + 3D vel
+
+Try with vel=0 but T/S at bdy
+ kt=     7 max abs(vel)**2:   3099.    , i j k:   682  338   58
+It looks like a sea mount near the boundary. Smooth or something else (use ORCA bathy?)
+
+Try running for 4 days (960 steps) with specified baroclinc T/S at initial values.
+Does it iron out the sea mount issue for a restart with real T/S?
+Looks OK. Restart with 3d vel turned on...
+Blows up again...
+Prbably need to sort out the bathmetry.
+Having said all that it looks like specified open boundary conditions might help.
+Though NaNs do emerge in solver.stat whilst remaining stable....
 
 ----
 
@@ -3061,7 +3192,7 @@ Add README
 * Also new plan to just use Global rivers rather than try and create a new (and
 different) set.
 
-* Use global met, not cutout DFS files
+* Use global met, not cutout DFS files. LINK IN DFS5.2 into INPUTS.
 
 * Add important EXP files to git. Add repo to GitHub.
 
