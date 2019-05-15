@@ -2403,7 +2403,7 @@ In ipython::
 
 import netCDF4
 import numpy as np
-dset = netCDF4.Dataset('bdy_mask2.nc','a')
+dset = netCDF4.Dataset('bdy_mask.nc','a')
 [ny,nx] = np.shape(dset.variables['mask'][:])
 for i in range(nx):
   if dset.variables['mask'][1,i] == 1:
