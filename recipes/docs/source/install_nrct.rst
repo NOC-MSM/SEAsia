@@ -55,8 +55,9 @@ Just do it::
 ::
 
 
-  livljobs6 ~ $ exec ssh-agent $SHELL
-  livljobs6 ~ $ ssh-add ~/.ssh/id_rsa_jasmin
+  livljobs6 ~ $
+  exec ssh-agent $SHELL
+  ssh-add ~/.ssh/id_rsa_jasmin
   Enter passphrase for /login/jelt/.ssh/id_rsa_jasmin:
   Identity added: /login/jelt/.ssh/id_rsa_jasmin (/login/jelt/.ssh/id_rsa_jasmin)
   ssh -A jelt@jasmin-login1.ceda.ac.uk
