@@ -124,6 +124,67 @@ Then in python::
 
 The mask is activated in the namelist.bdy file with ``ln_mask_file =.true.``
 
+
+Pynemo expects the parent grid coordinates to come from model output and therefore
+have a singleton time dimension...
+
+Preprocess the parent coordinates file so that it has a time dimension [t,y,x].
+For now, this is easier than fixing pynemo to accept generalised dimensional
+ files ...::
+
+  livljobs6:
+  module load nco/gcc/4.4.2.ncwa
+  ncap2 -s 'defdim("time",1);time[time]=74875.0;t@long_name="Dummy time"' -O GLO-MFC_001_024_coordinates.nc tmp.nc
+
+Then add the time dimension to latitude and longitude variables, recreating the glamt and gphit::
+
+  ncap2 -O -s 'gphit[time,latitude,longitude]=latitude' tmp.nc tmp2.nc
+
+  ncap2 -O -s 'glamt[time,latitude,longitude]=longitude' tmp2.nc tmp3.nc
+  ncrename -d time,t -d latitude,y -d longitude,x tmp3.nc tmp4.nc
+
+  ncap2 -O -s 'glamu[t,y,x]=longitude' tmp4.nc tmp5.nc
+  ncap2 -O -s 'glamv[t,y,x]=longitude' tmp5.nc tmp6.nc
+
+  ncap2 -O -s 'gphiu[t,y,x]=latitude' tmp6.nc tmp7.nc
+  ncap2 -O -s 'gphiv[t,y,x]=latitude' tmp7.nc GLO-MFC_001_024_coordinates_v2.nc
+  rm tmp*.nc
+
+
+Manipulate mask variables to recreate expected template::
+
+
+  livljobs6:
+  module load nco/gcc/4.4.2.ncwa
+  rm tmp*.nc
+  ncap2 -s 'defdim("time",1);time[time]=74875.0;t@long_name="Dummy time"' -O GLO-MFC_001_024_mask_bathy.nc tmp.nc
+
+Then add the time dimension to latitude and longitude variables, recreating the glamt and gphit::
+
+  ncap2 -O -s 'tmask[time,depth,latitude,longitude]=mask' tmp.nc tmp2.nc
+  ncap2 -O -s 'umask[time,depth,latitude,longitude]=mask' tmp2.nc tmp3.nc
+  ncap2 -O -s 'vmask[time,depth,latitude,longitude]=mask' tmp3.nc tmp4.nc
+  ncrename -d time,t -d latitude,y -d longitude,x tmp4.nc GLO-MFC_001_024_mask_bathy_v2.nc
+  rm tmp*.nc
+
+Redefining mask to tmask with an NCML file didnt work
+
+
+
+
+Parent data files
+=================
+
+Try downloading (locally e.g. Liverpool) monthly files::
+
+  cd /projectsa/accord/BoBEAS/INPUTS
+  wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-monthly/2016/mercatorpsy4v3r1_gl12_mean_201603.nc
+
+Try downloading jan, feb, march 2016 and run pynemo for Feb only. Does it work?
+
+
+
+
 Run PyNEMO (on JASMIN)
 ======================
 
@@ -161,9 +222,10 @@ JASMIN didn't have enough memory to complete the dev cycle / debugging so I have
 rsynced the ``BOBEAS/INPUTS`` directory to Liverpool:
  ``/projectsa/accord/BOBEAS/INPUTS/``::
 
+  cd $INPUTS
+
   module load anaconda/2.1.0  # Want python2
   source activate nrct_env
-  cd $INPUTS
   export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
 
   pynemo -s namelist_2016.bdy
