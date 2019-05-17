@@ -1,39 +1,22 @@
-Generate Initial conditions
-+++++++++++++++++++++++++++
-+++++++++++++++++++++++++++
+Generate Initial conditions from CMEMS data
++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++
 
-**10 May 2018: THIS IS NOT PROPERLY GENERALISED BECAUSE I'VE ONLY DONE IT ONCE!**
+*(17 May 2019)*
 
-For a new configuration you probably want to start with idealised, or homogenous
-initial conditions. This is done with user defined initial conditions ``ln_usr``
-with the expression being compiled into the executable
+This is based on a `more general recipe <generate_initial_conditions.rst>`_
 
-To use initial conditions from an existing T,S field you might need to do a bit
+To use initial conditions from an existing CMEMS T,S field you might need to do a bit
 of interpolation. It is advisable to let NEMO do the heavy lifting for vertical
-interpolation (rquiring some FORTRAN modifictions), though SOSIE tools can be user
+interpolation (requiring some FORTRAN modifications in MY_SRC), though SOSIE tools can be user
 to do simple horizontal interpolation.
-
-
-User defined initial initial conditions
-=======================================
-
-For constant T and S use the user defined functions in ``$CDIR/$CONFIG/MY_SRC``:
-  ``usrdef_sbc.F90``  and ``usrdef_istate.F90``. Compile and save executable with
-  telegraphic names that point to compile options. e.g.::
-
-    nemo_notide_TSprofile.exe
-    nemo_tideonly_TSconst.exe
 
 
 Building T,S field initial conditions from existing fields
 ==========================================================
 
-Second time around we build 3D initial conditions
-*(27 Apr 2018)*
+Build 3D initial conditions for T/S. Velocities will start from rest.
 
-*Since my parent and child are on the same grid I'm not sure I need all these steps.
-Indeed there is almost certainly a more efficient method with hindsight. However
- I am marching onwards*
 
 Outline:
 
@@ -42,31 +25,76 @@ Outline:
 * Use SOSIE to remove land by extrapolating water laterally.
 * Interpolate on the fly in NEMO to convert z-level to hybrid coords.
 
+
+Set some ARCHER paths
+---------------------
+
+::
+
+  export CONFIG=BoBEAS
+  export WORK=/work/n01/n01
+  export WDIR=$WORK/jelt/$CONFIG
+  export INPUTS=$WDIR/INPUTS
+  export START_FILES=$WDIR/NAMELISTS_AND_FORTRAN_FILES
+  export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
+  export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
+  export EXP=$CDIR/$CONFIG/EXP00
+
+
+Git clone the repositoty
+------------------------
+
+Clone the SCRIPTS and NAMELISTS_AND_FORTRAN_FILES folders::
+
+  cd $WORK/$USER
+  git clone https://github.com/NOC-MSM/BoBEAS.git
+
+
+
 Rough cut some initial conditions from parent (global) dataset
 --------------------------------------------------------------
 
-Make cut down parent file using ORCA0083-N01.
-Copy parent file to ARCHER INPUTS (need to generalise / improve)::
+Make/get cut down parent file using CMEMS Mercator 1/12 ocean data.
+Define a rough cut box::
+
+  longitude: 60, 110
+  latitude: 0, 30
+
+NB Aim: Get the data (1st Apr 2019 - 10 May 2019).
+Get 1st Apr 2019 for initial conditions. In the following a file CMEMS_01042019_T.nc
+is generated with 3D T, S for the cut out (wish written it as YYMMDD, Doh)::
+
+  livljobs4:
+  /projectsa/accord/BoBEAS/INPUTS
+  python -m pip install motuclient
+
+  python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2019-04-01 12:00:00" --date-max "2019-04-01 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable thetao --variable so --out-name CMEMS_01042019_T.nc --user jpolton --pwd JeffPCMEMS2018
+
+Copy parent file to ARCHER INPUTS::
 
   livljobs4
-  scp /projectsa/accord/ORCA0083/ORCA0083-N01_19791101d05T.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/SEAsia/INPUTS/.
+  scp /projectsa/accord/BoBEAS/INPUTS/CMEMS_01042019_T.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/BoBEAS/INPUTS/.
 
-Cut down based on coordintaes from *create coordinates* namelist. (Add a bit of
-a buffer)::
 
-    module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-    module load cray-netcdf cray-hdf5
-    module load nco/4.5.0
-    cd $WDIR/INPUTS
+DONT THINK I NEED THIS
 
-    ncks -d x,45,735 -d y,1245,1810 ORCA0083-N01_19791101d05T.nc $WDIR/INPUTS/cut_down_19791101d05_SEAsia_grid_T.nc
+.. note
+  Cut down based on coordintaes from *create coordinates* namelist. (Add a bit of
+  a buffer)::
 
-Average over time and restore the parallel modules (Not necessary for this data with 1 time point)::
+      module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
+      module load cray-netcdf cray-hdf5
+      module load nco/4.5.0
+      cd $WDIR/INPUTS
 
-    #e.g. ncwa -a time_counter $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc  $WDIR/INPUTS/cut_down_201310_LBay_grid_T.nc
+      ncks -d x,45,735 -d y,1245,1810 ORCA0083-N01_19791101d05T.nc $WDIR/INPUTS/cut_down_19791101d05_SEAsia_grid_T.nc
 
-    module unload nco cray-netcdf cray-hdf5
-    module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+  Average over time and restore the parallel modules (Not necessary for this data with 1 time point)::
+
+      #e.g. ncwa -a time_counter $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc  $WDIR/INPUTS/cut_down_201310_LBay_grid_T.nc
+
+      module unload nco cray-netcdf cray-hdf5
+      module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
 
 
@@ -81,28 +109,28 @@ e.g. in `Build Tools<SEAsia_archer_livljobs4.rst>`_
 
 First copy the namelists::
 
-  cp $START_FILES/namelist_reshape_bilin_initcd_votemper $INPUTS/.
-  cp $START_FILES/namelist_reshape_bilin_initcd_vosaline $INPUTS/.
+  cp $START_FILES/INITIAL_CONDITION/namelist_reshape_bilin_initcd_votemper $INPUTS/.
+  cp $START_FILES/INITIAL_CONDITION/namelist_reshape_bilin_initcd_vosaline $INPUTS/.
 
 Edit the input files::
 
   vi $INPUTS/namelist_reshape_bilin_initcd_votemper
   &grid_inputs
-    input_file = 'cut_down_19791101d05_SEAsia_grid_T.nc'
+    input_file = 'CMEMS_01042019_T.nc'
   ...
-    input_name = "votemper"
+    input_name = "thetao"
 
   &interp_inputs
-    input_file = "cut_down_19791101d05_SEAsia_grid_T.nc"
+    input_file = "CMEMS_01042019_T.nc"
     ...
-    input_vars = "deptht", "time_counter"
+    input_vars = "depth", "time"
 
 
 Similarly for the *vosaline.nc file::
 
   vi $INPUTS/namelist_reshape_bilin_initcd_vosaline
   &grid_inputs
-    input_file = 'cut_down_19791101d05_SEAsia_grid_T.nc'
+    input_file = 'CMEMS_01042019_T.nc'
     ...
     input_name = "vosaline"
   ...
@@ -110,7 +138,7 @@ Similarly for the *vosaline.nc file::
   &interp_inputs
     input_file = 'cut_down_19791101d05_SEAsia_grid_T.nc'
     ...
-    input_vars = "deptht", "time_counter"
+    input_vars = "depth", "time"
 
 
 
@@ -187,24 +215,25 @@ Install. This might be best done in a clean terminal::
   export PATH=~/local/bin:$PATH
   cd $WDIR/INPUTS
 
-Obtain the fields to interpolate. E.g interpolate AMM60 or ORCA
+Obtain the fields to interpolate. E.g interpolate CMEMS, AMM60 or ORCA
 data. Get the namelists::
 
-  cp $START_FILES/initcd_votemper.namelist $INPUTS/.
-  cp $START_FILES/initcd_vosaline.namelist $INPUTS/.
+  cp $START_FILES/INITIAL_CONDITION/initcd_votemper.namelist $INPUTS/.
+  cp $START_FILES/INITIAL_CONDITION/initcd_vosaline.namelist $INPUTS/.
 
-The sosie routine is VERY slow first time round (4hr 25 mins). This is when it
+The sosie routine is VERY slow first time round (1hr). This is when it
 makes a ``sosie_mapping`` file that can be reused for other variables.
 
-It is advisable to let NEMO do the vertical interpolation so only use SOSIE
- tools for the flood filling. Though it can do other things.
+It is advisable to let NEMO do the details of vertical interpolation. Use SOSIE
+ tools for the flood filling and for getting the *same number of levels* as
+ appear in the child grid.
 
  Edit namelists to the variables you want::
 
   vi initcd_vosaline.namelist
   &ninput
   ivect     = 0
-  lregin    = F
+  lregin    = T
   cf_in     = 'initcd_vosaline.nc'
   cv_in     = 'vosaline'
   cv_t_in   = 'time_counter'
@@ -222,8 +251,8 @@ It is advisable to let NEMO do the vertical interpolation so only use SOSIE
   &n3d
   cf_z_in  = 'initcd_vosaline.nc'
   cv_z_in  = 'gdept'
-  cf_z_out = 'initcd_vosaline.nc'
-  cv_z_out = 'gdept'
+  cf_z_out = 'domain_cfg.nc'
+  cv_z_out = 'nav_lev'
   cv_z_out_name = 'gdept'
   ctype_z_in = 'z'
   ctype_z_out = 'z'
@@ -243,13 +272,12 @@ It is advisable to let NEMO do the vertical interpolation so only use SOSIE
   cmethod  = 'bilin'
   cv_t_out = 'time_counter'
   cv_out   = 'vosaline'
-  cu_out   = 'psu'
+  cu_out   = 'PSU'
   cln_out  = 'Salinity'
   cd_out   = '.'
   !!
-  csource  = 'ORCA0083-N01'
-  ctarget  = 'SEAsia'
-  cextra   = '1978'
+  csource  = 'CMEMS-GLOBAL_ANALYSIS_FORECAST_PHY_001_024'
+  ctarget  = 'BoBEAS'
   /
 
 Similarly for ``initcd_votemper.namelist``::
@@ -264,12 +292,12 @@ Similarly for ``initcd_votemper.namelist``::
 
 Executing SOSIE tools is fine in interactive mode if you already have generated
 the sosie_mapping file. (I.e. run it once before). For the first run I had to submit
-it as a serial job **IT TOOK 4hrs 25m TO DO 3D**
+it as a serial job  **IT TOOK 1hrs 1m TO DO 3D**
 
 PBS submission script::
 
   cd $INPUTS
-  vi $INPUTS/sosie_initcd_T
+  vi sosie_initcd_T
 
   #!/bin/bash
   #PBS -N init_T
@@ -291,7 +319,7 @@ PBS submission script::
   make install
 
   #set up paths
-  cd /work/n01/n01/jelt/SEAsia/INPUTS
+  cd /work/n01/n01/jelt/BoBEAS/INPUTS
 
   /home/n01/n01/jelt/local/bin/sosie.x -f initcd_votemper.namelist
 
@@ -307,20 +335,25 @@ Subsequent jobs can be in interactive mode::
 
 Whether as a serial job or from the commandline, the temperature process creates::
 
-  sosie_mapping_ORCA0083-N01-SEAsia.nc
-  votemper_ORCA0083-N01-SEAsia_1978.nc
+  sosie_mapping_CMEMS-GLOBAL_ANALYSIS_FORECAST_PHY_001_024-BoBEAS.nc
+  votemper_CMEMS-GLOBAL_ANALYSIS_FORECAST_PHY_001_024-BoBEAS_Apr2019.nc
 
 And the salinity process creates::
 
-  vosaline_ORCA0083-N01-SEAsia_1978.nc
+  vosaline_CMEMS-GLOBAL_ANALYSIS_FORECAST_PHY_001_024-BoBEAS_Apr2019.nc
 
 Check these fields are OK.
 
 ---
-By this stage should have initial conditions T and S files ``votemper_ORCA0083-N01-SEAsia_1978.nc``
-and ``vosaline_ORCA0083-N01-SEAsia_1978.nc`` on the configurations horizontal grid
+By this stage should have initial conditions T and S files ``votemper_*_Apr2019.nc``
+and ``vosaline_*_Apr2019.nc`` on the configurations horizontal grid
 and on the ORCA parent z-level grid.
+It might be convenient to sym link them to::
 
+   ln -s vosaline_CMEMS-GLOBAL_ANALYSIS_FORECAST_PHY_001_024-BoBEAS_Apr2019.nc initcd_vosaline.nc
+   ln -s votemper_CMEMS-GLOBAL_ANALYSIS_FORECAST_PHY_001_024-BoBEAS_Apr2019.nc initcd_votemper.nc
+
+NB These two files will have to be linked into the ICS dir in the EXP dir.
 
 Interpolate in z on the fly
 ===========================
@@ -361,7 +394,7 @@ Then add a time dimension::
 For the mask variable use one of the tracer variables (in this case salinity
  and we know the land values are set to zero). NB if following progressively,
  a similar mask file (with a different limit salinity) was created in the SOSIE step
- **DONT NEED THIS**::
+ sosie_initcd_mask.nc **DONT NEED THIS**::
 
   ncks -d time_counter,0,0,1 -v vosaline initcd_vosaline.nc initcd_mask.nc
   #ncap2 -O -s 'where(vosaline <=0.) vosaline=0' initcd_mask.nc initcd_mask.nc
@@ -381,8 +414,10 @@ Restore modules::
   module unload cray-netcdf cray-hdf5
   module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-The resulting files are ``initcd_mask.nc`` and ``initcd_depth.nc`` which are read
+The resulting files are ``sosie_initcd_mask.nc`` and ``initcd_depth.nc`` which are read
 into the namelist.
+
+NB These two files will have to be linked into the ICS dir in the EXP dir.
 
 Edit, or add, new **mask** and **depth** variables to the namelist_cfg. Also
 add the logical switch to do vertical interpolation ``ln_tsd_interp=T``::
@@ -395,13 +430,13 @@ add the logical switch to do vertical interpolation ``ln_tsd_interp=T``::
   !-----------------------------------------------------------------------
   !              !  file name                 ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
   !              !                            !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
-  sn_tem  = 'votemper_ORCA0083-N01-SEAsia_1978.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
-  sn_sal  = 'vosaline_ORCA0083-N01-SEAsia_1978.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+  sn_tem  = 'initcd_votemper.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+  sn_sal  = 'initcd_votemper.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
   sn_dep  = 'initcd_depth.nc'   ,         -12        ,'gdept_4D',   .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
-  sn_msk  = 'initcd_mask.nc'    ,         -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
+  sn_msk  = 'sosie_initcd_mask.nc',       -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
 
     !
-     cn_dir        = '../../../../INPUTS/'     !  root directory for the location of the runoff files
+     cn_dir        = './ICS/'     !  root directory for the location of the runoff files
      ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
      ln_tsd_interp = .true.    !  Interpolation of T & S in the verticalinput data (T) or not (F)
      ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
