@@ -9,7 +9,8 @@ This is based on a `more general recipe <generate_initial_conditions.rst>`_
 To use initial conditions from an existing CMEMS T,S field you might need to do a bit
 of interpolation. It is advisable to let NEMO do the heavy lifting for vertical
 interpolation (requiring some FORTRAN modifications in MY_SRC), though SOSIE tools can be user
-to do simple horizontal interpolation.
+to do simple horizontal interpolation and also to make sure the initial conditions
+have a matching number of vertical levels (or the NEMO interpolation doesn't work).
 
 
 Building T,S field initial conditions from existing fields
@@ -76,27 +77,6 @@ Copy parent file to ARCHER INPUTS::
   scp /projectsa/accord/BoBEAS/INPUTS/CMEMS_01042019_T.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/BoBEAS/INPUTS/.
 
 
-DONT THINK I NEED THIS
-
-.. note
-  Cut down based on coordintaes from *create coordinates* namelist. (Add a bit of
-  a buffer)::
-
-      module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-      module load cray-netcdf cray-hdf5
-      module load nco/4.5.0
-      cd $WDIR/INPUTS
-
-      ncks -d x,45,735 -d y,1245,1810 ORCA0083-N01_19791101d05T.nc $WDIR/INPUTS/cut_down_19791101d05_SEAsia_grid_T.nc
-
-  Average over time and restore the parallel modules (Not necessary for this data with 1 time point)::
-
-      #e.g. ncwa -a time_counter $WDIR/INPUTS/cut_down_20131013_LBay_grid_T.nc  $WDIR/INPUTS/cut_down_201310_LBay_grid_T.nc
-
-      module unload nco cray-netcdf cray-hdf5
-      module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-
-
 
 Use SCRIP tools to remap to the new grid
 ----------------------------------------
@@ -136,7 +116,7 @@ Similarly for the *vosaline.nc file::
   ...
 
   &interp_inputs
-    input_file = 'cut_down_19791101d05_SEAsia_grid_T.nc'
+    input_file = 'CMEMS_01042019_T.nc'
     ...
     input_vars = "depth", "time"
 
@@ -155,12 +135,13 @@ Creates ``data_nemo_bilin_R12.nc``. Then::
 
   $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_votemper
 
-Creates ``initcd_votemper.nc``. Then::
+Creates ``initcd_origz_votemper.nc``. Then::
 
   $OLD_TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_initcd_vosaline
 
-Creates ``initcd_vosaline.nc``.
+Creates ``initcd_origz_vosaline.nc``.
 
+These files have the same vertical grid as the parent data.
 ---
 
 
@@ -170,7 +151,7 @@ Use SOSIE tools to flood fill the parent initial conditions
 
 Interpolating the T,S on z-levels onto hybrid levels can create water where
 there was previously only land. Convert all the land in the parent initial conditions
-to water by `flooding` the domain. This can be done with the SOSIE tool.
+to water by "flooding" the domain. This can be done with the SOSIE tool.
 
 Before building and using the tool first make a land mask file to tell the SOSIE
 what needs flooding. Use the salinity field to do this since we know the
@@ -181,10 +162,10 @@ as it makes a mess of the flood filling and subsequent z-interpolation)::
   module load cray-netcdf cray-hdf5
   module load nco/4.5.0
 
-  ncks -d time_counter,0,0,1 -v vosaline initcd_vosaline.nc sosie_initcd_mask.nc
-  ncap2 -O -s 'where(vosaline <=30.) vosaline=0' sosie_initcd_mask.nc sosie_initcd_mask.nc
-  ncap2 -O -s 'where(vosaline >0.) vosaline=1' sosie_initcd_mask.nc sosie_initcd_mask.nc
-  ncrename -v vosaline,mask sosie_initcd_mask.nc
+  ncks -d time_counter,0,0,1 -v vosaline initcd_origz_vosaline.nc initcd_origz_mask.nc
+  ncap2 -O -s 'where(vosaline <=30.) vosaline=0' initcd_origz_mask.nc initcd_origz_mask.nc
+  ncap2 -O -s 'where(vosaline >0.) vosaline=1' initcd_origz_mask.nc initcd_origz_mask.nc
+  ncrename -v vosaline,mask initcd_origz_mask.nc
 
 Restore modules::
 
@@ -192,7 +173,7 @@ Restore modules::
   module unload cray-netcdf cray-hdf5
   module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-This has created a file ``initcd_mask`` with a variable ``mask``.
+This has created a file ``initcd_origz_mask.nc`` with a variable ``mask``.
 
 Now build the SOSIE tool.
 Copy ``make.macro`` file and edit the path if necessary::
@@ -234,22 +215,22 @@ It is advisable to let NEMO do the details of vertical interpolation. Use SOSIE
   &ninput
   ivect     = 0
   lregin    = T
-  cf_in     = 'initcd_vosaline.nc'
+  cf_in     = 'initcd_origz_vosaline.nc'
   cv_in     = 'vosaline'
   cv_t_in   = 'time_counter'
   jt1       = 0
   jt2       = 0
   jplev     = 0
-  cf_x_in   = 'initcd_vosaline.nc'
+  cf_x_in   = 'initcd_origz_vosaline.nc'
   cv_lon_in = 'x'
   cv_lat_in = 'y'
-  cf_lsm_in = 'sosie_initcd_mask.nc'
+  cf_lsm_in = 'initcd_origz_mask.nc'
   cv_lsm_in = 'mask'
   ldrown    = T
   ...
 
   &n3d
-  cf_z_in  = 'initcd_vosaline.nc'
+  cf_z_in  = 'initcd_origz_vosaline.nc'
   cv_z_in  = 'gdept'
   cf_z_out = 'domain_cfg.nc'
   cv_z_out = 'nav_lev'
@@ -261,7 +242,7 @@ It is advisable to let NEMO do the details of vertical interpolation. Use SOSIE
 
   &nhtarget
   lregout    = F
-  cf_x_out   = 'initcd_vosaline.nc'
+  cf_x_out   = 'initcd_origz_vosaline.nc'
   cv_lon_out = 'x'
   cv_lat_out = 'y'
   cf_lsm_out = ''
@@ -292,7 +273,7 @@ Similarly for ``initcd_votemper.namelist``::
 
 Executing SOSIE tools is fine in interactive mode if you already have generated
 the sosie_mapping file. (I.e. run it once before). For the first run I had to submit
-it as a serial job  **IT TOOK 1hrs 1m TO DO 3D**
+it as a serial job  **IT TOOK 1hrs 1m**
 
 PBS submission script::
 
@@ -322,32 +303,37 @@ PBS submission script::
   cd /work/n01/n01/jelt/BoBEAS/INPUTS
 
   /home/n01/n01/jelt/local/bin/sosie.x -f initcd_votemper.namelist
+  /home/n01/n01/jelt/local/bin/sosie.x -f initcd_vosaline.namelist
 
   # qsub -q serial <filename>
   ###################################################
 
 
-Subsequent jobs can be in interactive mode::
+Launch job::
 
   qsub -q serial sosie_initcd_T
-  sosie.x -f initcd_vosaline.namelist
+
+Subsequent jobs could be in interactive mode::
+
+  #sosie.x -f initcd_vosaline.namelist
   #sosie.x -f initcd_votemper.namelist
 
-Whether as a serial job or from the commandline, the temperature process creates::
+Whether as a serial job or from the command line, the temperature process creates::
 
   sosie_mapping_CMEMS-GLOBAL_ANALYSIS_FORECAST_PHY_001_024-BoBEAS.nc
   votemper_CMEMS-GLOBAL_ANALYSIS_FORECAST_PHY_001_024-BoBEAS_Apr2019.nc
-
-And the salinity process creates::
-
   vosaline_CMEMS-GLOBAL_ANALYSIS_FORECAST_PHY_001_024-BoBEAS_Apr2019.nc
+
+Where the ``sosie_mapping*.nc`` file is created by the first sosie iteration only.
 
 Check these fields are OK.
 
 ---
 By this stage should have initial conditions T and S files ``votemper_*_Apr2019.nc``
 and ``vosaline_*_Apr2019.nc`` on the configurations horizontal grid
-and on the ORCA parent z-level grid.
+and on a z-level grid with the same number of levels as the target. The z-levels are
+not on the target's hybrid vertical coordinates. These will be the initial conditions used.
+NEMO can do on the fly vertical interpolation.
 It might be convenient to sym link them to::
 
    ln -s vosaline_CMEMS-GLOBAL_ANALYSIS_FORECAST_PHY_001_024-BoBEAS_Apr2019.nc initcd_vosaline.nc
@@ -355,9 +341,9 @@ It might be convenient to sym link them to::
 
 NB These two files will have to be linked into the ICS dir in the EXP dir.
 
+
 Interpolate in z on the fly
 ===========================
-
 
 For vertical interpolation we let NEMO do the heavy lifting. This requires some changes
 to the FORTRAN using ``par_oce.F90`` and ``dtatsd.F90`` in ``MY_SRC``. See
@@ -393,8 +379,10 @@ Then add a time dimension::
 
 For the mask variable use one of the tracer variables (in this case salinity
  and we know the land values are set to zero). NB if following progressively,
- a similar mask file (with a different limit salinity) was created in the SOSIE step
- sosie_initcd_mask.nc **DONT NEED THIS**::
+ a similar mask file (with a different limit salinity and potentially different
+ number of vertical levels) was created just before the SOSIE step
+ ``initcd_origz_mask.nc``. A mask with the correct number of vertical levels is needed
+ of the number of levels changes between parent and child::
 
   ncks -d time_counter,0,0,1 -v vosaline initcd_vosaline.nc initcd_mask.nc
   #ncap2 -O -s 'where(vosaline <=0.) vosaline=0' initcd_mask.nc initcd_mask.nc
@@ -414,7 +402,7 @@ Restore modules::
   module unload cray-netcdf cray-hdf5
   module load cray-netcdf-hdf5parallel cray-hdf5-parallel
 
-The resulting files are ``sosie_initcd_mask.nc`` and ``initcd_depth.nc`` which are read
+The resulting files are ``initcd_mask.nc`` and ``initcd_depth.nc`` which are read
 into the namelist.
 
 NB These two files will have to be linked into the ICS dir in the EXP dir.
@@ -422,7 +410,7 @@ NB These two files will have to be linked into the ICS dir in the EXP dir.
 Edit, or add, new **mask** and **depth** variables to the namelist_cfg. Also
 add the logical switch to do vertical interpolation ``ln_tsd_interp=T``::
 
-  cd $EXP/../EXP_tide_initcd
+  cd $EXP/../EXP_Apr19
   vi namelist_cfg
 
   !-----------------------------------------------------------------------
@@ -433,7 +421,7 @@ add the logical switch to do vertical interpolation ``ln_tsd_interp=T``::
   sn_tem  = 'initcd_votemper.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
   sn_sal  = 'initcd_votemper.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
   sn_dep  = 'initcd_depth.nc'   ,         -12        ,'gdept_4D',   .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
-  sn_msk  = 'sosie_initcd_mask.nc',       -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
+  sn_msk  = 'initcd_mask.nc',       -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
 
     !
      cn_dir        = './ICS/'     !  root directory for the location of the runoff files
