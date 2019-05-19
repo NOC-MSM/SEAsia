@@ -69,11 +69,14 @@ is generated with 3D T, S for the cut out (wish written it as YYMMDD, Doh)::
   /projectsa/accord/BoBEAS/INPUTS
   python -m pip install motuclient
 
-  python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2019-04-01 12:00:00" --date-max "2019-04-01 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable thetao --variable so --out-name CMEMS_01042019_T.nc --user jpolton --pwd JeffPCMEMS2018
+  python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2019-04-01 12:00:00" --date-max "2019-04-01 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable thetao --variable so --out-name CMEMS_01042019_T_download.nc --user jpolton --pwd JeffPCMEMS2018
 
-Copy parent file to ARCHER INPUTS::
+Unpack the netcdf offsets and compression (SCRIP tools don't like it). Copy
+ parent file to ARCHER INPUTS::
 
   livljobs4
+  cd /projectsa/accord/BoBEAS/INPUTS/
+  ncpdq -U CMEMS_01042019_T_download.nc CMEMS_01042019_T.nc
   scp /projectsa/accord/BoBEAS/INPUTS/CMEMS_01042019_T.nc jelt@login.archer.ac.uk:/work/n01/n01/jelt/BoBEAS/INPUTS/.
 
 
