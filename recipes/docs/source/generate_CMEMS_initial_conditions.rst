@@ -85,7 +85,8 @@ Use SCRIP tools to remap to the new grid
 ----------------------------------------
 
 Now do interpolation onto child lateral grid.  The ``scrip`` tools are built in ``TDIR``
-with a few modifications see `REPO:SCRIPTS/make_tools.sh <make_tools.sh>`_
+with a few modifications see
+ `REPO:SCRIPTS/make_tools.sh <https://github.com/NOC-MSM/BoBEAS/blob/master/SCRIPTS/make_tools.sh>`_.
 Then
 ::
 
