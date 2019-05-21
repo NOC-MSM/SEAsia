@@ -42,7 +42,7 @@ get the statics files::
 
   wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_coordinates.nc
   wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_mask_bathy.nc
-  wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_mdt.nc
+  #wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_mdt.nc
 
 Copy them into $INPUTS directory.
 jasmin-xfer1.ceda.ac.uk
@@ -68,13 +68,15 @@ In python. Reconstruct bathymetry by summing e3w::
   dout = netCDF4.Dataset('fake_bathy.nc','a')
   [ny,nx] = np.shape(dset.variables['nav_lat'][:])
 
-  e3w = dset.variables['e3w_0'][:].squeeze() # z,y,x
+  #e3w = dset.variables['e3w_0'][:].squeeze() # z,y,x
+  e3t = dset.variables['e3t_0'][:].squeeze() # z,y,x
   bathymetry = np.zeros((ny,nx))
 
   bottom_level = dset.variables['bottom_level'][:].squeeze() # y,x
   for i in range(nx):
     for j in range(ny):
-      bathymetry[j,i] = np.sum(e3w[0:bottom_level[j,i],j,i],0)
+      bathymetry[j,i] = np.sum(e3t[0:bottom_level[j,i],j,i],0)
+      #bathymetry[j,i] = np.sum(e3w[0:bottom_level[j,i],j,i],0)
 
   dout.variables['Bathymetry'][:,:] = np.squeeze(bathymetry)
 
@@ -82,9 +84,10 @@ In python. Reconstruct bathymetry by summing e3w::
   dout.close()
 
 
-Now for some reason the domain_cfg file seems to have walls around it. Create a mask
-for PyNEMO so that it ignores the boundary walls::
-
+When PyNEMO runs it, by default, creates a mask with a 1pt border around the
+domain, unless otherwise stated. At present invoking this default action throws
+up an error to do with QWidget, which I image is a java issue. We will circumvent
+this issue by manually making a 1pt mask.
 
 NB The mask variable takes values (-1 mask, 1 wet/active domain, 0 land). Need to
 only mask a single point around the edge since the rimwidth is considered to be
@@ -229,3 +232,42 @@ rsynced the ``BOBEAS/INPUTS`` directory to Liverpool:
   export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
 
   pynemo -s namelist_2016.bdy
+
+
+  ---
+
+Notes for 2019: 20 April – 10 May ish
+
+Get the state variable data::
+
+  livljobs4 $
+  cd /projectsa/accord/BoBEAS/INPUTS/
+  python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2019-03-31 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable thetao --out-name CMEMS_2019-03-31_2019-05-10_download_T.nc --user jpolton --pwd JeffPCMEMS2018
+  python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2019-03-31 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable so --out-name CMEMS_2019-03-31_2019-05-10_download_S.nc --user jpolton --pwd JeffPCMEMS2018
+  python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2019-03-31 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable uo --out-name CMEMS_2019-03-31_2019-05-10_download_U.nc --user jpolton --pwd JeffPCMEMS2018
+  python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2019-03-31 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable vo --out-name CMEMS_2019-03-31_2019-05-10_download_V.nc --user jpolton --pwd JeffPCMEMS2018
+  python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2019-03-31 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable zos --out-name CMEMS_2019-03-31_2019-05-10_download_Z.nc --user jpolton --pwd JeffPCMEMS2018
+
+Get the static files::
+
+    wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_coordinates.nc
+    wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_mask_bathy.nc
+    #wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_mdt.nc
+
+Cut them down::
+  module load nco/gcc/4.4.2.ncwa
+  ncks -d longitude,60.,110. -d latitude,0.,30. GLO-MFC_001_024_coordinates.nc  cut_coordinates.nc
+  ncks -d longitude,60.,110. -d latitude,0.,30. GLO-MFC_001_024_mask_bathy.nc  cut_mask_bathy.nc
+  #ncks -d longitude,60.,110. -d latitude,0.,30. GLO-MFC_001_024_mdt.nc  cut_mdt.nc # Don't use
+
+Run pynemo::
+
+  cd $INPUTS
+
+  module load anaconda/2.1.0  # Want python2
+  source activate nrct_env
+  export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+
+  pynemo -s namelist_apr2019.bdy
+
+  This completes
