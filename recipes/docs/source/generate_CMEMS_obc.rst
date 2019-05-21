@@ -270,4 +270,13 @@ Run pynemo::
 
   pynemo -s namelist_apr2019.bdy
 
-  This completes
+This completes but something fishy has happened as the extreme values are way too large.
+There must be a mess up with enveloping bathymetry and fill values polluting the
+interpolated values.
+
+Implement a threshold value on the velocities as a temporary fix::
+
+    ncap2 -O -s 'where(vomecrty<-0.5) vomecrty=-0.5' BoBEAS_bdyV_y2019m04.nc BoBEAS_bdyV_y2019m04.nc
+    ncap2 -O -s 'where(vomecrty>0.5)  vomecrty=0.5'  BoBEAS_bdyV_y2019m04.nc BoBEAS_bdyV_y2019m04.nc
+    ncap2 -O -s 'where(vozocrtx<-0.5) vozocrtx=-0.5' BoBEAS_bdyU_y2019m04.nc BoBEAS_bdyU_y2019m04.nc
+    ncap2 -O -s 'where(vozocrtx>0.5)  vozocrtx=0.5'  BoBEAS_bdyU_y2019m04.nc BoBEAS_bdyU_y2019m04.nc
