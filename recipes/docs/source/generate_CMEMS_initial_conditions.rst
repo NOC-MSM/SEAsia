@@ -84,8 +84,9 @@ Unpack the netcdf offsets and compression (SCRIP tools don't like it). Copy
 Use SCRIP tools to remap to the new grid
 ----------------------------------------
 
-Now do interpolation onto child lateral grid.  The ``scrip`` tools are build in ``TDIR``
-e.g. in `Build Tools<SEAsia_archer_livljobs4.rst>`_
+Now do interpolation onto child lateral grid.  The ``scrip`` tools are built in ``TDIR``
+with a few modifications see `REPO:SCRIPTS/make_tools.sh <make_tools.sh>`_
+Then
 ::
 
   export OLD_TDIR=$WORK/$USER/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/
