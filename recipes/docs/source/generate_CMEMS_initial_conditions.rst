@@ -443,3 +443,25 @@ add the logical switch to do vertical interpolation ``ln_tsd_interp=T``::
  will be rendered useless! If you are going to take this approach flood-fill all
  the land and then set the mask array to equal 1 everywhere. That way it won’t be
  corrupted when using the weights files to interpolate onto the child grid.
+
+
+For some reason the initial condition files generated are statically unstable...
+This can be resolved using NEMO machinery with a short initialisation run where
+non penetrative convective adjustment is switched on to sort it out::
+
+  &namzdf 
+  ln_zdfevd   = .true. --> .false.
+  ln_zdfnpc   = .false. --> .true.
+
+Run for a few timesteps (perhaps nt=1 is sufficient?). Then restart from restart.
+*(I ran for 100 steps with convective adjustment turned on, though it should
+ work in one step)*. Restore ``namelist_cfg`` to what it was before
+::
+
+    !-----------------------------------------------------------------------
+    &namzdf        !   vertical physics
+    !-----------------------------------------------------------------------
+       ln_zdfevd   = .true.    !  enhanced vertical diffusion (evd) (T) or not (F)
+          nn_evdm     =    0        ! evd apply on tracer (=0) or on tracer and momentum (=1)
+          rn_avevd    =  100.       !  evd mixing coefficient [m2/s]
+       ln_zdfnpc   = .false.   !  Non-Penetrative Convective algorithm (T) or not (F)
