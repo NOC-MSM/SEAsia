@@ -280,3 +280,6 @@ Implement a threshold value on the velocities as a temporary fix::
     ncap2 -O -s 'where(vomecrty>0.5)  vomecrty=0.5'  BoBEAS_bdyV_y2019m04.nc BoBEAS_bdyV_y2019m04.nc
     ncap2 -O -s 'where(vozocrtx<-0.5) vozocrtx=-0.5' BoBEAS_bdyU_y2019m04.nc BoBEAS_bdyU_y2019m04.nc
     ncap2 -O -s 'where(vozocrtx>0.5)  vozocrtx=0.5'  BoBEAS_bdyU_y2019m04.nc BoBEAS_bdyU_y2019m04.nc
+
+
+Copy it to where it needs to be.
