@@ -283,3 +283,53 @@ Implement a threshold value on the velocities as a temporary fix::
 
 
 Copy it to where it needs to be.
+
+---
+
+
+
+---
+
+Generate monthly boundary files for 2016.
+
+Using existing daily files.
+
+First concat into monthly files.
+
+Build ncml file for all the daily inputs. Note have to have wrap around values for
+the interpolation to work,
+so have duplicated Jan 1st and Dec 31st, but have rewritten their timestamps to
+ appear like they were the +/-24hours counterparts.
+mercator_2016.ncml
+
+pynemo -s namelist_2016.bdy
+
+Clip the velocities.
+
+---
+
+Download 2018 data.
+
+livljobs4 $
+
+python
+
+import os
+
+src_path = ''
+dst_path = '/projectsa/accord/BoBEAS/INPUTS/'
+files = []
+
+yy_lst = ['18']
+var_lst = ['SAL', 'TEMP', 'SSH', 'U0', 'V0']
+mon_lst = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+
+basic_cmd = 'python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30'
+user_cred = '--user jpolton --pwd JeffPCMEMS2018'
+ --date-min "2018-01-01 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable thetao --out-name CMEMS_2019-03-31_2019-05-10_download_T.nc
+
+python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2018-01-01 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable thetao --out-name CMEMS_2019-03-31_2019-05-10_download_T.nc --user jpolton --pwd JeffPCMEMS2018
+python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2018-01-01 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable so --out-name CMEMS_2019-03-31_2019-05-10_download_S.nc --user jpolton --pwd JeffPCMEMS2018
+python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2018-01-01 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable uo --out-name CMEMS_2019-03-31_2019-05-10_download_U.nc --user jpolton --pwd JeffPCMEMS2018
+python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2018-01-01 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable vo --out-name CMEMS_2019-03-31_2019-05-10_download_V.nc --user jpolton --pwd JeffPCMEMS2018
+python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2018-01-01 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable zos --out-name CMEMS_2019-03-31_2019-05-10_download_Z.nc --user jpolton --pwd JeffPCMEMS2018
