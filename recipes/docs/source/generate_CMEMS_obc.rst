@@ -308,28 +308,71 @@ Clip the velocities.
 
 ---
 
-Download 2018 data.
+Download 2018 data. Save as One-File-per-Variable-per-Month
 
 livljobs4 $
 
 python
+::
 
-import os
+  vi get_CMEMS_2018.py
 
-src_path = ''
-dst_path = '/projectsa/accord/BoBEAS/INPUTS/'
-files = []
+    # Script to sequentially get a year of CMEMS-Copernicus data and save a one file per variable-month
+    # JPolton 24 May 2019
+    import os
 
-yy_lst = ['18']
-var_lst = ['SAL', 'TEMP', 'SSH', 'U0', 'V0']
-mon_lst = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+    dst_path = '/projectsa/accord/BoBEAS/INPUTS/'
 
-basic_cmd = 'python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30'
-user_cred = '--user jpolton --pwd JeffPCMEMS2018'
- --date-min "2018-01-01 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable thetao --out-name CMEMS_2019-03-31_2019-05-10_download_T.nc
+    yy_lst = ['18']
+    var_str = ['SAL', 'TEMP', 'SSH', 'U0', 'V0']
+    var_lst = ['so', 'thetao', 'zos', 'uo', 'vo']
+    mon_lst = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+    ndays_lst = ['31', '28', '31',  '30',  '31',  '30',  '31',   '31',  '30',  '31' , '30', '31']
+    # Component of the get command that are fixed for BoBEAS
+    basic_cmd = 'python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 '
+    latlon_rng = ' --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30'
+    # Component of the get command that are NOT fixed for BoBEAS
+    user_cred = ' --user jpolton --pwd JeffPCMEMS2018'
+    date_rng = ' --date-min "2018-01-01 12:00:00" --date-max "2019-05-10 12:00:00" '
+    depth_rng = ' --depth-min 0.493 --depth-max 5727.918000000001 '
+    var = ' --variable thetao '
+    ofile = ' --out-name CMEMS_2019-03-31_2019-05-10_download_T.nc '
 
-python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2018-01-01 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable thetao --out-name CMEMS_2019-03-31_2019-05-10_download_T.nc --user jpolton --pwd JeffPCMEMS2018
-python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2018-01-01 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable so --out-name CMEMS_2019-03-31_2019-05-10_download_S.nc --user jpolton --pwd JeffPCMEMS2018
-python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2018-01-01 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable uo --out-name CMEMS_2019-03-31_2019-05-10_download_U.nc --user jpolton --pwd JeffPCMEMS2018
-python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2018-01-01 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable vo --out-name CMEMS_2019-03-31_2019-05-10_download_V.nc --user jpolton --pwd JeffPCMEMS2018
-python -m motuclient --motu http://nrt.cmems-du.eu/motu-web/Motu --service-id GLOBAL_ANALYSIS_FORECAST_PHY_001_024-TDS --product-id global-analysis-forecast-phy-001-024 --longitude-min 60 --longitude-max 110 --latitude-min 0 --latitude-max 30 --date-min "2018-01-01 12:00:00" --date-max "2019-05-10 12:00:00" --depth-min 0.493 --depth-max 5727.918000000001 --variable zos --out-name CMEMS_2019-03-31_2019-05-10_download_Z.nc --user jpolton --pwd JeffPCMEMS2018
+    for yy in yy_lst:
+      if yy == '18':
+        ndays_lst[1] = '29'
+      else:
+        ndays_lst[1] = '28'
+
+      for ivar in range(len(var_lst)):
+        var = ' --variable '+var_lst[ivar]
+
+        for imm in range(len(mon_lst)):
+          ndays = ndays_lst[imm]
+          date_rng = ' --date-min "20'+yy+'-'+"{0:0=2d}".format(imm+1)+'-01 12:00:00" --date-max "20'+yy+'-'+"{0:0=2d}".format(imm+1)+'-'+ndays+' 12:00:00" '
+
+          ofile = ' --out-name '+dst_path+'20'+yy+'/'+var_str[ivar]+'_20'+yy+"{0:0=2d}".format(imm+1)+'.nc'
+
+          os.system(  basic_cmd+latlon_rng+user_cred+depth_rng + date_rng+var+ofile )
+
+python get_CMEMS_2018.py
+
+
+Then concat the daily files into months::
+
+  python concat_daily_files.py
+
+The run pynemo::
+
+  pynemo -s namelist.bdy
+
+Then clip the VELOCITY boudaries (because I am being super conservative about
+keeping this stable). And copy to ARCHER::
+
+  python clip_bdy_vel.py
+
+
+Copy the T files too::
+
+  for file in 'ls BoBEAS_bt_bdyT_y2016*'; do rsync -uvt $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/BoBEAS/EXP_2016/OBC/.; done
+  for file in 'ls BoBEAS_bdyT_y2016*'; do rsync -uvt $file jelt@login.archer.ac.uk:/work/n01/n01/jelt/BoBEAS/EXP_2016/OBC/.; done
