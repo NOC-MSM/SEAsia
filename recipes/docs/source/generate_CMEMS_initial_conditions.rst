@@ -391,7 +391,7 @@ For the mask variable use one of the tracer variables (in this case salinity
 
   ncks -d time_counter,0,0,1 -v vosaline initcd_vosaline.nc initcd_mask.nc
   #ncap2 -O -s 'where(vosaline <=0.) vosaline=0' initcd_mask.nc initcd_mask.nc
-  ncap2 -O -s 'where(vosaline <=0.) vosaline=1' initcd_mask.nc initcd_mask.nc
+  ncap2 -O -s 'where(vosaline <30.) vosaline=0' initcd_mask.nc initcd_mask.nc
   ncap2 -O -s 'where(vosaline >0.) vosaline=1' initcd_mask.nc initcd_mask.nc
   ncrename -v vosaline,mask initcd_mask.nc
 
@@ -400,6 +400,8 @@ For the mask variable use one of the tracer variables (in this case salinity
   and so using a mask from the old grid meant sst where pulled down to deep water.
   Since the parent is flood filled there is no need for a mask anyway. Easiest to
   set all values to one instead of disactivating.
+
+.. update 25 May. Try mask for naughty Salinity
 
 Restore modules::
 
@@ -424,7 +426,7 @@ add the logical switch to do vertical interpolation ``ln_tsd_interp=T``::
   !              !  file name                 ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
   !              !                            !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
   sn_tem  = 'initcd_votemper.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
-  sn_sal  = 'initcd_votemper.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+  sn_sal  = 'initcd_vosaline.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
   sn_dep  = 'initcd_depth.nc'   ,         -12        ,'gdept_4D',   .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
   sn_msk  = 'initcd_mask.nc',       -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
 
