@@ -352,7 +352,8 @@ Interpolate in z on the fly
 
 For vertical interpolation we let NEMO do the heavy lifting. This requires some changes
 to the FORTRAN using ``par_oce.F90`` and ``dtatsd.F90`` in ``MY_SRC``. See
-`<build_opa_orchestra.rst>`_
+the *Summary work flow* page (or `<build_opa_orchestra.rst>`_ if link exists).
+
 
 Maybe move the executable to something memorable e.g.::
 
@@ -458,7 +459,7 @@ Demonstration for April 2019
 Running from rest T,S i used a short timestep of 30s for a day - ``namelist_cfg``: 8265f4c6cb253f4dde7e85dbbe8da95a7cb2d72a
 Then I did a restart with dt=90s and run for the month - ``namelist_cfg``: cbf83e4a05915e6f7dd075e83495cf0815eb8a64
 
-The following binaries are on JASMIN, in 
+The following binaries are on JASMIN, in
 ``/gws/nopw/j04/campus/pseudoDropBox/BoBEAS/EXP_Apr19``
 
 Boundary files:
@@ -481,4 +482,4 @@ Restart files (after 30hrs):
 
 Tidal files:
   EXP_Apr19/TIDES
-  BoBEAS_bdytide_rotT_??_grid_[TUV].nc
+  BoBEAS_bdytide_rotT*[TUV].nc
