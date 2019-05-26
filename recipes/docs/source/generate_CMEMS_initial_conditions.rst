@@ -395,13 +395,8 @@ For the mask variable use one of the tracer variables (in this case salinity
   ncap2 -O -s 'where(vosaline >0.) vosaline=1' initcd_mask.nc initcd_mask.nc
   ncrename -v vosaline,mask initcd_mask.nc
 
-.. note: Changed the above so that ALL the values are 1. (I.e. a rubbish mask).
-  The problem was that in the child bathymetry some of the sea mounts have moved
-  and so using a mask from the old grid meant sst where pulled down to deep water.
-  Since the parent is flood filled there is no need for a mask anyway. Easiest to
-  set all values to one instead of disactivating.
+.. note: Need to use mask on salinity. Was not necessary when vertical interpolation was not needed. Is needed whne vertical interpolation is used.
 
-.. update 25 May. Try mask for naughty Salinity
 
 Restore modules::
 
@@ -454,3 +449,35 @@ adjustment. E.g.::
   &namzdf
   ln_zdfevd   = .true. --> .false.
   ln_zdfnpc   = .false. --> .true.
+
+.. note This may no longer be needed
+
+Demonstration for April 2019
+----------------------------
+
+Running from rest T,S i used a short timestep of 30s for a day - ``namelist_cfg``: 8265f4c6cb253f4dde7e85dbbe8da95a7cb2d72a
+Then I did a restart with dt=90s and run for the month - ``namelist_cfg``: cbf83e4a05915e6f7dd075e83495cf0815eb8a64
+
+The following binaries are on JASMIN.
+
+Boundary files:
+  EXP_Apr16/OBC
+  BoBEAS_bdyT_y2019m04.nc
+  BoBEAS_bdyU_y2019m04.nc
+  BoBEAS_bdyV_y2019m04.nc
+  BoBEAS_bt_bdyT_y2019m04.nc
+
+Initial condition:
+  EXP_Apr16/ICS
+  initcd_depth.nc
+  initcd_mask.nc
+  initcd_vosaline.nc
+  initcd_votemper.nc
+
+Restart files (after 30hrs):
+  EXP_Apr16/restarts
+  BoBEAS_00014400_restart_0???.nc
+
+Tidal files:
+  EXP_Apr19/TIDES
+  BoBEAS_bdytide_rotT_??_grid_[TUV].nc
