@@ -458,7 +458,8 @@ Demonstration for April 2019
 Running from rest T,S i used a short timestep of 30s for a day - ``namelist_cfg``: 8265f4c6cb253f4dde7e85dbbe8da95a7cb2d72a
 Then I did a restart with dt=90s and run for the month - ``namelist_cfg``: cbf83e4a05915e6f7dd075e83495cf0815eb8a64
 
-The following binaries are on JASMIN.
+The following binaries are on JASMIN, in 
+``/gws/nopw/j04/campus/pseudoDropBox/BoBEAS/EXP_Apr19``
 
 Boundary files:
   EXP_Apr16/OBC
