@@ -13,7 +13,7 @@ Generating open boundary condition files from COPERNICUS data
 
 
 For the purposes of progress I am going to do the open bcs extraction using
-pynemo install on JASMIN ``<install_nrct.rst>_``.
+pynemo install on JASMIN or livljobs ``<install_pynemo.rst>_``.
 
 Workflow:
 =========
@@ -40,14 +40,14 @@ ftp://nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-
 
 get the statics files::
 
-  wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_coordinates.nc
-  wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_mask_bathy.nc
-  #wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_mdt.nc
+  wget ftp://jpolton:JeffPCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_coordinates.nc
+  wget ftp://jpolton:JeffPCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_mask_bathy.nc
+  #wget ftp://jpolton:JeffPCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_mdt.nc
 
 Copy them into $INPUTS directory.
 jasmin-xfer1.ceda.ac.uk
 cd  /gws/nopw/j04/campus/pseudoDropBox/BoBEAS/INPUTS
-wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024/2016/01/mercatorpsy4v3r1_gl12_mean_20160101_R20160113.nc
+wget ftp://jpolton:JeffPCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024/2016/01/mercatorpsy4v3r1_gl12_mean_20160101_R20160113.nc
 
 
 Try and create a post-hoc bathymetry file for child model (ideally this would be
@@ -181,7 +181,7 @@ Parent data files
 Try downloading (locally e.g. Liverpool) monthly files::
 
   cd /projectsa/accord/BoBEAS/INPUTS
-  wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-monthly/2016/mercatorpsy4v3r1_gl12_mean_201603.nc
+  wget ftp://jpolton:JeffPCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-monthly/2016/mercatorpsy4v3r1_gl12_mean_201603.nc
 
 Try downloading jan, feb, march 2016 and run pynemo for Feb only. Does it work?
 
@@ -250,9 +250,9 @@ Get the state variable data::
 
 Get the static files::
 
-    wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_coordinates.nc
-    wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_mask_bathy.nc
-    #wget ftp://jpolton:JeffCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_mdt.nc
+    wget ftp://jpolton:JeffPCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_coordinates.nc
+    wget ftp://jpolton:JeffPCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_mask_bathy.nc
+    #wget ftp://jpolton:JeffPCMEMS2018@nrt.cmems-du.eu/Core/GLOBAL_ANALYSIS_FORECAST_PHY_001_024/global-analysis-forecast-phy-001-024-statics/GLO-MFC_001_024_mdt.nc
 
 Cut them down::
   module load nco/gcc/4.4.2.ncwa
@@ -288,9 +288,9 @@ Copy it to where it needs to be.
 
 
 
----
 
-Generate monthly boundary files for 2016.
+Notes on generating monthly boundary files for 2016.
+===================================================
 
 Using existing daily files.
 
@@ -355,7 +355,9 @@ python
 
           os.system(  basic_cmd+latlon_rng+user_cred+depth_rng + date_rng+var+ofile )
 
-python get_CMEMS_2018.py
+Execute script::
+
+  python get_CMEMS_2018.py
 
 
 Then concat the daily files into months::
