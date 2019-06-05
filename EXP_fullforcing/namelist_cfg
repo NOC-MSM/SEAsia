@@ -135,7 +135,7 @@
    sn_msk  = 'N06/initcd_mask.nc'    ,         -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
  
   !
-   cn_dir        = '../../../../INPUTS/'     !  root directory for the location of the runoff files
+   cn_dir        = '../INPUTS/'     !  root directory for the location of the runoff files
    ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
    ln_tsd_interp = .false.    !  Interpolation of T & S in the verticalinput data (T) or not (F)
    ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
@@ -289,7 +289,7 @@
    ln_COARE_3p5= .false.   ! "COARE 3.5" algorithm   (Edson et al. 2013)
    ln_ECMWF    = .false.   ! "ECMWF"     algorithm   (IFS cycle 31)
    !
-   cn_dir      = '../../../../INPUTS/'      !  root directory for the location of the bulk files
+   cn_dir      = '../INPUTS/'      !  root directory for the location of the bulk files
    ln_taudif   = .false.   !  HF tau contribution: use "mean of stress module - module of the mean stress" data
    rn_zqt      = 2.       !  Air temperature and humidity reference height (m)
    rn_zu       = 10.       !  Wind vector reference height (m)
