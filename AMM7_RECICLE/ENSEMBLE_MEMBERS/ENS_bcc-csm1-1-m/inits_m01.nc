@@ -1,1 +1,0 @@
-../../ENSEMBLE_INPUTS/IC/ic_bcc-csm1-1-m_1970.nc
