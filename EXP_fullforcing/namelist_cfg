@@ -27,7 +27,7 @@
 !-----------------------------------------------------------------------
    cn_exp      =    "SEAsia"  !  experience name
    nn_it000    =  1   !  first time step
-   nn_itend    =  7200  ! 1 days. 10day=14400   !  last  time step (std 5475)
+   nn_itend    =  1296 ! 960 ! 1920 ! 7200  ! 1 days. 10day=14400   !  last  time step (std 5475)
    nn_date0    =  19600101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
@@ -37,16 +37,16 @@
       !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
       !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
       !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
-      cn_ocerst_in    = "SEAsia_00007200_restart"   !  suffix of ocean restart name (input)
+      cn_ocerst_in    = "SEAsia_00000960_restart"   !  suffix of ocean restart name (input)
       cn_ocerst_indir = "."         !  directory from which to read input ocean restarts
       cn_ocerst_out   = "restart"   !  suffix of ocean restart name (output)
       cn_ocerst_outdir= "."         !  directory in which to write output ocean restarts
    ln_iscpl    = .false.   !  cavity evolution forcing or coupling to ice sheet model
-   nn_istate   =       0   !  output the initial state (1) or not (0)
+   nn_istate   =       1   !  output the initial state (1) or not (0)
    ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
-   nn_stock    =   7200 ! 14400   !  frequency of creation of a restart file (modulo referenced to 1)
+   nn_stock    =   1296 ! 960 ! 7200 ! 14400   !  frequency of creation of a restart file (modulo referenced to 1)
    nn_stocklist = 0,0,0,0,0,0,0,0,0,0 ! List of timesteps when a restart file is to be written
-   nn_write    =   7200 ! 1440   !  frequency of write in the output file   (modulo referenced to nn_it000)
+   nn_write    =   1296 ! 960 ! 7200 ! 1440   !  frequency of write in the output file   (modulo referenced to nn_it000)
    ln_mskland  = .false.   !  mask land points in NetCDF outputs (costly: + ~15%)
    ln_cfmeta   = .false.   !  output additional data to netCDF files required for compliance with the CF metadata standard
    ln_clobber  = .true.    !  clobber (overwrite) an existing file
@@ -118,7 +118,7 @@
    nn_msh      =    0      !  create (>0) a mesh file or not (=0)
    rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
    !
-   rn_rdt      =  100 ! 360.     !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_rdt      =  200 ! 360.     !  time step for the dynamics (and tracer if nn_acc=0)
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module
@@ -137,7 +137,7 @@
   !
    cn_dir        = '../INPUTS/'     !  root directory for the location of the runoff files
    ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
-   ln_tsd_interp = .false.    !  Interpolation of T & S in the verticalinput data (T) or not (F)
+   ln_tsd_interp = .true.    !  Interpolation of T & S in the verticalinput data (T) or not (F)
    ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
 /
 !-----------------------------------------------------------------------
@@ -237,7 +237,7 @@
                            !  =1 levitating ice with mass and salt exchange but no presure effect
                            !  =2 embedded sea-ice (full salt and mass exchanges and pressure)
                      ! Misc. options of sbc :
-   ln_traqsr   = .false.    !  Light penetration in the ocean            (T => fill namtra_qsr)
+   ln_traqsr   = .true.    !  Light penetration in the ocean            (T => fill namtra_qsr)
    ln_dm2dc    = .false.   !  daily mean to diurnal cycle on short wave
    ln_rnf      = .true.    !  runoffs                                   (T => fill namsbc_rnf)
    ln_ssr      = .false.    !  Sea Surface Restoring on T and/or S       (T => fill namsbc_ssr)
@@ -272,15 +272,15 @@
 !-----------------------------------------------------------------------
 !              !  file name                   ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights                              ! rotation ! land/sea mask !
 !              !                              !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename                             ! pairing  ! filename      !
-   sn_wndi     = 'cutdown_drowned_u10_DFS5.1.1'        ,         3         , 'u10',   .false.    , .false. , 'yearly'  , 'weights_bicubic_atmos.nc'   , 'Uwnd'   , ''
-   sn_wndj     = 'cutdown_drowned_v10_DFS5.1.1'        ,         3         , 'v10',   .false.    , .false. , 'yearly'  , 'weights_bicubic_atmos.nc'   , 'Vwnd'   , ''
-   sn_qsr      = 'cutdown_drowned_radsw_DFS5.1.1'    ,        24         , 'radsw',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_qlw      = 'cutdown_drowned_radlw_DFS5.1.1'    ,        24         , 'radlw',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_tair     = 'cutdown_drowned_t2_DFS5.1.1'        ,         3         , 't2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_humi     = 'cutdown_drowned_q2_DFS5.1.1'        ,         3         , 'q2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_prec     = 'cutdown_drowned_precip_DFS5.1.1' ,       24         , 'precip',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_snow     = 'cutdown_drowned_snow_DFS5.1.1' ,        24         , 'snow'    ,   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_slp      = 'cutdown_drowned_t2_DFS5.1.1'        ,         3         , 't2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , '' ! DUMMY variable. Fill with T
+   sn_wndi     = 'drowned_u10_DFS5.2'        ,         3         , 'u10',   .false.    , .false. , 'yearly'  , 'weights_bicubic_atmos.nc'   , 'Uwnd'   , ''
+   sn_wndj     = 'drowned_v10_DFS5.2'        ,         3         , 'v10',   .false.    , .false. , 'yearly'  , 'weights_bicubic_atmos.nc'   , 'Vwnd'   , ''
+   sn_qsr      = 'drowned_radsw_DFS5.2'    ,        24         , 'radsw',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_qlw      = 'drowned_radlw_DFS5.2'    ,        24         , 'radlw',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_tair     = 'drowned_t2_DFS5.2'        ,         3         , 't2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_humi     = 'drowned_q2_DFS5.2'        ,         3         , 'q2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_prec     = 'drowned_precip_DFS5.2' ,       24         , 'precip',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_snow     = 'drowned_snow_DFS5.2' ,        24         , 'snow'    ,   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_slp      = 'drowned_t2_DFS5.2'        ,         3         , 't2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , '' ! DUMMY variable. Fill with T
 !   sn_slp      = 'slp.15JUNE2009_fill'        ,         6         , 'SLP'     ,   .false.    , .true. , 'yearly'  , 'weights_core_orca2_bilinear_noc.nc'  , ''       , ''
 !   sn_tdif     = 'taudif_core'                 ,        24         , 'taudif'  ,   .false.    , .true. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
    !                    !  bulk algorithm :
@@ -366,14 +366,14 @@
    sn_chl      ='chlorophyll',        -1         , 'CHLA'    ,   .true.     , .true. , 'yearly'  , ''       , ''       , ''
 
    cn_dir      = './'      !  root directory for the location of the runoff files
-   ln_qsr_rgb  = .true.    !  RGB (Red-Green-Blue) light penetration
-   ln_qsr_2bd  = .false.   !  2 bands              light penetration
+   ln_qsr_rgb  = .false.    !  RGB (Red-Green-Blue) light penetration
+   ln_qsr_2bd  = .true.   !  2 bands              light penetration
    ln_qsr_bio  = .false.   !  bio-model light penetration
-   nn_chldta   =      1    !  RGB : Chl data (=1) or cst value (=0)
+   nn_chldta   =      0    !  RGB : Chl data (=1) or cst value (=0)
    rn_abs      =   0.58    !  RGB & 2 bands: fraction of light (rn_si1)
    rn_si0      =   0.35    !  RGB & 2 bands: shortess depth of extinction
    rn_si1      =   23.0    !  2 bands: longest depth of extinction
-   ln_qsr_ice  = .true.    !  light penetration for ice-model LIM3
+   ln_qsr_ice  = .false.    !  light penetration for ice-model LIM3
 /
 !-----------------------------------------------------------------------
 &namsbc_rnf    !   runoffs namelist surface boundary condition          (ln_rnf=T)
@@ -562,7 +562,7 @@
    ln_tide     = .true.
    ln_tide_pot = .true.    !  use tidal potential forcing
    ln_tide_ramp= .true.   !
-   rdttideramp =    5.     !
+   rdttideramp =    3.     !
 !   clname(2)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
 !   clname(3)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
     clname(1) =  'M2'
@@ -594,10 +594,10 @@
                                           !  = 2, use tidal harmonic forcing data from files
                                           !  = 3, use external data AND tidal harmonic forcing
     cn_dyn3d      =  'specified'               !
-    nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
+    nn_dyn3d_dta  =  1                    !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
-    cn_tra        =  'frs'               !
-    nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
+    cn_tra        =  'specified'               !
+    nn_tra_dta    =  1                    !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
 
     ln_tra_dmp    =.false.                !  open boudaries conditions for tracers
@@ -632,9 +632,9 @@
    ln_bdytide_2ddta = .false.                   !
    ln_bdytide_conj  = .false.                   !
                                                 ! Harmonic analysis with restart from polcom
-!   ln_harm_ana_compute=.false.                   ! Compute the harmonic analysis at the last time step
-!   ln_harm_ana_store=.false.                     ! Store the harmonic analysis at the last time step for restart
-!   ln_harmana_read=.false.                      ! Read haronic analyisis from a restart
+   !ln_harm_ana_compute=.false.                   ! Compute the harmonic analysis at the last time step
+   !ln_harm_ana_store=.false.                     ! Store the harmonic analysis at the last time step for restart
+   !ln_harmana_read=.false.                      ! Read haronic analyisis from a restart
 /
 
 !!======================================================================
@@ -1159,10 +1159,10 @@
 !-----------------------------------------------------------------------
 &nam_diaharm_fast   !   Harmonic analysis of tidal constituents               ("key_diaharm_fast")
 !-----------------------------------------------------------------------
-    ln_diaharm_store = .true.
-    ln_diaharm_compute = .true.
+    ln_diaharm_store = .false.
+    ln_diaharm_compute = .false.
     ln_diaharm_read_restart = .false.
-    ln_ana_ssh   = .true.
+    ln_ana_ssh   = .false.
     ln_ana_uvbar = .false.
     ln_ana_bfric = .false.
     ln_ana_rho  = .false.
