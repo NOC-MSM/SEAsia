@@ -27,20 +27,20 @@
 !-----------------------------------------------------------------------
    cn_exp      =    "SEAsia"  !  experience name
    nn_it000    =  1   !  first time step
-   nn_itend    =  1296 ! 960 ! 1920 ! 7200  ! 1 days. 10day=14400   !  last  time step (std 5475)
+   nn_itend    =  5000 ! 960 ! 1920 ! 7200  ! 1 days. 10day=14400   !  last  time step (std 5475)
    nn_date0    =  19600101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
    ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
       nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
-      nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
+      nn_rstctl   =    0            !  restart control ==> activated only if ln_rstart=T
       !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
       !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
       !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
       cn_ocerst_in    = "SEAsia_00000960_restart"   !  suffix of ocean restart name (input)
-      cn_ocerst_indir = "."         !  directory from which to read input ocean restarts
+      cn_ocerst_indir = "./restarts"         !  directory from which to read input ocean restarts
       cn_ocerst_out   = "restart"   !  suffix of ocean restart name (output)
-      cn_ocerst_outdir= "."         !  directory in which to write output ocean restarts
+      cn_ocerst_outdir= "./restarts"         !  directory in which to write output ocean restarts
    ln_iscpl    = .false.   !  cavity evolution forcing or coupling to ice sheet model
    nn_istate   =       1   !  output the initial state (1) or not (0)
    ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
@@ -72,7 +72,7 @@
 !-----------------------------------------------------------------------
    ln_read_cfg = .true.   !  (=T) read the domain configuration file
       !                   !  (=F) user defined configuration  ==>>>  see usrdef(_...) modules
-      cn_domcfg = "domain_cfg"         ! domain configuration filename
+      cn_domcfg = "domain_cfg.nc"         ! domain configuration filename
       !
    ln_write_cfg= .false.   !  (=T) create the domain configuration file
       cn_domcfg_out = "domain_cfg_out" ! newly created domain configuration filename
@@ -118,7 +118,7 @@
    nn_msh      =    0      !  create (>0) a mesh file or not (=0)
    rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
    !
-   rn_rdt      =  200 ! 360.     !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_rdt      =  100 ! 360.     !  time step for the dynamics (and tracer if nn_acc=0)
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module
@@ -130,7 +130,7 @@
 !              !  file name     ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
 !              !                !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
    sn_tem  = 'N06/votemper_ORCA0083-N06-SEAsia_1960.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
-   sn_sal  = 'N06/vosaline_ORCA0083-N06-SEAsia_1960.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+   sn_sal  = 'N06/vosaline_ORCA0083-N06-SEAsia_1960_v2.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
    sn_dep  = 'N06/initcd_depth.nc'   ,         -12        ,'gdept_4D',   .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
    sn_msk  = 'N06/initcd_mask.nc'    ,         -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
  
@@ -214,9 +214,9 @@
    nn_fsbc     = 1         !  frequency of surface boundary condition computation
                            !     (also = the frequency of sea-ice & iceberg model call)
                      ! Type of air-sea fluxes
-   ln_usr      = .false.    !  user defined formulation                  (T => check usrdef_sbc)
+   ln_usr      = .true.    !  user defined formulation                  (T => check usrdef_sbc)
    ln_flx      = .false.   !  flux formulation                          (T => fill namsbc_flx )
-   ln_blk      = .true.    !  Bulk formulation                          (T => fill namsbc_blk )
+   ln_blk      = .false.    !  Bulk formulation                          (T => fill namsbc_blk )
                      ! Type of coupling (Ocean/Ice/Atmosphere) :
    ln_cpl      = .false.   !  atmosphere coupled   formulation          ( requires key_oasis3 )
    ln_mixcpl   = .false.   !  forced-coupled mixed formulation          ( requires key_oasis3 )
@@ -237,9 +237,9 @@
                            !  =1 levitating ice with mass and salt exchange but no presure effect
                            !  =2 embedded sea-ice (full salt and mass exchanges and pressure)
                      ! Misc. options of sbc :
-   ln_traqsr   = .true.    !  Light penetration in the ocean            (T => fill namtra_qsr)
+   ln_traqsr   = .false.    !  Light penetration in the ocean            (T => fill namtra_qsr)
    ln_dm2dc    = .false.   !  daily mean to diurnal cycle on short wave
-   ln_rnf      = .true.    !  runoffs                                   (T => fill namsbc_rnf)
+   ln_rnf      = .false.    !  runoffs                                   (T => fill namsbc_rnf)
    ln_ssr      = .false.    !  Sea Surface Restoring on T and/or S       (T => fill namsbc_ssr)
    nn_fwb      = 0         !  FreshWater Budget: =0 unchecked
                            !     =1 global mean of e-p-r set to zero at each time step
@@ -272,15 +272,15 @@
 !-----------------------------------------------------------------------
 !              !  file name                   ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights                              ! rotation ! land/sea mask !
 !              !                              !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename                             ! pairing  ! filename      !
-   sn_wndi     = 'drowned_u10_DFS5.2'        ,         3         , 'u10',   .false.    , .false. , 'yearly'  , 'weights_bicubic_atmos.nc'   , 'Uwnd'   , ''
-   sn_wndj     = 'drowned_v10_DFS5.2'        ,         3         , 'v10',   .false.    , .false. , 'yearly'  , 'weights_bicubic_atmos.nc'   , 'Vwnd'   , ''
-   sn_qsr      = 'drowned_radsw_DFS5.2'    ,        24         , 'radsw',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_qlw      = 'drowned_radlw_DFS5.2'    ,        24         , 'radlw',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_tair     = 'drowned_t2_DFS5.2'        ,         3         , 't2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_humi     = 'drowned_q2_DFS5.2'        ,         3         , 'q2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_prec     = 'drowned_precip_DFS5.2' ,       24         , 'precip',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_snow     = 'drowned_snow_DFS5.2' ,        24         , 'snow'    ,   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_slp      = 'drowned_t2_DFS5.2'        ,         3         , 't2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , '' ! DUMMY variable. Fill with T
+   sn_wndi     = 'drowned_u10_DFS5.2'        ,         3         , 'u10',   .true.    , .false. , 'yearly'  , 'weights_bicubic_atmos.nc'   , 'Uwnd'   , ''
+   sn_wndj     = 'drowned_v10_DFS5.2'        ,         3         , 'v10',   .true.    , .false. , 'yearly'  , 'weights_bicubic_atmos.nc'   , 'Vwnd'   , ''
+   sn_qsr      = 'drowned_radsw_DFS5.2'    ,        24         , 'radsw',   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_qlw      = 'drowned_radlw_DFS5.2'    ,        24         , 'radlw',   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_tair     = 'drowned_t2_DFS5.2'        ,         3         , 't2',   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_humi     = 'drowned_q2_DFS5.2'        ,         3         , 'q2',   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_prec     = 'drowned_precip_DFS5.2' ,       24         , 'precip',   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_snow     = 'drowned_snow_DFS5.2' ,        24         , 'snow'    ,   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_slp      = 'drowned_t2_DFS5.2'        ,         3         , 't2',   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , '' ! DUMMY variable. Fill with T
 !   sn_slp      = 'slp.15JUNE2009_fill'        ,         6         , 'SLP'     ,   .false.    , .true. , 'yearly'  , 'weights_core_orca2_bilinear_noc.nc'  , ''       , ''
 !   sn_tdif     = 'taudif_core'                 ,        24         , 'taudif'  ,   .false.    , .true. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
    !                    !  bulk algorithm :
@@ -366,10 +366,10 @@
    sn_chl      ='chlorophyll',        -1         , 'CHLA'    ,   .true.     , .true. , 'yearly'  , ''       , ''       , ''
 
    cn_dir      = './'      !  root directory for the location of the runoff files
-   ln_qsr_rgb  = .false.    !  RGB (Red-Green-Blue) light penetration
-   ln_qsr_2bd  = .true.   !  2 bands              light penetration
+   ln_qsr_rgb  = .true.    !  RGB (Red-Green-Blue) light penetration
+   ln_qsr_2bd  = .false.   !  2 bands              light penetration
    ln_qsr_bio  = .false.   !  bio-model light penetration
-   nn_chldta   =      0    !  RGB : Chl data (=1) or cst value (=0)
+   nn_chldta   =      1    !  RGB : Chl data (=1) or cst value (=0)
    rn_abs      =   0.58    !  RGB & 2 bands: fraction of light (rn_si1)
    rn_si0      =   0.35    !  RGB & 2 bands: shortess depth of extinction
    rn_si1      =   23.0    !  2 bands: longest depth of extinction
@@ -562,7 +562,8 @@
    ln_tide     = .true.
    ln_tide_pot = .true.    !  use tidal potential forcing
    ln_tide_ramp= .true.   !
-   rdttideramp =    3.     !
+   rdttideramp =    5.     !
+   dn_love_number = 0.69 !
 !   clname(2)   = 'S2'   !  name of constituent - all tidal components must be set in namelist_cfg
 !   clname(3)   = 'K2'   !  name of constituent - all tidal components must be set in namelist_cfg
     clname(1) =  'M2'
@@ -589,15 +590,15 @@
     ln_mask_file   = .false.              !  =T : read mask from file
     cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
     cn_dyn2d       = 'flather'               !
-    nn_dyn2d_dta   =  3                  !  = 0, bdy data are equal to the initial state
+    nn_dyn2d_dta   =  0                  !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
                                           !  = 2, use tidal harmonic forcing data from files
                                           !  = 3, use external data AND tidal harmonic forcing
     cn_dyn3d      =  'specified'               !
-    nn_dyn3d_dta  =  1                    !  = 0, bdy data are equal to the initial state
+    nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
-    cn_tra        =  'specified'               !
-    nn_tra_dta    =  1                    !  = 0, bdy data are equal to the initial state
+    cn_tra        =  'frs'               !
+    nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
 
     ln_tra_dmp    =.false.                !  open boudaries conditions for tracers
@@ -704,8 +705,8 @@
 !-----------------------------------------------------------------------
 &nameos        !   ocean physical parameters
 !-----------------------------------------------------------------------
-   ln_teos10   = .false.         !  = Use TEOS-10 equation of state
-   ln_eos80    = .true.         !  = Use EOS80 equation of state
+   ln_teos10   = .true.         !  = Use TEOS-10 equation of state
+   ln_eos80    = .false.         !  = Use EOS80 equation of state
    ln_seos     = .false.         !  = Use simplified equation of state (S-EOS)
                                  !
    !                     ! S-EOS coefficients (ln_seos=T):
@@ -770,7 +771,7 @@
    ln_botmix_triad =  .false.  !  lateral mixing on bottom                  (triad only)
    !
    !                       !  Coefficients:
-   nn_aht_ijk_t    = 31         !  space/time variation of eddy coef
+   nn_aht_ijk_t    = 0         !  space/time variation of eddy coef
    !                                !   =-20 (=-30)    read in eddy_diffusivity_2D.nc (..._3D.nc) file
    !                                !   =  0           constant
    !                                !   = 10 F(k)      =ldf_c1d
@@ -778,7 +779,7 @@
    !                                !   = 21 F(i,j,t)  =Treguier et al. JPO 1997 formulation
    !                                !   = 30 F(i,j,k)  =ldf_c2d * ldf_c1d
    !                                !   = 31 F(i,j,k,t)=F(local velocity and grid-spacing)
-   rn_aht_0        = 25.     !  lateral eddy diffusivity   (lap. operator) [m2/s]
+   rn_aht_0        = 250.     !  lateral eddy diffusivity   (lap. operator) [m2/s]
    rn_bht_0        = 1.e+12    !  lateral eddy diffusivity (bilap. operator) [m4/s]
 /
 !-----------------------------------------------------------------------
@@ -853,10 +854,10 @@
 !-----------------------------------------------------------------------
    ln_hpg_zco  = .false.   !  z-coordinate - full steps
    ln_hpg_zps  = .false.   !  z-coordinate - partial steps (interpolation)
-   ln_hpg_sco  = .false.   !  s-coordinate (standard jacobian formulation)
+   ln_hpg_sco  = .true.   !  s-coordinate (standard jacobian formulation)
    ln_hpg_isf  = .false.   !  s-coordinate (sco ) adapted to isf
    ln_hpg_djc  = .false.   !  s-coordinate (Density Jacobian with Cubic polynomial)
-   ln_hpg_prj  = .true.   !  s-coordinate (Pressure Jacobian scheme)
+   ln_hpg_prj  = .false.   !  s-coordinate (Pressure Jacobian scheme)
 /
 !-----------------------------------------------------------------------
 &namdyn_spg    !   surface pressure gradient                            (default: NO)
@@ -868,9 +869,12 @@
          nn_bt_flt     = 1          ! Time filter choice  = 0 None
          !                          !                     = 1 Boxcar over   nn_baro sub-steps
          !                          !                     = 2 Boxcar over 2*nn_baro  "    "
-      ln_bt_auto    = .false.     ! Number of sub-step defined from:
-         rn_bt_cmax   =  0.8        ! =T : the Maximum Courant Number allowed
+      ln_bt_auto    = .true.     ! Number of sub-step defined from:
+         rn_bt_cmax   =  0.5        ! =T : the Maximum Courant Number allowed
          nn_baro      = 30          ! =F : the number of sub-step in rn_rdt seconds
+!      ln_ulimit     =.true.
+!       cn_ulimit     = 0.9
+!       cnn_ulimit    = 0.54
 /
 !-----------------------------------------------------------------------
 &namdyn_ldf    !   lateral diffusion on momentum                        (default: NO)
@@ -894,9 +898,9 @@
    !                                !  = 31  F(i,j,k)=F(grid spacing and local velocity)
    !                                !  = 32  F(i,j,k)=F(local gridscale and deformation rate)
    ! Caution in 20 and 30 cases the coefficient have to be given for a 1 degree grid (~111km)
-   rn_ahm_0      =      0.     !  horizontal laplacian eddy viscosity   [m2/s]
+   rn_ahm_0      =     50.     !  horizontal laplacian eddy viscosity   [m2/s]
    rn_ahm_b      =      0.     !  background eddy viscosity for ldf_iso [m2/s]
-   rn_bhm_0      = -1.25e+10      !  horizontal bilaplacian eddy viscosity [m4/s]
+   rn_bhm_0      = -1.e+7      !  horizontal bilaplacian eddy viscosity [m4/s]
    !                       !  Smagorinsky settings (nn_ahm_ijk_t  = 32) :
    rn_csmc       = 3.5         !  Smagorinsky constant of proportionality
    rn_minfac     = 1.0         !  multiplier of theorectical lower limit
@@ -921,10 +925,10 @@
    rn_avt0     =   1.2e-5  !  vertical eddy diffusivity [m2/s]          (background Kz if not "key_zdfcst")
    nn_avb      =    0      !  profile for background avt & avm (=1) or not (=0)
    nn_havtb    =    0      !  horizontal shape for avtb (=1) or not (=0)
-   ln_zdfevd   = .true.    !  enhanced vertical diffusion (evd) (T) or not (F)
+   ln_zdfevd   = .false.    !  enhanced vertical diffusion (evd) (T) or not (F)
       nn_evdm     =    0        ! evd apply on tracer (=0) or on tracer and momentum (=1)
       rn_avevd    =  100.       !  evd mixing coefficient [m2/s]
-   ln_zdfnpc   = .false.   !  Non-Penetrative Convective algorithm (T) or not (F)
+   ln_zdfnpc   = .true.   !  Non-Penetrative Convective algorithm (T) or not (F)
       nn_npc      =    1        ! frequency of application of npc
       nn_npcp     =  365        ! npc control print frequency
    ln_zdfexp   = .false.   !  time-stepping: split-explicit (T) or implicit (F) time stepping
@@ -1160,9 +1164,9 @@
 &nam_diaharm_fast   !   Harmonic analysis of tidal constituents               ("key_diaharm_fast")
 !-----------------------------------------------------------------------
     ln_diaharm_store = .false.
-    ln_diaharm_compute = .false.
+    ln_diaharm_compute = .true.
     ln_diaharm_read_restart = .false.
-    ln_ana_ssh   = .false.
+    ln_ana_ssh   = .true.
     ln_ana_uvbar = .false.
     ln_ana_bfric = .false.
     ln_ana_rho  = .false.
