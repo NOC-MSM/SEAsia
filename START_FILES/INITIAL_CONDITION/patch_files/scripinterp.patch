@@ -1,0 +1,11 @@
+--- scripinterp.F90	2015-10-22 10:38:46.000000000 +0100
++++ scripinterp_new.F90	2015-10-22 10:38:17.000000000 +0100
+@@ -2,6 +2,8 @@
+ 
+ program scripinterp
+ 
++#define ARGC
++
+   use scripinterp_mod
+ 
+   character (char_len) ::  nm_in

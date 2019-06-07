@@ -1,0 +1,10 @@
+--- scrip.F90	2015-10-21 14:48:33.000000000 +0100
++++ scrip_new.F90	2015-10-22 10:47:31.000000000 +0100
+@@ -37,6 +37,7 @@
+       program scrip
+ 
+ !-----------------------------------------------------------------------
++#define ARGC
+ 
+       use kinds_mod                  ! module defining data types
+       use constants                  ! module for common constants

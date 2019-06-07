@@ -1,0 +1,86 @@
+--- scripinterp_mod.F90	(revision 5047)
++++ scripinterp_mod.F90	(working copy)
+@@ -27,7 +27,7 @@
+       scale
+   integer (kind=int_kind), dimension(:), allocatable ::        &
+       nc_xysize_id, nc_gridsize_id, nc_gridsize,           &
+-      nc_variable_id
++      nc_variable_id, nc_extra_len
+   integer :: nc_lon_id, nc_lat_id, nc_array_id
+ 
+   character (char_len) ::  &
+@@ -81,7 +81,7 @@
+ 
+     integer (kind=int_kind), dimension(4) ::    &
+         astart, acount, plus_one
+-    integer (kind=int_kind), dimension(3) ::    &
++    integer (kind=int_kind), dimension(4) ::    &
+         write_dims
+     integer (kind=int_kind) ::                  &
+       i1, i2, jdim, n, nx, ny, nloop,           &
+@@ -172,7 +172,8 @@
+     write_dims(1) = grid2_dims(1)
+     write_dims(2) = grid2_dims(2)
+     write_dims(3) = nloop
+-    call define_grid(write_dims(1:3) , 2+numv)
++    write_dims(4) = 1
++    call define_grid(write_dims(1:4) , nc_input_rank, numv+2)
+ 
+     astart(:) = input_start(:)
+     astart(3) = astart(3) - input_stride(3)
+@@ -221,7 +222,8 @@
+                       input_dimids(1), len=input_dims(1) )
+         call netcdf_error_handler(ncstat,"inquire_dimension")
+   
+-        ncstat = nf90_get_var(nc_infile_id, nc_input_id, var_out(1:nloop,n),  &
++        nc_extra_len(n) = input_dims(1)
++        ncstat = nf90_get_var(nc_infile_id, nc_input_id, var_out(1:input_dims(1),n),  &
+                               start=(/ vstart /), stride=(/ vstride /))
+         call netcdf_error_handler(ncstat,"get_var")
+       enddo
+@@ -246,7 +248,7 @@
+ 
+   ! ==========================================================================
+ 
+-  subroutine define_grid(thedims, therank)
++  subroutine define_grid(thedims, therank, nvars)
+ 
+     !-----------------------------------------------------------------------
+     ! - dummy variables
+@@ -255,6 +257,8 @@
+       therank
+     integer (kind=int_kind), dimension(therank) :: &
+       thedims
++    integer (kind=int_kind) :: &
++      nvars
+ 
+     !-----------------------------------------------------------------------
+     ! - local variables
+@@ -275,7 +279,8 @@
+     allocate(nc_xysize_id(grid2_rank))
+     allocate(nc_gridsize_id(therank))
+     allocate(nc_gridsize(therank))
+-    allocate(nc_variable_id(therank-2))
++    allocate(nc_extra_len(nvars-2))
++    allocate(nc_variable_id(nvars-2))
+     
+     !-----------------------------------------------------------------------
+     ! - setup a NetCDF file for output
+@@ -340,7 +345,7 @@
+     ! -  define copy variables array
+   
+     write(6,*) 'defining copy variables'
+-    do n = 3,therank
++    do n = 3,nvars
+       ncstat = nf90_def_var (nc_outfile_id, output_vars(n-2),   &
+                            xtype, nc_gridsize_id(n),    &
+                            nc_variable_id(n-2))
+@@ -535,7 +540,7 @@
+     do n = 3,therank
+       s = scale(nc_variable_id(n-2))
+       thedata(:) = s*thevars(:,n-2)
+-      ncstat = nf90_put_var(nc_outfile_id, nc_variable_id(n-2), thedata)
++      ncstat = nf90_put_var(nc_outfile_id, nc_variable_id(n-2), thedata(1:nc_extra_len(n-2)))
+       call netcdf_error_handler(ncstat,"put_var")
+     enddo
+ 

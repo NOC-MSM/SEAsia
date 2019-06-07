@@ -1,0 +1,8 @@
+--- scripshape.F90	2015-10-21 14:48:33.000000000 +0100
++++ scripshape_new.F90	2015-10-22 10:47:51.000000000 +0100
+@@ -1,4 +1,5 @@
+       PROGRAM scripshape
++#define ARGC
+ !
+ ! program to take output from the SCRIP weights generator
+ ! and rearrange the data into a series of 2D fields suitable
