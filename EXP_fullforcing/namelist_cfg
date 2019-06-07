@@ -42,7 +42,7 @@
       cn_ocerst_out   = "restart"   !  suffix of ocean restart name (output)
       cn_ocerst_outdir= "./restarts"         !  directory in which to write output ocean restarts
    ln_iscpl    = .false.   !  cavity evolution forcing or coupling to ice sheet model
-   nn_istate   =       1   !  output the initial state (1) or not (0)
+   nn_istate   =       0   !  output the initial state (1) or not (0)
    ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
    nn_stock    =   1296 ! 960 ! 7200 ! 14400   !  frequency of creation of a restart file (modulo referenced to 1)
    nn_stocklist = 0,0,0,0,0,0,0,0,0,0 ! List of timesteps when a restart file is to be written
@@ -118,7 +118,7 @@
    nn_msh      =    0      !  create (>0) a mesh file or not (=0)
    rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
    !
-   rn_rdt      =  100 ! 360.     !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_rdt      =  360 ! 360.     !  time step for the dynamics (and tracer if nn_acc=0)
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module
@@ -239,7 +239,7 @@
                      ! Misc. options of sbc :
    ln_traqsr   = .false.    !  Light penetration in the ocean            (T => fill namtra_qsr)
    ln_dm2dc    = .false.   !  daily mean to diurnal cycle on short wave
-   ln_rnf      = .false.    !  runoffs                                   (T => fill namsbc_rnf)
+   ln_rnf      = .true.    !  runoffs                                   (T => fill namsbc_rnf)
    ln_ssr      = .false.    !  Sea Surface Restoring on T and/or S       (T => fill namsbc_ssr)
    nn_fwb      = 0         !  FreshWater Budget: =0 unchecked
                            !     =1 global mean of e-p-r set to zero at each time step
@@ -272,15 +272,15 @@
 !-----------------------------------------------------------------------
 !              !  file name                   ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights                              ! rotation ! land/sea mask !
 !              !                              !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename                             ! pairing  ! filename      !
-   sn_wndi     = 'drowned_u10_DFS5.2'        ,         3         , 'u10',   .true.    , .false. , 'yearly'  , 'weights_bicubic_atmos.nc'   , 'Uwnd'   , ''
-   sn_wndj     = 'drowned_v10_DFS5.2'        ,         3         , 'v10',   .true.    , .false. , 'yearly'  , 'weights_bicubic_atmos.nc'   , 'Vwnd'   , ''
-   sn_qsr      = 'drowned_radsw_DFS5.2'    ,        24         , 'radsw',   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_qlw      = 'drowned_radlw_DFS5.2'    ,        24         , 'radlw',   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_tair     = 'drowned_t2_DFS5.2'        ,         3         , 't2',   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_humi     = 'drowned_q2_DFS5.2'        ,         3         , 'q2',   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_prec     = 'drowned_precip_DFS5.2' ,       24         , 'precip',   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_snow     = 'drowned_snow_DFS5.2' ,        24         , 'snow'    ,   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
-   sn_slp      = 'drowned_t2_DFS5.2'        ,         3         , 't2',   .true.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , '' ! DUMMY variable. Fill with T
+   sn_wndi     = 'drowned_u10_DFS5.2'        ,         3         , 'u10',   .false.    , .false. , 'yearly'  , 'weights_bicubic_atmos.nc'   , 'Uwnd'   , ''
+   sn_wndj     = 'drowned_v10_DFS5.2'        ,         3         , 'v10',   .false.    , .false. , 'yearly'  , 'weights_bicubic_atmos.nc'   , 'Vwnd'   , ''
+   sn_qsr      = 'drowned_radsw_DFS5.2'    ,        24         , 'radsw',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_qlw      = 'drowned_radlw_DFS5.2'    ,        24         , 'radlw',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_tair     = 'drowned_t2_DFS5.2'        ,         3         , 't2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_humi     = 'drowned_q2_DFS5.2'        ,         3         , 'q2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_prec     = 'drowned_precip_DFS5.2' ,       24         , 'precip',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_snow     = 'drowned_snow_DFS5.2' ,        24         , 'snow'    ,   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
+   sn_slp      = 'drowned_t2_DFS5.2'        ,         3         , 't2',   .false.    , .false. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , '' ! DUMMY variable. Fill with T
 !   sn_slp      = 'slp.15JUNE2009_fill'        ,         6         , 'SLP'     ,   .false.    , .true. , 'yearly'  , 'weights_core_orca2_bilinear_noc.nc'  , ''       , ''
 !   sn_tdif     = 'taudif_core'                 ,        24         , 'taudif'  ,   .false.    , .true. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
    !                    !  bulk algorithm :
@@ -289,7 +289,7 @@
    ln_COARE_3p5= .false.   ! "COARE 3.5" algorithm   (Edson et al. 2013)
    ln_ECMWF    = .false.   ! "ECMWF"     algorithm   (IFS cycle 31)
    !
-   cn_dir      = '../INPUTS/'      !  root directory for the location of the bulk files
+   cn_dir      = '../SBC/'      !  root directory for the location of the bulk files
    ln_taudif   = .false.   !  HF tau contribution: use "mean of stress module - module of the mean stress" data
    rn_zqt      = 2.       !  Air temperature and humidity reference height (m)
    rn_zu       = 10.       !  Wind vector reference height (m)
@@ -395,8 +395,8 @@
    ln_rnf_tem  = .false.   !  read in temperature information for runoff
    ln_rnf_sal  = .false.   !  read in salinity information for runoff
    ln_rnf_depth_ini = .true. ! compute depth at initialisation from runoff file
-      rn_rnf_max  = 0.6865698 ! 5.735e-4  !  max value of the runoff climatologie over global domain ( ln_rnf_depth_ini = .true )
-      rn_dep_max  = 150.      !  depth over which runoffs is spread ( ln_rnf_depth_ini = .true )
+      rn_rnf_max  = 1.6224 ! 5.735e-4  !  max value of the runoff climatologie over global domain ( ln_rnf_depth_ini = .true )
+      rn_dep_max  = 50.      !  depth over which runoffs is spread ( ln_rnf_depth_ini = .true )
       nn_rnf_depth_file = 0   !  create (=1) a runoff depth file or not (=0)
 /
 !-----------------------------------------------------------------------
@@ -590,7 +590,7 @@
     ln_mask_file   = .false.              !  =T : read mask from file
     cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
     cn_dyn2d       = 'flather'               !
-    nn_dyn2d_dta   =  0                  !  = 0, bdy data are equal to the initial state
+    nn_dyn2d_dta   =  3                  !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
                                           !  = 2, use tidal harmonic forcing data from files
                                           !  = 3, use external data AND tidal harmonic forcing
