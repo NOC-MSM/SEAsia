@@ -432,7 +432,11 @@ CONTAINS
       ! ----------------------------------------------------------------------------- !
 
       ! ... specific humidity at SST and IST tmask(
-      zsq(:,:) = 0.98 * q_sat( zst(:,:), sf(jp_slp)%fnow(:,:,1) )
+      !zsq(:,:) = 0.98 * q_sat( zst(:,:), sf(jp_slp)%fnow(:,:,1) )
+      ! Since SLP does not exist we use a constant value for q_sat = 640380. / rhoa = 640380. / 1.22
+      ! The function rho_air is also modified to set rho_air = 1.22 ! jelt 6 June 2019
+      zsq(:,:) = 0.98 * ( 640380. / 1.22 )
+  
       !!
       !! Estimate of potential temperature at z=rn_zqt, based on adiabatic lapse-rate
       !!    (see Josey, Gulev & Yu, 2013) / doi=10.1016/B978-0-12-391851-2.00005-2
@@ -867,7 +871,9 @@ CONTAINS
       REAL(wp), DIMENSION(jpi,jpj)             ::   rho_air   ! density of moist air   [kg/m^3]
       !!-------------------------------------------------------------------------------
       !
-      rho_air = 1.22 ! pslp / (  R_dry*ptak * ( 1._wp + rctv0*pqa )  ) ! jelt: 25 Oct 2018. Fix to make air density constant.
+      ! Since SLP does not exist we use a constant value for q_sat = 640380. / rhoa = 640380. / 1.22
+      ! The function rho_air is also modified to set rho_air = 1.22 ! jelt 6 June 2019      
+      rho_air = 1.22 ! pslp / (  R_dry*ptak * ( 1._wp + rctv0*pqa )  ) 
       !
    END FUNCTION rho_air
 
