@@ -92,16 +92,16 @@
 !-----------------------------------------------------------------------
 &namzgr_sco
 !-----------------------------------------------------------------------
-   ln_s_sf12=.true.,
-   ln_s_sh94=.false.,
-   ln_sigcrit=.true.,
+   ln_s_sf12=.false.,
+   ln_s_sh94=.true.,
+   ln_sigcrit=.false.,
    rn_alpha=4.4,
    rn_bb=0.8,
    rn_efold=0.0,
-   rn_hc=10000.0,
-   rn_rmax=1.0,
-   rn_sbot_max=10000.0,
-   rn_sbot_min=1.0e-5,
+   rn_hc=39.0,
+   rn_rmax=0.05,
+   rn_sbot_max=6000.0,
+   rn_sbot_min=10.,
    rn_theta=6.0,
    rn_thetb=1.0,
    rn_zb_a=0.024,
@@ -366,10 +366,10 @@
    sn_chl      ='chlorophyll',        -1         , 'CHLA'    ,   .true.     , .true. , 'yearly'  , ''       , ''       , ''
 
    cn_dir      = './'      !  root directory for the location of the runoff files
-   ln_qsr_rgb  = .true.    !  RGB (Red-Green-Blue) light penetration
-   ln_qsr_2bd  = .false.   !  2 bands              light penetration
+   ln_qsr_rgb  = .false.    !  RGB (Red-Green-Blue) light penetration
+   ln_qsr_2bd  = .true.   !  2 bands              light penetration
    ln_qsr_bio  = .false.   !  bio-model light penetration
-   nn_chldta   =      1    !  RGB : Chl data (=1) or cst value (=0)
+   nn_chldta   =      0    !  RGB : Chl data (=1) or cst value (=0)
    rn_abs      =   0.58    !  RGB & 2 bands: fraction of light (rn_si1)
    rn_si0      =   0.35    !  RGB & 2 bands: shortess depth of extinction
    rn_si1      =   23.0    !  2 bands: longest depth of extinction
@@ -544,7 +544,7 @@
 &namlbc        !   lateral momentum boundary condition
 !-----------------------------------------------------------------------
    !                       !  free slip  !   partial slip  !   no slip   ! strong slip
-   rn_shlat    =    2.     !  shlat = 0  !  0 < shlat < 2  !  shlat = 2  !  2 < shlat
+   rn_shlat    =    0     !  shlat = 0  !  0 < shlat < 2  !  shlat = 2  !  2 < shlat
    ln_vorlat   = .false.   !  consistency of vorticity boundary condition with analytical Eqs.
 /
 !-----------------------------------------------------------------------
@@ -595,7 +595,7 @@
                                           !  = 2, use tidal harmonic forcing data from files
                                           !  = 3, use external data AND tidal harmonic forcing
     cn_dyn3d      =  'specified'               !
-    nn_dyn3d_dta  =  0                    !  = 0, bdy data are equal to the initial state
+    nn_dyn3d_dta  =  1                    !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
     cn_tra        =  'frs'               !
     nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
@@ -666,7 +666,7 @@
    rn_tfrien   =   50.     !  local multiplying factor of tfr (ln_tfr2d=T)
 
    ln_bfrimp   = .true.    !  implicit bottom friction (requires ln_zdfexp = .false. if true)
-   ln_loglayer = .true.   !  logarithmic formulation (non linear case)
+   ln_loglayer = .false.   !  logarithmic formulation (non linear case)
 /
 !-----------------------------------------------------------------------
 &nambbc        !   bottom temperature boundary condition                (default: NO)
@@ -705,8 +705,8 @@
 !-----------------------------------------------------------------------
 &nameos        !   ocean physical parameters
 !-----------------------------------------------------------------------
-   ln_teos10   = .true.         !  = Use TEOS-10 equation of state
-   ln_eos80    = .false.         !  = Use EOS80 equation of state
+   ln_teos10   = .false.         !  = Use TEOS-10 equation of state
+   ln_eos80    = .true.         !  = Use EOS80 equation of state
    ln_seos     = .false.         !  = Use simplified equation of state (S-EOS)
                                  !
    !                     ! S-EOS coefficients (ln_seos=T):
@@ -759,8 +759,8 @@
    !
    !                       !  Direction of action:
    ln_traldf_lev   =  .false.  !  iso-level
-   ln_traldf_hor   =  .false.  !  horizontal (geopotential)
-   ln_traldf_iso   =  .true.  !  iso-neutral (standard operator)
+   ln_traldf_hor   =  .true.  !  horizontal (geopotential)
+   ln_traldf_iso   =  .false.  !  iso-neutral (standard operator)
    ln_traldf_triad =  .false.  !  iso-neutral (triad    operator)
    !
    !		       	         !  iso-neutral options:
@@ -779,7 +779,7 @@
    !                                !   = 21 F(i,j,t)  =Treguier et al. JPO 1997 formulation
    !                                !   = 30 F(i,j,k)  =ldf_c2d * ldf_c1d
    !                                !   = 31 F(i,j,k,t)=F(local velocity and grid-spacing)
-   rn_aht_0        = 250.     !  lateral eddy diffusivity   (lap. operator) [m2/s]
+   rn_aht_0        = 125.     !  lateral eddy diffusivity   (lap. operator) [m2/s]
    rn_bht_0        = 1.e+12    !  lateral eddy diffusivity (bilap. operator) [m4/s]
 /
 !-----------------------------------------------------------------------
@@ -854,10 +854,10 @@
 !-----------------------------------------------------------------------
    ln_hpg_zco  = .false.   !  z-coordinate - full steps
    ln_hpg_zps  = .false.   !  z-coordinate - partial steps (interpolation)
-   ln_hpg_sco  = .true.   !  s-coordinate (standard jacobian formulation)
+   ln_hpg_sco  = .false.   !  s-coordinate (standard jacobian formulation)
    ln_hpg_isf  = .false.   !  s-coordinate (sco ) adapted to isf
    ln_hpg_djc  = .false.   !  s-coordinate (Density Jacobian with Cubic polynomial)
-   ln_hpg_prj  = .false.   !  s-coordinate (Pressure Jacobian scheme)
+   ln_hpg_prj  = .true.   !  s-coordinate (Pressure Jacobian scheme)
 /
 !-----------------------------------------------------------------------
 &namdyn_spg    !   surface pressure gradient                            (default: NO)
@@ -898,9 +898,9 @@
    !                                !  = 31  F(i,j,k)=F(grid spacing and local velocity)
    !                                !  = 32  F(i,j,k)=F(local gridscale and deformation rate)
    ! Caution in 20 and 30 cases the coefficient have to be given for a 1 degree grid (~111km)
-   rn_ahm_0      =     50.     !  horizontal laplacian eddy viscosity   [m2/s]
+   rn_ahm_0      =     60.     !  horizontal laplacian eddy viscosity   [m2/s]
    rn_ahm_b      =      0.     !  background eddy viscosity for ldf_iso [m2/s]
-   rn_bhm_0      = -1.e+7      !  horizontal bilaplacian eddy viscosity [m4/s]
+   rn_bhm_0      = -1.25e+10      !  horizontal bilaplacian eddy viscosity [m4/s]
    !                       !  Smagorinsky settings (nn_ahm_ijk_t  = 32) :
    rn_csmc       = 3.5         !  Smagorinsky constant of proportionality
    rn_minfac     = 1.0         !  multiplier of theorectical lower limit
@@ -921,12 +921,12 @@
 !-----------------------------------------------------------------------
 &namzdf        !   vertical physics
 !-----------------------------------------------------------------------
-   rn_avm0     =   1.2e-4  !  vertical eddy viscosity   [m2/s]          (background Kz if not "key_zdfcst")
-   rn_avt0     =   1.2e-5  !  vertical eddy diffusivity [m2/s]          (background Kz if not "key_zdfcst")
+   rn_avm0     =   1.2e-6  !  vertical eddy viscosity   [m2/s]          (background Kz if not "key_zdfcst")
+   rn_avt0     =   1.2e-6  !  vertical eddy diffusivity [m2/s]          (background Kz if not "key_zdfcst")
    nn_avb      =    0      !  profile for background avt & avm (=1) or not (=0)
    nn_havtb    =    0      !  horizontal shape for avtb (=1) or not (=0)
    ln_zdfevd   = .false.    !  enhanced vertical diffusion (evd) (T) or not (F)
-      nn_evdm     =    0        ! evd apply on tracer (=0) or on tracer and momentum (=1)
+      nn_evdm     =    1        ! evd apply on tracer (=0) or on tracer and momentum (=1)
       rn_avevd    =  100.       !  evd mixing coefficient [m2/s]
    ln_zdfnpc   = .true.   !  Non-Penetrative Convective algorithm (T) or not (F)
       nn_npc      =    1        ! frequency of application of npc
@@ -957,13 +957,13 @@
    rn_emin     =   1.e-6   !  minimum value of tke [m2/s2]
    rn_emin0    =   1.e-4   !  surface minimum value of tke [m2/s2]
    rn_bshear   =   1.e-20  ! background shear (>0) currently a numerical threshold (do not change it)
-   nn_mxl      =   2       !  mixing length: = 0 bounded by the distance to surface and bottom
+   nn_mxl      =   3       !  mixing length: = 0 bounded by the distance to surface and bottom
                            !                 = 1 bounded by the local vertical scale factor
                            !                 = 2 first vertical derivative of mixing length bounded by 1
                            !                 = 3 as =2 with distinct disspipative an mixing length scale
    nn_pdl      =   1       !  Prandtl number function of richarson number (=1, avt=pdl(Ri)*avm) or not (=0, avt=avm)
    ln_mxl0     = .true.    !  surface mixing length scale = F(wind stress) (T) or not (F)
-   rn_mxl0     =   0.04    !  surface  buoyancy lenght scale minimum value
+   rn_mxl0     =   0.01    !  surface  buoyancy lenght scale minimum value
    ln_lc       = .true.    !  Langmuir cell parameterisation (Axell 2002)
    rn_lc       =   0.15    !  coef. associated to Langmuir cells
    nn_etau     =   1       !  penetration of tke below the mixed layer (ML) due to near intertial waves
@@ -979,7 +979,7 @@
 !-----------------------------------------------------------------------
 &namzdf_gls    !   GLS vertical diffusion                               ("key_zdfgls")
 !-----------------------------------------------------------------------
-   rn_emin       = 1.e-7   !  minimum value of e   [m2/s2]
+   rn_emin       = 1.e-6   !  minimum value of e   [m2/s2]
    rn_epsmin     = 1.e-12  !  minimum value of eps [m2/s3]
    ln_length_lim = .true.  !  limit on the dissipation rate under stable stratification (Galperin et al., 1988)
    rn_clim_galp  = 0.267   !  galperin limit
@@ -1007,7 +1007,7 @@
    rn_n2min    = 1.e-8     !  threshold of the Brunt-Vaisala frequency (s-1)
    rn_tfe      = 0.333     !  tidal dissipation efficiency
    rn_me       = 0.2       !  mixing efficiency
-   ln_tmx_itf  = .true.    !  ITF specific parameterisation
+   ln_tmx_itf  = .false.    !  ITF specific parameterisation
    rn_tfe_itf  = 1.        !  ITF tidal dissipation efficiency
 /
 !-----------------------------------------------------------------------
