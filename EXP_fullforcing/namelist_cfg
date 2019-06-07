@@ -623,7 +623,7 @@
    bn_tem      = 'SEAsia_bdyT'   24        , 'votemper',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
    bn_sal      = 'SEAsia_bdyT'   24        , 'vosaline',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
 
-   cn_dir      = 'bdydta/' !  root directory for the location of the bulk files
+   cn_dir      = 'OBC/' !  root directory for the location of the bulk files
    ln_full_vel = .true.   ! If true NEMO takes the 3d velocities as bt+bc 
 /
 !-----------------------------------------------------------------------
