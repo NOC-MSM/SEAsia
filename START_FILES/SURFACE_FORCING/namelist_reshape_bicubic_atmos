@@ -12,13 +12,13 @@
      nemo_lat: name of latitude variable in the coordinates.nc
 /
 &grid_inputs
-    input_file = 'cutdown_drowned_precip_DFS5.1.1_y1979.nc'
+    input_file = '/work/n01/n01/acc/DFS/DFS5.2/1960/drowned_precip_DFS5.2_y1960.nc'
     nemo_file = 'coordinates.nc'
     datagrid_file = 'remap_data_grid_atmos.nc'
     nemogrid_file = 'remap_nemo_grid_atmos.nc'
     method = 'regular'
-    input_lon = 'lon'
-    input_lat = 'lat'
+    input_lon = 'lon0'
+    input_lat = 'lat0'
     nemo_lon = 'glamt'
     nemo_lat = 'gphit'
     nemo_mask = 'none'
