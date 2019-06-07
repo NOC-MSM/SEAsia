@@ -872,9 +872,9 @@
       ln_bt_auto    = .true.     ! Number of sub-step defined from:
          rn_bt_cmax   =  0.5        ! =T : the Maximum Courant Number allowed
          nn_baro      = 30          ! =F : the number of sub-step in rn_rdt seconds
-!      ln_ulimit     =.true.
-!       cn_ulimit     = 0.9
-!       cnn_ulimit    = 0.54
+      ln_ulimit     = .true.
+         cn_ulimit     = 0.9  ! maximum velocity inverse courant number
+         cnn_ulimit    = 0.54 ! how much to reduce cn by in divergen flow
 /
 !-----------------------------------------------------------------------
 &namdyn_ldf    !   lateral diffusion on momentum                        (default: NO)
