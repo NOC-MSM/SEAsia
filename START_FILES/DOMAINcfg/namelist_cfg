@@ -1,0 +1,88 @@
+!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!! NEMO/OPA  Configuration namelist : used to overwrite defaults values defined in SHARED/namelist_ref
+!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!
+!-----------------------------------------------------------------------
+&namrun        !   parameters of the run
+!-----------------------------------------------------------------------
+   nn_no       =       0   !  job number (no more used...)
+   cn_exp      =  "domaincfg"  !  experience name
+   nn_it000    =       1   !  first time step
+   nn_itend    =      75   !  last  time step (std 5475)
+/
+!-----------------------------------------------------------------------
+&namcfg        !   parameters of the configuration
+!-----------------------------------------------------------------------
+   !
+   ln_e3_dep   = .true.   ! =T : e3=dk[depth] in discret sens.
+   !                       !      ===>>> will become the only possibility in v4.0
+   !                       ! =F : e3 analytical derivative of depth function
+   !                       !      only there for backward compatibility test with v3.6
+   !                       !
+   cp_cfg      =  "orca"   !  name of the configuration
+   jp_cfg      =      12   !  resolution of the configuration
+   jpidta      =     684   !  1st lateral dimension ( >= jpi )
+   jpjdta      =     554   !  2nd    "         "    ( >= jpj )
+   jpkdta      =      75   !  number of levels      ( >= jpk )
+   jpiglo      =     684   !  1st dimension of global domain --> i =jpidta
+   jpjglo      =     554   !  2nd    -                  -    --> j  =jpjdta
+   jpizoom     =       1   !  left bottom (i,j) indices of the zoom
+   jpjzoom     =       1   !  in data domain indices
+   jperio      =       0   !  lateral cond. type (between 0 and 6)
+/
+!-----------------------------------------------------------------------
+&namzgr        !   vertical coordinate
+!-----------------------------------------------------------------------
+   ln_zco      = .false.   !  z-coordinate - full    steps   (T/F)      ("key_zco" may also be defined)
+   ln_zps      = .false.    !  z-coordinate - partial steps
+   ln_sco      = .true.   !  s- or hybrid z-s-coordinate    (T/F)
+   ln_isfcav   = .false.   !  ice shelf cavity
+/
+!-----------------------------------------------------------------------
+&namzgr_sco    !   s-coordinate or hybrid z-s-coordinate                (default F)
+!-----------------------------------------------------------------------
+   ln_s_sh94   = .true.    !  Song & Haidvogel 1994 hybrid S-sigma   (T)|
+   ln_s_sf12   = .false.   !  Siddorn & Furner 2012 hybrid S-z-sigma (T)| if both are false the NEMO tanh stretching is applied
+   rn_sbot_min =   10.0    !  minimum depth of s-bottom surface (>0) (m)
+   rn_sbot_max = 6000.0    !  maximum depth of s-bottom surface (= ocean depth) (>0) (m)
+   rn_hc       =  39.0     !  critical depth for transition to stretched coordinates
+                           !!!!!!!  Envelop bathymetry
+   rn_rmax     =    0.05   !  maximum cut-off r-value allowed (0<r_max<1)
+                           !!!!!!!  hybrid z-s parameters
+   nn_sig_lev = 39
+   ln_s_melange = .true.
+/
+!-----------------------------------------------------------------------
+&namdom        !   space and time domain (bathymetry, mesh, timestep)
+!-----------------------------------------------------------------------
+   nn_closea   =    1      !  remove (=0) or keep (=1) closed seas and lakes (ORCA)
+   nn_msh      =    0      !  create (=1) a mesh file or not (=0)
+   rn_hmin     =   -10.    !  min depth of the ocean (>0) or min number of ocean level (<0)
+   rn_isfhmin  =    1.00   !  treshold (m) to discriminate grounding ice to floating ice
+   rn_e3zps_min=   25.     !  partial step thickness is set larger than the minimum of
+   rn_e3zps_rat=    0.2    !  rn_e3zps_min and rn_e3zps_rat*e3t, with 0<rn_e3zps_rat<1
+   rn_rdt      =   300.    !  time step for the dynamics (and tracer if nacc=0)   ==> 5760
+   jphgr_msh   =       0               !  type of horizontal mesh
+                                       !  = 0 curvilinear coordinate on the sphere read in coordinate.nc
+                                       !  = 1 geographical mesh on the sphere with regular grid-spacing
+                                       !  = 2 f-plane with regular grid-spacing
+                                       !  = 3 beta-plane with regular grid-spacing
+                                       !  = 4 Mercator grid with T/U point at the equator
+   ppglam0     =  999999.0             !  longitude of first raw and column T-point (jphgr_msh = 1)
+   ppgphi0     =  999999.0             ! latitude  of first raw and column T-point (jphgr_msh = 1)
+   ppe1_deg    =  999999.0             !  zonal      grid-spacing (degrees)
+   ppe2_deg    =  999999.0             !  meridional grid-spacing (degrees)
+   ppe1_m      =  999999.0             !  zonal      grid-spacing (degrees)
+   ppe2_m      =  999999.0             !  meridional grid-spacing (degrees)
+   ppsur       =    -3958.951371276829 !  ORCA r4, r2 and r05 coefficients
+   ppa0        =     103.9530096000000 ! (default coefficients)
+   ppa1        =     2.415951269000000 !
+   ppkth       =     15.35101370000000 !
+   ppacr       =        7.0            !
+   ppdzmin     =  999999.              !  Minimum vertical spacing
+   pphmax      =  999999.              !  Maximum depth
+   ldbletanh   =    .TRUE.             !  Use/do not use double tanf function for vertical coordinates
+   ppa2        =      100.760928500000 !  Double tanh function parameters
+   ppkth2      =       48.029893720000 !
+   ppacr2      =       13.000000000000 !
+/
