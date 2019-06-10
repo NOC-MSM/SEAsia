@@ -26,12 +26,12 @@
 &namrun        !   parameters of the run
 !-----------------------------------------------------------------------
    cn_exp      =    "SEAsia"  !  experience name
-   nn_it000    =  1441   !  first time step
-   nn_itend    =  2640 ! 960 ! 1920 ! 7200  ! 1 days. 10day=14400   !  last  time step (std 5475)
+   nn_it000    =  1   !  first time step
+   nn_itend    =  1200 ! 960 ! 1920 ! 7200  ! 1 days. 10day=14400   !  last  time step (std 5475)
    nn_date0    =  19600101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
-   ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
+   ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
       nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
       nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
       !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
@@ -598,7 +598,7 @@
     nn_dyn3d_dta  =  1                    !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
     cn_tra        =  'frs'               !
-    nn_tra_dta    =  0                    !  = 0, bdy data are equal to the initial state
+    nn_tra_dta    =  1                    !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
 
     ln_tra_dmp    =.false.                !  open boudaries conditions for tracers
