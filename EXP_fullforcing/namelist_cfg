@@ -37,7 +37,7 @@
       !                             !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
       !                             !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
       !                             !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
-      cn_ocerst_in    = "SEAsia_00001440_restart"   !  suffix of ocean restart name (input)
+      cn_ocerst_in    = "SEAsia_00001200_restart"   !  suffix of ocean restart name (input)
       cn_ocerst_indir = "./restarts"         !  directory from which to read input ocean restarts
       cn_ocerst_out   = "restart"   !  suffix of ocean restart name (output)
       cn_ocerst_outdir= "./restarts"         !  directory in which to write output ocean restarts
@@ -214,9 +214,9 @@
    nn_fsbc     = 1         !  frequency of surface boundary condition computation
                            !     (also = the frequency of sea-ice & iceberg model call)
                      ! Type of air-sea fluxes
-   ln_usr      = .true.    !  user defined formulation                  (T => check usrdef_sbc)
+   ln_usr      = .false.    !  user defined formulation                  (T => check usrdef_sbc)
    ln_flx      = .false.   !  flux formulation                          (T => fill namsbc_flx )
-   ln_blk      = .false.    !  Bulk formulation                          (T => fill namsbc_blk )
+   ln_blk      = .true.    !  Bulk formulation                          (T => fill namsbc_blk )
                      ! Type of coupling (Ocean/Ice/Atmosphere) :
    ln_cpl      = .false.   !  atmosphere coupled   formulation          ( requires key_oasis3 )
    ln_mixcpl   = .false.   !  forced-coupled mixed formulation          ( requires key_oasis3 )
