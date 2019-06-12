@@ -380,13 +380,13 @@
 !-----------------------------------------------------------------------
 !              !  file name           ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
 !              !                      !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
-   sn_rnf      = 'bdydta/SEAsia_rivers',        -1         , 'rorunoff',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
-   sn_cnf      = 'bdydta/SEAsia_rivers',         0         , 'socoefr0',   .false.    , .true. , 'yearly'  , ''       , ''       , ''
+   sn_rnf      = 'SEAsia_rivers',        -1         , 'sorunoff',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
+   sn_cnf      = 'SEAsia_rivers',         0         , 'socoefr',   .false.    , .true. , 'yearly'  , ''       , ''       , ''
    sn_s_rnf    = 'runoffs'            ,        24         , 'rosaline',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
    sn_t_rnf    = 'runoffs'            ,        24         , 'rotemper',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
    sn_dep_rnf  = 'runoffs'            ,         0         , 'rodepth' ,   .false.    , .true. , 'yearly'  , ''       , ''       , ''
 
-   cn_dir      = './'      !  root directory for the location of the runoff files
+   cn_dir      = '../INPUTS/RIVERS/'      !  root directory for the location of the runoff files
    ln_rnf_mouth= .false.    !  specific treatment at rivers mouths
       rn_hrnf     =  15.e0    !  depth over which enhanced vertical mixing is used    (ln_rnf_mouth=T)
       rn_avt_rnf  =   1.e-3   !  value of the additional vertical mixing coef. [m2/s] (ln_rnf_mouth=T)
