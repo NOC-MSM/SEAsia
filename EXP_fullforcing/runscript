@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -N SEAsia
-#PBS -l select=5
+#PBS -l select=21
 #PBS -l walltime=02:00:00
 #PBS -A n01-ACCORD
 # mail alert at (b)eginning, (e)nd and (a)bortion of execution
@@ -18,15 +18,13 @@ export PBS_O_WORKDIR=$(readlink -f $PBS_O_WORKDIR)
 cd $PBS_O_WORKDIR
 #
   echo " ";
-  OCEANCORES=92
-  XIOSCORES=5
+  OCEANCORES=480 #92
+  XIOSCORES=4
 ulimit -c unlimited
 ulimit -s unlimited
 
 rm -f core
 
-#aprun -n $OCEANCORES -N 24 ./opa
-aprun -b -n $XIOSCORES -N 5 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
-#aprun -b -n $XIOCORES -N 1 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
+aprun -b -n $XIOSCORES -N 4 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
 
 exit
