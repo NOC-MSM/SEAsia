@@ -129,13 +129,13 @@
 !-----------------------------------------------------------------------
 !              !  file name     ! frequency (hours) ! variable ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
 !              !                !  (if <0  months)  !   name   !  (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
-   sn_tem  = 'N06/votemper_ORCA0083-N06-SEAsia_1960.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
-   sn_sal  = 'N06/vosaline_ORCA0083-N06-SEAsia_1960.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
-   sn_dep  = 'N06/initcd_depth.nc'   ,         -12        ,'gdept_4D',   .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
-   sn_msk  = 'N06/initcd_mask.nc'    ,         -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
+   sn_tem  = 'votemper_ORCA0083-N06-SEAsia_1960.nc',         -12        ,'votemper' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+   sn_sal  = 'vosaline_ORCA0083-N06-SEAsia_1960.nc',         -12        ,'vosaline' ,  .false.   , .true. , 'yearly'   , ''   ,   ''    ,    ''
+   sn_dep  = 'initcd_depth.nc'   ,         -12        ,'gdept_4D',   .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
+   sn_msk  = 'initcd_mask.nc'    ,         -12        ,'mask',       .false.   , .true. , 'yearly'   , ''  ,    ''    ,      ''
  
   !
-   cn_dir        = '../INPUTS/'     !  root directory for the location of the runoff files
+   cn_dir        = '../INPUTS/ICS/'     !  root directory for the location of the runoff files
    ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)
    ln_tsd_interp = .true.    !  Interpolation of T & S in the verticalinput data (T) or not (F)
    ln_tsd_tradmp = .false.   !  damping of ocean T & S toward T &S input data (T) or not (F)
@@ -289,7 +289,7 @@
    ln_COARE_3p5= .false.   ! "COARE 3.5" algorithm   (Edson et al. 2013)
    ln_ECMWF    = .false.   ! "ECMWF"     algorithm   (IFS cycle 31)
    !
-   cn_dir      = '../SBC/'      !  root directory for the location of the bulk files
+   cn_dir      = '../INPUTS/SBC/'      !  root directory for the location of the bulk files
    ln_taudif   = .false.   !  HF tau contribution: use "mean of stress module - module of the mean stress" data
    rn_zqt      = 2.       !  Air temperature and humidity reference height (m)
    rn_zu       = 10.       !  Wind vector reference height (m)
@@ -382,9 +382,6 @@
 !              !                      !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
    sn_rnf      = 'SEAsia_rivers',        -1         , 'sorunoff',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
    sn_cnf      = 'SEAsia_rivers',         0         , 'socoefr',   .false.    , .true. , 'yearly'  , ''       , ''       , ''
-   sn_s_rnf    = 'runoffs'            ,        24         , 'rosaline',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
-   sn_t_rnf    = 'runoffs'            ,        24         , 'rotemper',   .true.     , .true. , 'yearly'  , ''       , ''       , ''
-   sn_dep_rnf  = 'runoffs'            ,         0         , 'rodepth' ,   .false.    , .true. , 'yearly'  , ''       , ''       , ''
 
    cn_dir      = '../INPUTS/RIVERS/'      !  root directory for the location of the runoff files
    ln_rnf_mouth= .false.    !  specific treatment at rivers mouths
@@ -394,7 +391,7 @@
    ln_rnf_depth= .false.   !  read in depth information for runoff
    ln_rnf_tem  = .false.   !  read in temperature information for runoff
    ln_rnf_sal  = .false.   !  read in salinity information for runoff
-   ln_rnf_depth_ini = .true. ! compute depth at initialisation from runoff file
+   ln_rnf_depth_ini = .false. ! compute depth at initialisation from runoff file
       rn_rnf_max  = 1.6224 ! 5.735e-4  !  max value of the runoff climatologie over global domain ( ln_rnf_depth_ini = .true )
       rn_dep_max  = 50.      !  depth over which runoffs is spread ( ln_rnf_depth_ini = .true )
       nn_rnf_depth_file = 0   !  create (=1) a runoff depth file or not (=0)
@@ -645,13 +642,13 @@
    bn_tem      = 'SEAsia_bdyT'   24        , 'votemper',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
    bn_sal      = 'SEAsia_bdyT'   24        , 'vosaline',    .true.   , .false. ,  'monthly'  ,    ''    ,   ''     ,     ''
 
-   cn_dir      = '../OBC/' !  root directory for the location of the bulk files
+   cn_dir      = '../INPUTS/OBC/' !  root directory for the location of the bulk files
    ln_full_vel = .true.   ! If true NEMO takes the 3d velocities as bt+bc 
 /
 !-----------------------------------------------------------------------
 &nambdy_tide   !  tidal forcing at open boundaries
 !-----------------------------------------------------------------------
-   filtide      = '../TIDES/SEAsia_bdytide_rotT_'         !  file name root of tidal forcing files
+   filtide      = '../INPUTS/TIDES/SEAsia_bdytide_rotT_'         !  file name root of tidal forcing files
    ln_bdytide_2ddta = .false.                   !
    ln_bdytide_conj  = .false.                   !
                                                 ! Harmonic analysis with restart from polcom
@@ -1054,9 +1051,9 @@
                            !  buffer blocking send or immediate non-blocking sends, resp.
    nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
    ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
-   jpni        =  30     ! standardqueue:45 ! shortqueue:11      !  jpni   number of processors following i (set automatically if < 1)
-   jpnj        =  16     ! standardqueue:37 ! shortqueue: 8      !  jpnj   number of processors following j (set automatically if < 1)
-   jpnij       =  480    ! standardqueue:1439 ! shortqueue:88 !  jpnij  number of local domains (set automatically if < 1)
+   jpni        =  30     ! standardqueue:30 ! shortqueue:11      !  jpni   number of processors following i (set automatically if < 1)
+   jpnj        =  16     ! standardqueue:16 ! shortqueue: 8      !  jpnj   number of processors following j (set automatically if < 1)
+   jpnij       =  480    ! standardqueue:480 ! shortqueue:88 !  jpnij  number of local domains (set automatically if < 1)
 /
 !-----------------------------------------------------------------------
 &namctl        !   Control prints
