@@ -1,4 +1,20 @@
+********
 # SEAsia
+********
+
+This model configuration has been developed through the ACCORD (Addressing Challenges of Coastal Communities through Ocean Research for Developing Economies) Project, funded by [Natural Environment Research Council, under a National Capability Official Development Assistance](http://gotw.nerc.ac.uk/list_full.asp?pcode=NE%2FR000123%2F1)
+
+********************************************
+## NEMO regional configuration of the Caribbean
+********************************************
+
+### Model Summary
+
+A specific region of focus includes exploring South East Asia (75E to 135E and -20N to +25N) 
+
+The model grid has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical levels. 
+
+### Model Setup
 
 The following code was used in this configuration:
 
@@ -12,11 +28,9 @@ http://  ...
 
 
 
-NEMO configurations
+Repository structure
 
-Each configuration directory should be laid out in the following manner, to
-facilitate configuration archival and sharing:
-
+The repository is structure as follows: **UPDATE**
 <pre>
 MYCONFIG
 |____ARCH
