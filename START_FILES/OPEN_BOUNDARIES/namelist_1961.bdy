@@ -40,8 +40,8 @@
 !-----------------------------------------------------------------------
 !  I/O 
 !-----------------------------------------------------------------------
-   sn_src_dir = 'ORCA0083_N06_1960.ncml'       ! src_files/'
-   sn_dst_dir = '/projectsa/accord/SEAsia/INPUTS/TIDES/'
+   sn_src_dir = 'ORCA0083_N06_1961.ncml'       ! src_files/'
+   sn_dst_dir = '/projectsa/accord/SEAsia/INPUTS/OBC/1961/'
    sn_fn      = 'SEAsia'                 ! prefix for output files
    nn_fv      = -1e20                     !  set fill value for output files
    nn_src_time_adj = 0					  ! src time adjustment
@@ -54,65 +54,39 @@
     cn_coords_file = 'coordinates.bdy.nc' !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
     ln_mask_file   = .false.              !  =T : read mask from file
     cn_mask_file   = './bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-    ln_dyn2d       = .false.               !  boundary conditions for barotropic fields
-    ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
-    ln_tra         = .false.               !  boundary conditions for T and S
+    ln_dyn2d       = .true.               !  boundary conditions for barotropic fields
+    ln_dyn3d       = .true.               !  boundary conditions for baroclinic velocities
+    ln_tra         = .true.               !  boundary conditions for T and S
     ln_ice         = .false.               !  ice boundary condition   
-    nn_rimwidth    = 1                    !  width of the relaxation zone
+    nn_rimwidth    = 9                    !  width of the relaxation zone
 
 !-----------------------------------------------------------------------
 !  unstructured open boundaries tidal parameters                        
 !-----------------------------------------------------------------------
-    ln_tide        = .true.               !  =T : produce bdy tidal conditions
-!FES
-        clname(1) ='2N2'
-        clname(2)='EPS2'
-        clname(3)='J1'
-        clname(4)='K1'
-        clname(5)='K2'
-        clname(6)='L2'
-        clname(7)='LA2'
-        clname(8)='M2'
-        clname(9)='M3'
-        clname(10)='M4'
-        clname(11)='M6'
-        clname(12)='M8'
-        clname(13)='MF'
-        clname(14)='MKS2'
-        clname(15)='MM'
-        clname(16)='MN4'
-        clname(17)='MS4'
-        clname(18)='MSF'
-        clname(19)='MSQM'
-        clname(20)='MTM'
-        clname(21)='MU2'
-        clname(22)='N2'
-        clname(23)='N4'
-        clname(24)='NU2'
-        clname(25)='O1'
-        clname(26)='P1'
-        clname(27)='Q1'
-        clname(28)='R2'
-        clname(29)='S1'
-        clname(30)='S2'
-        clname(31)='S4'
-        clname(32)='SA'
-        clname(33)='SSA'
-        clname(34)='T2'
+    ln_tide        = .false.               !  =T : produce bdy tidal conditions
+    clname(1) =  'M2'
+    clname(2) =  'S2'
+    clname(3) =  'N2'
+    clname(4) =  'K2'
+    clname(5) =  'K1'
+    clname(6) =  'O1'
+    clname(7) =  'P1'
+    clname(8) =  'Q1'
+    clname(9) =  'M4'
     ln_trans       = .false.
-    sn_tide_h     = '' # Hardwired with FES14 path
-    sn_tide_u     = '' # Hardwired with FES14 path
+    sn_tide_h     = '/work/jelt/tpxo7.2/h_tpxo7.2.nc'
+    sn_tide_u     = '/work/jelt/tpxo7.2/u_tpxo7.2.nc'
 
 !-----------------------------------------------------------------------
 !  Time information
 !-----------------------------------------------------------------------
-    nn_year_000     = 1960        !  year start
-    nn_year_end     = 1960          !  year end
+    nn_year_000     = 1961        !  year start
+    nn_year_end     = 1961          !  year end
     nn_month_000    = 1          !  month start (default = 1 is years>1)
     nn_month_end    = 12         !  month end (default = 12 is years>1)
     sn_dst_calendar = 'gregorian' !  output calendar format
     nn_base_year    = 1900        !  base year for time counter in output data
-    sn_tide_grid    = '' # Hard wired for FES14 paths #/work/jelt/tpxo7.2/grid_tpxo7.2.nc'
+    sn_tide_grid    = '/work/jelt/tpxo7.2/grid_tpxo7.2.nc'
     nn_src_time_adj = 0  != -3168000 - 86400 ! N01: fix to align model time stamp
 !-----------------------------------------------------------------------
 !  Additional parameters

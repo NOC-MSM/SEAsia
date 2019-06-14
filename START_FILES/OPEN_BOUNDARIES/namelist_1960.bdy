@@ -41,7 +41,7 @@
 !  I/O 
 !-----------------------------------------------------------------------
    sn_src_dir = 'ORCA0083_N06_1960.ncml'       ! src_files/'
-   sn_dst_dir = '/projectsa/accord/SEAsia/START_FILES/OPEN_BOUNDARIES/'
+   sn_dst_dir = '/projectsa/accord/SEAsia/INPUTS/OBC/1960/'
    sn_fn      = 'SEAsia'                 ! prefix for output files
    nn_fv      = -1e20                     !  set fill value for output files
    nn_src_time_adj = 0					  ! src time adjustment
