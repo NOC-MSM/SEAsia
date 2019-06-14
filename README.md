@@ -4,9 +4,9 @@
 
 This model configuration has been developed through the ACCORD (Addressing Challenges of Coastal Communities through Ocean Research for Developing Economies) Project, funded by [Natural Environment Research Council, under a National Capability Official Development Assistance](http://gotw.nerc.ac.uk/list_full.asp?pcode=NE%2FR000123%2F1)
 
-********************************************
-## NEMO regional configuration of the Caribbean
-********************************************
+*************************************************
+## NEMO regional configuration of South East Asia
+*************************************************
 
 ### Model Summary
 
