@@ -72,7 +72,7 @@
 !-----------------------------------------------------------------------
    ln_read_cfg = .true.   !  (=T) read the domain configuration file
       !                   !  (=F) user defined configuration  ==>>>  see usrdef(_...) modules
-      cn_domcfg = "domain_cfg.nc"         ! domain configuration filename
+      cn_domcfg = "../INPUTS/domain_cfg_gebco.nc"         ! domain configuration filename
       !
    ln_write_cfg= .false.   !  (=T) create the domain configuration file
       cn_domcfg_out = "domain_cfg_out" ! newly created domain configuration filename
