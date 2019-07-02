@@ -26,8 +26,8 @@
 &namrun        !   parameters of the run
 !-----------------------------------------------------------------------
    cn_exp      =    "SEAsia"  !  experience name
-   nn_it000    =   1   !  first time step
-   nn_itend    =  7200 ! 7200=30days.   !  last  time step (std 5475)
+   nn_it000    =   1 ! 86401   !  first time step
+   nn_itend    =  115200 ! 1200 ! 960 ! 1920 ! 7200  ! 1 days. 10day=14400   !  last  time step (std 5475)
    nn_date0    =  19600101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
@@ -1051,9 +1051,9 @@
                            !  buffer blocking send or immediate non-blocking sends, resp.
    nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
    ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
-   jpni        =  11     ! standardqueue:30 ! shortqueue:11      !  jpni   number of processors following i (set automatically if < 1)
-   jpnj        =  8     ! standardqueue:16 ! shortqueue: 8      !  jpnj   number of processors following j (set automatically if < 1)
-   jpnij       =  88    ! standardqueue:480 ! shortqueue:88 !  jpnij  number of local domains (set automatically if < 1)
+   jpni        =  30     ! standardqueue:30 ! shortqueue:11      !  jpni   number of processors following i (set automatically if < 1)
+   jpnj        =  16     ! standardqueue:16 ! shortqueue: 8      !  jpnj   number of processors following j (set automatically if < 1)
+   jpnij       =  480    ! standardqueue:480 ! shortqueue:88 !  jpnij  number of local domains (set automatically if < 1)
 /
 !-----------------------------------------------------------------------
 &namctl        !   Control prints

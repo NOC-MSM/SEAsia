@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -N SEAsia
 #PBS -l select=21
-#PBS -l walltime=02:00:00
+#PBS -l walltime=12:00:00
 #PBS -A n01-ACCORD
 # mail alert at (b)eginning, (e)nd and (a)bortion of execution
 #PBS -m bea
