@@ -78,11 +78,11 @@
         </file>
 
         <file id="file23" name_suffix="_grid_U" description="ocean U grid variables" >
-          <field field_ref="ubar"         name="ubar"    long_name="barotropic_x_velocity" />
+          <field field_ref="ssu"  name="uos"     long_name="sea_surface_x_velocity"    unit="m/s" />
         </file>
 
         <file id="file24" name_suffix="_grid_V" description="ocean V grid variables" >
-          <field field_ref="vbar"         name="vbar"    long_name="barotropic_y_velocity" />
+          <field field_ref="ssv"  name="vos"     long_name="sea_surface_y_velocity"    unit="m/s" />
         </file>
 
       </file_group>
