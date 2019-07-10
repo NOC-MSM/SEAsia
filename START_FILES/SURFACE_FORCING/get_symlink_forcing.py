@@ -25,7 +25,7 @@ import os
 DST_DIR = '/work/n01/n01/jelt/SEAsia/INPUTS/SBC/'
 SRC_DIR = '/work/n01/n01/acc/DFS/DFS5.2/'
 
-START_YEAR = 1970
+START_YEAR = 1960
 END_YEAR = 2015
 
 
