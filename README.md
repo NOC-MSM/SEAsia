@@ -17,6 +17,8 @@ The model grid has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-st
 **INSERT FIG**
 ![SE Asia bathymetry](https://github.com/NOC-MSM/SEAsia/wiki/FIGURES/ACCORD_SEAsia.png)
 
+![test figure](https://github.com/NOC-MSM/NEMO_cfgs/wiki/Images/CompareLongWave.png)
+
 ### Model Setup
 
 The following code was used in this configuration:
