@@ -1,19 +1,15 @@
 
-# Generate namelist files for annual open boundary conditions.
+# get_symlink_forcing.py
 """
+Generate Symbolic links to the DFS5.2 forcing fields.
 
-ln -s
-Edit the pynemo namelist file to use these grid files::
+Note that NEMO can use the global forcing files and internally cut out a
+subdomain using predefined weights files.
 
-  sn_src_hgr = './mesh_hgr_src_N06.nc'   !  parent /grid/
-  sn_src_zgr = './mesh_zgr_src_N06_renamed.nc'   !  parent
-  sn_src_msk = './mask_src_N06.nc'       ! parent
+Here symbolic links are generated to put the global forcing files into the
+configurations forcing directory path.
 
-
-Edit the IO files to use SSHFS links::
-
-  sn_src_dir = 'ORCA0083_N06_1960.ncml'       ! src_files/'
-  sn_dst_dir = '/projectsa/accord/SEAsia/START_FILES/OPEN_BOUNDARIES/'
+JP: July 2019
 
 """
 
@@ -56,4 +52,3 @@ for year in np.arange(1979, END_YEAR+1):
 
         file = 'drowned_'+var+'_DFS5.2_y'+str(year)+'.nc'
         os.system('ln -s '+SRC_DIR+str(year)+'/'+file+' '+DST_DIR+file)
-
