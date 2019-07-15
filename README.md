@@ -10,13 +10,14 @@ This model configuration has been developed through the ACCORD (Addressing Chall
 
 ### Model Summary
 
-A specific region of focus includes exploring South East Asia (75E to 135E and -20N to +25N) 
+A specific region of focus includes exploring South East Asia (75E to 135E and -20N to +25N)
 
-The model grid has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical levels. 
+The model grid has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical levels.
 
 **INSERT FIG**
+![SE Asia bathymetry](https://github.com/NOC-MSM/SEAsia/wiki/FIGURES/ACCORD_SEAsia.png)
 
-
+![test figure](https://github.com/NOC-MSM/NEMO_cfgs/wiki/Images/CompareLongWave.png)
 
 ### Model Setup
 
