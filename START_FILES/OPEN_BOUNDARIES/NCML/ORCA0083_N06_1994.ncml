@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<netcdf title="aggregation example" xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+  <variable name="vozocrtx"  orgName="uo" />
+  <variable name="vomecrty" orgName="vo" />
+  <variable name="votemper" orgName="potemp" />
+  <variable name="vosaline" orgName="salin" />
+  <variable name="sossheig" orgName="ssh" />
+  <aggregation type="union" >
+     <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+        <aggregation type="joinExisting" dimName="time_counter" >
+           <scan location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/1994/"  regExp=".*d05U\.nc$" />
+        </aggregation>
+     </netcdf>
+     <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+        <aggregation type="joinExisting" dimName="time_counter" >
+           <scan location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/1994/"  regExp=".*d05V\.nc$" />
+        </aggregation>
+     </netcdf>
+     <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+        <aggregation type="joinExisting" dimName="time_counter" >
+           <scan location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/1994/"  regExp=".*d05T\.nc$" />
+        </aggregation>
+     </netcdf>
+  </aggregation>
+</netcdf>

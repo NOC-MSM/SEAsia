@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<netcdf title="aggregation example" xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+  <aggregation type="union" >
+    <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+      <aggregation dimName="time_counter" type="joinExisting">
+    <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+      <aggregation dimName="time_counter" type="joinExisting">
+        <scan location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/2012/"  regExp=".*_201[1-2].*d05T\.nc$" />
+        <variable name="votemper" orgName="potemp" />
+        <variable name="vosaline" orgName="salin" />
+        <variable name="sossheig" orgName="ssh" />
+        <variable name="time_counter">
+          <attribute type="string"  name="units" value="seconds since 1950-01-01 00:00:00" />
+        </variable>
+      </aggregation>
+    </netcdf>
+    <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+      <aggregation dimName="time_counter" type="joinExisting">
+        <netcdf location="MNT_PATH/2012/ORCA0083-N06_20130105d05T.nc"  coordValue="1988366400" />
+        <variable name="votemper" orgName="thetao" />
+        <variable name="vosaline" orgName="so" />
+        <variable name="sossheig" orgName="zos" />
+        <variable name="time_counter">
+          <attribute type="string"  name="units" value="seconds since 1950-01-01 00:00:00" />
+        </variable>
+      </aggregation>
+    </netcdf>
+      </aggregation>
+    </netcdf>
+    <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+      <aggregation dimName="time_counter" type="joinExisting">
+    <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+      <aggregation dimName="time_counter" type="joinExisting">
+        <scan location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/2012/"  regExp=".*_201[1-2].*d05U\.nc$" />
+        <variable name="vozocrtx" orgName="uo" />
+        <variable name="time_counter">
+          <attribute type="string"  name="units" value="seconds since 1950-01-01 00:00:00" />
+        </variable>
+      </aggregation>
+    </netcdf>
+    <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+      <aggregation dimName="time_counter" type="joinExisting">
+        <netcdf location="MNT_PATH/2012/ORCA0083-N06_20130105d05U.nc"  coordValue="1988366400" />
+        <variable name="vozocrtx" orgName="uo" />
+        <variable name="time_counter">
+          <attribute type="string"  name="units" value="seconds since 1950-01-01 00:00:00" />
+        </variable>
+      </aggregation>
+    </netcdf>
+      </aggregation>
+    </netcdf>
+    <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+      <aggregation dimName="time_counter" type="joinExisting">
+    <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+      <aggregation dimName="time_counter" type="joinExisting">
+        <scan location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/2012/"  regExp=".*_201[1-2].*d05V\.nc$" />
+        <variable name="vomecrty" orgName="vo" />
+        <variable name="time_counter">
+          <attribute type="string"  name="units" value="seconds since 1950-01-01 00:00:00" />
+        </variable>
+      </aggregation>
+    </netcdf>
+    <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+      <aggregation dimName="time_counter" type="joinExisting">
+        <netcdf location="MNT_PATH/2012/ORCA0083-N06_20130105d05V.nc"  coordValue="1988366400" />
+        <variable name="vomecrty" orgName="vo" />
+        <variable name="time_counter">
+          <attribute type="string"  name="units" value="seconds since 1950-01-01 00:00:00" />
+        </variable>
+      </aggregation>
+    </netcdf>
+      </aggregation>
+    </netcdf>
+  </aggregation>
+</netcdf>
