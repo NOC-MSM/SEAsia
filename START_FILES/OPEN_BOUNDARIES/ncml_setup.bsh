@@ -3,10 +3,12 @@
 # Source: /gws/nopw/j04/nemo_vol5/jdha/ORCA0083-N006/ncml_setup
 # Usage: ./ncml_setup.bsh 1959 2016 /work/jdha/mount_points/jasmin/gws/nopw/j04/nemo_vol5/jdha/ORCA0083-N006
 # Usage: ./ncml_setup.bsh 1959 2016 /work/jelt/mount_points/ORCA0083-N06
-
+# Usage: ./ncml_setup.bsh 1967 1967 /projectsa/accord/SEAsia/START_FILES/ORCA0083-N06
 for y in $(seq $1 $2)
   do 
-  if (( $y < 2011 )); then
+  if (( $y == 1967 )); then
+    sed -e "s,MNT_PATH/1967,$3/$y,g" ./ncml_templates/ncml_template_1967 > NCML/ORCA0083_N06_$y.ncml
+  elif (( $y < 2011 )); then
     sed -e "s,MNT_PATH/YYYY,$3/$y,g" ./ncml_templates/ncml_template_pre2012 > NCML/ORCA0083_N06_$y.ncml
   elif (( $y > 2013 )); then
     sed -e "s,MNT_PATH/YYYY,$3/$y,g" ./ncml_templates/ncml_template_post2013 > NCML/ORCA0083_N06_$y.ncml
