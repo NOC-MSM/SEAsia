@@ -6,20 +6,54 @@
   <variable name="vosaline" orgName="salin" />
   <variable name="sossheig" orgName="ssh" />
   <aggregation type="union" >
+     
      <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
         <aggregation type="joinExisting" dimName="time_counter" >
-           <scan location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/1968/"  regExp=".*d05U\.nc$" />
+          <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+            <aggregation type="joinExisting" dimName="time_counter" >
+		<!-- Spoof timestamp to look like Dec31th-->    
+		<netcdf location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/1967/ORCA0083-N06_19671229d05U.nc"  coordValue="567777600" />
+            </aggregation>
+          </netcdf>
+          <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+            <aggregation type="joinExisting" dimName="time_counter" >
+		<scan location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/1968/"  regExp=".*d05U\.nc$" />
+            </aggregation>
+          </netcdf>
         </aggregation>
      </netcdf>
+
      <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
         <aggregation type="joinExisting" dimName="time_counter" >
-           <scan location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/1968/"  regExp=".*d05V\.nc$" />
+          <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+            <aggregation type="joinExisting" dimName="time_counter" >
+		<!-- Spoof timestamp to look like Dec31th-->    
+		<netcdf location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/1967/ORCA0083-N06_19671229d05V.nc"  coordValue="567777600" />
+            </aggregation>
+          </netcdf>
+          <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+            <aggregation type="joinExisting" dimName="time_counter" >
+		<scan location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/1968/"  regExp=".*d05V\.nc$" />
+            </aggregation>
+          </netcdf>
         </aggregation>
      </netcdf>
+
      <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
         <aggregation type="joinExisting" dimName="time_counter" >
-           <scan location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/1968/"  regExp=".*d05T\.nc$" />
+          <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+            <aggregation type="joinExisting" dimName="time_counter" >
+		<!-- Spoof timestamp to look like Dec31th-->    
+		<netcdf location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/1967/ORCA0083-N06_19671229d05T.nc"  coordValue="567777600" />
+            </aggregation>
+          </netcdf>
+          <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+            <aggregation type="joinExisting" dimName="time_counter" >
+		<scan location="/projectsa/accord/SEAsia/START_FILES/ORCA0083-N06/1968/"  regExp=".*d05T\.nc$" />
+            </aggregation>
+          </netcdf>
         </aggregation>
      </netcdf>
+
   </aggregation>
 </netcdf>
