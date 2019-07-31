@@ -30,12 +30,12 @@
 !-----------------------------------------------------------------------
 !  grid information 
 !-----------------------------------------------------------------------
-   sn_src_hgr = './mesh_hgr_src.nc'   !  parent /grid/
-   sn_src_zgr = './mesh_zgr_src.nc'   !  parent
+   sn_src_hgr = './mesh_hgr_src_N06.nc'   !  parent /grid/
+   sn_src_zgr = './mesh_zgr_src_N06_renamed.nc'   !  parent
    sn_dst_hgr = './domain_cfg.nc'
    sn_dst_zgr = './inputs_dst.ncml' ! rename output variables
-   sn_src_msk = './mask_src.nc'       ! parent
-   sn_bathy   = './bathy_meter.nc'
+   sn_src_msk = './mask_src_N06.nc'       ! parent
+   sn_bathy   = './bathy_meter.nc'        ! child
 
 !-----------------------------------------------------------------------
 !  I/O 

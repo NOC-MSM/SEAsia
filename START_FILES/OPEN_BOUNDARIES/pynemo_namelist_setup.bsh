@@ -1,0 +1,9 @@
+#!/bin/bash
+# Script to generate annual pynemo namelist files.
+# Input year range and specified destination directory when pynemo is executed.
+# Usage: ./pynemo_namelist_setup.bsh 1968 2000 /projectsa/accord/SEAsia/INPUTS/OBC/1961-1969/
+for y in $(seq $1 $2)
+  do 
+  echo $y
+  sed -e "s,YYYY_NCML_FILE,NCML/ORCA0083_N06_$y.ncml,g" -e "s,YEAR_START,$y,g" -e "s,YEAR_END,$y,g" -e "s,DST_DIR,$3,g" ./namelist.bdy_TEMPLATE > namelist_$y.bdy
+done
