@@ -32,7 +32,9 @@ for y in $(seq $1 $2)
     elif [ -e $PATH_TO_NEMO/$ym1/ORCA0083-N06_$ym1\1230d05$g.nc ]; then
       ln -s $PATH_TO_NEMO/$ym1/ORCA0083-N06_$ym1\1230d05$g.nc ORCA0083-N06_$ym1\1230d05$g.nc
     else
-      ln -s $PATH_TO_NEMO/$ym1/ORCA0083-N06_$ym1\1229d05$g.nc ORCA0083-N06_$ym1\1229d05$g.nc
+      echo $y
+      echo "Do not sym link back to 29th Dec as too many days from first timestamp in Jan. Use modified NCML file instead with timestamp redefinition"
+      #ln -s $PATH_TO_NEMO/$ym1/ORCA0083-N06_$ym1\1229d05$g.nc ORCA0083-N06_$ym1\1229d05$g.nc
     fi
     ln -s $PATH_TO_NEMO/$yp1/ORCA0083-N06_$yp1\0105d05$g.nc ORCA0083-N06_$yp1\0105d05$g.nc
   done
