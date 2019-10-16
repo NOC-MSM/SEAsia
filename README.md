@@ -14,7 +14,6 @@ A specific region of focus includes exploring South East Asia (75E to 135E and -
 
 The model grid has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical levels.
 
-**INSERT FIG**
 ![SE Asia bathymetry](https://github.com/NOC-MSM/SEAsia/wiki/FIGURES/ACCORD_SEAsia_bathy.png)
 
 ### Model Setup
@@ -23,7 +22,8 @@ The following code was used in this configuration:
 
 svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
 
-svn co -r1080 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0_r1080
+svn co -r1242 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0_r1242
+
 
 The initial conditions and boundary data can be downloaded from JASMIN:
 
