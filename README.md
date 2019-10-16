@@ -15,7 +15,7 @@ A specific region of focus includes exploring South East Asia (75E to 135E and -
 The model grid has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical levels.
 
 **INSERT FIG**
-![SE Asia bathymetry](https://github.com/NOC-MSM/SEAsia/wiki/FIGURES/ACCORD_SEAsia.png)
+![SE Asia bathymetry](https://github.com/NOC-MSM/SEAsia/wiki/FIGURES/ACCORD_SEAsia_bathy.png)
 
 ![test figure](https://github.com/NOC-MSM/NEMO_cfgs/wiki/Images/CompareLongWave.png)
 
