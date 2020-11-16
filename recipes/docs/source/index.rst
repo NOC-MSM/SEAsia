@@ -6,55 +6,38 @@
 NEMO-RELOC's documentation
 ==========================
 
-This is a index file for the NEMO-RELOC project. Ideas on how to format it are
-most welcome.
+Relocatable NEMO configurations. The central aim of this documentation is to
+help save time so that you can do other things.
 
-There are two README.md files is this project. Their contents are loaded here
- and should describe the project (rather than have intro text duplicated in this
-  index file).
-
-.. note :
-  It would have been better if the README.md files loaded their contents here
-   without needing to click on a link. Like <INCLUDE=""> in HTML-speak. I don't
-    know how to do this in Markdown) EDIT I think a simple pre-"make html"
-     command would be needed to paste in the contents of the README files.
-
-I am undecided on whether the Contents should go in this file or in the READMEs...
+The following code base uses a version of NEMO that is in precedes v4 but is
+after v3.6. In many ways the dynamics are still at v3.6 but the configuration setup
+is the same as v4. In NEMOv4 the domain configuration setup is abstracted
+from the code base as a preprocessing step. This is an essential process when
+building a new configuration. We therefore refer to the codebase
+used herein as vp4 (preceding v4), or the ORCHESTRA branch, as it was developed
+for a NERC project ORCHESTRA `(NE/N018095/1) <http://gotw.nerc.ac.uk/list_full.asp?pcode=NE%2FN018095%2F1>`_
 
 
-`Include the root README.md file <../../../README.md>`_
-
-`Include the tools README.md file <../../../tools/README.md>`_
-
-Note however that the markdown in the README.md files is not converted into html with the ``make html`` rendering command.
 
 
-Complete Recipes:
-=================
 
-When a new note file is created manually add it to this list to aid finding it.
+Summary of contents
+===================
 
-.. toctree::
-   :maxdepth: 1
-
-   template
-
-   LBay_archer_livljobs4
-
-   LBay_180m
-
-   SEAsia_archer_livljobs4
-
-   SWPacific_archer_livljobs4
-
-   EAfrica
+THe documentation is divided into sections. The first section contains a number
+of common modules. These are process steps that are not specific to any
+particular configuration. The second section contains the recipe specific for the
+1/12 deg SE Asia configuration. Section 3 addresses some common trouble shooting
+issues. Section 4 presents some simple diagnostics tools for visualising output,
+and Section 5 presents recipes from some other configurations.
 
 
-Common Modules:
-===============
 
-These common modules are used in the above recipes. I've generally abstracted
-modules once the process is common to more than one configuration.
+1. Common Modules:
+==================
+
+These common modules are used in the configuration recipes. They are generally
+ abstracted _modules_ when the process is common to more than one configuration.
 
 .. toctree::
   :maxdepth: 1
@@ -66,15 +49,15 @@ modules once the process is common to more than one configuration.
   build_and_create_coordinates
 
   build_siren_tools
-  
+
   build_domain_cfg_file
 
   install_nrct
 
   anatomy_namelist_bdy
-  
+
   generate_initial_conditions
-  
+
   Generate_river_forcing
 
   MPP_decomp_land_suppression
