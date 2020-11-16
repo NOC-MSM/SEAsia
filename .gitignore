@@ -1,9 +1,5 @@
 .DS_Store
 
-recipes/docs/build/doctrees/
-
-recipes/docs/build/hmtl/
-recipes/docs/build/html/trouble_shooting.html
 recipes/docs/build/*
 
 *~
