@@ -25,74 +25,35 @@ Then we build XIOS for managing the input/output on distributed architecture::
   echo "Installing XIOS_2.5 - this will take 5-10 mins"
   . ./make_xios.sh                                 >> main_output.txt 2>&1
 
-Then build OPA. This is the dynamical ocean core the NEMO framework. It is
+Then build NEMO. This is the dynamical ocean core the NEMO framework. It is
 loosely referred to as the NEMO executable, though strictly speaking NEMO is the
  framework and OPA is the ocean model::
 
   echo "Compile ocean code OPA - this will take a good 10/15 mins!"
   echo "Installing NEMO ERSM fabm - this will take a good 10/15 mins"
   echo "WARNING - this automatically chooses OPA_SRC and TOP_SRC"
-    . ./make_opa.sh                                 >> main_output.txt 2>&1
+    . ./make_nemo.sh                                 >> main_output.txt 2>&1
 
-This is covered for different use cases in :ref:`build_opa_label`.
+This is covered for different use cases in :ref:`build_nemo_label`.
 
 
 
-The next stage is to build the domain configuration
+The next stage is to build tools that will be used for a number of processes
+during the build. Specifically tools to assist with domain configuration file
+generation (NESTING and DOMAINcfg). At the same time we build tools to reconstruct
+ NEMO output (REBUILD_NEMO) and tools for generating grid appropriate weights
+ files to use with external surface forcing data (WEIGHTS)::
+
+   echo "Compiling various grid tools"
+   . ./make_tools.sh                                >> main_output.txt 2>&1
+
+
 
 ::
 
-  echo "Compiling various grid tools"
-  . ./make_tools.sh                                >> main_output.txt 2>&1
   echo "Creating coordinate file"
   . ./create_coordinates.sh                        >> main_output.txt 2>&1
 
----
-
-Collect essential files
-=======================
-
-Note you might have to mkdir the odd directory or two...::
-
-  mkdir $WDIR
-  mkdir $INPUTS
-  mkdir $START_FILES
-
-  cp $WDIR/../LBay/START_FILES/dommsk.F90 $START_FILES/.
-  cp $WDIR/../LBay/START_FILES/bdyini.F90 $START_FILES/.
-  cp $WDIR/../LBay/START_FILES/coordinates_ORCA_R12.nc $START_FILES/.
-  cp $WDIR/../LBay/INPUTS/namelist_reshape_bilin_gebco $START_FILES/.
-  cp $WDIR/../SWPacific/START_FILES/usrdef_istate.F90 $START_FILES/.
-  cp $WDIR/../SWPacific/START_FILES/usrdef_sbc.F90    $START_FILES/.
-
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/par_oce.F90 $START_FILES/.
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/dtatsd.F90 $START_FILES/.
-
-  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/diaharmana.F90 $START_FILES/.
-  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/step_oce.F90 $CSTART_FILES/.
-  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/step.F90 $START_FILES/.
-  cp /work/n01/n01/nibrun/NEMO/NEMO_trunk_9395/NEMOGCM/CONFIG/SWPacific/MY_SRC/bdytides.F90 $START_FILES/.
-
-.. note : jelt 10 May 2018: I think that the link to nico's harmonic analysis files above are out of date.
-   I think that Nico updated it, but in the following I am still using his first version which I
-   stored in START_FILES.
-
-Checkout and build NEMO (ORCHESTRA) trunk @ r8395 `build_opa_orchestra.html`_.
-Or just build (if it is already downloaded). Note here we use user defined
- functions for the initial state (constant T and S) and surface forcing (zero forcing)::
-
-  cd $CDIR
-  cp $START_FILES/usrdef_istate.F90 $CDIR/$CONFIG/MY_SRC/.
-  cp $START_FILES/usrdef_sbc.F90    $CDIR/$CONFIG/MY_SRC/.
-  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
-
----
-
-Checkout and build XIOS2 @ r1080 `build_XIOS2.html`_::
-
-Or just link XIOS executable to the EXP directory::
-
-  ln -s  /work/n01/n01/$USER/xios-2.0_r1080/bin/xios_server.exe $EXP/xios_server.exe
 
 ---
 
