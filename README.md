@@ -29,20 +29,39 @@ The initial conditions and boundary data can be downloaded from JASMIN:
 
 http://  ...
 
+### Experiment Summary
+
+EXP_tideonly
+============
+Only tidal forcing. constant T and S
+Include: key_harm_ana
 
 
-Repository structure
+EXP_hpg_err
+==========
+No forcing. T(z),S(z) profiles. Clamped T(z),S(z) boundaries. Start from rest.
+Compiled without tidal analysis: I.e. NO key_harm_ana
+
+
+EXP_fullforcing
+===============
+...
+
+### Repository structure
 
 The repository is structure as follows: **UPDATE**
 <pre>
 MYCONFIG
 |____ARCH
-| |____arch-XC_ARCHER.fcm
-|____arch_xios
-| |____arch-XC_ARCHER.env
-| |____arch-XC_ARCHER.fcm
-| |____arch-XC_ARCHER.path
+| |____NEMO
+| | |___arch-XC_ARCHER.fcm
+| |___XIOS
+|   |____arch-XC_ARCHER.env
+|   |____arch-XC_ARCHER.fcm
+|   |____arch-XC_ARCHER.path
+|
 |____cpp_MYCONFIG.fcm
+|
 |____EXP00
 | |____1_namelist_cfg
 | |____1_namelist_ice_cfg
@@ -64,9 +83,19 @@ MYCONFIG
 | |____namelist_top_cfg
 | |____namelist_top_ref
 | |____runscript
+|
 |____MY_SRC
 | |____*.F90
-|____INPUTS
-| |____namelist.bdy
+|
+|____SCRIPTS
+|
+|____INPUTS (a place where forcing files are put)
+|
+|____DOCS
+|
+|____START_FILES
+|
+|____TOOLS
+|____LICENSE
 |____README.md
 </pre>
