@@ -12,29 +12,40 @@ On ARCHER set up your new configuration directory by cloning the repository::
 The whole setup process can be run with the script ``SCRIPTS/main_setup.sh``.
 However the process is taken through step by step here.
 
+First set up the directory structure. Modify `make_paths.sh <https://github.com/NOC-MSM/NEMO-RELOC/blob/master/SCRIPTS/make_paths.sh>`_ based on
+your preferences, then execute the following::
+
+  echo "Making Paths"
+  . ./make_paths.sh                                 > main_output.txt 2>&1
+  echo "Making Directories"
+  . ./make_directories.sh                          >> main_output.txt 2>&1
+
+Then we build XIOS for managing the input/output on distributed architecture::
+
+  echo "Installing XIOS_2.5 - this will take 5-10 mins"
+  . ./make_xios.sh                                 >> main_output.txt 2>&1
+
+Then build OPA. This is the dynamical ocean core the NEMO framework. It is
+loosely referred to as the NEMO executable, though strictly speaking NEMO is the
+ framework and OPA is the ocean model::
+
+  echo "Compile ocean code OPA - this will take a good 10/15 mins!"
+  echo "Installing NEMO ERSM fabm - this will take a good 10/15 mins"
+  echo "WARNING - this automatically chooses OPA_SRC and TOP_SRC"
+    . ./make_opa.sh                                 >> main_output.txt 2>&1
+
+This is covered for different use cases in :ref:`build_opa_label`.
 
 
 
+The next stage is to build the domain configuration
 
-In the following I build most stuff on ARCHER but the PyNEMO bits are done on livljobs4.
-(There was a problem with some java bits working on ARCHER)
-Starting on ARCHER::
+::
 
-  ssh login.archer.ac.uk
-
-  export CONFIG=SEAsia
-  export WORK=/work/n01/n01
-  export WDIR=$WORK/$USER/$CONFIG
-  export INPUTS=$WDIR/INPUTS
-  export START_FILES=$WDIR/START_FILES
-  export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
-  export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
-  export OLD_TDIR=$WORK/$USER/LBay/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS/
-  export EXP=$CDIR/$CONFIG/EXP00
-
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-
+  echo "Compiling various grid tools"
+  . ./make_tools.sh                                >> main_output.txt 2>&1
+  echo "Creating coordinate file"
+  . ./create_coordinates.sh                        >> main_output.txt 2>&1
 
 ---
 

@@ -353,3 +353,6 @@ epub_exclude_files = ['search.html']
 
 # If false, no index is generated.
 #epub_use_index = True
+
+rst_prolog = """.. include:: <s5defs.txt> """
+html_css_files = ['s4defs-roles.css']

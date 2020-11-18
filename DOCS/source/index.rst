@@ -3,8 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+##########################
 NEMO-RELOC's documentation
-==========================
+##########################
 
 Relocatable NEMO configurations. The central aim of this documentation is to
 help save time so that you can do other things.
@@ -29,9 +30,9 @@ and Section 5 presents recipes from some other configurations.
 
 
 
-
+**************************************
 1. Complete SE Asia (1/12 deg) Recipe:
-======================================
+**************************************
 
 When a new note file is created manually add it to this list to aid finding it.
 
@@ -41,9 +42,9 @@ When a new note file is created manually add it to this list to aid finding it.
 
    SEAsia
 
-
+******************
 2. Common Modules:
-==================
+******************
 
 These common modules are used in the configuration recipes. They are generally
 abstracted _modules_ when the process is common to more than one configuration.
@@ -51,7 +52,7 @@ abstracted _modules_ when the process is common to more than one configuration.
 .. toctree::
  :maxdepth: 1
 
- build_opa_orchestra
+ build_opa
 
  build_XIOS2
 
@@ -79,9 +80,10 @@ abstracted _modules_ when the process is common to more than one configuration.
 
 
 
-
+*****************************
 3. Notes on Trouble Shooting:
-=============================
+*****************************
+
 .. toctree::
   :maxdepth: 2
 
@@ -90,9 +92,9 @@ abstracted _modules_ when the process is common to more than one configuration.
   updating_namelist_cfg_from_v3.6_to_vp4
 
 
-
+*********
 4. Tools:
-=========
+*********
 
 Not sure how to do this currently have a few repo python scripts that might
    be useful:
@@ -105,8 +107,9 @@ Not sure how to do this currently have a few repo python scripts that might
   diagnostics
 
 
+************************
 5. Other configurations:
-========================
+************************
 
 We could add other configuration recipes here.
 
@@ -130,9 +133,9 @@ work. Having made progress in LBay_livljobs4 on branch
 
 * ...
 
-
+*********************
 6. Building the docs:
-=====================
+*********************
 
 .. toctree::
   :maxdepth: 1

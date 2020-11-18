@@ -1,5 +1,10 @@
-Build NEMOvp4 (ORCHESTRA) trunk @ r8395
-+++++++++++++++++++++++++++++++++++++++
+.. _build_opa_label:
+
+Build OPA Ocean Core
+====================
+
+Build NEMOvp4 (ORCHESTRA branch) @trunk r8395
+---------------------------------------------
 
 You need to obtain a NEMO account http://forge.ipsl.jussieu.fr/nemo/register
 Suggest using the same username as ARCHER account
