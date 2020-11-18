@@ -2,43 +2,19 @@
 Setting up a SE Asia NEMO v4 configuration
 ==========================================
 
-Machines: livljobs4, ARCHER
+Machines used: CentOS7 linux box, Cray XC30 HPC (ARCHER)
 
-URL:: *to add*
-*Actually I've taken this off readthedocs as it is internal. However writing in*
-*ReStrucTed text means it is trivial to deploy anywhere with whatever style*
+On ARCHER set up your new configuration directory by cloning the repository::
 
-* Build notes with:: ~/GitLab/NEMO-RELOC/docs$ make html
+  cd /work/n01/n01/$USER
+  git clone https://github.com/NOC-MSM/NEMO-RELOC
 
-Builds a SE Asia regional tide-only model using GEBCO bathymetry, TPXO(later FES?)
- tidal boundaries.
-
-Build on a combination of livljobs4 and ARCHER.
-
-Uses a prerelease of NEMO v4 (@r8395)
-
-The summary procedure:
-#. ARCHER: Get code. Build tools. Generate coordinates, bathymetry, domain_cfg.nc
-#. ARCHER: Generate initial conditions and atmospheric forcings
-#. LIVLJOBS4: Generate boundary conditions with NRCT/PyNEMO
-#. ARCHER: Run simulation
-
-It is a tide only run.
-
-Issues that arose
-=================
-
-* The THREDDS server to access ORCA0083 data is broken and the JASMIN server
- hosting it is not a thredds server. Therefore PyNEMO needs to run on local
-  copies of the parent data.
-
-.. note: PyNEMO is interchangabably called NRCT (NEMO Relocatable Configuration Tool)
+The whole setup process can be run with the script ``SCRIPTS/main_setup.sh``.
+However the process is taken through step by step here.
 
 
-----
 
-Recipe Notes
-============
+
 
 In the following I build most stuff on ARCHER but the PyNEMO bits are done on livljobs4.
 (There was a problem with some java bits working on ARCHER)

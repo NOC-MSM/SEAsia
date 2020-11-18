@@ -16,61 +16,21 @@ from the code base as a preprocessing step. This is an essential process when
 building a new configuration. We therefore refer to the codebase
 used herein as vp4 (preceding v4), or the ORCHESTRA branch, as it was developed
 for a NERC project ORCHESTRA `(NE/N018095/1) <http://gotw.nerc.ac.uk/list_full.asp?pcode=NE%2FN018095%2F1>`_
+As well as a specific version of NEMO, this documentation was targetted at
+running on the ARCHER HPC (www.archer.ac.uk). Though the principles are transferrable.
 
-
-
-
-
-Summary of contents
-===================
-
-THe documentation is divided into sections. The first section contains a number
-of common modules. These are process steps that are not specific to any
-particular configuration. The second section contains the recipe specific for the
-1/12 deg SE Asia configuration. Section 3 addresses some common trouble shooting
+The documentation is divided into sections. As an introduction and overview to
+the process, the first section contains the recipe specific for the 1/12 deg SE
+Asia configuration. The second section contains a number of common modules, or
+steps, that are described in more detail and that are part of the build process
+ but are not specific to any particular configuration. Section 3 addresses some common trouble shooting
 issues. Section 4 presents some simple diagnostics tools for visualising output,
 and Section 5 presents recipes from some other configurations.
 
 
 
-1. Common Modules:
-==================
 
-These common modules are used in the configuration recipes. They are generally
- abstracted _modules_ when the process is common to more than one configuration.
-
-.. toctree::
-  :maxdepth: 1
-
-  build_opa_orchestra
-
-  build_XIOS2
-
-  build_and_create_coordinates
-
-  build_siren_tools
-
-  build_domain_cfg_file
-
-  install_nrct
-
-  anatomy_namelist_bdy
-
-  generate_initial_conditions
-
-  Generate_river_forcing
-
-  MPP_decomp_land_suppression
-
-  rebuild_and_inspect_NEMO_output
-
-  Add_more_SBC
-
-  FES2014_NEMO
-
-
-
-2. Complete SE Asia (1/12 deg) Recipe:
+1. Complete SE Asia (1/12 deg) Recipe:
 ======================================
 
 When a new note file is created manually add it to this list to aid finding it.
@@ -79,7 +39,43 @@ When a new note file is created manually add it to this list to aid finding it.
    :maxdepth: 1
 
 
-   SEAsia_archer_livljobs4
+   SEAsia
+
+
+2. Common Modules:
+==================
+
+These common modules are used in the configuration recipes. They are generally
+abstracted _modules_ when the process is common to more than one configuration.
+
+.. toctree::
+ :maxdepth: 1
+
+ build_opa_orchestra
+
+ build_XIOS2
+
+ build_and_create_coordinates
+
+ build_siren_tools
+
+ build_domain_cfg_file
+
+ install_nrct
+
+ anatomy_namelist_bdy
+
+ generate_initial_conditions
+
+ Generate_river_forcing
+
+ MPP_decomp_land_suppression
+
+ rebuild_and_inspect_NEMO_output
+
+ Add_more_SBC
+
+ FES2014_NEMO
 
 
 
@@ -134,6 +130,14 @@ work. Having made progress in LBay_livljobs4 on branch
 
 * ...
 
+
+6. Building the docs:
+=====================
+
+.. toctree::
+  :maxdepth: 1
+
+  compiling_documentation
 
 Indices and tables
 ==================

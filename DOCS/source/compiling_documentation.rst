@@ -4,7 +4,7 @@ Compiling the Documentation
 
 How to edit the docs:
 
-``cd /Users/jeff/GitHub/NEMO_docs/docs``
+``cd DOCS``
 
 * Edit the ``*rst`` files:
 
@@ -16,12 +16,15 @@ Automatically generating the HTML
 * Preview the ``*.rst`` files:
  ``$ make html``
 * Commit change to github and sync NEMO-docs:
-* Check files in readthedocs: http://nemo-reloc.readthedocs.io/en/latest/?# *(Not 100% sure about this link as I don't have t'internet)*
+* View at ``build/html/index.html`` in your favourite browser.
 
 Automatically generating the PDF
 ================================
 
-Having install `rst2pdf` (https://github.com/rst2pdf/rst2pdf) (in a conda environment)::
+Having installed `rst2pdf` (https://github.com/rst2pdf/rst2pdf) (in a conda
+environment)::
 
   cd recipes/docs
   sphinx-build -b pdf source build
+
+View pdf in ``build``.
