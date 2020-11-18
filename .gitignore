@@ -1,6 +1,6 @@
 .DS_Store
 
-recipes/docs/build/*
+DOCS/build/*
 
 *~
 
