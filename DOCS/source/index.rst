@@ -17,7 +17,7 @@ from the code base as a preprocessing step. This is an essential process when
 building a new configuration. We therefore refer to the codebase
 used herein as vp4 (preceding v4), or the ORCHESTRA branch, as it was developed
 for a NERC project ORCHESTRA `(NE/N018095/1) <http://gotw.nerc.ac.uk/list_full.asp?pcode=NE%2FN018095%2F1>`_
-As well as a specific version of NEMO, this documentation was targetted at
+As well as a specific version of NEMO, this documentation was targeted at
 running on the ARCHER HPC (www.archer.ac.uk). Though the principles are transferrable.
 
 The documentation is divided into sections. As an introduction and overview to
@@ -39,11 +39,37 @@ When a new note file is created manually add it to this list to aid finding it.
 .. toctree::
    :maxdepth: 1
 
-
    SEAsia
 
+*******************
+3. Common Modules:
+*******************
+
+These common modules are used in the configuration recipes. They are generally
+abstracted as _modules_ when the process is common to more than one configuration.
+
+.. toctree::
+   :maxdepth: 2
+
+   SCRIPTS/main_setup
+
+   SCRIPTS/make_paths
+
+   SCRIPTS/make_directories
+
+   SCRIPTS/make_xios
+
+   SCRIPTS/make_nemo
+
+   SCRIPTS/make_nemo_fabm_ersem
+
+   SCRIPTS/make_tools
+
+   SCRIPTS/make_coordinates
+
+
 ******************
-2. Common Modules:
+2.5 Old stuff:
 ******************
 
 These common modules are used in the configuration recipes. They are generally
@@ -101,8 +127,6 @@ Not sure how to do this currently have a few repo python scripts that might
 
 .. toctree::
   :maxdepth: 1
-
-  compiling_documentation
 
   diagnostics
 
