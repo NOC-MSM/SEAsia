@@ -1,53 +1,112 @@
-==========================================
-Setting up a SE Asia NEMO v4 configuration
-==========================================
+
+In the following are specific instructions for a 3D baroclinic simulation of
+NEMO with ERSEM (via the FABM coupler). The regional configuration is
+demonstrated for South East Asia (75E to 135E and -20N to +25N). The model grid
+has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical levels.
 
 Machines used: CentOS7 linux box, Cray XC30 HPC (ARCHER)
 
-On ARCHER set up your new configuration directory by cloning the repository::
+===========================================
+Setting up a SE Asia NEMO vp4 configuration
+===========================================
+
+Having cloned the NEMO-RELOC repository, the  entire build process can be run
+with a single script ``SCRIPTS/main_setup.sh``:
+
+.. literalinclude:: SCRIPTS/main_setup.sh
+
+However the process is taken through step by step here.
+
+
+a. Clone the NEMO-RELOC repository
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The first step is set up a new configuration directory by git cloning the
+repository (e.g. to your workspace)::
 
   cd /work/n01/n01/$USER
   git clone https://github.com/NOC-MSM/NEMO-RELOC
 
-The whole setup process can be run with the script ``SCRIPTS/main_setup.sh``.
-However the process is taken through step by step here.
 
-First set up the directory structure. Modify `make_paths.sh <https://github.com/NOC-MSM/NEMO-RELOC/blob/master/SCRIPTS/make_paths.sh>`_ based on
-your preferences, then execute the following::
+b. Set script paths, make paths and directories
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  echo "Making Paths"
-  . ./make_paths.sh                                 > main_output.txt 2>&1
-  echo "Making Directories"
-  . ./make_directories.sh                          >> main_output.txt 2>&1
+Ensure that the first two lines  in ``SCRIPTS/make_paths.sh`` are appropriately
+defined:
 
-Then we build XIOS for managing the input/output on distributed architecture::
+.. literalinclude:: SCRIPTS/make_paths.sh
+  :start-at: export CONFIG
+  :end-at: export WORK
 
-  echo "Installing XIOS_2.5 - this will take 5-10 mins"
-  . ./make_xios.sh                                 >> main_output.txt 2>&1
+Then ``SCRIPTS/make_paths.sh`` and ``SCRIPTS/make_directories.sh`` will create
+the expected directory structure.
 
-Then build NEMO. This is the dynamical ocean core the NEMO framework. It is
-loosely referred to as the NEMO executable, though strictly speaking NEMO is the
- framework and OPA is the ocean model::
+.. literalinclude:: SCRIPTS/main_setup.sh
+  :start-at: echo "Making Paths"
+  :end-at: make_directories.sh
 
-  echo "Compile ocean code OPA - this will take a good 10/15 mins!"
-  echo "Installing NEMO ERSM fabm - this will take a good 10/15 mins"
-  echo "WARNING - this automatically chooses OPA_SRC and TOP_SRC"
-    . ./make_nemo.sh                                 >> main_output.txt 2>&1
+c. Build XIOS
+^^^^^^^^^^^^^
 
-This is covered for different use cases in :ref:`build_nemo_label`.
+Then we build XIOS for managing the input/output on distributed architecture.
+Note that the modules need to be loaded appropriately for the architecture. The
+settings here are for ARCHER:
+
+.. literalinclude:: SCRIPTS/make_xios.sh
+
+This is executed by ``SCRIPTS/main_setup.sh``:
+
+.. literalinclude:: SCRIPTS/main_setup.sh
+  :start-at: Installing XIOS
+  :end-at: make_xios
 
 
+d. Build NEMO
+^^^^^^^^^^^^^
+
+Then build the NEMO executable. This is the dynamical ocean core the NEMO
+framework. Technically OPA is the ocean dynamical core and NEMO is the framework
+it sits within (including, for example, modules for ice, biogeochemistry etc).
+
+In this documentation there are examples for a NEMO physics only build (called
+``SCRIPTS/make_nemo.sh``) and a NEMO-FABM-ERSEM build
+(called ``SCRIPTS/make_nemo_fabm_ersem.sh``). Here we walk through the physics
+only build:
+
+.. literalinclude:: SCRIPTS/make_nemo.sh
+
+
+This is executed by ``SCRIPTS/main_setup.sh`` (commenting out the appropriate
+make NEMO script):
+
+.. literalinclude:: SCRIPTS/main_setup.sh
+  :start-at: Installing NEMO-FABM-ERSEM
+  :end-at: ./make_nemo.sh
+
+
+
+e. Build TOOLS
+^^^^^^^^^^^^^^
 
 The next stage is to build tools that will be used for a number of processes
 during the build. Specifically tools to assist with domain configuration file
-generation (NESTING and DOMAINcfg). At the same time we build tools to reconstruct
- NEMO output (REBUILD_NEMO) and tools for generating grid appropriate weights
- files to use with external surface forcing data (WEIGHTS)::
+generation (NESTING, which can be used to interpolate existing grids, and
+DOMAINcfg, which builds the domain configuration netCDF file). At the same time
+we build tools to reconstruct NEMO output (REBUILD_NEMO) and tools for
+generating grid appropriate weights files to use with external surface forcing
+data (WEIGHTS):
 
-   echo "Compiling various grid tools"
-   . ./make_tools.sh                                >> main_output.txt 2>&1
+.. literalinclude:: SCRIPTS/make_tools.sh
+
+This is executed by ``SCRIPTS/main_setup.sh``:
+
+.. literalinclude:: SCRIPTS/main_setup.sh
+ :start-at: various grid tools
+ :end-at: ./make_tools.sh
 
 
+Next
+*****
 
 ::
 

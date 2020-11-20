@@ -24,7 +24,7 @@ Automatically generating the PDF
 Having installed `rst2pdf` (https://github.com/rst2pdf/rst2pdf) (in a conda
 environment)::
 
-  cd recipes/docs
+  cd DOCS
   sphinx-build -b pdf source build
 
 View pdf in ``build``.

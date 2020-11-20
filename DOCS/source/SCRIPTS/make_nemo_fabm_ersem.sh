@@ -8,6 +8,12 @@ make_nemo_fabm_ersem.sh
 
 Checkout and compile the NEMO executable with FABM ERSEM for physics with
 biogeochemistry
+
+You need to obtain a NEMO account http://forge.ipsl.jussieu.fr/nemo/register
+
+Bare in mind that NEMO is being compiled for use with a particular version of
+XIOS. Ensure edits to ``%XIOS_HOME`` in the ``arch-*`` file are consistent with
+the XIOS build.
 '
 #::
 
@@ -56,15 +62,15 @@ biogeochemistry
   cp -r /home/n01/n01/$USER/local/fabm/nemo/include ./
 
   #################################################################
-  # Compile nemo
+  # Compile nemo and update TOP source
   #################################################################
   # get arch
-  #ATTENTION modify the following file to have the correct paths
+  # ATTENTION modify the following file to have the correct paths
   cp $NEMO/trunk_NEMOGCM_r8395/NEMO/TOP_SRC/arch-XC_ARCHER_INTEL_FABM.fcm $NEMO/trunk_NEMOGCM_r8395/ARCH/arch-XC_ARCHER_INTEL_FABM.fcm
 
   cd $CDIR
-  # make configuration first
-  printf 'y\nn\nn\ny\nn\nn\nn\nn\n' |./makenemo -m XC_ARCHER_INTEL_FABM -n $CONFIG -j 0
+  # make your configuration (**ATTENTION**: here we choose to include in our configuration only OPA and TOP (no ice etc.))
+  printf 'y\nn\nn\ny\nn\nn\nn\nn\n' |./makenemo -m XC_ARCHER_INTEL_FABM -n $CONFIG -j 3
 
   # changes the keys and copy MY_SRC to your configurations
   cd $CDIR/$CONFIG
@@ -81,9 +87,16 @@ biogeochemistry
   #OR instead take the ready file
   cp $GITCLONE/NEMO-FABM-ERSEM/bldxag_FABM.cfg $NEMO/trunk_NEMOGCM_r8395/TOOLS/COMPILE/bldxag.cfg
 
-  # Make configuration with updates included
+  # Make configuration with all the above updates included
   cd $CDIR
   ./makenemo -m XC_ARCHER_INTEL_FABM -n $CONFIG -j 4 clean
   ./makenemo -m XC_ARCHER_INTEL_FABM -n $CONFIG -j 4
   #################################################################
   cd $WORK
+
+
+  #  A successful compilation will generate a ``nemo.exe`` executable in
+  #   ``$NEMO/trunk_NEMOGCM_r8395/$CONFIG/BLD/bin/``
+
+  #  Further information on the NEMO-ERSEM coupling system can be found here:
+  #   `NEMO-ERSEM <https://github.com/NOC-MSM/NEMO_ERSEM>`_

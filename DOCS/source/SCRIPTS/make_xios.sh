@@ -7,6 +7,7 @@ make_xios.sh
 ***********************
 
 Checkout and compile the XIOS2.5 executable for I/O management
+You need to obtain a NEMO account http://forge.ipsl.jussieu.fr/nemo/register
 '
 #::
 

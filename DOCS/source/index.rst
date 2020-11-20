@@ -34,15 +34,16 @@ and Section 5 presents recipes from some other configurations.
 1. Complete SE Asia (1/12 deg) Recipe:
 **************************************
 
-When a new note file is created manually add it to this list to aid finding it.
 
 .. toctree::
    :maxdepth: 1
 
    SEAsia
 
+
+
 *******************
-3. Common Modules:
+2. Common Modules:
 *******************
 
 These common modules are used in the configuration recipes. They are generally

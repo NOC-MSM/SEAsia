@@ -1,18 +1,20 @@
 #!/bin/bash
 
 :'
-
 ***********************
 make_paths.sh
 ***********************
-
-This script should be editted and sets all the directory paths that subsequently
- used.
 '
+
+# This script should be editted and sets all the directory paths that subsequently
+# used.
+
 #::
 
+  # [quote-snippet]
   export CONFIG=SEAsia_test
   export WORK=/work/n01/n01/$USER
+  # [quote-snippet]
   export WDIR=$WORK/$CONFIG
   export NEMO=$WORK/$CONFIG/NEMO_ERSEM_CMEMS
   export DOMAIN=$WDIR/DOMAIN
