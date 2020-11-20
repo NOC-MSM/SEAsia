@@ -1,6 +1,7 @@
 #!/bin/bash
 
 :'
+
 ***********************
 make_paths.sh
 ***********************
@@ -11,10 +12,8 @@ make_paths.sh
 
 #::
 
-  # [quote-snippet]
   export CONFIG=SEAsia_test
   export WORK=/work/n01/n01/$USER
-  # [quote-snippet]
   export WDIR=$WORK/$CONFIG
   export NEMO=$WORK/$CONFIG/NEMO_ERSEM_CMEMS
   export DOMAIN=$WDIR/DOMAIN
@@ -27,6 +26,7 @@ make_paths.sh
   export RUND=$WDIR/RUN_DIRECTORY
   export EXP=$RUND/EXP_TEST
   export XIOS_DIR=$WDIR/xios-2.5
+  export XIOS1_DIR=$WDIR/xios-1.0
   export GITCLONE=$WDIR/FILES_START
   export RIVER=$WDIR/RIVERS
   export FABM=$WDIR/NEMO_fabm

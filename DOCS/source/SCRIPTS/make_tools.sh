@@ -7,7 +7,11 @@ make_tools.sh
 ***********************
 
 At the time of writing the tools used here required an older version of XIOS to
-work (XIOS1). This can to be compiled as described in make_xios.sh
+work (XIOS1). This is compiled in make_xios.sh. Refer to the README in the
+ $TDIR/DOMAINcfg for more details.
+
+Check the path in variable ``%XIOS_HOME`` in ``XC_ARCHER_INTEL_XIOS1`` are
+consistent with your settings
 '
 #::
 

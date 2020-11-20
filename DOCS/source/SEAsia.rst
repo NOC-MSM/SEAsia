@@ -7,7 +7,7 @@ has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical lev
 Machines used: CentOS7 linux box, Cray XC30 HPC (ARCHER)
 
 ===========================================
-Setting up a SE Asia NEMO vp4 configuration
+Preparing for a new NEMO vp4 configuration
 ===========================================
 
 Having cloned the NEMO-RELOC repository, the  entire build process can be run
@@ -53,6 +53,10 @@ Note that the modules need to be loaded appropriately for the architecture. The
 settings here are for ARCHER:
 
 .. literalinclude:: SCRIPTS/make_xios.sh
+
+The script builds two versions of XIOS. XIOS2.5 is used for the NEMO simulations
+but an earlier version XIOS1 (where performance is not an issue) is used for
+some of the tooling required to build the configuration.
 
 This is executed by ``SCRIPTS/main_setup.sh``:
 
@@ -105,8 +109,22 @@ This is executed by ``SCRIPTS/main_setup.sh``:
  :end-at: ./make_tools.sh
 
 
-Next
-*****
+======================================================
+Build a domain configuration file for SE Asia NEMO vp4
+======================================================
+
+To build the netCDF domain configuration file (``domain_cfg.nc``) a
+``coordinates.nc`` and a ``bathymetry.nc`` file must be first generated.
+
+Here we show:
+
+  * how to make a child configuration from an existing NEMO run.
+  * how to generate a new regional configuration from GEBCO (global) bathymetry.
+
+
+========
+GOT HERE
+========
 
 ::
 
@@ -117,42 +135,9 @@ Next
 ---
 
 
-Build TOOLS
-===========
-
-To generate domain coords and rebuild tools we first need
-to compile some of the NEMO TOOLS.
-
-.. note: These are compiled with XIOS2. However DOMAINcfg has to be compiled
-  with XIOS1. There is a README in the $TDIR/DOMAINcfg on what to do.
-
-First build DOMAINcfg (which is relatively new and in NEMOv4). Use my XIOS1 file
-(see userid and path in variable ``%XIOS_HOME``). Copy from ARCH *store*::
-
-  cp $WORK/$USER/ARCH/arch-XC_ARCHER_INTEL_XIOS1.fcm $CDIR/../ARCH/.
-  cd $TDIR
-
-  ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
-  ./maketools -m XC_ARCHER_INTEL_XIOS1 -n REBUILD_NEMO
-
-For the generation of bathymetry and met forcing weights files we need to patch
-the code (to allow direct passing of arguments. NB this code has not been
-updated in 7 years.)::
-
-  cd $TDIR/WEIGHTS/src
-  patch -b < $START_FILES/scripinterp_mod.patch
-  patch -b < $START_FILES/scripinterp.patch
-  patch -b < $START_FILES/scrip.patch
-  patch -b < $START_FILES/scripshape.patch
-  patch -b < $START_FILES/scripgrid.patch
-
-  cd $TDIR
-  ./maketools -m XC_ARCHER_INTEL_XIOS1 -n WEIGHTS
 
 
-
-
-1. Generate new coordinates file
+a. Generate new coordinates file
 ++++++++++++++++++++++++++++++++
 
 Generate a ``coordinates.nc`` file from a parent NEMO grid at some resolution.

@@ -20,4 +20,5 @@ Create the expected directory structure.
   mkdir $ICS
   mkdir $RIVER
   mkdir $XIOS_DIR
+  mkdir $XIOS1_DIR
   mkdir $FABM
