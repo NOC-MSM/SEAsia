@@ -122,6 +122,15 @@ Here we show:
   * how to generate a new regional configuration from GEBCO (global) bathymetry.
 
 
+a. Generate new coordinates file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+b. Generate bathymetry file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+c. Generate a domain configuration file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 ========
 GOT HERE
 ========
