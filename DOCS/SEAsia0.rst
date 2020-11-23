@@ -142,6 +142,11 @@ For the SE Asia domain we select
 
 .. literalinclude:: SCRIPTS/make_coordinates_from_parent.sh
 
+Test
+
+.. literalinclude:: ../START_FILES/DOMAIN/namelist.input
+
+Test 2
 
 
 This is executed by ``SCRIPTS/main_setup.sh``:
@@ -149,6 +154,7 @@ This is executed by ``SCRIPTS/main_setup.sh``:
 .. literalinclude:: SCRIPTS/main_setup.sh
   :start-at: Creating coordinate file
   :end-at: make_coordinates_from_parent
+
 
 
 
