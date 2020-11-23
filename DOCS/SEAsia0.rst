@@ -125,6 +125,39 @@ Here we show:
 a. Generate new coordinates file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Generate a ``coordinates.nc`` file from a parent NEMO grid at some resolution.
+Here we use the tool ``agrif_create_coordinates.exe``, previously built, which
+reads cutting indices, resolution scale factor on parent, and grid location from
+ ``namelist.input`` and outputs a new files with new resolution grid elements.
+
+The cutting indices are can be obtained by inspection of the parent coordinates
+and should be chosen to avoid problems arising from forcing the child with the
+new proposed boundaries. Potential issues include having tidal amphidromes near
+the boundary (where slight errors in the boundary tidal forcing can magnify
+within the domain), isolated sea mounts or bathymetry features that might be
+present in both parent and child bathymetries. Thin sections of wetpoints (3 or
+fewer boxes wide) that are trapped between the boundary and interior land points.
+
+For the SE Asia domain we select
+
+.. literalinclude:: SCRIPTS/make_coordinates_from_parent.sh
+
+Test
+
+.. literalinclude:: ../START_FILES/DOMAIN/namelist.input
+
+Test 2
+
+
+This is executed by ``SCRIPTS/main_setup.sh``:
+
+.. literalinclude:: SCRIPTS/main_setup.sh
+  :start-at: Creating coordinate file
+  :end-at: make_coordinates_from_parent
+
+
+
+
 b. Generate bathymetry file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -135,162 +168,17 @@ c. Generate a domain configuration file
 GOT HERE
 ========
 
-::
-
-  echo "Creating coordinate file"
-  . ./create_coordinates.sh                        >> main_output.txt 2>&1
-
 
 ---
 
 
 
 
-a. Generate new coordinates file
-++++++++++++++++++++++++++++++++
-
-Generate a ``coordinates.nc`` file from a parent NEMO grid at some resolution.
-**Plan:** Use tool ``agrif_create_coordinates.exe`` which reads cutting indices and
-parent grid location from ``namelist.input`` and outputs a new files with new
-resolution grid elements.
-
-.. warning:
-  Using the GRIDGEN/create_coordinates.exe tool runs into a problem for zoom factor
-  >1, since the horizontal spacing metric e.g. e[12]t always match
-  the parent grid. I think that this is a bug. The agrif version works.
-
-1a. Choose domain
-=================
-
-First we need to figure out the indices for the new domain, from the parent grid.
-Move parent grid into INPUTS::
-
-  cp $START_FILES/coordinates_ORCA_R12.nc $INPUTS/.
-
-Inspect this parent coordinates file to define the boundary indices for the new config.
-
-Note, I used FERRET locally::
-
-  $livljobs2$ scp $USER@login.archer.ac.uk:/work/n01/n01/$USER/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
-  ferret etc
-  shade/i=3385:3392/j=2251:2266 NAV_LAT
-  shade/i=3385:3392/j=2251:2266 NAV_LON
-
-**Use indices  i=50:730 j=1250:1800**
-
----
-
-**Longer version**
-
-Inspect this parent coordinates file to define the boundary indices for the new config.
-
-Note, I used FERRET on livljobs4.
-
-*(27 Sept 2017)*
-
-Decide coordinates for new SE Asia configuration at 1/12 degree, R12
-====================================================================
-
-Inspect TPXO harmonic amplitudes to find a good cut off location for boundaries::
-
-  livljobs4$ cd /work/jelt/tpxo7.2
-  ferret
-  go plot_SEAsia_harmonics.jnl
-
-... note::
-
-  ! plot_SEAsia_harmonics.jnl
-  ! Plot tpxo harmonics for the SE Asia region.
-  ! Want to build a NEMO config without significant amphidromes on the boundary
-
-  use h_tpxo7.2.nc
-
-  set win 1
-  set viewport ul
-  shade/k=1/j=300:700/i=250:500/levels=(0,1,0.1)/title="M2" HA, lon_z, lat_z; go fland
-  set viewport ur
-  shade/k=2/j=300:700/i=250:500/levels=(0,1,0.1)/title="S2" HA, lon_z, lat_z; go fland
-  set viewport ll
-  shade/k=3/j=300:700/i=250:500/levels=(0,1,0.1)/title="N2" HA, lon_z, lat_z; go fland
-  set viewport lr
-  shade/k=4/j=300:700/i=250:500/levels=(0,1,0.1)/title="K2" HA, lon_z, lat_z; go fland
-
-  set win 2
-  set viewport ul
-  shade/k=5/j=300:700/i=250:500/levels=(0,1,0.1)/title="K1" HA, lon_z, lat_z; go fland
-  set viewport ur
-  shade/k=6/j=300:700/i=250:500/levels=(0,1,0.1)/title="O1" HA, lon_z, lat_z; go fland
-  set viewport ll
-  shade/k=7/j=300:700/i=250:500/levels=(0,1,0.1)/title="P1" HA, lon_z, lat_z; go fland
-  set viewport lr
-  shade/k=8/j=300:700/i=250:500/levels=(0,1,0.1)/title="Q1" HA, lon_z, lat_z; go fland
-
-
-Conclusion. Plot the proposed domain::
-
-  $livljobs2$ scp $USER@login.archer.ac.uk:/work/n01/n01/$USER/LBay/INPUTS/coordinates_ORCA_R12.nc ~/Desktop/.
-
-  ferret
-  use coordinates_ORCA_R12.nc
-  set win 1; shade/X=50:730/Y=1250:1800 E2T, nav_lon, nav_lat ; go fland
-  set win 2; set viewport upper; shade/i=50:730/j=1250:1800 NAV_LAT
-  set win 2; set viewport lower; shade/i=50:730/j=1250:1800 NAV_LON
-
-Use indices  **i=50:730 j=1250:1800**
-
----
-
-
-Edit namelist::
-
-  cd $TDIR/NESTING
-  vi namelist.input
-
-  &input_output
-      iom_activated = true
-  /
-  &coarse_grid_files
-      parent_coordinate_file = 'coordinates_ORCA_R12.nc'
-  /
-  &bathymetry
-  /
-  &nesting
-      imin = 50
-      imax = 730
-      jmin = 1250
-      jmax = 1800
-      rho  = 1
-      rhot = 1
-      bathy_update = false
-  /
-  &vertical_grid
-  /
-  &partial_cells
-  /
-  &nemo_coarse_grid
-  /
-  &forcing_files
-  /
-  &interp
-  /
-  &restart
-  /
-  &restart_trc
-  /
 
 Build and execute agrif version of create_coordinates.exe.
 See `build_and_create_coordinates.rst`_
 
-Or just execute tool::
 
-  ./agrif_create_coordinates.exe
-
-This creates a new coordinates file with contents, which is now copied to
-INPUTS::
-
-  cp 1_coordinates_ORCA_R12.nc $INPUTS/coordinates.nc
-
-Now we need to generate a bathymetry on this new grid.
 
 
 2. Generate bathymetry file

@@ -1,0 +1,31 @@
+&input_output
+    iom_activated = true
+/
+&coarse_grid_files
+    parent_coordinate_file = 'coordinates_ORCA_R12.nc'
+/
+&bathymetry
+/
+&nesting
+    imin = 50
+    imax = 730
+    jmin = 1250
+    jmax = 1800
+    rho  = 1
+    rhot = 1
+    bathy_update = false
+/
+&vertical_grid
+/
+&partial_cells
+/
+&nemo_coarse_grid
+/
+&forcing_files
+/
+&interp
+/
+&restart
+/
+&restart_trc
+/
