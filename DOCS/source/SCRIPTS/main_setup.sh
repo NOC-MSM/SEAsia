@@ -27,7 +27,7 @@ are correct).
   echo "Compiling various grid tools"
   . ./make_tools.sh                                >> main_output.txt 2>&1
   echo "Creating coordinate file"
-  . ./create_coordinates.sh                        >> main_output.txt 2>&1
+  . ./make_coordinates_from_parent.sh            >> main_output.txt 2>&1
   echo "Get bathymetry for our domain"
   . ./get_bathymetry.sh                         >> main_output.txt 2>&1
   echo "Create rivers"
