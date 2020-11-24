@@ -323,145 +323,12 @@ b. ERSEM boundary conditions
 To be written
 
 
-======================================================
-Generate Open Boundary Conditions
-======================================================
-
-Discussion about PyNEMO.
-
-a. Open boundary conditions from CMEMS data
+c. Something about tidal forcing modification
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-b. Open boundary conditions from parent ORCA12 data
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-======================================================
-Run Experiments
-======================================================
-
-a. Tide only
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-c. HPG test
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-d. Full forcing
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-e. Physics and biogeochemisty
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-
-
-======================================================
-OLD STUFF
-======================================================
-Get set up::
-
-  ssh archer
-  . ~/temporary_path_names_for_NEMO_build
-
-Get important files into EXP directory. Should already have ``domain_cfg.nc``::
-
-
-  cd $EXP
-  rsync -tuv $INPUTS/bathy_meter.nc $EXP/.
-  rsync -tuv $INPUTS/coordinates.nc $EXP/.
-  rsync -tuv $INPUTS/coordinates.bdy.nc $EXP/.
-  rsync -tuv $START_FILES/namelist_cfg $EXP/.
-
-Create symbolic links from EXP directory::
-
-  ln -s $INPUTS $EXP/bdydta
-
-Edit the output to have 1hrly SSH, and harmonic output::
-
- vi file_def_nemo.xml
- ...
- <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 1h files -->
-  <file id="file19" name_suffix="_SSH" description="ocean T grid variables" >
-    <field field_ref="ssh"          name="zos"   />
-  </file>
- </file_group>
- ...
- <file_group id="5d" output_freq="5d"  output_level="10" enabled=".TRUE.">  <!-- 5d files -->
-   <file id="file8" name_suffix="_D2_Tides" description="tidal harmonics" >
-     <field field_ref="M2x"          name="M2x"      long_name="M2 Elevation harmonic real part"                       />
-     <field field_ref="M2y"          name="M2y"      long_name="M2 Elevation harmonic imaginary part"                  />
-     <field field_ref="M2x_u"        name="M2x_u"    long_name="M2 current barotropic along i-axis harmonic real part "       />
-     <field field_ref="M2y_u"        name="M2y_u"    long_name="M2 current barotropic along i-axis harmonic imaginary part "  />
-     <field field_ref="M2x_v"        name="M2x_v"    long_name="M2 current barotropic along j-axis harmonic real part "       />
-     <field field_ref="M2y_v"        name="M2y_v"    long_name="M2 current barotropic along j-axis harmonic imaginary part "  />
-     ...
-   </file>
- </file_group>
-
----
-
-Create a short queue runscript (Note: PBS -N jobname, PBS -m email)::
-
-  vi runscript_short
-
-  #!/bin/bash
-  #PBS -N SEAsia
-  #PBS -l select=5
-  #PBS -l walltime=00:20:00
-  #PBS -A n01-NOCL
-  # mail alert at (b)eginning, (e)nd and (a)bortion of execution
-  #PBS -m bea
-  #PBS -M jelt@noc.ac.uk
-  #PBS -q short
-
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel
-  module load cray-hdf5-parallel
-
-  export PBS_O_WORKDIR=$(readlink -f $PBS_O_WORKDIR)
-  #  echo $(readlink -f $PBS_O_WORKDIR)
-  # export OMP_NUM_THREADS=1
-
-  cd $PBS_O_WORKDIR
-  #
-    echo " ";
-    OCEANCORES=88
-    XIOSCORES=4
-  ulimit -c unlimited
-  ulimit -s unlimited
-
-  rm -f core
-  aprun -b -n $XIOSCORES -N 4 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
-
-  exit
-
-Change the notification email to your own address::
-
-  sed -i "s/xxx@noc/$USER@noc/g" runscript
-
-Might also want to change the account name. E.g. ``n01-ACCORD``
-
----
-
-Edit ``namelist_cfg`` to make sure it is OK
-
----
-*IT WORKS. IF IT WORKS, ARCHIVE namelist_cfg too**
-
----
-*(17 Nov 17)* build new 75 level hybrid z-s coordinates. Submitted cold start
- 20 min job.
-DID IT WORK? Yes. (Just completed the 1440 steps in 20mins)
-
-*(18 Nov 17)* Add in lots of TPXO harmonics. Run again with 40mins. Completed in 21mins.
-With rn_rdt=60 this is only 1 day of simulation.
-Try increasing the timestep.
-
-rn_rdt = 360 and resubmit. Completes in 20min 30days.
-**But fills with NaNs from NE Boundary**
-
----
-*(23 Jan 18)* rn_rdt = 120. 7200 steps. 20 mins. Ran 1278 steps in 20mins (~42hrs). STABLE.
-
+* Use of FES tides
+* Restartable harmonics
+* Long period tides (though not visible).
 
 Update tides code with Nico's version.
 ++++++++++++++++++++++++++++++++++++++
@@ -523,364 +390,25 @@ so you can only restart from the last time step so make sure you output the full
 
 
 
-Resubmit::
+======================================================
+Generate Open Boundary Conditions
+======================================================
 
-  cd $EXP
-  qsub -q short runscript_short
+Discussion about PyNEMO.
 
+a. Open boundary conditions from CMEMS data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Ran for 20mins. Simulated 45hrs (though I guess it hit the wall limit before
-doing the harmonic analysis)
+b. Open boundary conditions from parent ORCA12 data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+======================================================
+Run Experiments
+======================================================
 
+a. Tide only
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-----
-
-*(This short section was done with the old tides routine)*
-
-No met (missing slp) ``ln_usr=T``. rn_rdt=60s. Output more harmonics (20-30days).
-Run for 30 days::
-
- cd $EXP
- qsub -q short runscript
-
-**IT WORKS!** Hit wall time of 20mins after ~2 hours
-
-Submit a big job on 2k processors to get through the spin up *(Need to do this efficiently)*::
-
-  vi runscript
-  #PBS -N SEAsia
-  #PBS -l select=92
-  #PBS -l walltime=00:20:00
-  …
-    echo " ";
-    OCEANCORES=200
-    XIOSCORES=40
-  …
-  aprun -b -n $XIOSCORES -N 5 ./xios_server.exe : -n $OCEANCORES -N 24 ./opa
-
-
-Ran for 60 hrs before hitting 20 min wall time. (NB 51 levels)
-use python script to plot SSH animation (NB need to put the python script somewhere better!)::
-
-  % python SEAsia_SSH_anim.py
-
-Creates an animation of hours 35 - 60 in SSH.
-
-
----
-
-MPP decomposition for land suppression
-++++++++++++++++++++++++++++++++++++++
-
-`MPP_decomp_lanf_suppression.rst`_
-
-Before doing long runs it is important to optimise MPP decompositoin by invoking
- land supression to save redundant ocean processors.
-Resulting decomposition (with notes for both standard or short queue
- configurations)::
-
-   vi namelist_cfg
-   ...
-   !-----------------------------------------------------------------------
-   &nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
-   !-----------------------------------------------------------------------
-      cn_mpi_send =  'I'      !  mpi send/recieve type   ='S', 'B', or 'I' for standard send,
-                              !  buffer blocking send or immediate non-blocking sends, resp.
-      nn_buffer   =   0       !  size in bytes of exported buffer ('B' case), 0 no exportation
-      ln_nnogather=  .false.  !  activate code to avoid mpi_allgather use at the northfold
-      jpni        =  12    ! standardqueue:12 ! shortqueue:11      !  jpni   number of processors following i (set automatically if < 1)
-      jpnj        =  8     !  jpnj   number of processors following j (set automatically if < 1)
-      jpnij       =  92    ! standardqueue:92 ! shortqueue:88 !  jpnij  number of local domains (set automatically if < 1)
-
-Inspect ``ocean_output`` to find ``jpnij``. In my simulation ``jpni=12, jpnj=8 --> jpnij = 92``
-Update OCEANCORES in runscript (make sure the ``aprun`` statement is as expected too)::
-
-  vi runscript
-  ...
-  OCEANCORES=92
-
-And submit again.
-
-----
-
-2074 timesteps ~ 34 hours with dt=1 min
-
-Not much point using more processors as the tiles are already quite small. Instead
-need more walltime.
-
-With dt=60, 1 day = 1440 steps. Run one day on the short queue to see what is
-happening with SSH etc.
-
-Do I need to a run with constant T, S? **YES**
-
-
-
-Horizontally constant T and S initial condition
-===============================================
-
-Emulate James ORCHESTRA method (first moved usrdef_istate.F90 to usrdef_istate.F90_constTS for safe keeping)::
-
-  cd $CDIR/$CONFIG/MY_SRC
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/usrdef_istate.F90 .
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/lapack.F90 .
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/splines.F90 .
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/types.F90 .
-  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/utils.F90 .
-
-Edit usrdef_istate.F90 to put in profile
-Data from Hamburg WOCE Climatology Live Access Server at (-2N, 95E).
-With constant variable padding below 4000m to make it up to 75 levels::
-
-      zdep(:) = (/     0,    10,    20,    30,    40,    50,   75,    100,   125,   &
-                &    150,   175,   200,   250,   300,   350,  400,    500,   600,   &
-                &    700,   800,   900,  1000,  1100,  1200,  1300,  1400,  1500,   &
-                &   1750,  2000,  2250,  2500,  2750,  3000,  3250,  3500,  3750,   &
-                &   4000,  4100,  4200,  4300,  4400,  4500,  4550,  4600,  4700,   &
-                &   4800,  4900,  5000,  5100,  5200,  5300,  5400,  5500,  5600,   &
-                &   5700,  5800,  5900,  6000,  6100,  6200,  6300,  6400,  6500,   &
-                &   6600,  6700,  6800,  6900,  7000,  7100,  7200,  7300,  7400,   &
-                &   7500,  7600,  7700 /)
-
-      zsal(:) = (/ 34.05, 34.05, 34.10, 34.13, 34.25, 34.42, 34.88, 35.08, 35.13,   &
-                &  35.08, 35.07, 35.06, 35.06, 35.03, 35.01, 34.99, 34.96, 34.97,   &
-                &  34.97, 34.95, 34.92, 34.91, 34.88, 34.87, 34.85, 34.83, 34.82,   &
-                &  34.80, 34.77, 34.76, 34.75, 34.74, 34.73, 34.73, 34.72, 34.72,   &
-                &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
-                &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
-                &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
-                &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
-                &  34.72, 34.72, 34.72 /)
-
-      ztmp(:) = (/ 28.87, 28.87, 28.87, 28.74, 28.33, 28.01, 25.21, 21.99, 18.51,   &
-                &  15.55, 14.39, 13.43, 12.27, 11.48, 11.02, 10.51,  9.58,  8.95,   &
-                &   8.35,  7.78,  7.16,  6.52,  5.88,  5.44,  5.02,  4.57,  4.14,   &
-                &   3.34,  2.64,  2.31,  2.05,  1.86,  1.69,  1.58,  1.41,  1.23,   &
-                &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
-                &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
-                &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
-                &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
-                &   1.15,  1.15,  1.15  /)
-
-I fixed the top two layers to be constant salinity and temperature to avoid possible cabling.
-The raw data had inversions at 10m
-
-NB avoding mistakes: namely a duplicate depth in the input depth funciton --> spline failure
-
-
-
-
-Turn off tidal forcing
-======================
-
-Need to turn off tidal forcing. See ``&nam_tide``::
-
-  ln_tide     = .false.
-  ln_tide_pot = .false.    !  use tidal potential forcing
-
-
-Comment out tidal analysis line ::
-
-  vi ../cpp_SEAsia.fcm
-    bld::tool::fppkeys key_zdfgls        \
-  //REMOVE//                 key_harm_ana       \
-                   key_mpp_mpi       \
-                   key_iomput        \
-                   key_nosignedzero
-
-Will have to recompile.
-
-
-Set boudaries to initial condition
-++++++++++++++++++++++++++++++++++
-
-(nn_dyn2d_dta was 2)::
-
-  !-----------------------------------------------------------------------
-  &nambdy        !  unstructured open boundaries
-  !-----------------------------------------------------------------------
-      ln_bdy         = .false.              !  Use unstructured open boundaries
-      nb_bdy         = 1                    !  number of open boundary sets
-      ln_coords_file = .true.               !  =T : read bdy coordinates from file
-      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
-      ln_mask_file   = .false.              !  =T : read mask from file
-      cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-      cn_dyn2d       = 'flather'               !
-      nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state
-
-
-
-Recompile the code.
-Resubmit with dt=60s and nt = 60 (ie, 1 hr)::
-
-  cd $CDIR
-  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
-
-Move the executable to a special name::
-
-  mv $CONFIG/BLD/bin/nemo.exe $CONFIG/BLD/bin/nemo_notide_TSprofile.exe
-
-Move to experiment dir and link executable file in::
-
-  cd $EXP/../EXP-hpg_err
-  ln -s $CDIR/$CONFIG/BLD/bin/nemo_notide_TSprofile.exe opa
-
-
-
-James spotted that I didn't have lateral diffusion of momentum. Made some changes (following ORCHESTRA namelist_cfg)
-Submitted run (EXP01) to test timestep. rn_rdt=360 ran 1304 in 20mins ==> 5.4 days
-
-There an SSH instability in the NE corner when using::
-
- cn_dyn3d      =  'neumann'
-
-Switch to::
-
- cn_dyn3d      =  'zerograd'
-
-NB Tried masking, using mask_bdy.nc, but this didn't work.
-
-Cold start run::
-
-  !-----------------------------------------------------------------------
-  &namrun        !   parameters of the run
-  !-----------------------------------------------------------------------
-     cn_exp      =    "SEAsia"  !  experience name
-     nn_it000    =  01   !  first time step
-     nn_itend    =  7200 ! 30day=7200   !  last  time step (std 5475)
-     nn_date0    =  20000102   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
-     nn_time0    =       0   !  initial time of day in hhmm
-     nn_leapy    =       1   !  Leap year calendar (1) or not (0)
-     ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
-
-
-Run::
-
-  qsub runscript
-
-
-Yes. That works.
-
-Though the SSS min decreases by 0.017 over 30 days. A bit odd? Perhaps it is
-the non conservative nature of the advective schemes...
-
-NB The effect is coastal. There is no problem around the boundaries.
-*(26 March 2018)*
-
----
-
-
-Performance note::
-
-  With tides turned off. Initial conditions: T(z),S(z) profiles and u=v=w=0.
-
-  Submit for 10 days dt=60s. nt=14400
-  Try 20mins queue. --> 1128 steps.
-
-  Try 30mins with 5day mean output.
-
-  Ran 10days simulation in 2hrs 24mins (rn_rdt=60s, nt=14400, on 92 ocean cores, 120 cpus(total)).
-
-
----
-
-
-
-HPG errors
-++++++++++
-
-Submit a 30 day simulation, from rest, with depth varying spatially homogeneous
-temperature and salinity profiles, with no forcing, boundary conditions off:
-``ln_bdy = F``
-
-
-Edit runscript: 2hrs walltime. It took 1h 50mins
-
-Edit namelist_cfg
-360s, nt=7200 --> 30 days::
-
-  ln_tide     = .false.
-  ln_tide_pot = .false.    !  use tidal potential forcing
-
-cd $EXP/../EXP_hpg_err
-
-Scrape ``umax`` from ``solver.state`` using plot_solver_stat.py
-
-Some along rim currents started but these are small compared to interior currents.
-Restart for another 30 days.
-After 30 days umax is still growing. Restart run and continue::
-
-  mv solver.stat solver.stat_part1
-
-Check progress with::
-
-   hpg_error_plotNEMO.py
-   plot_solver_stat.py
-
-Edit namelist_cfg for restarting::
-
-  vi namelist_cfg
-
-  !-----------------------------------------------------------------------
-  &namrun        !   parameters of the run
-  !-----------------------------------------------------------------------
-     cn_exp      =    "SEAsia"  !  experience name
-     nn_it000    =  7201   !  first time step
-     nn_itend    =  14400 ! 30day=7200   !  last  time step (std 5475)
-     nn_date0    =  20000102   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
-     nn_time0    =       0   !  initial time of day in hhmm
-     nn_leapy    =       1   !  Leap year calendar (1) or not (0)
-     ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
-        nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
-        nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
-        cn_ocerst_in    = "SEAsia_00007200_restart"   !  suffix of ocean restart name (input)
-
-
-Resubmit::
-
-  qsub runscript
-
-Ran in 1hr 46
-
-Joing the solver.stat files together::
-
-cp solver.stat solver.stat_part2
-cp solver.stat_part1 solver.stat
-cat solver.stat_part2 >> solver.stat
-
-module load anaconda
-python plot_solver_stat.py
-
-
-..note::
-
-  In the end I didn't do the restart for the last run I did.
-
-
-
-Internal tide with idealised stratification
-+++++++++++++++++++++++++++++++++++++++++++
-Try with tides turned on.
-(Recompile a tide and no tide version. Save in $CONFIG/BLD/bin as nemo_tide.exe
-and nemo_notide.exe, then link as appropriate)::
-
-  cd EXP00
-  ls -s /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/BLD/bin/nemo_tide.exe opa
-
-  <    ln_tide     = .true.
-  <    ln_tide_pot = .true.    !  use tidal potential forcing
-  ...
-  <     nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
-
-  qsub -q short runscript
-
-
----
-
-
-
-Tide only simulation
-++++++++++++++++++++
 
 directory ``EXP_tideonly``
 
@@ -1050,8 +578,254 @@ Ran with minor change to statistcs.
 
 
 
-Tide with idealised stratification and rivers
-+++++++++++++++++++++++++++++++++++++++++++++
+b. No tidal forcing
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Need to turn off tidal forcing. See ``&nam_tide``::
+
+  ln_tide     = .false.
+  ln_tide_pot = .false.    !  use tidal potential forcing
+
+
+Comment out tidal analysis line ::
+
+  vi ../cpp_SEAsia.fcm
+    bld::tool::fppkeys key_zdfgls        \
+  //REMOVE//                 key_harm_ana       \
+                   key_mpp_mpi       \
+                   key_iomput        \
+                   key_nosignedzero
+
+Will have to recompile.
+
+
+c. HPG test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Submit a 30 day simulation, from rest, with depth varying spatially homogeneous
+temperature and salinity profiles, with no forcing, boundary conditions off:
+``ln_bdy = F``
+
+
+Edit runscript: 2hrs walltime. It took 1h 50mins
+
+Edit namelist_cfg
+360s, nt=7200 --> 30 days::
+
+  ln_tide     = .false.
+  ln_tide_pot = .false.    !  use tidal potential forcing
+
+cd $EXP/../EXP_hpg_err
+
+Scrape ``umax`` from ``solver.state`` using plot_solver_stat.py
+
+Some along rim currents started but these are small compared to interior currents.
+Restart for another 30 days.
+After 30 days umax is still growing. Restart run and continue::
+
+  mv solver.stat solver.stat_part1
+
+Check progress with::
+
+   hpg_error_plotNEMO.py
+   plot_solver_stat.py
+
+Edit namelist_cfg for restarting::
+
+  vi namelist_cfg
+
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     cn_exp      =    "SEAsia"  !  experience name
+     nn_it000    =  7201   !  first time step
+     nn_itend    =  14400 ! 30day=7200   !  last  time step (std 5475)
+     nn_date0    =  20000102   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+     nn_time0    =       0   !  initial time of day in hhmm
+     nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+     ln_rstart   = .true.   !  start from rest (F) or from a restart file (T)
+        nn_euler    =    1            !  = 0 : start with forward time step if ln_rstart=T
+        nn_rstctl   =    2            !  restart control ==> activated only if ln_rstart=T
+        cn_ocerst_in    = "SEAsia_00007200_restart"   !  suffix of ocean restart name (input)
+
+
+Resubmit::
+
+  qsub runscript
+
+Ran in 1hr 46
+
+Joing the solver.stat files together::
+
+cp solver.stat solver.stat_part2
+cp solver.stat_part1 solver.stat
+cat solver.stat_part2 >> solver.stat
+
+module load anaconda
+python plot_solver_stat.py
+
+
+..note::
+
+  In the end I didn't do the restart for the last run I did.
+
+
+
+d. Horizontally constant T and S initial condition
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Emulate James ORCHESTRA method (first moved usrdef_istate.F90 to usrdef_istate.F90_constTS for safe keeping)::
+
+  cd $CDIR/$CONFIG/MY_SRC
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/usrdef_istate.F90 .
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/lapack.F90 .
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/splines.F90 .
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/types.F90 .
+  cp /work/n01/n01/jdha/2017/nemo/trunk/NEMOGCM/CONFIG/ORCHESTRA/MY_SRC/utils.F90 .
+
+Edit usrdef_istate.F90 to put in profile
+Data from Hamburg WOCE Climatology Live Access Server at (-2N, 95E).
+With constant variable padding below 4000m to make it up to 75 levels::
+
+      zdep(:) = (/     0,    10,    20,    30,    40,    50,   75,    100,   125,   &
+                &    150,   175,   200,   250,   300,   350,  400,    500,   600,   &
+                &    700,   800,   900,  1000,  1100,  1200,  1300,  1400,  1500,   &
+                &   1750,  2000,  2250,  2500,  2750,  3000,  3250,  3500,  3750,   &
+                &   4000,  4100,  4200,  4300,  4400,  4500,  4550,  4600,  4700,   &
+                &   4800,  4900,  5000,  5100,  5200,  5300,  5400,  5500,  5600,   &
+                &   5700,  5800,  5900,  6000,  6100,  6200,  6300,  6400,  6500,   &
+                &   6600,  6700,  6800,  6900,  7000,  7100,  7200,  7300,  7400,   &
+                &   7500,  7600,  7700 /)
+
+      zsal(:) = (/ 34.05, 34.05, 34.10, 34.13, 34.25, 34.42, 34.88, 35.08, 35.13,   &
+                &  35.08, 35.07, 35.06, 35.06, 35.03, 35.01, 34.99, 34.96, 34.97,   &
+                &  34.97, 34.95, 34.92, 34.91, 34.88, 34.87, 34.85, 34.83, 34.82,   &
+                &  34.80, 34.77, 34.76, 34.75, 34.74, 34.73, 34.73, 34.72, 34.72,   &
+                &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
+                &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
+                &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
+                &  34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72, 34.72,   &
+                &  34.72, 34.72, 34.72 /)
+
+      ztmp(:) = (/ 28.87, 28.87, 28.87, 28.74, 28.33, 28.01, 25.21, 21.99, 18.51,   &
+                &  15.55, 14.39, 13.43, 12.27, 11.48, 11.02, 10.51,  9.58,  8.95,   &
+                &   8.35,  7.78,  7.16,  6.52,  5.88,  5.44,  5.02,  4.57,  4.14,   &
+                &   3.34,  2.64,  2.31,  2.05,  1.86,  1.69,  1.58,  1.41,  1.23,   &
+                &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
+                &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
+                &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
+                &   1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,  1.15,   &
+                &   1.15,  1.15,  1.15  /)
+
+I fixed the top two layers to be constant salinity and temperature to avoid possible cabling.
+The raw data had inversions at 10m
+
+NB avoding mistakes: namely a duplicate depth in the input depth funciton --> spline failure
+
+
+e. Set boudaries to initial condition
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+(nn_dyn2d_dta was 2)::
+
+  !-----------------------------------------------------------------------
+  &nambdy        !  unstructured open boundaries
+  !-----------------------------------------------------------------------
+      ln_bdy         = .false.              !  Use unstructured open boundaries
+      nb_bdy         = 1                    !  number of open boundary sets
+      ln_coords_file = .true.               !  =T : read bdy coordinates from file
+      cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+      ln_mask_file   = .false.              !  =T : read mask from file
+      cn_mask_file   = 'bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
+      cn_dyn2d       = 'flather'               !
+      nn_dyn2d_dta   =  0                   !  = 0, bdy data are equal to the initial state
+
+
+
+Recompile the code.
+Resubmit with dt=60s and nt = 60 (ie, 1 hr)::
+
+  cd $CDIR
+  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+Move the executable to a special name::
+
+  mv $CONFIG/BLD/bin/nemo.exe $CONFIG/BLD/bin/nemo_notide_TSprofile.exe
+
+Move to experiment dir and link executable file in::
+
+  cd $EXP/../EXP-hpg_err
+  ln -s $CDIR/$CONFIG/BLD/bin/nemo_notide_TSprofile.exe opa
+
+
+
+James spotted that I didn't have lateral diffusion of momentum. Made some changes (following ORCHESTRA namelist_cfg)
+Submitted run (EXP01) to test timestep. rn_rdt=360 ran 1304 in 20mins ==> 5.4 days
+
+There an SSH instability in the NE corner when using::
+
+ cn_dyn3d      =  'neumann'
+
+Switch to::
+
+ cn_dyn3d      =  'zerograd'
+
+NB Tried masking, using mask_bdy.nc, but this didn't work.
+
+Cold start run::
+
+  !-----------------------------------------------------------------------
+  &namrun        !   parameters of the run
+  !-----------------------------------------------------------------------
+     cn_exp      =    "SEAsia"  !  experience name
+     nn_it000    =  01   !  first time step
+     nn_itend    =  7200 ! 30day=7200   !  last  time step (std 5475)
+     nn_date0    =  20000102   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+     nn_time0    =       0   !  initial time of day in hhmm
+     nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+     ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
+
+
+Run::
+
+  qsub runscript
+
+
+Yes. That works.
+
+Though the SSS min decreases by 0.017 over 30 days. A bit odd? Perhaps it is
+the non conservative nature of the advective schemes...
+
+NB The effect is coastal. There is no problem around the boundaries.
+
+
+
+
+
+
+f. Internal tide with idealised stratification
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Try with tides turned on.
+(Recompile a tide and no tide version. Save in $CONFIG/BLD/bin as nemo_tide.exe
+and nemo_notide.exe, then link as appropriate)::
+
+  cd EXP00
+  ls -s /work/n01/n01/jelt/SEAsia/trunk_NEMOGCM_r8395/CONFIG/SEAsia/BLD/bin/nemo_tide.exe opa
+
+  <    ln_tide     = .true.
+  <    ln_tide_pot = .true.    !  use tidal potential forcing
+  ...
+  <     nn_dyn2d_dta   =  2                   !  = 0, bdy data are equal to the initial state
+
+  qsub -q short runscript
+
+
+
+
+
+g. Tide with idealised stratification and rivers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 directory ``EXP_tide_TSprofile_river``
 
@@ -1194,6 +968,23 @@ Resubmit::
 Run for 30 mins. nt = 960, dt =360, 4 days. Completed in  15 mins 06s.
 
 CHECK OUTPUT - This works, but 4 days is not very exciting.
+
+
+h. Full forcing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+i. Physics and biogeochemisty
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+
+
+======================================================
+OLD STUFF
+======================================================
+
+
+
 
 
 
