@@ -52,21 +52,27 @@ abstracted as _modules_ when the process is common to more than one configuratio
 .. toctree::
    :maxdepth: 2
 
-   SCRIPTS/main_setup
+   link_scripts_main_setup.rst
 
-   SCRIPTS/make_paths
+   link_scripts_make_paths.rst
 
-   SCRIPTS/make_directories
+   link_scripts_make_directories
 
-   SCRIPTS/make_xios
+   link_scripts_make_xios
 
-   SCRIPTS/make_nemo
+   link_scripts_make_nemo
 
-   SCRIPTS/make_nemo_fabm_ersem
+   link_scripts_make_nemo_fabm_ersem
 
-   SCRIPTS/make_tools
+   link_scripts_make_tools
 
-   SCRIPTS/make_coordinates
+   link_scripts_make_coordinates_from_parent
+
+   link_scripts_make_bathymetry_from_parent
+
+   link_scripts_make_bathymetry_from_gebco
+
+   link_scripts_make_domain_cfg
 
 
 ******************
@@ -79,19 +85,11 @@ abstracted _modules_ when the process is common to more than one configuration.
 .. toctree::
  :maxdepth: 1
 
- build_opa
-
- build_XIOS2
-
- build_and_create_coordinates
-
  build_siren_tools
 
  build_domain_cfg_file
 
  install_nrct
-
- anatomy_namelist_bdy
 
  generate_initial_conditions
 

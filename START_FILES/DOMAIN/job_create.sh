@@ -6,7 +6,7 @@
 #PBS -A n01-ACCORD
 # mail alert at (b)eginning, (e)nd and (a)bortion of execution
 #PBS -m bea
-#PBS -M annkat@noc.ac.uk
+##PBS -M $USER_EMAIL
 #! -----------------------------------------------------------------------------
 
 # Change to the directory that the job was submitted from
@@ -26,4 +26,3 @@ echo `date` : Launch Job
 aprun -n 1 -N 1 ./make_domain_cfg.exe
 
 exit
-

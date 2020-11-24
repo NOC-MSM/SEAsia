@@ -122,8 +122,8 @@ Here we show:
   * how to generate a new regional configuration from GEBCO (global) bathymetry.
 
 
-a. Generate new coordinates file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+a. Generate coordinates file from parent configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Generate a ``coordinates.nc`` file from a parent NEMO grid at some resolution.
 Here we use the tool ``agrif_create_coordinates.exe``, previously built, which
@@ -138,15 +138,19 @@ within the domain), isolated sea mounts or bathymetry features that might be
 present in both parent and child bathymetries. Thin sections of wetpoints (3 or
 fewer boxes wide) that are trapped between the boundary and interior land points.
 
-For the SE Asia domain we select
+For the SE Asia domain we select a region spanning from the middle of the Indian
+subcontinent in the west to West Papua in the east. The region spans from
+Taiwan in the north to Australia in the south. Intersections with the land are
+chosen to be near-orthogonal. (75E to 135E and -20N to +25N).
 
 .. literalinclude:: ../SCRIPTS/make_coordinates_from_parent.sh
 
-Test
+Editting the ``START_FILES/DOMAIN/namelist.input`` for the cutting coordinates
+and setting the resolution scale factor to 1 to preserve the parent resolution:
 
 .. literalinclude:: ../START_FILES/DOMAIN/namelist.input
-
-Test 2
+  :start-at: imin = 50
+  :end-at: rhot = 1
 
 
 This is executed by ``SCRIPTS/main_setup.sh``:
@@ -157,188 +161,101 @@ This is executed by ``SCRIPTS/main_setup.sh``:
 
 
 
+bi. Generate bathymetry file from GEBCO bathymetry
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-b. Generate bathymetry file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Download some `GEBCO <https://www.gebco.net/data_and_products/gridded_bathymetry_data/>`_
+bathymetry data. Here for the region (75E,-21N,134E,25N). Save locally. the
+script ``SCRIPTS/make_bathymetry_from_gebco.sh`` assumes the downloaded file is
+called ``GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc``
+
+
+For a domain as large as SE Asia, the 30-minute GEBCO
+data might be too large to process and additionally needs some spatial filtering.
+BODC also host a 1-minute data set (2008) which is easier to handle.
+
+The workflow with GEBCO data involves pre-processing the raw bathymetry data to 1) flatten
+land elevations, and 2) make depths positive. The SCRIP tools are used to
+interpolate the bathymetry onto the target coordinates. The SCRIP tools use a
+namelist file (``namelist_reshape_bilin_gebco``) which might need to be editted (if your application is a modification
+from this example). Specifically it is assumed that the name of pre-processes
+GEBCO ``input_file``, the
+coordinates file, and the latitude and lonigitude variable names are correctly
+specified in ``namelist_reshape_bilin_gebco`` as:
+
+.. literalinclude:: ../START_FILES/DOMAIN/namelist_reshape_bilin_gebco
+  :start-at: &grid_inputs
+  :end-at: nemo_lat =
+
+and are in the ``$DOMAIN`` directory. It is also that the elevation variabe is
+appropriately defined so that it can be interpolated:
+
+.. literalinclude:: ../START_FILES/DOMAIN/namelist_reshape_bilin_gebco
+  :start-at: &interp_inputs
+  :end-at: input_name =
+
+
+.. literalinclude:: ../SCRIPTS/make_bathymetry_from_gebco.sh
+
+
+bii. Generate bathymetry file from parent configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If alternatively the bathymetry is created from a parent model then the pre-processing
+steps are not required.
+
+.. literalinclude:: ../SCRIPTS/make_bathymetry_from_parent.sh
+
+
+This is executed by ``SCRIPTS/main_setup.sh``:
+
+.. literalinclude:: ../SCRIPTS/main_setup.sh
+  :start-at: Creating bathymetry
+  :end-at: make_bathymetry
+
+
+
+
 
 c. Generate a domain configuration file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-========
-GOT HERE
-========
-
-
----
-
-
-
-
-
-Build and execute agrif version of create_coordinates.exe.
-See `build_and_create_coordinates.rst`_
-
-
-
-
-2. Generate bathymetry file
-+++++++++++++++++++++++++++
-
-.. note:
-  This was first done on livljobs4. Here I do it on ARCHER.
-
-Take GEBCO bathymetry. For a domain as large as SE Asia, the 30-minute GEBCO
-data is too large to process and needs some spatial filtering. BODC also host a
- 1-minute data set (2008) which should work without pre-processing but is not
-  updated.
-
-.. warning:
-
-  A 30-second GEBCO cutout is too large to process for the SE Asia domain
-  (7081 x 5521 pts). The older 1-minute data is fine.
-
-Download some GEBCO 2014 and 2008 data (75E,-21N,134E,25N) and copy to $INPUTS::
-
- scp GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc $USER@login.archer.ac.uk:/work/n01/n01/$USER/SEAsia/INPUTS/.
-
-.. note: Copying to livljobs4
-
-  livmaf$
-  scp ~/Downloads/RN-9621_1506544326915/GEBCO_2014_2D_75.0_-21.0_134.0_25.0.nc jelt@livljobs4.nerc-liv.ac.uk:$INPUTS/GEBCO_2014_2D5.0_-21.0_134.0_25.0.nc
-  scp ~/Downloads/RN-6060_1506606001516/GRIDONE_2D_74.0_-21.0_134.0_25.0.nc jelt@livljobs4.nerc-liv.ac.uk:$INPUTS/GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc
-
-**In the following I use the 2008 data**
-Copy namelist for reshaping GEBCO data::
-
-  cp $START_FILES/namelist_reshape_bilin_gebco $INPUTS/.
-
-Edit namelist to point to correct input file. Edit lat and lon variable names to
- make sure they match the nc file content (used e.g.
-``ncdump -h GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc`` to get input
-variable names)::
-
-  vi $INPUTS/namelist_reshape_bilin_gebco
-  ...
-  &grid_inputs
-    input_file = 'gebco_in.nc'
-    nemo_file = 'coordinates.nc'
-    ...
-    input_lon = 'lon'
-    input_lat = 'lat'
-    nemo_lon = 'glamt'
-    nemo_lat = 'gphit'
-    ...
-
-    &interp_inputs
-    input_file = "gebco_in.nc"
-    ...
-    input_name = "elevation"
-
-Do some things to 1) flatten out land elevations, 2) make depths positive.
-Have to swap around with the modules to get nco working *(James
-noted a problem with the default nco module)*::
-
-  cd $INPUTS
-
-  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  module load cray-netcdf cray-hdf5
-
-  module load nco/4.5.0
-  ncap2 -s 'where(elevation > 0) elevation=0' GRIDONE_2008_2D_74.0_-21.0_134.0_25.0.nc tmp.nc
-  ncflint --fix_rec_crd -w -1.0,0.0 tmp.nc tmp.nc gebco_in.nc
-  rm tmp.nc
-
-Restore the original parallel modules::
-
-  module unload nco cray-netcdf cray-hdf5
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
-
-Execute first scrip thing::
-
-  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
-
-Output files::
-
-  remap_nemo_grid_gebco.nc
-  remap_data_grid_gebco.nc
-
-Execute second scip thing::
-
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
-
-Output files::
-
-  data_nemo_bilin_gebco.nc
-
-Execute third scip thing::
-
-  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
-
-Output files::
-
-  bathy_meter.nc
-
-.. note: ferret
-
- use bathy_meter.nc
- shade log(BATHYMETRY), nav_lon, nav_lat; go land
-
-2.5 Generate River forcing
-++++++++++++++++++++++++++
-
-`Matlab script to generate river forcing <Generate_river_forcing.rst>`_
-
-Link the river forcing output into ``$INPUTS`` e.g.::
-
-  scp river_test.nc $USER@login.archer.ac.uk:$INPUTS/$CONFIG_rivers.nc
-
-
-
-3. Generate a domain configuration file
 =======================================
 
-The general idea is that you have to copy the ``namelist_cfg`` file into the ``DOMAINcfg``
-directory along with all the inputs files that would have previously been needed
-get v3.6 running. The reason being that all the non-time stepping stuff, like
-grid generating, has been abstracted from the core OPA code and is now done as
-a pre-processing step, and output into an important file ``domain_cfg.nc``.
+Having created the horizontal coordinates, grid spacings and the bathymetry for
+that grid, this step creates the vertical grid and aggregates all the grid
+configuration variables into a single domain configuration file called ``domain_cfg.nc``.
 
-Copy essential files into DOMAINcfg directory::
+In previous version of NEMO the vertical grid discretisation was computed at
+model run time. For code management purposes it is now abstracted as a pre-processing
+step, potentially making the choice of grid more flexible.
 
-    ln -s $INPUTS/coordinates.nc $TDIR/DOMAINcfg/.
-    ln -s $INPUTS/bathy_meter.nc $TDIR/DOMAINcfg/.
+As with other steps in the configuration build process, this is also managed
+by running some code with settings that are specified in a namelist file.
 
-Edit the template ``namelist_cfg`` with only the essenetial domain building stuff.
-Get the size of the new domain from ``ncdump -h bathy_meter.nc``.
+To date we have namelists for 3 types of vertical coordinate setups that we have
+experimented with in various configurations. These are the traditional `stretched
+sigma <../START_FILES/DOMAIN/s-sig_DOMAINcfg_namelist_cfg>`_ and
+`z-partial step <../START_FILES/DOMAIN/z-ps_DOMAINcfg_namelist_cfg>`_, and also
+a `hybrid s-z coordinate <../START_FILES/DOMAIN/hyb-z-s_DOMAINcfg_namelist_cfg>`_ system that we will
+proceed with in this worked example configuration. Examples of the other namelists
+are given in the ``START_FILES/DOMAIN`` directory of the NEMO-RELOC repository.
 
-Follow recipe of hybrid z-s coordinates in `build_domain_cfg_file.rst`_
+DISCUSSION ABOUT HYBRID Z-SIGMA COORDINATES.
+Specific namelist settings include:
 
-Copy domain_cfg.nc to the EXP directory (also copy it to the INPUTS directory, which stores
- the bits and bobs for a rebuild)::
+.. literalinclude:: ../START_FILES/DOMAIN/hyb-z-s_DOMAINcfg_namelist_cfg
+  :start-at: &namzgr
+  :end-at: ln_s_melange
 
-   rsync -utv $TDIR/DOMAINcfg/domain_cfg.nc $EXP/.
-   rsync -utv $TDIR/DOMAINcfg/domain_cfg.nc $INPUTS/.
+The domain configuration file is generated with:
 
-.. mote :  should check the difference between the homemade sco version the AMM60
-  verison did:      ``diff namelist_cfg_sco_WIP namelist_cfg_AMM60``
+.. literalinclude:: ../SCRIPTS/make_domain_cfg.sh
 
-.. note : alternativly should check the difference between the AMM60 and local
-  output.namelist.dyn: ``diff output.namelist.dyn /work/n01/n01/jelt/NEMO/NEMOGCM/CONFIG/AMM60smago/EXP_NSea/output.namelist.dyn``
-  I notice that rmax is different.
 
-.. note : There are a lot of unknown parameters in these settings. And I don't
-  want to find i made some naive error in six months. Looking at the domain there
-  are some serious trenches near land. S-coords will not work well there. Conversely,
-  ODA is all abount the near-coastal environment. There is a strong case for using
-  hybrid s-z coordinates a la NNA...
+This is executed by ``SCRIPTS/main_setup.sh``:
 
-  James noted that high resolution neat the bed caused significant difficulty in
-  deep water stability. Whereas you want it on the shelf. Hence regular stretched
-  s-coords wont really work.
-
-  PyNEMO outputs boundary conditions on the parent z-grid. This can be interpolated
-  at run-time to the child grid.
-
+.. literalinclude:: ../SCRIPTS/main_setup.sh
+  :start-at: Creating domain
+  :end-at: make_domain
 
 
 4. Generate initial conditions
@@ -361,6 +278,17 @@ This will generates files typically called ``initcd_votemper.nc``
 and ``initcd_vosaline.nc``, and corresponding mask and depth variables files
  ``initcd_mask.nc`` and ``initcd_depth.nc``.
 
+
+
+
+2.5 Generate River forcing
+++++++++++++++++++++++++++
+
+`Matlab script to generate river forcing <Generate_river_forcing.rst>`_
+
+Link the river forcing output into ``$INPUTS`` e.g.::
+
+ scp river_test.nc $USER@login.archer.ac.uk:$INPUTS/$CONFIG_rivers.nc
 
 
 
