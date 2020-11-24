@@ -215,10 +215,8 @@ This is executed by ``SCRIPTS/main_setup.sh``:
 
 
 
-
-
 c. Generate a domain configuration file
-=======================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Having created the horizontal coordinates, grid spacings and the bathymetry for
 that grid, this step creates the vertical grid and aggregates all the grid
@@ -257,10 +255,12 @@ This is executed by ``SCRIPTS/main_setup.sh``:
   :start-at: Creating domain
   :end-at: make_domain
 
+This creates the desired ``domain_cfg.nc`` files which contains all the vertical and
+horizontal grid information and spacings.
 
-4. Generate initial conditions
 ==============================
-
+Generate initial conditions
+==============================
 
 For a new configuration you probably want to start with idealised, or homogenous
 initial conditions. This is done with user defined initial conditions ``ln_usr=T``
@@ -280,9 +280,32 @@ and ``initcd_vosaline.nc``, and corresponding mask and depth variables files
 
 
 
+======================================================
+Atmospheric Forcing Data
+======================================================
 
-2.5 Generate River forcing
-++++++++++++++++++++++++++
+If ERA5 forcing data is used, these must be first obtained and pre-processed to
+generate a land-sea mask
+
+.. literalinclude:: ../SCRIPTS/prep_ERA5_forcing.sh
+
+After pre-processing weights files must be generated to map the variables to the
+target grid. This workflow is the same for pre-processed ERA5 data or for the
+DFS atmospheric data that forced the global parent model.
+
+.. literalinclude:: ../SCRIPTS/make_ERA5_weights.sh
+
+In this demonstration we use the DFS forcing, which forced the parent global model.
+
+** I NEED TO MAKE SURE THE REPO NAMELISTS ARE FOR DFS AND NOT ERA5 OR CMEMS DATA **
+
+
+======================================================
+Generate Other Forcing Data
+======================================================
+
+a. Generate river forcing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Matlab script to generate river forcing <Generate_river_forcing.rst>`_
 
@@ -290,531 +313,50 @@ Link the river forcing output into ``$INPUTS`` e.g.::
 
  scp river_test.nc $USER@login.archer.ac.uk:$INPUTS/$CONFIG_rivers.nc
 
+Old method: run GCOMS ``runoff_interactive_iterative.m`` to generate a
+``rivers_test.nc`` file for freshwater forcing.
 
 
-5. Generate weights for atm forcing
-+++++++++++++++++++++++++++++++++++
+b. ERSEM boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Initially use zero atm forcing. Specified in usr defined functions in MY_SRC.
+To be written
 
-Second time around add in met forcing.
 
-Generate cut down drowned precip file (note that the nco tools don't like the
-parallel modules). **HEALTH WARNING** *Cut out files with only one index in that lat direction broke NEMO*
+======================================================
+Generate Open Boundary Conditions
+======================================================
 
-**NOTE THAT I'VE LABELLED THE CUTDOWN FILES AS y1979 WHEN THEY ARE 2000. THIS IS TO GET THINGS MOVING AS BCS ARE 1979**::
+Discussion about PyNEMO.
 
-  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  module load cray-netcdf cray-hdf5
-  module load nco/4.5.0
-  ncks -d lon,70.,140. -d lat,-21.,25. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_precip_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_precip_DFS5.1.1_y1979.nc
-  ncks -d lon0,70.,140. -d lat0,-21.,25. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_u10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_u10_DFS5.1.1_y1979.nc
-  ncks -d lon0,70.,140. -d lat0,-21.,25. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_v10_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_v10_DFS5.1.1_y1979.nc
-  ncks -d lon0,70.,140. -d lat0,-21.,25. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_radsw_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_radsw_DFS5.1.1_y1979.nc
-  ncks -d lon0,70.,140. -d lat0,-21.,25. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_radlw_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_radlw_DFS5.1.1_y1979.nc
-  ncks -d lon0,70.,140. -d lat0,-21.,25. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_t2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_t2_DFS5.1.1_y1979.nc
-  ncks -d lon0,70.,140. -d lat0,-21.,25. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_q2_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_q2_DFS5.1.1_y1979.nc
-  ncks -d lon0,70.,140. -d lat0,-21.,25. /work/n01/n01/acc/ORCA0083/NEMOGCM/CONFIG/R12_ORCA/EXP00/FORCING/drowned_snow_DFS5.1.1_y2000.nc $WDIR/INPUTS/cutdown_drowned_snow_DFS5.1.1_y1979.nc
+a. Open boundary conditions from CMEMS data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  module unload nco/4.5.0
-  module unload cray-netcdf cray-hdf5
-  module load cray-netcdf-hdf5parallel cray-hdf5-parallel
+b. Open boundary conditions from parent ORCA12 data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Obtain namelist files and data file::
+======================================================
+Run Experiments
+======================================================
 
-  cp $START_FILES/namelist_reshape_bilin_atmos $INPUTS/.
-  cp $START_FILES/namelist_reshape_bicubic_atmos $INPUTS/.
+a. Tide only
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Edit namelist to reflect source filenames (just a year change)::
+c. HPG test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  vi $WDIR/INPUTS/namelist_reshape_bilin_atmos
-  ...
-  &grid_inputs
-      input_file = 'cutdown_drowned_precip_DFS5.1.1_y1979.nc'
+d. Full forcing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+e. Physics and biogeochemisty
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  vi $WDIR/INPUTS/namelist_reshape_bicubic_atmos
-  ...
-  &grid_inputs
-    input_file = 'cutdown_drowned_precip_DFS5.1.1_y1979.nc'
 
 
-Setup weights files for the atmospheric forcing. Use the pre-compiled tools::
 
-  export OLD_TDIR=$WORK/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-
-Setup weights files for the atmospheric forcing::
-
-  cd $INPUTS
-  $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
-
-Generate  remap files ``remap_nemo_grid_atmos.nc`` and ``remap_data_grid_atmos.nc``. Then::
-
-  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
-
-Generates ``data_nemo_bilin_atmos.nc``. Then::
-
-  $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bilin_atmos
-
-Generates ``weights_bilinear_atmos.nc``. Then::
-
-  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bicubic_atmos
-
-Generates ``data_nemo_bicubic_atmos.nc``. Then::
-
-  $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
-
-Generates ``weights_bicubic_atmos.nc``.
-
-
-
-*(10 May 2019)*
-5. Generate weights for atm forcing (without cutting the source files down)
-+++++++++++++++++++++++++++++++++++
-
-Initially use zero atm forcing. Specified in usr defined functions in MY_SRC.
-
-Second time around add in met forcing. Originally I tried cutting the forcing
-files down from the orginals used to force the global model, but this makes no
-sense if I can just change the weights files instead.
-
-
-Obtain namelist files and data file::
-
-  cp $START_FILES/namelist_reshape_bilin_atmos $INPUTS/.
-  cp $START_FILES/namelist_reshape_bicubic_atmos $INPUTS/.
-
-Edit namelist to reflect source filenames (just a year change)::
-
-  vi $WDIR/INPUTS/namelist_reshape_bilin_atmos
-  ...
-  &grid_inputs
-    input_file = '/work/n01/n01/acc/DFS/DFS5.2/1960/drowned_precip_DFS5.2_y1960.nc'
-
-  vi $WDIR/INPUTS/namelist_reshape_bicubic_atmos
-  ...
-  &grid_inputs
-  input_file = '/work/n01/n01/acc/DFS/DFS5.2/1960/drowned_precip_DFS5.2_y1960.nc'
-
-
-Setup weights files for the atmospheric forcing. Use the pre-compiled tools::
-
-  export OLD_TDIR=$WORK/jelt/lighthousereef/dev_r4621_NOC4_BDY_VERT_INTERP/NEMOGCM/TOOLS
-
-Setup weights files for the atmospheric forcing::
-
-  cd $INPUTS
-  $OLD_TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
-
-Generate  remap files ``remap_nemo_grid_atmos.nc`` and ``remap_data_grid_atmos.nc``. Then::
-
-  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_atmos
-
-Generates ``data_nemo_bilin_atmos.nc``. Then::
-
-  $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bilin_atmos
-
-Generates ``weights_bilinear_atmos.nc``. Then::
-
-  $OLD_TDIR/WEIGHTS/scrip.exe namelist_reshape_bicubic_atmos
-
-Generates ``data_nemo_bicubic_atmos.nc``. Then::
-
-  $OLD_TDIR/WEIGHTS/scripshape.exe namelist_reshape_bicubic_atmos
-
-Generates ``weights_bicubic_atmos.nc``.
-
-
-
-*(27 Apr 2018)*
-If all the files are ready to go jump straight to `7. Generate boundary conditions with PyNEMO: Run PyNEMO`_
-
-Statement about external forcing
-================================
-
-Uses ORCA 1/12 via a thredds server.
-I have the mesh and mask files ``mask_src.nc  mesh_hgr_src.nc  mesh_zgr_src.nc``
- stored locally (from the lighthouse reef experiment).
-
- Copy necessary files into INPUTS::
-
-   cp $START_FILES/mask_src.nc     $INPUTS/.
-   cp $START_FILES/mesh_hgr_src.nc $INPUTS/.
-   cp $START_FILES/mesh_zgr_src.nc $INPUTS/.
-
-   ls -lh $INPUTS/bathy_meter.nc
-   ls -lh $INPUTS/coordinates.nc
-   ls -lh $INPUTS/domain_cfg.nc
-
-Need to generate 3 more files: A ``thredds_namelist.bdy`` which drives PyNEMO and which
-has two input files: ``thredds_inputs_src.ncml`` which points to the data source and
-``inputs_dst.ncml`` which remaps some variable names in the destination files.
-
-6. Generate boundary conditions with NRCT/PyNEMO: Create netcdf abstraction wrapper
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-First install PyNEMO `install_nrct`_ if not already done so.
-
-
-6a. Generate ncml file that points to the external data
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-This can be done with the automatic generator (*pynemo_ncml_generator*) or manually
-
-Here the object is to generate a ncml file that is read in by PyNEMO as the ``sn_src_dir``
-(in the ``namelist.bdy`` file)
-
-.. note: If using the generator, fill in the Tracer and Dynamics for T,S,U,V,Z
- tabs: using T,T & U,V,T in the reg expressions e.g. .*T\.nc$. To generate an
-  e.g. ``inputs_src.ncml`` file click  **generate**. Defining the filename seems
-   to work better with the file selector rather than direct typing.
-
-
-Note need to set the time variables and new ``sn_src_dir`` in namelist.bdy.
- (Time variables correspond to simulation window and the time_origin for the time
-axis of these data). Actually upated the following with all the Nov 1979 files::
-
-  cd $INPUTS
-  vi thredds_inputs_src.ncml
-
-  <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
-  <ns0:aggregation type="union">
-    <ns0:netcdf>
-      <ns0:aggregation dimName="time_counter" name="temperature" type="joinExisting">
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791206d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791201d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791126d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791121d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791116d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791111d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791106d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791101d05T.nc" />
-      </ns0:aggregation>
-    </ns0:netcdf>
-    <ns0:netcdf>
-      <ns0:aggregation dimName="time_counter" name="salinity" type="joinExisting">
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791206d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791201d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791126d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791121d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791116d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791111d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791106d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791101d05T.nc" />
-      </ns0:aggregation>
-    </ns0:netcdf>
-    <ns0:netcdf>
-      <ns0:aggregation dimName="time_counter" name="zonal_velocity" type="joinExisting">
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791206d05U.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791201d05U.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791126d05U.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791121d05U.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791116d05U.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791111d05U.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791106d05U.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791101d05U.nc" />
-      </ns0:aggregation>
-    </ns0:netcdf>
-    <ns0:netcdf>
-      <ns0:aggregation dimName="time_counter" name="meridian_velocity" type="joinExisting">
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791206d05V.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791201d05V.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791126d05V.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791121d05V.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791116d05V.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791111d05V.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791106d05V.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791101d05V.nc" />
-      </ns0:aggregation>
-    </ns0:netcdf>
-    <ns0:netcdf>
-      <ns0:aggregation dimName="time_counter" name="sea_surface_height" type="joinExisting">
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791206d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791201d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791126d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791121d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791116d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791111d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791106d05T.nc" />
-          <ns0:netcdf location="http://gws-access.ceda.ac.uk/public/nemo/runs/ORCA0083-N01/means/1979/ORCA0083-N01_19791101d05T.nc" />
-      </ns0:aggregation>
-    </ns0:netcdf>
-  </ns0:aggregation>
-  </ns0:netcdf>
-
-
-
-
-6b. Generate the namelist.bdy file for PyNEMO / NRCT
-+++++++++++++++++++++++++++++++++++++++++++++++++++
-
-Copy the NRCT template namelist.bdy from the START_FILES::
-
-  cd $INPUTS
-  cp $START_FILES/thredds_namelist.bdy $INPUTS/.
-
-Edit namelist.bdy to for the configuration name and ``ncml`` file name::
-
-  vi thredds_namelist.bdy
-  sn_src_dir = './thredds_inputs_src.ncml'       ! src_files/'
-  sn_dst_dir = '/work/n01/n01/jelt/SEAsia/INPUTS/'
-  sn_fn      = 'SEAsia'                 ! prefix for output files
-  ...
-
-Make sure the timestamps correspond to the input data in ``*_inputs_src.ncml``.
-Turn off as many things as possible to help it along.
-Turned off ``ln_mask_file``. James said it was for outputting a new mask file
-but it might have given me trouble. *Actually I also turn off all the ORCA inputs*.
-
-Point to the correct source and destination mesh and mask files/variables.
- ::
-
-   vi thredds_namelist.bdy
-
-   !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-   !! NEMO/OPA  : namelist for BDY generation tool
-   !!
-   !!             User inputs for generating open boundary conditions
-   !!             employed by the BDY module in NEMO. Boundary data
-   !!             can be set up for v3.2 NEMO and above.
-   !!
-   !!             More info here.....
-   !!
-   !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-   !-----------------------------------------------------------------------
-   !   vertical coordinate
-   !-----------------------------------------------------------------------
-      ln_zco      = .false.   !  z-coordinate - full    steps   (T/F)
-      ln_zps      = .true.    !  z-coordinate - partial steps   (T/F)
-      ln_sco      = .false.   !  s- or hybrid z-s-coordinate    (T/F)
-      rn_hmin     =   -10     !  min depth of the ocean (>0) or
-                              !  min number of ocean level (<0)
-
-   !-----------------------------------------------------------------------
-   !   s-coordinate or hybrid z-s-coordinate
-   !-----------------------------------------------------------------------
-      rn_sbot_min =   10.     !  minimum depth of s-bottom surface (>0) (m)
-      rn_sbot_max = 7000.     !  maximum depth of s-bottom surface
-                              !  (= ocean depth) (>0) (m)
-      ln_s_sigma  = .true.   !  hybrid s-sigma coordinates
-      rn_hc       =  150.0    !  critical depth with s-sigma
-
-   !-----------------------------------------------------------------------
-   !  grid information
-   !-----------------------------------------------------------------------
-      sn_src_hgr = './mesh_hgr_src.nc'   !  /grid/
-      sn_src_zgr = './mesh_zgr_src.nc'
-      sn_dst_hgr = './domain_cfg.nc'
-      sn_dst_zgr = './inputs_dst.ncml' ! rename output variables
-      sn_src_msk = './mask_src.nc'
-      sn_bathy   = './bathy_meter.nc'
-
-   !-----------------------------------------------------------------------
-   !  I/O
-   !-----------------------------------------------------------------------
-      sn_src_dir = './thredds_inputs_src.ncml'       ! src_files/'
-      sn_dst_dir = '/work/jelt/NEMO/SEAsia/INPUTS/'
-      sn_fn      = 'SEAsia'                 ! prefix for output files
-      nn_fv      = -1e20                     !  set fill value for output files
-      nn_src_time_adj = 0                                    ! src time adjustment
-      sn_dst_metainfo = 'metadata info: jelt'
-
-    !-----------------------------------------------------------------------
-    !  unstructured open boundaries
-    !-----------------------------------------------------------------------
-        ln_coords_file = .true.               !  =T : produce bdy coordinates files
-        cn_coords_file = 'coordinates.bdy.nc' !  name of bdy coordinates files (if ln_coords_file=.TRUE.)
-        ln_mask_file   = .false.              !  =T : read mask from file
-        cn_mask_file   = './bdy_mask.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
-
-Originally, for barotropic forcing::
-
-        ln_dyn2d       = .false.               !  boundary conditions for barotropic fields
-        ln_dyn3d       = .false.               !  boundary conditions for baroclinic velocities
-        ln_tra         = .false.               !  boundary conditions for T and S
-        ln_ice         = .false.               !  ice boundary condition
-        nn_rimwidth    = 1                     !  width of the relaxation zone
-
-Change for baroclinic forcing::
-
-  ln_dyn2d       = .true.               !  boundary conditions for barotropic fields
-  ln_dyn3d       = .true.               !  boundary conditions for baroclinic velocities
-  ln_tra         = .true.               !  boundary conditions for T and S
-  ln_ice         = .false.               !  ice boundary condition
-  nn_rimwidth    = 9                    !  width of the relaxation zone
-
-Continuing::
-
-   !-----------------------------------------------------------------------
-   !  unstructured open boundaries tidal parameters
-   !-----------------------------------------------------------------------
-       ln_tide        = .true.               !  =T : produce bdy tidal conditions
-       clname(1) =  'M2'
-       clname(2) =  'S2'
-       clname(3) =  'N2'
-       clname(4) =  'K2'
-       clname(5) =  'K1'
-       clname(6) =  'O1'
-       clname(7) =  'P1'
-       clname(8) =  'Q1'
-       clname(9) =  'M4'
-       ln_trans       = .false.
-       sn_tide_h     = '/work/jelt/tpxo7.2/h_tpxo7.2.nc'
-       sn_tide_u     = '/work/jelt/tpxo7.2/u_tpxo7.2.nc'
-
-   !-----------------------------------------------------------------------
-   !  Time information
-   !-----------------------------------------------------------------------
-       nn_year_000     = 1979        !  year start
-       nn_year_end     = 1979        !  year end
-       nn_month_000    = 11          !  month start (default = 1 is years>1)
-       nn_month_end    = 11          !  month end (default = 12 is years>1)
-       sn_dst_calendar = 'gregorian' !  output calendar format
-       nn_base_year    = 1978        !  base year for time counter
-       sn_tide_grid    = '/work/jelt/tpxo7.2/grid_tpxo7.2.nc'
-
-   !-----------------------------------------------------------------------
-   !  Additional parameters
-   !-----------------------------------------------------------------------
-       nn_wei  = 1                   !  smoothing filter weights
-       rn_r0   = 0.041666666         !  decorrelation distance use in gauss
-                                     !  smoothing onto dst points. Need to
-                                     !  make this a funct. of dlon
-       sn_history  = 'bdy files produced by jelt from ORCA0083-N01'
-                                     !  history for netcdf file
-       ln_nemo3p4  = .true.          !  else presume v3.2 or v3.3
-       nn_alpha    = 0               !  Euler rotation angle
-       nn_beta     = 0               !  Euler rotation angle
-       nn_gamma    = 0               !  Euler rotation angle
-       rn_mask_max_depth = 300.0     !  Maximum depth to be ignored for the mask
-       rn_mask_shelfbreak_dist = 60    !  Distance from the shelf break
-
-.. warning:
-
-  It doesn't quite work with ``ln_tra = .false.``
-
-.. note :
-
-  I thought that I needed to create a bdy_mask.nc file so I did this from doman_cfg.nc
-  though it turns out not to have been needed. Nevertheless I did the following::
-
-
-      ncks -v top_level domain_cfg.nc tmp.nc
-      ncrename -h -v top_level,mask tmp.nc bdy_mask.nc
-      rm tmp.nc
-
-
-Also had to check/create ``inputs_dst.ncml``, that it has the correct file name within:
- *Now domain_cfg.nc, formerly mesh_zgr.nc*. Note also that some variables in
-  domain_cfg.nc have different names e.g. ``mbathy`` --> ``bottom_level``. Check the mapping
-  in ``inputs_dst.ncml``::
-
-   vi inputs_dst.ncml
-
-    <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
-      <ns0:aggregation type="union">
-        <ns0:netcdf location="file:domain_cfg.nc">
-        <ns0:variable name="mbathy" orgName="bottom_level" />
-        <ns0:variable name="e3u" orgName="e3u_0" />
-        <ns0:variable name="e3v" orgName="e3v_0" />
-        <ns0:variable name="e3t" orgName="e3t_0" />
-        <ns0:variable name="e3w" orgName="e3w_0" />
-        </ns0:netcdf>
-      </ns0:aggregation>
-    </ns0:netcdf>
-
-
-  .. warning:
-    In the actual v4 release domain_cfg.nc  will not have gdept or gdepw. These
-    will need to be reconstructed from e3[tw].
-
-  .. note : 18 Nov.  comment out the gdept and gdepw lines and
-     inserted e3t and e3w. Previouly the inputs_dst.ncml looked like::
-
-    <ns0:netcdf xmlns:ns0="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" title="NEMO aggregation">
-      <ns0:aggregation type="union">
-        <ns0:netcdf location="file:domain_cfg.nc">
-        <ns0:variable name="mbathy" orgName="bottom_level" />
-        <ns0:variable name="gdept" orgName="gdept_0" />
-        <ns0:variable name="gdepw" orgName="gdepw_0" />
-        <ns0:variable name="e3u" orgName="e3u_0" />
-        <ns0:variable name="e3v" orgName="e3v_0" />
-        </ns0:netcdf>
-      </ns0:aggregation>
-    </ns0:netcdf>
-
-
-
-
-
-Run PyNEMO / NRCT to generate boundary conditions
-+++++++++++++++++++++++++++++++++++++++++++++++++
-
-First install PyNEMO `install_nrct`_ if not already done so.
-
-Generate the boundary conditions with PyNEMO
-::
-
-  module load anaconda/2.1.0  # Want python2
-  source activate nrct_env
-  cd $INPUTS
-  export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
-
-  pynemo -s namelist.bdy
-
-.. note : Can use the ``-g`` option if you want the GUI.
-
-.. note : I have a PyNEMO mod to use FES tides instead of TPXO tides for these boundary
-  forcing. It is currently a hardwire fix in ``tide/nemo_bdy_tide3.py``
-
-This generates::
-  ls -1 $INPUTS
-
-  coordinates.bdy.nc
-  SEAsia_bdytide_rotT_M2_grid_T.nc
-  SEAsia_bdytide_rotT_N2_grid_T.nc
-  SEAsia_bdytide_rotT_S2_grid_T.nc
-  SEAsia_bdytide_rotT_K1_grid_T.nc
-  SEAsia_bdytide_rotT_K2_grid_T.nc
-  SEAsia_bdytide_rotT_P1_grid_T.nc
-  SEAsia_bdytide_rotT_O1_grid_T.nc
-  SEAsia_bdytide_rotT_M4_grid_T.nc
-  SEAsia_bdytide_rotT_Q1_grid_T.nc
-  SEAsia_bdytide_rotT_M2_grid_U.nc
-  SEAsia_bdytide_rotT_N2_grid_U.nc
-  SEAsia_bdytide_rotT_S2_grid_U.nc
-  SEAsia_bdytide_rotT_K1_grid_U.nc
-  SEAsia_bdytide_rotT_K2_grid_U.nc
-  SEAsia_bdytide_rotT_P1_grid_U.nc
-  SEAsia_bdytide_rotT_O1_grid_U.nc
-  SEAsia_bdytide_rotT_M4_grid_U.nc
-  SEAsia_bdytide_rotT_Q1_grid_U.nc
-  SEAsia_bdytide_rotT_M2_grid_V.nc
-  SEAsia_bdytide_rotT_N2_grid_V.nc
-  SEAsia_bdytide_rotT_S2_grid_V.nc
-  SEAsia_bdytide_rotT_K1_grid_V.nc
-  SEAsia_bdytide_rotT_K2_grid_V.nc
-  SEAsia_bdytide_rotT_P1_grid_V.nc
-  SEAsia_bdytide_rotT_O1_grid_V.nc
-  SEAsia_bdytide_rotT_M4_grid_V.nc
-  SEAsia_bdytide_rotT_Q1_grid_V.nc
-
-
-Copy the new files back onto ARCHER
-::
-
-  livljobs4$
-  cd $INPUTS
-  rsync -utv coordinates.bdy.nc $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/coordinates.bdy.nc
-  for file in $CONFIG*nc; do rsync -utv $file $USER@login.archer.ac.uk:/work/n01/n01/$USER/$CONFIG/INPUTS/$file ; done
-
-
-
-
-8. Run the configuration ON ARCHER. Turn on the tides
-+++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+======================================================
+OLD STUFF
+======================================================
 Get set up::
 
   ssh archer
