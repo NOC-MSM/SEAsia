@@ -125,6 +125,16 @@ OPA source::
 
 ---
 
+Note about timestep
+===================
+
+The SEAsia domain has some very deep water ~7km and large areas with 6km bathymetry.
+This should limit the timestep quite considerably:
+A deep water wave would travel across a 1/12 degree model cell in
+``110000/12 / sqrt(7000*9.8) ~ 35 seconds``...
+Consequently a timestep of 1 minute might be as far as I can push it.
+
+
 
 Memory error for combining outputs (ARCHER)
 ===========================================

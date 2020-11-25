@@ -28,5 +28,6 @@ make_paths.sh
   export XIOS_DIR=$WDIR/xios-2.5
   export XIOS1_DIR=$WDIR/xios-1.0
   export GITCLONE=$WDIR/START_FILES
+  export SCRIPTS=$WDIR/SCRIPTS
   export RIVER=$WDIR/RIVERS
   export FABM=$WDIR/NEMO_fabm

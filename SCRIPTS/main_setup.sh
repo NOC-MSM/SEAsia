@@ -35,7 +35,7 @@ are correct).
   echo "Creating rivers"
   . ./create_rivers.sh                            >> main_output.txt 2>&1
   echo "Creating IC"
-  . ./create_IC.sh                            >> main_output.txt 2>&1
+  . ./make_CMEMS_IC.sh                            >> main_output.txt 2>&1
   echo "Atmospheric forcing weights"
   . ./create_WA.sh                            >> main_output.txt 2>&1
   echo "Prepare experiment"

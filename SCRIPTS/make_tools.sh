@@ -12,6 +12,9 @@ work (XIOS1). This is compiled in make_xios.sh. Refer to the README in the
 
 Check the path in variable ``%XIOS_HOME`` in ``XC_ARCHER_INTEL_XIOS1`` are
 consistent with your settings
+
+Also make the SOSIE tool for flood filling land in parent data when interpolating
+ onto child grid
 '
 #::
 
@@ -42,5 +45,9 @@ consistent with your settings
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n DOMAINcfg
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n REBUILD_NEMO
   ./maketools -m XC_ARCHER_INTEL_XIOS1 -n WEIGHTS
+
+
+  # Make SOSIE tool.
+  $SCRIPTS/install_sosie.sh
 
   cd $WORK
