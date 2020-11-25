@@ -152,8 +152,8 @@ Building the docs:
 Appendix: Tidal code modifications
 ******************
 
-.. toc:tree::
- :maxdepth: 1
+.. toctree::
+  :maxdepth: 1
 
   tidal_code_modifications
 
