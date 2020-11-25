@@ -50,4 +50,7 @@ Also make the SOSIE tool for flood filling land in parent data when interpolatin
   # Make SOSIE tool.
   $SCRIPTS/install_sosie.sh
 
+  # Install PyNEMO
+  $SCRIPTS/install_pynemo.sh
+
   cd $WORK

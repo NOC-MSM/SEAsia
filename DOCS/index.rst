@@ -120,7 +120,7 @@ abstracted as _modules_ when the process is common to more than one configuratio
    link_scripts_make_ERA5_weights
 
    link_scripts_download_CMEMS
-   
+
    link_scripts_make_CMEMS_IC
 
    MPP_decomp_land_suppression
@@ -147,6 +147,15 @@ Building the docs:
 
   compiling_documentation
 
+
+******************
+Appendix: Tidal code modifications
+******************
+
+.. toc:tree::
+ :maxdepth: 1
+
+  tidal_code_modifications
 
 ******************
 Appendix: Old stuff:

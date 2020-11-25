@@ -298,8 +298,8 @@ predefines the fields before compilation. E.g.
   :start-at:  usr_def_istate : analytical definition of initial state
   :end-before:  END SUBROUTINE usr_def_istate
 
-This is activated at runtime by a logical parameter ``ln_usr=T`` in the simulation
-namelist ``namelist_cfg``.
+This is activated at runtime by a logical parameter ``ln_tsd_init = .false.``
+(i.e. do not use initial temperature and salinity data) in the simulation namelist ``namelist_cfg``.
 
 
 Initial conditions from CMEMS database
@@ -340,6 +340,14 @@ In this demonstration we use the DFS forcing, which forced the parent global mod
 
 ** I NEED TO MAKE SURE THE REPO NAMELISTS ARE FOR DFS AND NOT ERA5 OR CMEMS DATA **
 
+The regional configuration can be forced with atmospheric fields from external
+files, or with idealised forcings. For example, during the configuration development and robustness checking
+phase it is convenient to be able to switch off atmospheric forcing (I.e. set
+forcing to zero). As with user defined initial conditions, a user-defined
+surface boundary forcing can be set in ``usrdef_sbc.F90`` (in ``MY_SRC``),
+which is fixed in the compiled code. The user-defined surface forcing is
+activated by the logical parameter ``ln_usr=T`` in the simulation namelist ``namelist_cfg``.
+
 
 ======================================================
 Generate Other Forcing Data
@@ -364,84 +372,191 @@ b. ERSEM boundary conditions
 To be written
 
 
-c. Something about tidal forcing modification
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Use of FES tides
-* Restartable harmonics
-* Long period tides (though not visible).
-
-Update tides code with Nico's version.
-++++++++++++++++++++++++++++++++++++++
-
-Add the POLCOMS harmonic analysis to the executable (as in now in)
-`<build_opa_orchestra.rst>`_
-This requires some changes to the standard ``namelist_cfg``
-
-Add the final (extra) three variables in your namelist_cfg / nambdy_tide ::
-
-  vi $EXP/namelist_cfg
-  ...
-  !-----------------------------------------------------------------------
-  &nambdy_tide   !  tidal forcing at open boundaries
-  !-----------------------------------------------------------------------
-     filtide      = 'bdydta/SEAsia_bdytide_rotT_'         !  file name root of tidal forcing files
-     ln_bdytide_2ddta = .false.                   !
-     ln_bdytide_conj  = .false.                    !
-                                                                  ! Harmonic analysis with restart from polcom
-     ln_harm_ana_compute=.true.          ! Compute the harmonic analysis at the last time step
-     ln_harm_ana_store=.true.                 ! Store the harmonic analysis at the last time step for restart
-     ln_harmana_read=.false.                    ! Read haronic analyisis from a restart
-  /
-
-
-Edit xml files to output harmonics as amplitudes and phases (e.g.)::
-
-  vi file_def_nemo.xml
-  ...
-  <file_group id="tidal_harmonics" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 1d files -->
-    <file id="tidalanalysis.grid_T" name="harmonic_grid_T" description="ocean T grid variables"  enabled=".TRUE.">
-
-      <field field_ref="O1amp"         name="O1amp"       operation="instant" enabled=".TRUE." />
-      <field field_ref="O1phase"       name="O1phase"     operation="instant" enabled=".TRUE." />
-
-
-  vi field_def_nemo-opa.xml
-  ...
-      <field_group id="Tides_T" grid_ref="grid_T_2D" operation="once" >
-      <!-- tidal composante -->
-      ...
-      <field id="Q1amp"        long_name="Q1 Elevation harmonic Amplitude"                              unit="m"        />
-      <field id="Q1phase"      long_name="Q1 Elevation harmonic Phase"                                  unit="degree"   />
-
-*Recall there are elevation, u-vel and v-vel harmonics*. Also editted suffixes
- in velocity fields, adding ``_2D``.
-
-
-* As before the constituents you want to analyse are set-up in ``nam_diaharm``
- namelist.
-
-* The harmonic analysis is done at the end only as well as the restart dumping
-so you can only restart from the last time step so make sure you output the full
- restart at the end. To restart, you just need to turn on the ``ln_harmana_read``
-  and to map the files to something like ``restart_harm_ana_*``  as this bit as
-   not been developed with a prefix to load the files. You can look at this
-    python script if needed:
-  ``/work/n01/n01/nibrun/RUNS/SWPacific/SIMU/01_harm_links.py``
 
 
 
 ======================================================
-Generate Open Boundary Conditions
+Open Boundary Conditions
 ======================================================
+
+In this configuration a number of modifications were made to the tidal forcing.
+The modifications are implemented in the FORTRAN source code as additions to the
+``MY_SRC`` directory. Modifications relative to the NEMO trunk include:
+
+  * Use of FES2014 tides
+  * Restartable harmonic analysis
+  * Addition of long period tides
+
+These modifications are detailed in `Tidal code modifications <tidal_code_modifications.rst>`_
+
 
 Discussion about PyNEMO.
 
-a. Open boundary conditions from CMEMS data
+`install PyNEMO <SCRIPTS/install_pynemo.sh>`_ which was called during the
+`make_tools.sh` process.
+
+Generate Tidal Open Boundary Conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-b. Open boundary conditions from parent ORCA12 data
+To generate the tidal boundary conditions, access to FES2014 data is required.
+However, at present, everything is hardcoded inside PyNEMO, even the directory this data are (i.e., in
+PyNEMO that you downloaded above in a file that is called
+fes\_extract\_HC.py). So if you need to modify these things you will
+have to modify the code of PyNEMO and particularly the
+fes\_extract\_HC.py.
+
+The following works for livljobs servers and it requires that you have
+access to the files in directory: /projectsa/NEMO/Forcing/FES2014/
+
+Get the namelist for tides:
+`namelist\_FES14.bdy <https://github.com/NOC-MSM/SEAsia_ERSEM_R12/blob/master/FILES_START/OBC-TIDES/namelist_FES14.bdy>`__
+
+define some paths (based on where you have install your pynemo change
+these paths)
+
+.. code:: bash
+
+    export WORK=/work/annkat
+    export PYTHON=$WORK/nrct/Python
+    cd $WORK
+
+load your virtual environment for the pynemo that you have created in
+step 1
+
+.. code:: bash
+
+    module load anaconda/2.1.0  # Want python2
+    source activate nrct_env
+    export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk-1.7.0.241-2.6.20.0.el7_7.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+
+change branch to the tides branch of pynemo
+
+.. code:: bash
+
+    git checkout Generalise-tide-input
+
+build my PyNEMO and ready to use:
+
+.. code:: bash
+
+    cd $PYTHON
+    python setup.py build
+    export PYTHONPATH=/login/$USER/.conda/envs/nrct_env/lib/python2.7/site-packages/:$PYTHONPATH
+    python setup.py install --prefix ~/.conda/envs/nrct_env
+
+Run pyNEMO
+
+.. code:: bash
+
+    pynemo -s namelist_FES14.bdy > Tide_pynemo.txt 2>&1
+
+
+
+Generate 3D Open Boundary Conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+a. Open boundary conditions from CMEMS data
++++++++++++++++++++++++++++++++++++++++++++
+
+Having already downloaded CMEMS data for the initial conditions the first step
+in creating time varying open boundary conditions is to generate mesh and mask
+files for these data. This is advisable over using the mask file from CMEMS
+since the regridding process onto c-points, for the served data, leads to
+possible problems with the velocity data. We therefore generate mesh and mask
+files directly from the downloaded variable files.
+
+**Generate CMEMS mesh and mask files**
+
+Using
+`generate\_CMEMS\_coordinates.sh <https://github.com/NOC-MSM/SEAsia_ERSEM_R12/blob/master/FILES_START/OBC-TIDES/generate_CMEMS_coordinates.sh>`__
+
+Go to the directory you have downloaded your data:
+
+.. code:: bash
+
+    cd CMEMS/2017
+
+load nco module:
+
+.. code:: bash
+
+    module load nco/gcc/4.4.2.ncwa
+
+create the coordinates using nco tool:
+
+.. code:: bash
+
+    ncks -v longitude,latitude,depth,time 2017/CMEMS_2017_01_01_download.nc  tmp1.nc
+    ncrename -d time,t -d latitude,y -d longitude,x tmp1.nc
+    ncap2 -O -s 'glamt[t,y,x]=longitude' tmp1.nc
+    ncap2 -O -s 'glamu[t,y,x]=longitude' tmp1.nc
+    ncap2 -O -s 'glamv[t,y,x]=longitude' tmp1.nc
+    ncap2 -O -s 'gphit[t,y,x]=latitude' tmp1.nc
+    ncap2 -O -s 'gphiu[t,y,x]=latitude' tmp1.nc
+    ncap2 -O -s 'gphiv[t,y,x]=latitude' tmp1.nc
+    mv tmp1.nc CMEMS_subdomain_coordinates.nc
+
+create the masks:
+
+.. code:: bash
+
+    module load nco/gcc/4.4.2.ncwa
+    ncks -v longitude,latitude,depth,time,so 2017/CMEMS_2017_01_01_download.nc tmp2.nc
+    ncks -A -v uo,vo 2017/CMEMS_2017_01_01_download_UV.nc tmp2.nc
+    ncatted -a _FillValue,,d,, tmp2.nc
+    ncap2 -O -s 'where(so>0.) so=1' tmp2.nc tmp2.nc
+    ncap2 -O -s 'where(so<=0.) so=0' tmp2.nc tmp2.nc
+    ncap2 -O -s 'where(uo>-10.) uo=1' tmp2.nc tmp2.nc
+    ncap2 -O -s 'where(uo<=-10.) uo=0' tmp2.nc tmp2.nc
+    ncap2 -O -s 'where(vo>-10.) vo=1' tmp2.nc tmp2.nc
+    ncap2 -O -s 'where(vo<=-10.) vo=0' tmp2.nc tmp2.nc
+    ncrename -d time,t -d latitude,y -d longitude,x tmp2.nc
+    ncrename -v so,tmask tmp2.nc
+    ncrename -v uo,umask tmp2.nc
+    ncrename -v vo,vmask tmp2.nc
+    mv tmp2.nc CMEMS_subdomain_mask.nc
+
+**Generate CMEMS OBC**
+
+using
+`Run\_Pynemo.sh <https://github.com/NOC-MSM/SEAsia_ERSEM_R12/blob/master/FILES_START/OBC-TIDES/Run_Pynemo.sh>`__
+
+Make sure that you have your domain file (domain\_cfg\_ORCA12.nc) and
+your bathymetry of your domain file (bathy\_meter\_ORCA12.nc). You
+should have generated these fields previously.
+
+get the namelists that you will need for pynemo:
+`namelist\_2017 <https://github.com/NOC-MSM/SEAsia_ERSEM_R12/blob/master/FILES_START/OBC-TIDES/namelist_2017.bdy>`__,\ `inputs\_src\_zgr.ncml <https://github.com/NOC-MSM/SEAsia_ERSEM_R12/blob/master/FILES_START/OBC-TIDES/inputs_src_zgr.ncml>`__,
+`inputs\_dst.ncml <https://github.com/NOC-MSM/SEAsia_ERSEM_R12/blob/master/FILES_START/OBC-TIDES/inputs_dst.ncml>`__.
+Also get the namelist that defines the input in
+`NCML <https://github.com/NOC-MSM/SEAsia_ERSEM_R12/tree/master/FILES_START/OBC-TIDES/NCML>`__,
+for example for 2017 get
+`CMEMS\_2017.ncml <https://github.com/NOC-MSM/SEAsia_ERSEM_R12/blob/master/FILES_START/OBC-TIDES/NCML/CMEMS_2017.ncml>`__.
+**ATTENTION** modify them accordingly to reflect the name of your files
+and directories and years/months you may want to use.
+
+load anaconda and the virtual environment you have created associated
+with installing PyNEMO in step 1:
+
+.. code:: bash
+
+    module load anaconda/2.1.0  # Want python2
+    source activate nrct_env
+    export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server:$LD_LIBRARY_PATH
+
+Run your PyNEMO to generate your open boundary conditions for T,S,
+U,V,SSH (note this is slow for a whole year it may take a couple of
+hours):
+
+.. code:: bash
+
+    pynemo -s namelist_2017.bdy > T2017_pynemo.txt 2>&1
+
+
+
+b. Open boundary conditions from parent ORCA12 data
++++++++++++++++++++++++++++++++++++++++++++
 
 ======================================================
 Run Experiments
