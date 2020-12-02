@@ -20,16 +20,18 @@ As well as a specific version of NEMO, this documentation was targeted at
 running on the ARCHER HPC (www.archer.ac.uk). Though the principles are transferrable.
 
 The documentation is divided into sections. As an introduction and overview to
-the process, the first section contains the recipe specific for the 1/12 deg SE
-Asia configuration. The second section contains a number of common modules, or
-steps, that are described in more detail and that are part of the build process
-but are not specific to any particular configuration. Section 3 addresses some common trouble shooting
-issues. Section 4 presents some simple diagnostics tools for visualising output,
-and Section 5 presents recipes from some other configurations.
+the process, the first two sections describe contain the recipe specific for the 1/12 deg SE
+Asia configuration, with the first section being generic to any configuration.
+Section XX addresses some common trouble shooting
+issues. Section YY presents some simple diagnostics tools for visualising output,
+and Section ZZ presents recipes from some other configurations.
+
+An appendix contains the scripts that are either indepedant of, or
+can be modified for, any configuration.
 
 
 **************************************
-Generic steps
+Generic steps in a configuration build
 **************************************
 
 .. toctree::
@@ -37,9 +39,9 @@ Generic steps
 
   generic_setup
 
-**************************************
-Complete SE Asia (1/12 deg) Recipe:
-**************************************
+***************************************************************
+Configuration specific build steps: SE Asia (1/12 deg) example:
+***************************************************************
 
 
 .. toctree::

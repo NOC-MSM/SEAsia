@@ -1,37 +1,18 @@
 
-Having completed generic steps (make directory tree, compile sotware tools for
-building the configuratioin and for handling the I/O), the following are
-specific instructions for a 3D baroclinic simulation of
+Having cloned the NEMO-RELOC repository, the  entire build process can be run
+with a single script ``SCRIPTS/main_setup.sh``. However, here, the process is taken
+through step by step. Having completed the generic setup steps, this second group
+of steps are configuration specific:
+
+.. literalinclude:: ../SCRIPTS/main_setup.sh
+  :start-at: Configuration specific steps
+  :end-at: ./prepare_EXP.sh
+
+
+In particular, these are instructions are for a 3D baroclinic simulation of
 NEMO with ERSEM (via the FABM coupler). The regional configuration is
 demonstrated for South East Asia (75E to 135E and -20N to +25N). The model grid
 has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical levels.
-
-
-e. Build NEMO
-^^^^^^^^^^^^^
-
-Then build the NEMO executable. This is the dynamical ocean core the NEMO
-framework. Technically OPA is the ocean dynamical core and NEMO is the framework
-it sits within (including, for example, modules for ice, biogeochemistry etc).
-
-In this documentation there are examples for a NEMO physics only build (called
-``SCRIPTS/make_nemo.sh``) and a NEMO-FABM-ERSEM build
-(called ``SCRIPTS/make_nemo_fabm_ersem.sh``). Here we walk through the physics
-only build:
-
-.. literalinclude:: ../SCRIPTS/make_nemo.sh
-
-
-This is executed by ``SCRIPTS/main_setup.sh`` (commenting out the appropriate
-make NEMO script):
-
-.. literalinclude:: ../SCRIPTS/main_setup.sh
-  :start-at: Installing NEMO-FABM-ERSEM
-  :end-at: ./make_nemo.sh
-
-
-
-
 
 
 ======================================================
