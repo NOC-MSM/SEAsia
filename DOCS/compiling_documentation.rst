@@ -26,6 +26,10 @@ environment)::
 
   sphinx-build -b pdf DOCS build
 
+Or::
+
+  make latexpdf
+
 View pdf in ``build``.
 
 Automatically generate latex files
@@ -34,3 +38,28 @@ Automatically generate latex files
 (Only tried within the above conda environment, having installed `rst2pdf`)::
 
   sphinx-build -b latex DOCS build/latex
+
+Or::
+
+  make latex
+
+
+Extra stuff to get nice latex doc
+=================================
+
+
+For a bibliography, in conda environment for rst2pdf::
+
+  conda install sphinxcontrib-bibtex
+
+In coda environment for rst2pdf::
+
+  conda install Jinga2
+
+Download relatex.py from https://github.com/cjlee112/relatex
+and add it to this repo.
+
+
+
+
+python relatex.py copernicus NEMO-RELOC.tex

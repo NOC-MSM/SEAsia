@@ -29,7 +29,7 @@ import shlex
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['rst2pdf.pdfbuilder']
+extensions = ['rst2pdf.pdfbuilder', 'sphinxcontrib.bibtex']
 pdf_documents = [('index', u'NEMO-RELOC', u'Relocatable Regional NEMO', u'Authors: Polton et al.'),]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -207,14 +207,14 @@ htmlhelp_basename = 'NEMO-RELOCdoc'
 
 latex_elements = {
 # The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+#'papersize': 'gmd',
 
 # The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+#'pointsize': 'manuscript',
 
 # Additional stuff for the LaTeX preamble.
-#'preamble': '',
-
+#'preamble': 'PREAMBLE',
+'atendofbody' : r'\bibliographystyle{abbrv}',
 # Latex figure (float) alignment
 #'figure_align': 'htbp',
 }
@@ -224,8 +224,10 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   (master_doc, 'NEMO-RELOC.tex', u'NEMO-RELOC Documentation',
-   u'NOC', 'manual'),
+   u'NOC', 'howto'),
 ]
+
+#latex_doc = 'index_latex'
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
@@ -233,7 +235,7 @@ latex_documents = [
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
-#latex_use_parts = False
+#latex_use_parts = True
 
 # If true, show page references after internal links.
 #latex_show_pagerefs = False

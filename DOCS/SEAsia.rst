@@ -6,6 +6,8 @@ has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical lev
 
 Machines used: CentOS7 linux box, Cray XC30 HPC (ARCHER)
 
+:cite:`Gil:02`
+
 ===========================================
 Preparing for a new NEMO vp4 configuration
 ===========================================

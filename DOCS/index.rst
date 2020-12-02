@@ -4,6 +4,8 @@
 NEMO-RELOC's documentation
 ##########################
 
+:cite:`1987:nelson`
+
 Relocatable NEMO configurations. The central aim of this documentation is to
 help save time so that you can do other things.
 
@@ -146,6 +148,8 @@ Building the docs:
   :maxdepth: 1
 
   compiling_documentation
+
+
 
 
 ******************
