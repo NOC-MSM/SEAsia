@@ -3,7 +3,7 @@
 :'
 
 ***********************
-make_directories.sh
+make_directories_config.sh
 ***********************
 
 Create the expected directory structure.

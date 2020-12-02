@@ -23,11 +23,19 @@ The documentation is divided into sections. As an introduction and overview to
 the process, the first section contains the recipe specific for the 1/12 deg SE
 Asia configuration. The second section contains a number of common modules, or
 steps, that are described in more detail and that are part of the build process
- but are not specific to any particular configuration. Section 3 addresses some common trouble shooting
+but are not specific to any particular configuration. Section 3 addresses some common trouble shooting
 issues. Section 4 presents some simple diagnostics tools for visualising output,
 and Section 5 presents recipes from some other configurations.
 
 
+**************************************
+Generic steps
+**************************************
+
+.. toctree::
+  :maxdepth: 1
+
+  generic_setup
 
 **************************************
 Complete SE Asia (1/12 deg) Recipe:

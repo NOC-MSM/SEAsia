@@ -22,16 +22,16 @@ Also make the SOSIE tool for flood filling land in parent data when interpolatin
   cd $TDIR
   # Copy the compiler option files from the NEMO-RELOC repository clone
   #  into the architecture directory
-  cp $GITCLONE/NEMO-FABM-ERSM/arch-XC_ARCHER_INTEL_NOXIOS.fcm ../ARCH/.
-  cp $GITCLONE/NEMO-FABM-ERSM//arch-XC_ARCHER_INTEL_XIOS1.fcm  ../ARCH/.
+  cp $GITCLONE/ARCH/TOOLS/arch-XC_ARCHER_INTEL_NOXIOS.fcm ../ARCH/.
+  cp $GITCLONE/ARCH/XIOS/arch-XC_ARCHER_INTEL_XIOS1.fcm  ../ARCH/.
 
   # Apply patches for the weight file code
   cd $TDIR/WEIGHTS/src
-  patch -b < $GITCLONE/NEMO-FABM-ERSM/patch_files/scripinterp_mod.patch
-  patch -b < $GITCLONE/NEMO-FABM-ERSM/patch_files/scripinterp.patch
-  patch -b < $GITCLONE/NEMO-FABM-ERSM/patch_files/scrip.patch
-  patch -b < $GITCLONE/NEMO-FABM-ERSM/patch_files/scripshape.patch
-  patch -b < $GITCLONE/NEMO-FABM-ERSM/patch_files/scripgrid.patch
+  patch -b < $GITCLONE/BUILD_CFG/patch_files/scripinterp_mod.patch
+  patch -b < $GITCLONE/BUILD_CFG/patch_files/scripinterp.patch
+  patch -b < $GITCLONE/BUILD_CFG/patch_files/scrip.patch
+  patch -b < $GITCLONE/BUILD_CFG/patch_files/scripshape.patch
+  patch -b < $GITCLONE/BUILD_CFG/patch_files/scripgrid.patch
 
   # Load modules
   module unload nco cray-netcdf cray-hdf5

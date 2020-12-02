@@ -14,10 +14,14 @@ You need to obtain a NEMO account http://forge.ipsl.jussieu.fr/nemo/register
 Bare in mind that NEMO is being compiled for use with a particular version of
 XIOS. Ensure edits to ``%XIOS_HOME`` in the ``arch-*`` file are consistent with
 the XIOS build.
+
+This revision is referred to as NEMOvp4 (proceeds v4), as it contains some
+significant structural changes that were introduced in version 4, though much
+of the code is still at v3.6.
 '
 #::
 
-  cd $NEMO
+  cd $WDIR
   #################################################################
   # First get/download NEMO and FABM ERSEM
   #################################################################
@@ -27,11 +31,11 @@ the XIOS build.
   # Replace TOP_SRC with a cloned version from the NEMO-RELOC repository clone
   mv trunk_NEMOGCM_r8395/NEMO/TOP_SRC trunk_NEMOGCM_r8395/NEMO/TOP_SRC_old
   # The NEMO-FABM coupler ia maintained here: https://github.com/NOC-MSM/NEMO_ERSEM/tree/master/TOP_SRC_r8395_FABM
-  cp -r $GITCLONE/NEMO-FABM-ERSEM/TOP_SRC_r8395_FABM trunk_NEMOGCM_r8395/NEMO/TOP_SRC
+  cp -r $GITCLONE/BUILD_CFG/TOP_SRC_r8395_FABM trunk_NEMOGCM_r8395/NEMO/TOP_SRC
 
   cd $WDIR
   # get ERSEM from the NEMO-RELOC repository clone
-  cp -r $GITCLONE/NEMO-FABM-ERSEM/ERSEM-master ./
+  cp -r $GITCLONE/BUILD_CFG/ERSEM-master ./
 
   cd $FABM
   # clone FABM from its GitHub repository
@@ -66,7 +70,7 @@ the XIOS build.
   #################################################################
   # get arch
   # ATTENTION modify the following file to have the correct paths
-  cp $NEMO/trunk_NEMOGCM_r8395/NEMO/TOP_SRC/arch-XC_ARCHER_INTEL_FABM.fcm $NEMO/trunk_NEMOGCM_r8395/ARCH/arch-XC_ARCHER_INTEL_FABM.fcm
+  cp $WDIR/trunk_NEMOGCM_r8395/NEMO/TOP_SRC/arch-XC_ARCHER_INTEL_FABM.fcm $WDIR/trunk_NEMOGCM_r8395/ARCH/arch-XC_ARCHER_INTEL_FABM.fcm
 
   cd $CDIR
   # make your configuration (**ATTENTION**: here we choose to include in our configuration only OPA and TOP (no ice etc.))
@@ -74,8 +78,8 @@ the XIOS build.
 
   # changes the keys and copy MY_SRC to your configurations
   cd $CDIR/$CONFIG
-  cp $GITCLONE/NEMO-FABM-ERSEM/cpp_SEAsia_FABM.fcm cpp_$CONFIG.fcm
-  cp -r -f $GITCLONE/NEMO-FABM-ERSEM/MY_SRC ./
+  cp $GITCLONE/BUILD_CFG/cpp_SEAsia_FABM.fcm cpp_$CONFIG.fcm
+  cp -r -f $GITCLONE/BUILD_CFG/MY_SRC ./
 
   # Add fabm and ERSEM options in compiler (you can add or just copy the file)
   #in bldxag.cfg add
@@ -85,7 +89,7 @@ the XIOS build.
   #bld::excl_dep        use::fabm_driver
   #bld::excl_dep        use::fabm_version
   #OR instead take the ready file
-  cp $GITCLONE/NEMO-FABM-ERSEM/bldxag_FABM.cfg $NEMO/trunk_NEMOGCM_r8395/TOOLS/COMPILE/bldxag.cfg
+  cp $GITCLONE/BUILD_CFG/bldxag_FABM.cfg $WDIR/trunk_NEMOGCM_r8395/TOOLS/COMPILE/bldxag.cfg
 
   # Make configuration with all the above updates included
   cd $CDIR

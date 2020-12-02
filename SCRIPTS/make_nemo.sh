@@ -13,10 +13,14 @@ You need to obtain a NEMO account http://forge.ipsl.jussieu.fr/nemo/register
 Bare in mind that NEMO is being compiled for use with a particular version of
 XIOS. Ensure edits to ``%XIOS_HOME`` in the ``arch-*`` file are consistent with
 the XIOS build.
+
+This revision is referred to as NEMOvp4 (proceeds v4), as it contains some
+significant structural changes that were introduced in version 4, though much
+of the code is still at v3.6.
 '
 #::
 
-  cd $NEMO
+  cd $WDIR
   # Checkout the code from the paris repository
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
 
@@ -47,7 +51,7 @@ OPA_SRC only. Edit if you have other plans)
   ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
 
   # Finally move files to the required locations
-  cp  $XIOS_DIR/bin/xios_server.exe $EXP/xios_server.exe
+  cp $XIOS_DIR/bin/xios_server.exe $EXP/xios_server.exe
   cp $CDIR/$CONFIG/EXP00/* $EXP/
 
   cd $SCRIPTS
