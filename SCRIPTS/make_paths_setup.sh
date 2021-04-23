@@ -13,7 +13,7 @@
 #::
 
 # Paths required for initial setup
-export CONFIG=NEMO_FABM_ERSEM
+export CONFIG=SEAsia
 export WORK=/work/n01/n01/$USER
 export WDIR=$WORK/$CONFIG
 export CDIR=$WDIR/trunk_NEMOGCM_r8395/CONFIG
@@ -21,4 +21,4 @@ export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
 export XIOS_DIR=$WORK/xios-2.5
 export XIOS1_DIR=$WORK/xios-1.0
 export FABM=$WDIR/NEMO_fabm
-export GITCLONE=$WDIR/BUILD_CFG
+export GITCLONE=$WORK/NEMO-RELOC # Location of the git clone repo
