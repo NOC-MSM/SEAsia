@@ -1,16 +1,16 @@
 #!/bin/bash
 
-:'
-
-***********************
-main_setup.sh
-***********************
-
-Execute this script for end-to-end setup (assuming all the paths and modules
-are correct).
-The first part complete generic setup steps. The second part completes
-configuration specific steps.
-'
+#:'
+#
+#***********************
+#main_setup.sh
+#***********************
+#
+#Execute this script for end-to-end setup (assuming all the paths and modules
+#are correct).
+#The first part complete generic setup steps. The second part completes
+#configuration specific steps.
+#'
 #::
 
   # Generic setup steps

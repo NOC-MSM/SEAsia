@@ -1,18 +1,18 @@
 #!/bin/bash
 
-:'
-
-***********************
-make_xios.sh
-***********************
-
-Checkout and compile the XIOS2.5 executable for I/O management
-You need to obtain a NEMO account http://forge.ipsl.jussieu.fr/nemo/register
-
-Check the path in variable ``%XIOS_HOME`` in ``XC_ARCHER_INTEL_XIOS1`` and
-``arch-XC30_ARCHER`` are consistent with your settings
-
-'
+#:'
+#
+#***********************
+#make_xios.sh
+#***********************
+#
+#Checkout and compile the XIOS2.5 executable for I/O management
+#You need to obtain a NEMO account http://forge.ipsl.jussieu.fr/nemo/register
+#
+#Check the path in variable ``%XIOS_HOME`` in ``XC_ARCHER_INTEL_XIOS1`` and
+#``arch-XC30_ARCHER`` are consistent with your settings
+#
+#'
 #::
 
   cd $WDIR
@@ -38,11 +38,11 @@ Check the path in variable ``%XIOS_HOME`` in ``XC_ARCHER_INTEL_XIOS1`` and
 
 #::
 
-:'
-
-At the time of writing XIOS1 was needed to build the DOMAINcfg, REBUILD_NEMO and
-WEIGHTS tools. This is done as follows::
-'
+#:'
+#
+#At the time of writing XIOS1 was needed to build the DOMAINcfg, REBUILD_NEMO and
+#WEIGHTS tools. This is done as follows::
+#'
 
 #::
 

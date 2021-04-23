@@ -1,11 +1,11 @@
 #!/bin/bash
 
-:'
-
-***********************
-make_paths_setup.sh
-***********************
-'
+#:'
+#
+#***********************
+#make_paths_setup.sh
+#***********************
+#'
 
 # This script should be editted and sets all the directory paths that subsequently
 # used.

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-:'
-
-***********************
-make_directories_setup.sh
-***********************
-
-Create the expected directory structure.
-'
+#:'
+#
+#***********************
+#make_directories_setup.sh
+#***********************
+#
+#Create the expected directory structure.
+#'
 #::
 
   mkdir $SBC
