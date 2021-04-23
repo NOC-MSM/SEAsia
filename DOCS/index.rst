@@ -43,12 +43,10 @@ Generic steps in a configuration build
 Configuration specific build steps: SE Asia (1/12 deg) example:
 ***************************************************************
 
-
 .. toctree::
    :maxdepth: 1
 
    SEAsia
-
 
 
 

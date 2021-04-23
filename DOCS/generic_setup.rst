@@ -3,7 +3,7 @@ Machines used: CentOS7 linux box, Cray XC30 HPC (ARCHER)
 Having cloned the NEMO-RELOC repository, the  entire build process can be run
 with a single script ``SCRIPTS/main_setup.sh``. However the process is taken
 through step by step in the following. These first steps are generic and
- only need be done once for any number of configurations on the same architecture
+only need be done once for any number of configurations on the same architecture
 and code base. The second group of steps are configuration specific steps.
 
 
