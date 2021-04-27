@@ -19,9 +19,9 @@
   echo "Making Directories"
   . ./make_directories_setup.sh                  >> main_output_1.txt 2>&1
   echo "Installing XIOS_2.5 - this will take 5-10 mins"
-  . ./make_xios.sh                               >> main_output_1.txt 2>&1
+  . ./make_xios2p5.sh                               >> main_output_1.txt 2>&1
   echo "Compiling various grid tools"
-  . ./make_tools.sh                              >> main_output_1.txt 2>&1
+  . ./make_tools_new.sh                              >> main_output_1.txt 2>&1
   #echo "Installing NEMO-FABM-ERSEM - this will take a good 10/15 mins"
   #echo "WARNING - this automatically chooses OPA_SRC and TOP_SRC"
   #. ./make_nemo_fabm_ersem.sh                      >> main_output.txt 2>&1

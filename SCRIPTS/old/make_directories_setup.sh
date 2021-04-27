@@ -12,5 +12,7 @@
 
   mkdir $WDIR
   mkdir $XIOS_DIR
+  mkdir $TDIR
+
   mkdir $XIOS1_DIR
   mkdir $FABM

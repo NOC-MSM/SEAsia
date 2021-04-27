@@ -21,4 +21,6 @@ export TDIR=$WDIR/trunk_NEMOGCM_r8395/TOOLS
 export XIOS_DIR=$WORK/xios-2.5
 export XIOS1_DIR=$WORK/xios-1.0
 export FABM=$WDIR/NEMO_fabm
+
 export GITCLONE=$WORK/NEMO-RELOC # Location of the git clone repo
+export TDIR=$GITCLONE/BUILD_CFG/NEMO-TOOLS
