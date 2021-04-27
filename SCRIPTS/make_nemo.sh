@@ -19,7 +19,7 @@ the XIOS build.
 
   cd $WDIR
   # Checkout the code from the paris repository
-  svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
+  #svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
 
   # Checkout the NEMO code from the SVN Paris repository
   echo "Checking out NEMO repository"
@@ -36,14 +36,26 @@ the XIOS build.
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/NEMO/releases/r4.0/r$NEMO_VER/cfgs/SHARED $NEMO/cfgs/SHARED
   svn export http://forge.ipsl.jussieu.fr/nemo/svn/NEMO/releases/r4.0/r$NEMO_VER/cfgs/ref_cfgs.txt $NEMO/cfgs/ref_cfgs.txt
 
+  cd $NEMO
+  # Now check EXTERNALS revision number before checking out the rest
+  for ext_name in mk FCM IOIPSL
+    do
+    ext=`svn propget svn:externals | grep $ext_name | cut -c2-`
+    svn co http://forge.ipsl.jussieu.fr/nemo/svn/$ext
+  done
+
+  ext=`svn propget svn:externals | grep makenemo | cut -c2-`
+  svn export http://forge.ipsl.jussieu.fr/nemo/svn/$ext
+
+  mkdir arch
 
   exit;
-  
+
 
   # copy the appropriate architecture file into place
-  cp $GFILE/ARCH/arch-XC_ARCHER_INTEL.fcm $CDIR/../ARCH/
+  cp $WDIR/HPC_ARCH_FILES/NEMO/arch-X86_ARCHER2-Cray.fcm $NEMO/arch/arch-X86_ARCHER2-Cray.fcm
 
-  cd $CDIR
+  cd $NEMO/cfgs
 
 :'
 Start building...
