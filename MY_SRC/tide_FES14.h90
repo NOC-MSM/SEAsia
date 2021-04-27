@@ -1,17 +1,17 @@
    !!----------------------------------------------------------------------
    !! History :  3.2  !  2007  (O. Le Galloudec)  Original code
    !!----------------------------------------------------------------------
-   !! TIDES ADDED  ! 2017 (Nico Bruneau) 
-   !! Following this document that seems to match implemented code 
+   !! TIDES ADDED  ! 2017 (Nico Bruneau)
+   !! Following this document that seems to match implemented code
    !!    https://docs.lib.noaa.gov/rescue/cgs_specpubs/QB275U35no981924.pdf
    !! see page 189 for some proposed values
    !!
-   !! The convention which seems to have been chosen is the Shureman one and 
+   !! The convention which seems to have been chosen is the Shureman one and
    !! not the Cartwright and Tayer (1971)
-   !! This is probably due to the fact the Schureman has a solar calendar 
+   !! This is probably due to the fact the Schureman has a solar calendar
    !! while Cartwright and Tayer is based on a lunar calendar
    !!
-   !! Therefore the coefficient are not the Doodson number but the one 
+   !! Therefore the coefficient are not the Doodson number but the one
    !! defined by Schureman. For example :
    !! M2 : Doodson   : 2  0 0 0 0 0
    !!      Schureman : 2 -2 2 0 0 0
@@ -20,7 +20,7 @@
    !! Components >= 35 are the one that were initially present in NEMO and not in FES14
    !!                  keep in mind than equitide coefficient have been ajusted for the
    !!                  34 FES 2014 constituents
-   !! 
+   !!
    !! The different coefficient are as follows
    !!   - nt   = T  = Number of Julian centuries (36625 days) from Greenwich mean noon on December 31, 1899.
    !!               = Hour angle of mean sun
@@ -33,16 +33,16 @@
    !!   - nu0 Coefficient for the right ascension of lunar intersection
    !!   - nu1 Coefficient for the term in argument of lunisolar constituent K1
    !!   - nu2 Coefficient for the term in argument of lunisolar constituent K2
-   !!   - R = ??? 
-   !!   - Formula = Nodal factor function; see the table of Schureman. Implemented in tide_mod.F90 
-   !! 
+   !!   - R = ???
+   !!   - Formula = Nodal factor function; see the table of Schureman. Implemented in tide_mod.F90
+   !!
    !! The equitide parameter seems to be the equilibrium tide amplitude corrected
-   !! with the C_n^m coefficient: see Cartwright and Tayer (1971) equation 12 
+   !! with the C_n^m coefficient: see Cartwright and Tayer (1971) equation 12
    !! and Table 2
-   !! As an example in their Table 4c (p66), M2 (200000) has an amplitude of 
+   !! As an example in their Table 4c (p66), M2 (200000) has an amplitude of
    !! around 0.63186 m
    !! Table 2, give us a correction of m = 2, n = 2 (semi-diurnal)
-   !! 0.63186*3*sqrt( 5 / 96 / pi ) = 0.24407 
+   !! 0.63186*3*sqrt( 5 / 96 / pi ) = 0.24407
    !! very close to the one define originally here : 0.242297
    !! Third order terms are neglected
    !!
@@ -51,12 +51,12 @@
    !!    - diurnal   : Amplitude from CT71 * [ -3/2 * sqrt( 5 / 24 / pi ) ]
    !!    - semi-diur : Amplitude from CT71 * [  3   * sqrt( 5 / 96 / pi ) ]
    !!
-   !! ATTENTION: convention seems to be to have a positive coefficient and a 180 shift to 
+   !! ATTENTION: convention seems to be to have a positive coefficient and a 180 shift to
    !!            represent negative value. to be confirmed though.
    !!
    !! All equtide were computed using the last epocs from Cartwright and Tayer (1971) multiply by
    !! the corresponding coefficient of their table 2
-   !! 
+   !!
    !! nutide is used to compute tide potential - it uses a different formulation depending of nutide
    !! see sbctide.F90 in function tide_init_potential
    !!
@@ -111,4 +111,4 @@
    Wave(32) = tide(  'S4'     , 0.000000 ,    4   ,  4 ,  0 ,  0 ,  0 ,  0  ,    0  ,  0   ,  0   ,  0   ,  0   , 0 ,     0   )
    Wave(33) = tide(  'MN4'    , 0.000000 ,    4   ,  4 , -5 ,  4 ,  1 ,  0  ,    0  ,  4   , -4   ,  0   ,  0   , 0 ,     1   )
    Wave(34) = tide(  'MS4'    , 0.000000 ,    4   ,  4 , -2 ,  2 ,  0 ,  0  ,    0  ,  2   , -2   ,  0   ,  0   , 0 ,    78   )
-   ! 
+   !
