@@ -61,7 +61,7 @@ the XIOS build.
   # Add which modules are required for NEMO build
   #echo $CONFIG 'OCE' >> $NEMO/cfgs/work_cfgs.txt
 
-  # Build from a reference configuration
+  # Build from a reference configuration. This only uses OCE module
   cd $NEMO
   ./makenemo -n $CONFIG -r AMM12  -m X86_ARCHER2-Cray -j 16
 
@@ -69,35 +69,16 @@ the XIOS build.
   cp $NEMO/../cpp_file.fcm $NEMO/cfgs/$CONFIG/cpp_$CONFIG.fcm
   cp -rf $NEMO/../MY_SRC $NEMO/cfgs/$CONFIG/.
 
+  # Make a refence experiment directory with various dummy files to allow it to compile
+  mkdir $NEMO/cfgs/$CONFIG/EXPREF
+  cp $NEMO/cfgs/SHARED/*namelist* $NEMO/cfgs/$CONFIG/EXPREF/.
+  cp $NEMO/cfgs/SHARED/*.xml $NEMO/cfgs/$CONFIG/EXPREF/.
+
   #make configuration with updates included
   ./makenemo -r $CONFIG -m X86_ARCHER2-Cray -j 16 clean
   ./makenemo -r $CONFIG -m X86_ARCHER2-Cray -j 16
 
-
-
-
-
-
-  #mkdir $NEMO/cfgs/$CONFIG/EXPREF
-  #cp $NEMO/cfgs/SHARED/*namelist* $NEMO/cfgs/$CONFIG/EXPREF/.
-  #cp $NEMO/cfgs/SHARED/*.xml $NEMO/cfgs/$CONFIG/EXPREF/.
-
-
-:'
-Start building...
-The prescribed options make a new config directory structure and say say YES to
-OPA_SRC only. Edit if you have other plans)
-'#::
-
-
-
-
-
-
-
-  # Finally move files to the required locations
-  cp $XIOS_DIR/bin/xios_server.exe $EXP/xios_server.exe
-  cp $CDIR/$CONFIG/EXP00/* $EXP/
+  echo "Executable is $NEMO/cfgs/$CONFIG/BLD/bin/nemo.exe"
 
 
   #::
