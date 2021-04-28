@@ -25,7 +25,7 @@ svn checkout -r 1964 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios
 cd $XIOS_DIR
 
 #copy the arch files to build location
-cp $WDIR/HPC_ARCH_FILES/NEMO/arch-X86_ARCHER2-Cray.* $XIOS_DIR/arch/.
+cp $WDIR/HPC_ARCH_FILES/XIOS/arch-X86_ARCHER2-Cray.* $XIOS_DIR/arch/.
 
 #compile xios
 ./make_xios --prod --arch X86_ARCHER2-Cray --netcdf_lib netcdf4_par --job 16 --full
