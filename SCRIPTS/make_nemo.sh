@@ -16,6 +16,8 @@ the XIOS build.
 
 '
 #::
+  #load modules
+  module -s restore /work/n01/shared/acc/n01_modules/ucx_env
 
   cd $WDIR
   # Checkout the code from the paris repository
@@ -34,6 +36,7 @@ the XIOS build.
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/NEMO/releases/r4.0/r$NEMO_VER --depth empty $NEMO
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/NEMO/releases/r4.0/r$NEMO_VER/src --depth infinity $NEMO/src
   svn co http://forge.ipsl.jussieu.fr/nemo/svn/NEMO/releases/r4.0/r$NEMO_VER/cfgs/SHARED $NEMO/cfgs/SHARED
+  svn co http://forge.ipsl.jussieu.fr/nemo/svn/NEMO/releases/r4.0/r$NEMO_VER/cfgs/AMM12 $NEMO/cfgs/AMM12
   svn export http://forge.ipsl.jussieu.fr/nemo/svn/NEMO/releases/r4.0/r$NEMO_VER/cfgs/ref_cfgs.txt $NEMO/cfgs/ref_cfgs.txt
 
   cd $NEMO
@@ -47,15 +50,38 @@ the XIOS build.
   ext=`svn propget svn:externals | grep makenemo | cut -c2-`
   svn export http://forge.ipsl.jussieu.fr/nemo/svn/$ext
 
-  mkdir arch
-
-  exit;
-
+  cd $NEMO/ext/FCM/lib/Fcm
+  sed -e "s/FC_MODSEARCH => '',  /FC_MODSEARCH => '-J',/" Config.pm > tmp_file
+  mv tmp_file Config.pm
 
   # copy the appropriate architecture file into place
+  mkdir $NEMO/arch
   cp $WDIR/HPC_ARCH_FILES/NEMO/arch-X86_ARCHER2-Cray.fcm $NEMO/arch/arch-X86_ARCHER2-Cray.fcm
 
-  cd $NEMO/cfgs
+  # Add which modules are required for NEMO build
+  #echo $CONFIG 'OCE' >> $NEMO/cfgs/work_cfgs.txt
+
+  # Build from a reference configuration
+  cd $NEMO
+  ./makenemo -n $CONFIG -r AMM12  -m X86_ARCHER2-Cray -j 16
+
+  #changes the keys and copy MY_SRC to your configurations
+  cp $NEMO/../cpp_file.fcm $NEMO/cfgs/$CONFIG/cpp_$CONFIG.fcm
+  cp -rf $NEMO/../MY_SRC $NEMO/cfgs/$CONFIG/.
+
+  #make configuration with updates included
+  ./makenemo -r $CONFIG -m X86_ARCHER2-Cray -j 16 clean
+  ./makenemo -r $CONFIG -m X86_ARCHER2-Cray -j 16
+
+
+
+
+
+
+  #mkdir $NEMO/cfgs/$CONFIG/EXPREF
+  #cp $NEMO/cfgs/SHARED/*namelist* $NEMO/cfgs/$CONFIG/EXPREF/.
+  #cp $NEMO/cfgs/SHARED/*.xml $NEMO/cfgs/$CONFIG/EXPREF/.
+
 
 :'
 Start building...
@@ -63,25 +89,15 @@ The prescribed options make a new config directory structure and say say YES to
 OPA_SRC only. Edit if you have other plans)
 '#::
 
-  printf 'y\nn\nn\nn\nn\nn\nn\nn\n' | ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
-  # The previous command will fail but it has established some structures
-  # continue with...
-  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10 clean
 
-  ## Copy cloned files into their appropriate locations
-  # FORTRAN modifications
-  cp $GFILE/f_files/* $CDIR/$CONFIG/MY_SRC/.
-  cp $WORK/MY_SRC/* $CDIR/$CONFIG/MY_SRC/.
-  # copy the list of compiler flags
-  cp $GFILE/cpp_SANH.fcm $CONFIG/cpp_$CONFIG.fcm
 
-  # Then we are ready to compile NEMO
-  ./makenemo -n $CONFIG -m XC_ARCHER_INTEL -j 10
+
+
+
 
   # Finally move files to the required locations
   cp $XIOS_DIR/bin/xios_server.exe $EXP/xios_server.exe
   cp $CDIR/$CONFIG/EXP00/* $EXP/
 
-  cd $SCRIPTS
 
   #::
