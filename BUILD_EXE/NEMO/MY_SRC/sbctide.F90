@@ -15,9 +15,8 @@ MODULE sbctide
    USE iom            ! xIOs server
    USE ioipsl         ! NetCDF IPSL library
    USE lbclnk         ! ocean lateral boundary conditions (or mpp link)
-   ! NB - to access love number 
-   USE bdytides
-   ! END NB
+
+   USE bdytides ! davbyr - Access to love number
 
    IMPLICIT NONE
    PUBLIC
@@ -32,11 +31,12 @@ MODULE sbctide
    !!----------------------------------------------------------------------
 
    REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) ::   amp_pot, phi_pot
-
+   REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) ::   amp_load, phi_load
+ 
    !!----------------------------------------------------------------------
-   !! NEMO/OPA 3.5 , NEMO Consortium (2013)
-   !! $Id: sbctide.F90 7646 2017-02-06 09:25:03Z timgraham $
-   !! Software governed by the CeCILL licence     (NEMOGCM/NEMO_CeCILL.txt)
+   !! NEMO/OCE 4.0 , NEMO Consortium (2018)
+   !! $Id$
+   !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
 
@@ -51,13 +51,22 @@ CONTAINS
       
       IF( nsec_day == NINT(0.5_wp * rdt) .OR. kt == nit000 ) THEN      ! start a new day
          !
-         IF( kt == nit000 ) THEN
+         IF( kt == nit000 )THEN
             ALLOCATE( amp_pot(jpi,jpj,nb_harmo),                      &
                &      phi_pot(jpi,jpj,nb_harmo), pot_astro(jpi,jpj)   )
+            IF( ln_read_load )THEN
+               ALLOCATE( amp_load(jpi,jpj,nb_harmo), phi_load(jpi,jpj,nb_harmo) )
+               CALL tide_init_load
+            ENDIF
          ENDIF
          !
-         amp_pot(:,:,:) = 0._wp
-         phi_pot(:,:,:) = 0._wp
+         IF( ln_read_load )THEN
+            amp_pot(:,:,:) = amp_load(:,:,:)
+            phi_pot(:,:,:) = phi_load(:,:,:)
+         ELSE 
+            amp_pot(:,:,:) = 0._wp
+            phi_pot(:,:,:) = 0._wp
+         ENDIF
          pot_astro(:,:) = 0._wp
          !
          ! If the run does not start from midnight then need to initialise tides
@@ -100,25 +109,22 @@ CONTAINS
       !!----------------------------------------------------------------------
 
       DO jk = 1, nb_harmo
-!--- NB 11/2017
-! love number now provides in tide namelist
+         ! davbyr - Insert variable Love number where once was 0.7
          zcons = dn_love_number * Wave(ntide(jk))%equitide * ftide(jk)
-! ORIGINAL zcons = 0.7_wp * Wave(ntide(jk))%equitide * ftide(jk)
-!--- END NB
+         ! END davbyr
          DO ji = 1, jpi
             DO jj = 1, jpj
-               ztmp1 =  amp_pot(ji,jj,jk) * COS( phi_pot(ji,jj,jk) )
-               ztmp2 = -amp_pot(ji,jj,jk) * SIN( phi_pot(ji,jj,jk) )
+               ztmp1 =  ftide(jk) * amp_pot(ji,jj,jk) * COS( phi_pot(ji,jj,jk) + v0tide(jk) + utide(jk) )
+               ztmp2 = -ftide(jk) * amp_pot(ji,jj,jk) * SIN( phi_pot(ji,jj,jk) + v0tide(jk) + utide(jk) )
                zlat = gphit(ji,jj)*rad !! latitude en radian
                zlon = glamt(ji,jj)*rad !! longitude en radian
                ztmp = v0tide(jk) + utide(jk) + Wave(ntide(jk))%nutide * zlon
                ! le potentiel est composé des effets des astres:
                IF    ( Wave(ntide(jk))%nutide == 1 )  THEN  ;  zcs = zcons * SIN( 2._wp*zlat )
                ELSEIF( Wave(ntide(jk))%nutide == 2 )  THEN  ;  zcs = zcons * COS( zlat )**2
-!--- NB 11/2017
-! Add tide potential for long period tides
+               ! davbyr - Include long period tidal forcing
                ELSEIF( Wave(ntide(jk))%nutide == 0 )  THEN  ;  zcs = zcons * (0.5_wp-1.5_wp*SIN(zlat)**2._wp)
-!--- END NB
+               ! END - davbyr
                ELSE                                         ;  zcs = 0._wp
                ENDIF
                ztmp1 = ztmp1 + zcs * COS( ztmp )
@@ -132,6 +138,38 @@ CONTAINS
       END DO
       !
    END SUBROUTINE tide_init_potential
+
+   SUBROUTINE tide_init_load
+      !!----------------------------------------------------------------------
+      !!                 ***  ROUTINE tide_init_load  ***
+      !!----------------------------------------------------------------------
+      INTEGER :: inum                 ! Logical unit of input file
+      INTEGER :: ji, jj, itide        ! dummy loop indices
+      REAL(wp), DIMENSION(jpi,jpj) ::   ztr, zti   !: workspace to read in tidal harmonics data 
+      !!----------------------------------------------------------------------
+      IF(lwp) THEN
+         WRITE(numout,*)
+         WRITE(numout,*) 'tide_init_load : Initialization of load potential from file'
+         WRITE(numout,*) '~~~~~~~~~~~~~~ '
+      ENDIF
+      !
+      CALL iom_open ( cn_tide_load , inum )
+      !
+      DO itide = 1, nb_harmo
+         CALL iom_get  ( inum, jpdom_data,TRIM(Wave(ntide(itide))%cname_tide)//'_z1', ztr(:,:) )
+         CALL iom_get  ( inum, jpdom_data,TRIM(Wave(ntide(itide))%cname_tide)//'_z2', zti(:,:) )
+         !
+         DO ji=1,jpi
+            DO jj=1,jpj
+               amp_load(ji,jj,itide) =  SQRT( ztr(ji,jj)**2. + zti(ji,jj)**2. )
+               phi_load(ji,jj,itide) = ATAN2(-zti(ji,jj), ztr(ji,jj) )
+            END DO
+         END DO
+         !
+      END DO
+      CALL iom_close( inum )
+      !
+   END SUBROUTINE tide_init_load
 
   !!======================================================================
 END MODULE sbctide

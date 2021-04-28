@@ -15,14 +15,8 @@ MODULE tide_mod
    PUBLIC   tide_harmo       ! called by tideini and diaharm modules
    PUBLIC   tide_init_Wave   ! called by tideini and diaharm modules
 
-!--- NB - extend number of constituents for tide
-# if defined key_FES14_tides
+   ! davbyr: increase maximum number of harmonics from 19 to 34
    INTEGER, PUBLIC, PARAMETER ::   jpmax_harmo = 34   !: maximum number of harmonic
-# else
-   INTEGER, PUBLIC, PARAMETER ::   jpmax_harmo = 19   !: maximum number of harmonic
-# endif
-!--- END NB
-
 
    TYPE, PUBLIC ::    tide
       CHARACTER(LEN=4) ::   cname_tide
@@ -40,20 +34,14 @@ MODULE tide_mod
    REAL(wp) ::   sh_I, sh_x1ra, sh_N                       !
 
    !!----------------------------------------------------------------------
-   !! NEMO/OPA 3.3 , LOCEAN-IPSL (2010) 
-   !! $Id: tide_mod.F90 5215 2015-04-15 16:11:56Z nicolasmartin $ 
-   !! Software governed by the CeCILL licence (modipsl/doc/NEMO_CeCILL.txt)
+   !! NEMO/OCE 4.0 , NEMO Consortium (2018)
+   !! $Id$
+   !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
 
    SUBROUTINE tide_init_Wave
-!! NB
-# if defined key_FES14_tides
-#     include "tide_FES14.h90"
-# else
-!! END NB
 #     include "tide.h90"
-# endif
    END SUBROUTINE tide_init_Wave
 
 
@@ -300,7 +288,7 @@ CONTAINS
       CASE( 11 )                 !==  formule 11,  compound waves (75 x 0)
 !!gm bug???? zf 2 fois !
          zf = nodal_factort(75)
-         zf = nodal_factort( 0)
+         zf1 = nodal_factort( 0)
          zf = zf * zf1
          !
       CASE( 12 )                 !==  formule 12,  compound waves (78 x 78 x 78 x 0) 
@@ -343,12 +331,12 @@ CONTAINS
          zf1 = nodal_factort( 0)
          zf = zf * zf1 * zf1
          !
-!--- NB 11/2017
+         
+      !--- davbyr 11/2017
       CASE( 20 )                 !==  formule 20,  compound waves ( 78 x 78 x 78 x 78 )
          zf1 = nodal_factort(78)
          zf  = zf1 * zf1 * zf1 * zf1
-!--- END NB
-!
+      !--- END davbyr
       CASE( 73 )                 !==  formule 73
          zs = sin(sh_I)
          zf = (2./3.-zs*zs)/0.5021

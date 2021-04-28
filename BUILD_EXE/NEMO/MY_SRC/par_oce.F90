@@ -40,26 +40,22 @@ MODULE par_oce
    INTEGER       ::   jpjglo           !: 2nd    -                  -    --> j-direction
    INTEGER       ::   jpkglo           !: 3nd    -                  -    --> k levels
 
-#if defined key_agrif
-
-!!gm  BUG ?   I'm surprised by the calculation below of nbcellsx and nbcellsy before jpiglo,jpjglo 
-!!gm                           has been assigned to a value....
-!!gm
-
    ! global domain size for AGRIF     !!! * total AGRIF computational domain *
-   INTEGER, PUBLIC, PARAMETER ::   nbghostcells = 1                             !: number of ghost cells
-   INTEGER, PUBLIC            ::   nbcellsx     = jpiglo - 2 - 2*nbghostcells   !: number of cells in i-direction
-   INTEGER, PUBLIC            ::   nbcellsy     = jpjglo - 2 - 2*nbghostcells   !: number of cells in j-direction
-#endif
+   INTEGER, PUBLIC            ::   nbug_in_agrif_conv_do_not_remove_or_modify = 1 - 1
+   INTEGER, PUBLIC, PARAMETER ::   nbghostcells = 3                             !: number of ghost cells
+   INTEGER, PUBLIC            ::   nbcellsx   ! = jpiglo - 2 - 2*nbghostcells   !: number of cells in i-direction
+   INTEGER, PUBLIC            ::   nbcellsy   ! = jpjglo - 2 - 2*nbghostcells   !: number of cells in j-direction
 
    ! local domain size                !!! * local computational domain *
-   INTEGER, PUBLIC ::   jpi   ! = ( jpiglo-2*jpreci + (jpni-1) ) / jpni + 2*jpreci   !: first  dimension
-   INTEGER, PUBLIC ::   jpj   ! = ( jpjglo-2*jprecj + (jpnj-1) ) / jpnj + 2*jprecj   !: second dimension
-   INTEGER, PUBLIC ::   jpk   ! = jpkglo
+   INTEGER, PUBLIC ::   jpi   !                                                    !: first  dimension
+   INTEGER, PUBLIC ::   jpj   !                                                    !: second dimension
+   INTEGER, PUBLIC ::   jpk   ! = jpkglo                                           !: third  dimension
    INTEGER, PUBLIC ::   jpim1 ! = jpi-1                                            !: inner domain indices
    INTEGER, PUBLIC ::   jpjm1 ! = jpj-1                                            !:   -     -      -
    INTEGER, PUBLIC ::   jpkm1 ! = jpk-1                                            !:   -     -      -
    INTEGER, PUBLIC ::   jpij  ! = jpi*jpj                                          !:  jpi x jpj
+   INTEGER, PUBLIC ::   jpimax! = ( jpiglo-2*nn_hls + (jpni-1) ) / jpni + 2*nn_hls !: maximum jpi
+   INTEGER, PUBLIC ::   jpjmax! = ( jpjglo-2*nn_hls + (jpnj-1) ) / jpnj + 2*nn_hls !: maximum jpj
 
    !!---------------------------------------------------------------------
    !! Active tracer parameters
@@ -67,9 +63,9 @@ MODULE par_oce
    INTEGER, PUBLIC, PARAMETER ::   jpts   = 2    !: Number of active tracers (=2, i.e. T & S )
    INTEGER, PUBLIC, PARAMETER ::   jp_tem = 1    !: indice for temperature
    INTEGER, PUBLIC, PARAMETER ::   jp_sal = 2    !: indice for salinity
+   !annkat
    INTEGER, PUBLIC, PARAMETER ::   jp_dep = 3    !: indice for depth
-   INTEGER, PUBLIC, PARAMETER ::   jp_msk = 4    !: indice for depth
-
+   INTEGER, PUBLIC, PARAMETER ::   jp_msk = 4    !: indice for mask
    !!----------------------------------------------------------------------
    !!   Domain decomposition
    !!----------------------------------------------------------------------
@@ -79,12 +75,11 @@ MODULE par_oce
    INTEGER, PUBLIC            ::   jpnij        !: nb of local domain = nb of processors ( <= jpni x jpnj )
    INTEGER, PUBLIC, PARAMETER ::   jpr2di = 0   !: number of columns for extra outer halo 
    INTEGER, PUBLIC, PARAMETER ::   jpr2dj = 0   !: number of rows    for extra outer halo 
-   INTEGER, PUBLIC, PARAMETER ::   jpreci = 1   !: number of columns for overlap 
-   INTEGER, PUBLIC, PARAMETER ::   jprecj = 1   !: number of rows    for overlap 
+   INTEGER, PUBLIC, PARAMETER ::   nn_hls = 1   !: halo width (applies to both rows and columns)
 
    !!----------------------------------------------------------------------
-   !! NEMO/OPA 4.0 , NEMO Consortium (2016)
-   !! $Id: par_oce.F90 7646 2017-02-06 09:25:03Z timgraham $ 
-   !! Software governed by the CeCILL licence (NEMOGCM/NEMO_CeCILL.txt)
+   !! NEMO/OCE 4.0 , NEMO Consortium (2018)
+   !! $Id$
+   !! Software governed by the CeCILL license (see ./LICENSE)
    !!======================================================================
 END MODULE par_oce

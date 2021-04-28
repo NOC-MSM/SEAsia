@@ -8,41 +8,44 @@ MODULE dtatsd
    !!            8.0  ! 1999-10  (M.A. Foujols, M. Imbard)  NetCDF FORMAT 
    !!   NEMO     1.0  ! 2002-06  (G. Madec)  F90: Free form and module 
    !!            3.3  ! 2010-10  (C. Bricaud, S. Masson)  use of fldread
-   !!            3.4  ! 2010-11  (G. Madec, C. Ethe) Merge of dtatem and dtasal + suppression of CPP keys
+   !!            3.4  ! 2010-11  (G. Madec, C. Ethe) Merge of dtatem and dtasal + remove CPP keys
    !!----------------------------------------------------------------------
 
    !!----------------------------------------------------------------------
    !!   dta_tsd      : read and time interpolated ocean Temperature & Salinity Data
    !!----------------------------------------------------------------------
    USE oce             ! ocean dynamics and tracers
+   USE phycst          ! physical constants
    USE dom_oce         ! ocean space and time domain
    USE fldread         ! read input fields
+   !
    USE in_out_manager  ! I/O manager
-   USE phycst          ! physical constants
    USE lib_mpp         ! MPP library
-   USE wrk_nemo        ! Memory allocation
-   USE timing          ! Timing
    USE iom
-
+   
    IMPLICIT NONE
    PRIVATE
 
    PUBLIC   dta_tsd_init   ! called by opa.F90
    PUBLIC   dta_tsd        ! called by istate.F90 and tradmp.90
 
-   LOGICAL , PUBLIC ::   ln_tsd_init      !: T & S data flag
-   LOGICAL , PUBLIC ::   ln_tsd_interp    !: vertical interpolation flag
-   LOGICAL , PUBLIC ::   ln_tsd_tradmp    !: internal damping toward input data flag
+   !                                  !!* namtsd  namelist : Temperature & Salinity Data *
+   LOGICAL , PUBLIC ::   ln_tsd_init   !: T & S data flag
+   LOGICAL , PUBLIC ::   ln_tsd_interp !: vertical interpolation flag
+   LOGICAL , PUBLIC ::   ln_tsd_dmp    !: internal damping toward input data flag
+   INTEGER , PUBLIC ::   nn_tsd_zone    !: 1=AMM7 July on-shelf, 2=AMM7 July off-shelf, 3=AMM7 Jan on-shelf, 4=AMM7 Jan off-shelf
+   REAL(wp), PUBLIC ::   rn_sal_sf, rn_mld_sf, rn_maxdep_sf, rn_c0_sf, rn_c1_sf
 
    TYPE(FLD), ALLOCATABLE, DIMENSION(:) ::   sf_tsd   ! structure of input SST (file informations, fields read)
    INTEGER                                 ::   jpk_init , inum_dta
    INTEGER                                 ::   id ,linum   ! local integers
    INTEGER                                 ::   zdim(4)
 
+
    !!----------------------------------------------------------------------
-   !! NEMO/OPA 3.3 , NEMO Consortium (2010)
-   !! $Id: dtatsd.F90 7753 2017-03-03 11:46:59Z mocavero $ 
-   !! Software governed by the CeCILL licence     (NEMOGCM/NEMO_CeCILL.txt)
+   !! NEMO/OCE 4.0 , NEMO Consortium (2018)
+   !! $Id: dtatsd.F90 10213 2018-10-23 14:40:09Z aumont $ 
+   !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
 
@@ -64,24 +67,22 @@ CONTAINS
       TYPE(FLD_N)                   ::   sn_tem, sn_sal, sn_dep, sn_msk
       
       !!
-      NAMELIST/namtsd/   ln_tsd_init, ln_tsd_interp, ln_tsd_tradmp, cn_dir, sn_tem, sn_sal, sn_dep, sn_msk
+      NAMELIST/namtsd/   ln_tsd_init, ln_tsd_interp, ln_tsd_dmp, cn_dir, sn_tem, sn_sal, sn_dep, sn_msk, nn_tsd_zone,   &
+                         rn_sal_sf, rn_mld_sf, rn_maxdep_sf, rn_c0_sf, rn_c1_sf 
       !!----------------------------------------------------------------------
-      !
-      IF( nn_timing == 1 )  CALL timing_start('dta_tsd_init')
       !
       !  Initialisation
       ierr0 = 0  ;  ierr1 = 0  ;  ierr2 = 0  ;  ierr3 = 0  ; ierr4 = 0  ;  ierr5 = 0 
       !
       REWIND( numnam_ref )              ! Namelist namtsd in reference namelist : 
       READ  ( numnam_ref, namtsd, IOSTAT = ios, ERR = 901)
-901   IF( ios /= 0 ) CALL ctl_nam ( ios , 'namtsd in reference namelist', lwp )
-
+901   IF( ios /= 0 )   CALL ctl_nam ( ios , 'namtsd in reference namelist' )
       REWIND( numnam_cfg )              ! Namelist namtsd in configuration namelist : Parameters of the run
       READ  ( numnam_cfg, namtsd, IOSTAT = ios, ERR = 902 )
-902   IF( ios /= 0 ) CALL ctl_nam ( ios , 'namtsd in configuration namelist', lwp )
+902   IF( ios >  0 )   CALL ctl_nam ( ios , 'namtsd in configuration namelist' )
       IF(lwm) WRITE ( numond, namtsd )
 
-      IF( PRESENT( ld_tradmp ) )   ln_tsd_tradmp = .TRUE.     ! forces the initialization when tradmp is used
+      IF( PRESENT( ld_tradmp ) )   ln_tsd_dmp = .TRUE.     ! forces the initialization when tradmp is used
       
       IF(lwp) THEN                  ! control print
          WRITE(numout,*)
@@ -89,12 +90,12 @@ CONTAINS
          WRITE(numout,*) '~~~~~~~~~~~~ '
          WRITE(numout,*) '   Namelist namtsd'
          WRITE(numout,*) '      Initialisation of ocean T & S with T &S input data   ln_tsd_init   = ', ln_tsd_init
-         WRITE(numout,*) '      iInterpolation of initial conditions in the vertical ln_tsd_interp = ', ln_tsd_interp
-         WRITE(numout,*) '      damping of ocean T & S toward T &S input data        ln_tsd_tradmp = ', ln_tsd_tradmp
+         WRITE(numout,*) '      Interpolation of initial conditions in the vertical  ln_tsd_interp = ', ln_tsd_interp
+         WRITE(numout,*) '      damping of ocean T & S toward T &S input data        ln_tsd_dmp    = ', ln_tsd_dmp
          WRITE(numout,*)
-         IF( .NOT.ln_tsd_init .AND. .NOT.ln_tsd_tradmp ) THEN
+         IF( .NOT.ln_tsd_init .AND. .NOT.ln_tsd_dmp ) THEN
             WRITE(numout,*)
-            WRITE(numout,*) '   T & S data not used'
+            WRITE(numout,*) '   ===>>   T & S data not used'
          ENDIF
       ENDIF
       !
@@ -103,7 +104,7 @@ CONTAINS
             &           'we keep the restart T & S values and set ln_tsd_init to FALSE' )
          ln_tsd_init = .FALSE.
       ENDIF
-      IF( ln_tsd_interp .AND. ln_tsd_tradmp ) THEN
+      IF( ln_tsd_interp .AND. ln_tsd_dmp ) THEN
             CALL ctl_stop( 'dta_tsd_init: Tracer damping and vertical interpolation not yet configured' )   ;   RETURN
       ENDIF
       IF( ln_tsd_interp .AND. LEN(TRIM(sn_msk%wname)) > 0 ) THEN
@@ -111,7 +112,7 @@ CONTAINS
       ENDIF
       !
       !                             ! allocate the arrays (if necessary)
-      IF(  ln_tsd_init .OR. ln_tsd_tradmp  ) THEN
+      IF( ln_tsd_init .OR. ln_tsd_dmp ) THEN
          !
          IF( ln_tsd_interp ) THEN
            ALLOCATE( sf_tsd(jpts+2), STAT=ierr0 ) ! to carry the addtional depth information
@@ -122,12 +123,16 @@ CONTAINS
             CALL ctl_stop( 'dta_tsd_init: unable to allocate sf_tsd structure' )   ;   RETURN
          ENDIF
          !
+         slf_i(jp_tem) = sn_tem   ;   slf_i(jp_sal) = sn_sal
+         IF( ln_tsd_interp ) slf_i(jp_dep) = sn_dep   ;   slf_i(jp_msk) = sn_msk
+         CALL fld_fill( sf_tsd, slf_i, cn_dir, 'dta_tsd', 'Temperature & Salinity data', 'namtsd' )
+
          IF( ln_tsd_interp ) THEN
-            CALL iom_open ( trim(cn_dir) // trim(sn_dep%clname), inum_dta ) 
-            id = iom_varid( inum_dta, sn_dep%clvar, zdim )
+            CALL fld_clopn ( sf_tsd(jp_dep) ) 
+            IF(lwp) WRITE(numout,*) 'INFO: ', sf_tsd(jp_dep)%num, sn_dep%clvar
+            id = iom_varid( sf_tsd(jp_dep)%num, sn_dep%clvar, zdim )
             jpk_init = zdim(3)
             IF(lwp) WRITE(numout,*) 'Dimension of veritcal coordinate in ICs: ', jpk_init
-            CALL iom_close( inum_dta )   ! Close the input file
             !
                                  ALLOCATE( sf_tsd(jp_tem)%fnow(jpi,jpj,jpk_init  ) , STAT=ierr0 )
             IF( sn_tem%ln_tint ) ALLOCATE( sf_tsd(jp_tem)%fdta(jpi,jpj,jpk_init,2) , STAT=ierr1 )
@@ -148,12 +153,9 @@ CONTAINS
          ENDIF
          !                         ! fill sf_tsd with sn_tem & sn_sal and control print
          slf_i(jp_tem) = sn_tem   ;   slf_i(jp_sal) = sn_sal
-         IF( ln_tsd_interp ) slf_i(jp_dep) = sn_dep   ;   slf_i(jp_msk) = sn_msk
          CALL fld_fill( sf_tsd, slf_i, cn_dir, 'dta_tsd', 'Temperature & Salinity data', 'namtsd', no_print )
          !
       ENDIF
-      !
-      IF( nn_timing == 1 )  CALL timing_stop('dta_tsd_init')
       !
    END SUBROUTINE dta_tsd_init
 
@@ -168,7 +170,7 @@ CONTAINS
       !!              - ORCA_R2: add some hand made alteration to read data  
       !!              - 'key_orca_lev10' interpolates on 10 times more levels
       !!              - s- or mixed z-s coordinate: vertical interpolation on model mesh
-      !!              - ln_tsd_tradmp=F: deallocates the T-S data structure
+      !!              - ln_tsd_dmp=F: deallocates the T-S data structure
       !!                as T-S data are no are used
       !!
       !! ** Action  :   ptsd   T-S data on medl mesh and interpolated at time-step kt
@@ -177,11 +179,9 @@ CONTAINS
       REAL(wp), DIMENSION(jpi,jpj,jpk,jpts), INTENT(  out) ::   ptsd   ! T & S data
       !
       INTEGER ::   ji, jj, jk, jl, jk_init   ! dummy loop indicies
-      INTEGER ::   ik, il0, il1, ii0, ii1, ij0, ij1        ! local integers
-      REAL(wp)::   zl, zi
+      INTEGER ::   ik, il0, il1, ii0, ii1, ij0, ij1   ! local integers
+      REAL(wp)::   zl, zi                             ! local scalars
       !!----------------------------------------------------------------------
-      !
-      IF( nn_timing == 1 )  CALL timing_start('dta_tsd')
       !
       CALL fld_read( kt, 1, sf_tsd )      !==   read T & S data at kt time step   ==!
       !
@@ -189,37 +189,38 @@ CONTAINS
 !!gm  This should be removed from the code   ===>>>>  T & S files has to be changed
       !
       !                                   !==   ORCA_R2 configuration and T & S damping   ==! 
-      IF( cn_cfg == "orca" .AND. nn_cfg == 2 .AND. ln_tsd_tradmp ) THEN    ! some hand made alterations
-         !
-         ij0 = 101   ;   ij1 = 109                       ! Reduced T & S in the Alboran Sea
-         ii0 = 141   ;   ii1 = 155
-         DO jj = mj0(ij0), mj1(ij1)
-            DO ji = mi0(ii0), mi1(ii1)
-               sf_tsd(jp_tem)%fnow(ji,jj,13:13) = sf_tsd(jp_tem)%fnow(ji,jj,13:13) - 0.20_wp
-               sf_tsd(jp_tem)%fnow(ji,jj,14:15) = sf_tsd(jp_tem)%fnow(ji,jj,14:15) - 0.35_wp
-               sf_tsd(jp_tem)%fnow(ji,jj,16:25) = sf_tsd(jp_tem)%fnow(ji,jj,16:25) - 0.40_wp
-               !
-               sf_tsd(jp_sal)%fnow(ji,jj,13:13) = sf_tsd(jp_sal)%fnow(ji,jj,13:13) - 0.15_wp
-               sf_tsd(jp_sal)%fnow(ji,jj,14:15) = sf_tsd(jp_sal)%fnow(ji,jj,14:15) - 0.25_wp
-               sf_tsd(jp_sal)%fnow(ji,jj,16:17) = sf_tsd(jp_sal)%fnow(ji,jj,16:17) - 0.30_wp
-               sf_tsd(jp_sal)%fnow(ji,jj,18:25) = sf_tsd(jp_sal)%fnow(ji,jj,18:25) - 0.35_wp
+      IF( cn_cfg == "orca" .OR. cn_cfg == "ORCA" ) THEN
+         IF( nn_cfg == 2 .AND. ln_tsd_dmp ) THEN    ! some hand made alterations
+            !
+            ij0 = 101   ;   ij1 = 109                       ! Reduced T & S in the Alboran Sea
+            ii0 = 141   ;   ii1 = 155
+            DO jj = mj0(ij0), mj1(ij1)
+               DO ji = mi0(ii0), mi1(ii1)
+                  sf_tsd(jp_tem)%fnow(ji,jj,13:13) = sf_tsd(jp_tem)%fnow(ji,jj,13:13) - 0.20_wp
+                  sf_tsd(jp_tem)%fnow(ji,jj,14:15) = sf_tsd(jp_tem)%fnow(ji,jj,14:15) - 0.35_wp
+                  sf_tsd(jp_tem)%fnow(ji,jj,16:25) = sf_tsd(jp_tem)%fnow(ji,jj,16:25) - 0.40_wp
+                  !
+                  sf_tsd(jp_sal)%fnow(ji,jj,13:13) = sf_tsd(jp_sal)%fnow(ji,jj,13:13) - 0.15_wp
+                  sf_tsd(jp_sal)%fnow(ji,jj,14:15) = sf_tsd(jp_sal)%fnow(ji,jj,14:15) - 0.25_wp
+                  sf_tsd(jp_sal)%fnow(ji,jj,16:17) = sf_tsd(jp_sal)%fnow(ji,jj,16:17) - 0.30_wp
+                  sf_tsd(jp_sal)%fnow(ji,jj,18:25) = sf_tsd(jp_sal)%fnow(ji,jj,18:25) - 0.35_wp
+               END DO
             END DO
-         END DO
-         ij0 =  87   ;   ij1 =  96                          ! Reduced temperature in Red Sea
-         ii0 = 148   ;   ii1 = 160
-         sf_tsd(jp_tem)%fnow( mi0(ii0):mi1(ii1) , mj0(ij0):mj1(ij1) ,  4:10 ) = 7.0_wp
-         sf_tsd(jp_tem)%fnow( mi0(ii0):mi1(ii1) , mj0(ij0):mj1(ij1) , 11:13 ) = 6.5_wp
-         sf_tsd(jp_tem)%fnow( mi0(ii0):mi1(ii1) , mj0(ij0):mj1(ij1) , 14:20 ) = 6.0_wp
+            ij0 =  87   ;   ij1 =  96                          ! Reduced temperature in Red Sea
+            ii0 = 148   ;   ii1 = 160
+            sf_tsd(jp_tem)%fnow( mi0(ii0):mi1(ii1) , mj0(ij0):mj1(ij1) ,  4:10 ) = 7.0_wp
+            sf_tsd(jp_tem)%fnow( mi0(ii0):mi1(ii1) , mj0(ij0):mj1(ij1) , 11:13 ) = 6.5_wp
+            sf_tsd(jp_tem)%fnow( mi0(ii0):mi1(ii1) , mj0(ij0):mj1(ij1) , 14:20 ) = 6.0_wp
+         ENDIF
       ENDIF
 !!gm end
       !
-      IF( kt == nit000 .AND. lwp )THEN
-         WRITE(numout,*)
-         WRITE(numout,*) 'dta_tsd: interpolates T & S data onto current mesh'
-      ENDIF
-      !
-      IF( ln_tsd_interp ) THEN                 ! probably should use pointers in the following to make more readable
-      !
+      IF( ln_tsd_interp ) THEN
+         !
+         IF( kt == nit000 .AND. lwp )THEN
+            WRITE(numout,*)
+            WRITE(numout,*) 'dta_tsd: interpolates T & S data onto current mesh'
+         ENDIF
          DO jk = 1, jpk                        ! determines the intepolated T-S profiles at each (i,j) points
             DO jj= 1, jpj
                DO ji= 1, jpi
@@ -252,8 +253,10 @@ CONTAINS
          !
          ptsd(:,:,:,jp_tem) = ptsd(:,:,:,jp_tem) *tmask(:,:,:)
          ptsd(:,:,:,jp_sal) = ptsd(:,:,:,jp_sal) *tmask(:,:,:)
-      ELSE                                !==   z- or zps- coordinate   ==!
-         !                             
+      ELSE                                
+         !
+         CALL ctl_warn('dta_tsd: T & S data are assumed to be on the current mesh. No interpolation performed')
+         !                  
          ptsd(:,:,:,jp_tem) = sf_tsd(jp_tem)%fnow(:,:,:)  * tmask(:,:,:)  ! Mask
          ptsd(:,:,:,jp_sal) = sf_tsd(jp_sal)%fnow(:,:,:)  * tmask(:,:,:)
          !
@@ -278,7 +281,7 @@ CONTAINS
          !
       ENDIF
       !
-      IF( .NOT.ln_tsd_tradmp ) THEN                   !==   deallocate T & S structure   ==! 
+      IF( .NOT.ln_tsd_dmp ) THEN                   !==   deallocate T & S structure   ==! 
          !                                              (data used only for initialisation)
          IF(lwp) WRITE(numout,*) 'dta_tsd: deallocte T & S arrays as they are only use to initialize the run'
                                         DEALLOCATE( sf_tsd(jp_tem)%fnow )     ! T arrays in the structure
@@ -289,8 +292,6 @@ CONTAINS
          IF( ln_tsd_interp )            DEALLOCATE( sf_tsd(jp_msk)%fnow )     ! T arrays in the structure
                                         DEALLOCATE( sf_tsd              )     ! the structure itself
       ENDIF
-      !
-      IF( nn_timing == 1 )  CALL timing_stop('dta_tsd')
       !
    END SUBROUTINE dta_tsd
 
