@@ -131,8 +131,8 @@
 &namtsd        !    Temperature & Salinity Data  (init/dmp)             (default: OFF)
 !-----------------------------------------------------------------------
    !                       ! =T  read T-S fields for:
-   ln_tsd_init   = .true.         !  ocean initialisation
-   ln_tsd_interp = .true.          !  Interpolation of T & S in the verticalinput data (T) or not (F)
+   ln_tsd_init   = .false.         !  ocean initialisation
+   ln_tsd_interp = .false.          !  Interpolation of T & S in the verticalinput data (T) or not (F)
    ln_tsd_dmp    = .false.         !  T-S restoring   (see namtra_dmp)
    
    cn_dir      = '/work/n01/n01/annkat/SEAsia_R36_R/INITIAL_CONDITIONS/'      !  root directory for the T-S data location
@@ -177,7 +177,7 @@
                      ! Type of air-sea fluxes 
    ln_usr      = .true.   !  user defined formulation                  (T => check usrdef_sbc)
    ln_flx      = .false.   !  flux formulation                          (T => fill namsbc_flx )
-   ln_blk      = .true.   !  Bulk formulation                          (T => fill namsbc_blk )
+   ln_blk      = .false.   !  Bulk formulation                          (T => fill namsbc_blk )
       !              ! Type of coupling (Ocean/Ice/Atmosphere) :
    ln_cpl      = .false.   !  atmosphere coupled   formulation          ( requires key_oasis3 )
    ln_mixcpl   = .false.   !  forced-coupled mixed formulation          ( requires key_oasis3 )
@@ -199,7 +199,7 @@
    nn_fwb      = 0         !  FreshWater Budget: =0 unchecked
       !                    !     =1 global mean of e-p-r set to zero at each time step
       !                    !     =2 annual global mean of e-p-r set to zero
-   ln_rnf      = .true.   !  runoffs                                   (T => fill namsbc_rnf)
+   ln_rnf      = .false.   !  runoffs                                   (T => fill namsbc_rnf)
    ln_apr_dyn  = .false.   !  Patm gradient added in ocean & ice Eqs.   (T => fill namsbc_apr )
    ln_isf      = .false.   !  ice shelf                                 (T   => fill namsbc_isf & namsbc_iscpl)
    ln_wave     = .false.   !  Activate coupling with wave  (T => fill namsbc_wave)
@@ -552,7 +552,7 @@
 !-----------------------------------------------------------------------
 &nambdy_tide   !  tidal forcing at open boundaries
 !-----------------------------------------------------------------------
-   filtide      = '/work/n01/n01/annkat/SEAsia_HadGEM_R12/TIDES/SEAsia_HAD_bdytide_rotT_'      !  file name root of tidal forcing files
+   filtide      = 'TIDES/SEAsia_HAD_bdytide_rotT_'      !  file name root of tidal forcing files
 /
 !!======================================================================
 !!                ***  Top/Bottom boundary condition  ***             !!
