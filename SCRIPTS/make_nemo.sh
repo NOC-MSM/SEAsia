@@ -59,7 +59,6 @@ the XIOS build.
   cp $WDIR/HPC_ARCH_FILES/NEMO/arch-X86_ARCHER2-Cray.fcm $NEMO/arch/arch-X86_ARCHER2-Cray.fcm
 
   # Edit ARCH file
-  /work/n01/shared/acc/xios-2.5
   # Dirty fix to hard wire path otherwise user will have to set XIOS_DIR in every new shell session
   sed "s?XXX_XIOS_DIR_XXX?$XIOS_DIR?" $NEMO/arch/arch-X86_ARCHER2-Cray.fcm > tmp_arch
   mv tmp_arch $NEMO/arch/arch-X86_ARCHER2-Cray.fcm
@@ -70,9 +69,22 @@ the XIOS build.
   cd $NEMO
   ./makenemo -n $CONFIG -r AMM12  -m X86_ARCHER2-Cray -j 16
 
-  #changes the keys and copy MY_SRC to your configurations
+  # Change the keys and copy MY_SRC to your configurations
   cp $NEMO/../cpp_file.fcm $NEMO/cfgs/$CONFIG/cpp_$CONFIG.fcm
   cp -rf $NEMO/../MY_SRC $NEMO/cfgs/$CONFIG/.
+
+  # At this point make changes in MY_SRC if initial conditions are to be
+  # hardwired in at compile time. This can be done manually or triggered (as
+  # here) by CONFIG name
+  case "${CONFIG}"
+    in
+    NEMOconstTS)   cp $NEMO/cfgs/$CONFIG/MY_SRC/usrdef_istate.F90_constTS $NEMO/cfgs/$CONFIG/MY_SRC/usrdef_istate.F90
+             ;;    # constant T,S initial condition:
+    NEMOhorizTS)   cp $NEMO/cfgs/$CONFIG/MY_SRC/usrdef_istate.F90_horizTS $NEMO/cfgs/$CONFIG/MY_SRC/usrdef_istate.F90
+             ;;    # horiz const, depth varying T,S initial condition
+    *)       echo "Use default usrdef_istate.F90"
+             exit 1
+  esac
 
   # Make a refence experiment directory with various dummy files to allow it to compile
   mkdir $NEMO/cfgs/$CONFIG/EXPREF
