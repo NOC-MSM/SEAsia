@@ -40,5 +40,7 @@ sed -i "s/FC_MODSEARCH => ''/FC_MODSEARCH => '-J'/g" tools/FCM/lib/Fcm/Config.pm
 #recompile xios
 ./make_xios --prod --arch X86_ARCHER2-Cray --netcdf_lib netcdf4_par --job 16 --full
 
+echo "Executable is $XIOS_DIR/bin/xios_server.exe"
+
 #######################################
 cd $WDIR
