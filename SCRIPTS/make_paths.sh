@@ -18,6 +18,8 @@
 
 # Paths required to compile (and run) NEMO/OPA and XIOS
 export CONFIG=TESTCOMPILE
+export CONFIG=NEMOconstTS
+export CONFIG=NEMOhorizTS
 export WORK=/work/n01/n01/$USER
 export WDIR=$WORK/NEMO-REGION # Also the git clone directory
 export NEMO_VER=4.0.6
