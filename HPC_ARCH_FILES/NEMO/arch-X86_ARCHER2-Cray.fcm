@@ -32,7 +32,7 @@
 #
 %NCDF_HOME           $NETCDF_DIR
 %HDF5_HOME           $HDF5_DIR
-%XIOS_HOME           /work/n01/shared/acc/xios-2.5
+%XIOS_HOME           XXX_XIOS_DIR_XXX
 #OASIS_HOME
 
 %NCDF_INC            -I%NCDF_HOME/include -I%HDF5_HOME/include

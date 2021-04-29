@@ -58,6 +58,11 @@ the XIOS build.
   mkdir $NEMO/arch
   cp $WDIR/HPC_ARCH_FILES/NEMO/arch-X86_ARCHER2-Cray.fcm $NEMO/arch/arch-X86_ARCHER2-Cray.fcm
 
+  # Edit ARCH file
+  /work/n01/shared/acc/xios-2.5
+  # Dirty fix to hard wire path otherwise user will have to set XIOS_DIR in every new shell session
+  sed "s?XXX_XIOS_DIR_XXX?$XIOS_DIR?" $NEMO/arch/arch-X86_ARCHER2-Cray.fcm > tmp_arch
+  mv tmp_arch $NEMO/arch/arch-X86_ARCHER2-Cray.fcm
   # Add which modules are required for NEMO build
   #echo $CONFIG 'OCE' >> $NEMO/cfgs/work_cfgs.txt
 
