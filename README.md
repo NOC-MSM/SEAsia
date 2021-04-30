@@ -50,7 +50,7 @@ EXP_fullforcing
 
 ### Repository structure
 
-The repository is structure as follows: **NEEDS TO BE UPDATED**
+The repository is structure as follows: **NEEDS TO BE UPDATED. CURRENTLY BEING CONVERTED FROM NEMO3.6**
 <pre>
 MYCONFIG
 |____ARCH
