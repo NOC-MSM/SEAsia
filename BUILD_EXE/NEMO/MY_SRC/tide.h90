@@ -1,0 +1,114 @@
+   !!----------------------------------------------------------------------
+   !! History :  3.2  !  2007  (O. Le Galloudec)  Original code
+   !!----------------------------------------------------------------------
+   !! TIDES ADDED  ! 2017 (Nico Bruneau) 
+   !! Following this document that seems to match implemented code 
+   !!    https://docs.lib.noaa.gov/rescue/cgs_specpubs/QB275U35no981924.pdf
+   !! see page 189 for some proposed values
+   !!
+   !! The convention which seems to have been chosen is the Shureman one and 
+   !! not the Cartwright and Tayer (1971)
+   !! This is probably due to the fact the Schureman has a solar calendar 
+   !! while Cartwright and Tayer is based on a lunar calendar
+   !!
+   !! Therefore the coefficient are not the Doodson number but the one 
+   !! defined by Schureman. For example :
+   !! M2 : Doodson   : 2  0 0 0 0 0
+   !!      Schureman : 2 -2 2 0 0 0
+   !!
+   !! Components 1-34 are for FES 2014
+   !! Components >= 35 are the one that were initially present in NEMO and not in FES14
+   !!                  keep in mind than equitide coefficient have been ajusted for the
+   !!                  34 FES 2014 constituents
+   !! 
+   !! The different coefficient are as follows
+   !!   - nt   = T  = Number of Julian centuries (36625 days) from Greenwich mean noon on December 31, 1899.
+   !!               = Hour angle of mean sun
+   !!   - ns   = s  = mean longitude of the moon
+   !!   - nh   = h  = mean longitude of the sun
+   !!   - np   = p  = mean longitude of the lunar perigee
+   !!   - np1  = p1 = mean longitude of the solar perigee
+   !!   - shift appears in table as a bias in degree
+   !!   - nksi Coefficient for the longitude in moon's orbit of lunar intersection
+   !!   - nu0 Coefficient for the right ascension of lunar intersection
+   !!   - nu1 Coefficient for the term in argument of lunisolar constituent K1
+   !!   - nu2 Coefficient for the term in argument of lunisolar constituent K2
+   !!   - R = ??? 
+   !!   - Formula = Nodal factor function; see the table of Schureman. Implemented in tide_mod.F90 
+   !! 
+   !! The equitide parameter seems to be the equilibrium tide amplitude corrected
+   !! with the C_n^m coefficient: see Cartwright and Tayer (1971) equation 12 
+   !! and Table 2
+   !! As an example in their Table 4c (p66), M2 (200000) has an amplitude of 
+   !! around 0.63186 m
+   !! Table 2, give us a correction of m = 2, n = 2 (semi-diurnal)
+   !! 0.63186*3*sqrt( 5 / 96 / pi ) = 0.24407 
+   !! very close to the one define originally here : 0.242297
+   !! Third order terms are neglected
+   !!
+   !! So to correct (to match what is implemented in sbctide.F90 - take care CT71 uses co-latitude):
+   !!    - long wave : Amplitude from CT71 * [ -1   * sqrt( 5 /  4 / pi ) ]
+   !!    - diurnal   : Amplitude from CT71 * [ -3/2 * sqrt( 5 / 24 / pi ) ]
+   !!    - semi-diur : Amplitude from CT71 * [  3   * sqrt( 5 / 96 / pi ) ]
+   !!
+   !! ATTENTION: convention seems to be to have a positive coefficient and a 180 shift to 
+   !!            represent negative value. to be confirmed though.
+   !!
+   !! All equtide were computed using the last epocs from Cartwright and Tayer (1971) multiply by
+   !! the corresponding coefficient of their table 2
+   !! 
+   !! nutide is used to compute tide potential - it uses a different formulation depending of nutide
+   !! see sbctide.F90 in function tide_init_potential
+   !!
+   !! Some random note
+   !! in cnes fes tool:
+   !!        Msf has nksi = 2 and nnu0 = -2 which is reverse from Schureman (I kept the Schureman one)
+   !!
+   !!----------------------------------------------------------------------
+   !
+   !             !! name_tide , equitide , nutide , nt , ns , nh , np , np1 , shift , nksi , nnu0 , nnu1 , nnu2 , R , formula !!
+   !             !!           !          !        !    !    !    !    !     !       !      !      !      !      !   !         !!
+   !
+   ! Long Period Tides
+   Wave( 1) = tide(  'SA'     , 0.003103 ,    0   ,  0 ,  0 ,  1 ,  0 ,  0  ,    0  ,  0   ,  0   ,  0   ,  0   , 0 ,    0    )
+   Wave( 2) = tide(  'SSA'    , 0.019523 ,    0   ,  0 ,  0 ,  2 ,  0 ,  0  ,    0  ,  0   ,  0   ,  0   ,  0   , 0 ,    0    )
+   Wave( 3) = tide(  'MM'     , 0.022191 ,    0   ,  0 ,  1 ,  0 , -1 ,  0  ,    0  ,  0   ,  0   ,  0   ,  0   , 0 ,   73    )
+   Wave( 4) = tide(  'MF'     , 0.042023 ,    0   ,  0 ,  2 ,  0 ,  0 ,  0  ,    0  , -2   ,  0   ,  0   ,  0   , 0 ,   74    )
+   Wave( 5) = tide(  'MTM'    , 0.008042 ,    0   ,  0 ,  3 ,  0 , -1 ,  0  ,    0  , -2   ,  0   ,  0   ,  0   , 0 ,   74    )
+   Wave( 6) = tide(  'MSF'    , 0.003671 ,    0   ,  0 ,  2 , -2 ,  0 ,  0  ,    0  , -2   ,  2   ,  0   ,  0   , 0 ,   78    )
+   Wave( 7) = tide(  'MSQM'   , 0.001293 ,    0   ,  0 ,  4 , -2 ,  0 ,  0  ,    0  , -2   ,  0   ,  0   ,  0   , 0 ,   74    )
+   !
+   ! Diurnal Tides
+   Wave( 8) = tide(  'K1'     , 0.142442 ,    1   ,  1 ,  0 ,  1 ,  0 ,  0  ,  -90  ,  0   ,  0   , -1   ,  0   , 0 ,   227   )
+   Wave( 9) = tide(  'O1'     , 0.101277 ,    1   ,  1 , -2 ,  1 ,  0 ,  0  ,  +90  ,  2   , -1   ,  0   ,  0   , 0 ,    75   )
+   Wave(10) = tide(  'Q1'     , 0.019383 ,    1   ,  1 , -3 ,  1 ,  1 ,  0  ,  +90  ,  2   , -1   ,  0   ,  0   , 0 ,    75   )
+   Wave(11) = tide(  'P1'     , 0.047145 ,    1   ,  1 ,  0 , -1 ,  0 ,  0  ,  +90  ,  0   ,  0   ,  0   ,  0   , 0 ,     0   )
+   Wave(12) = tide(  'S1'     ,-0.001116 ,    1   ,  1 ,  0 ,  0 ,  0 ,  0  ,    0  ,  0   ,  0   ,  0   ,  0   , 0 ,     0   )
+   Wave(13) = tide(  'J1'     ,-0.007961 ,    1   ,  1 ,  1 ,  1 , -1 ,  0  ,  -90  ,  0   , -1   ,  0   ,  0   , 0 ,    76   )
+   !
+   ! Semi-Diurnal Tides
+   Wave(14) = tide(  'M2'     , 0.244083 ,    2   ,  2 , -2 ,  2 ,  0 ,  0  ,    0  ,  2   , -2   ,  0   ,  0   , 0 ,    78   )
+   Wave(15) = tide(  'N2'     , 0.046720 ,    2   ,  2 , -3 ,  2 ,  1 ,  0  ,    0  ,  2   , -2   ,  0   ,  0   , 0 ,    78   )
+   Wave(16) = tide(  'S2'     , 0.113565 ,    2   ,  2 ,  0 ,  0 ,  0 ,  0  ,    0  ,  0   ,  0   ,  0   ,  0   , 0 ,     0   )
+   Wave(17) = tide(  'K2'     , 0.030875 ,    2   ,  2 ,  0 ,  2 ,  0 ,  0  ,    0  ,  0   ,  0   ,  0   , -2   , 0 ,   235   )
+   Wave(18) = tide(  'L2'     , 0.006903 ,    2   ,  2 , -1 ,  2 , -1 ,  0  , +180  ,  2   , -2   ,  0   ,  0   , 0 ,   215   )
+   Wave(19) = tide(  'T2'     , 0.006644 ,    2   ,  2 ,  0 , -1 ,  0 ,  1  ,    0  ,  0   ,  0   ,  0   ,  0   , 0 ,     0   )
+   Wave(20) = tide(  'R2'     , 0.000950 ,    2   ,  2 ,  0 ,  1 ,  0 , -1  , +180  ,  2   ,  0   ,  0   ,  0   , 0 ,     0   )
+   !
+   Wave(21) = tide(  'MU2'    , 0.007451 ,    2   ,  2 , -4 ,  4 ,  0 ,  0  ,    0  ,  2   , -2   ,  0   ,  0   , 0 ,    78   )
+   Wave(22) = tide(  'NU2'    , 0.008873 ,    2   ,  2 , -3 ,  4 , -1 ,  0  ,    0  ,  2   , -2   ,  0   ,  0   , 0 ,    78   )
+   Wave(23) = tide( '2N2'     , 0.006176 ,    2   ,  2 , -4 ,  2 ,  2 ,  0  ,    0  ,  2   , -2   ,  0   ,  0   , 0 ,    78   )
+   Wave(24) = tide(  'MKS2'   , 0.000000 ,    2   ,  2 , -2 ,  4 ,  0 ,  0  ,    0  ,  2   , -2   ,  0   , -2   , 0 ,     4   )
+   Wave(25) = tide(  'LA2'    , 0.001800 ,    2   ,  2 , -1 ,  0 ,  1 ,  0  , +180  ,  2   , -2   ,  0   ,  0   , 0 ,    78   )
+   Wave(26) = tide(  'EPS2'   , 0.001796 ,    2   ,  2 , -5 ,  4 ,  1 ,  0  ,    0  ,  2   , -2   ,  0   ,  0   , 0 ,    78   )
+   !
+   ! Harmonic and others
+   Wave(27) = tide(  'M3'     , 0.000000 ,    3   ,  3 , -3 ,  3 ,  0 ,  0  ,    0  ,  3   , -3   ,  0   ,  0   , 0 ,   149   )
+   Wave(28) = tide(  'M4'     , 0.000000 ,    4   ,  4 , -4 ,  4 ,  0 ,  0  ,    0  ,  4   , -4   ,  0   ,  0   , 0 ,     1   )
+   Wave(29) = tide(  'M6'     , 0.000000 ,    6   ,  6 , -6 ,  6 ,  0 ,  0  ,    0  ,  6   , -6   ,  0   ,  0   , 0 ,    18   )
+   Wave(30) = tide(  'M8'     , 0.000000 ,    8   ,  8 , -8 ,  8 ,  0 ,  0  ,    0  ,  8   , -8   ,  0   ,  0   , 0 ,    20   )
+   Wave(31) = tide(  'N4'     , 0.000000 ,    4   ,  4 , -6 ,  4 ,  2 ,  0  ,    0  ,  4   , -4   ,  0   ,  0   , 0 ,     1   )
+   Wave(32) = tide(  'S4'     , 0.000000 ,    4   ,  4 ,  0 ,  0 ,  0 ,  0  ,    0  ,  0   ,  0   ,  0   ,  0   , 0 ,     0   )
+   Wave(33) = tide(  'MN4'    , 0.000000 ,    4   ,  4 , -5 ,  4 ,  1 ,  0  ,    0  ,  4   , -4   ,  0   ,  0   , 0 ,     1   )
+   Wave(34) = tide(  'MS4'    , 0.000000 ,    4   ,  4 , -2 ,  2 ,  0 ,  0  ,    0  ,  2   , -2   ,  0   ,  0   , 0 ,    78   )
+   ! 
