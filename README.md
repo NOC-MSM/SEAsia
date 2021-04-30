@@ -20,10 +20,9 @@ The model grid has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-st
 
 The following code was used in this configuration:
 
-svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
+svn co http://forge.ipsl.jussieu.fr/nemo/svn/NEMO/releases/r4.0/r4.0.6
 
-svn co -r1242 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios-2.0_r1242
-
+svn checkout -r 1964 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.5
 
 The initial conditions and boundary data can be downloaded from JASMIN:
 
@@ -31,17 +30,19 @@ http://  ...
 
 ### Experiment Summary
 
-EXP_tideonly
-============
+EXP_barotropicTide
+==================
 Only tidal forcing. constant T and S
-Include: key_harm_ana
 
 
-EXP_hpg_err
-==========
+EXP_unforcedStrat
+=================
 No forcing. T(z),S(z) profiles. Clamped T(z),S(z) boundaries. Start from rest.
-Compiled without tidal analysis: I.e. NO key_harm_ana
 
+
+EXP_biogeochem
+==============
+...
 
 EXP_fullforcing
 ===============
@@ -49,7 +50,7 @@ EXP_fullforcing
 
 ### Repository structure
 
-The repository is structure as follows: **UPDATE**
+The repository is structure as follows: **NEEDS TO BE UPDATED**
 <pre>
 MYCONFIG
 |____ARCH
