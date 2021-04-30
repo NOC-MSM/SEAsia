@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=nemo_btTide
-#SBATCH --time=00:10:00
+#SBATCH --time=00:30:00
 #SBATCH --nodes=4
 #SBATCH --tasks-per-node=2
 #SBATCH --cpus-per-task=1

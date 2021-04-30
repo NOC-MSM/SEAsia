@@ -38,21 +38,13 @@
       <file_group id="1d" output_freq="1d"  output_level="10" enabled=".TRUE."> <!-- 1d files -->
 	      <!--    <file id="file1" name_suffix="_t" description="daily mean t-grid" split_freq="1mo" split_freq_format="%y%mo%d" enabled=".TRUE."> -->
 	<file id="file1" name_suffix="_t" description="daily mean t-grid" enabled=".TRUE.">	      
-          <field field_ref="toce" name="toce" />
-          <field field_ref="soce" name="soce" />
           <field field_ref="ssh" name="ssh" />
         </file>
         <file id="file2" name_suffix="_u" description="daily mean u-grid" enabled=".TRUE.">
-          <field field_ref="uoce" name="uoce" />
 	  <field field_ref="ubar" name="ubar" />
-	  <field field_ref="utrd_hpg" name="utrd_hpg" />
-          <field field_ref="utrd_spg" name="utrd_spg" />
         </file>
         <file id="file3" name_suffix="_v" description="daily mean v-grid" enabled=".TRUE.">
-          <field field_ref="voce" name="voce" />
           <field field_ref="vbar" name="vbar" />
-          <field field_ref="vtrd_hpg" name="vtrd_hpg" />
-          <field field_ref="vtrd_spg" name="vtrd_spg" />
         </file>
       </file_group>
 

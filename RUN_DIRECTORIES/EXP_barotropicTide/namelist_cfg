@@ -36,7 +36,7 @@
    nn_no       =       0   !  Assimilation cycle index
    cn_exp      =  "SEAsia_barotropicTide"
    nn_it000    =  1 ! 16993 !  8641 ! 1   !  first time step
-   nn_itend    =  50 !8640    ! 288 per 24hr   !  last  time step
+   nn_itend    =  14400        !  last  time step
    nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
