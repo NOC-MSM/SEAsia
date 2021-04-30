@@ -29,13 +29,13 @@ cp $NEMO/cfgs/SHARED/*.xml $EXP/.
 ln -s $NEMO/cfgs/$CONFIG/BLD/bin/nemo.exe $EXP/nemo.exe
 ln -s $XIOS_DIR/bin/xios_server.exe $EXP/xios_server.exe
 
-
-## Need namelist_cfg, tscript.slurm
+# Link in tidal bondary forcing
+ln -s /work/n01/n01/annkat/SEAsia_HadGEM_R12/TIDES $EXP/.
 
 # namelist_cfg
 # nambdy: Except for tides, freeze the boundary conditions. Set to initial state
 # ln_usr = true. User defined initial state and surface forcing. Here we use
-# or homogenous initial conditions.
+# homogenous initial conditions and no met forcing.
 # with the expression being compiled into the executable. (In
 #  ``usrdef_sbc.F90``  and ``usrdef_istate.F90``).
 
