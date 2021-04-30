@@ -41,3 +41,6 @@ ln -s $XIOS_DIR/bin/xios_server.exe $EXP/xios_server.exe
 
 # Submit job
 sbatch submit.slurm
+
+## Check on queue
+# squeue -u $USER
