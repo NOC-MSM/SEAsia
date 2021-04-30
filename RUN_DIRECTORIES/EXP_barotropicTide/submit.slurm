@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=test_nemo
+#SBATCH --job-name=nemo_btTide
 #SBATCH --time=00:10:00
 #SBATCH --nodes=4
 #SBATCH --tasks-per-node=2
