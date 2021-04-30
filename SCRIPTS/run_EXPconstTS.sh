@@ -4,7 +4,7 @@
 #:'
 #
 #***********************
-#run_EXPconstTS.sh
+#run_EXP_barotropicTide.sh
 #***********************
 #'
 
@@ -13,7 +13,7 @@
 #::
 
 export CONFIG=NEMOconstTS
-export EXP=$WDIR/RUN_DIRECTORIES/EXPconstTS
+export EXP=$WDIR/RUN_DIRECTORIES/EXP_barotropicTide
 
 # Choose an appropriate directory for your EXP installation
 if [ ! -d "$EXP" ]; then
