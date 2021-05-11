@@ -39,6 +39,7 @@ ln -s $XIOS_DIR/bin/xios_server.exe $EXP/xios_server.exe
 #  ``usrdef_sbc.F90``  and ``usrdef_istate.F90``).
 
 # Submit job
+cd $EXP
 sbatch submit.slurm
 
 ## Check on queue
