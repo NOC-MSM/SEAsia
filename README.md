@@ -14,19 +14,22 @@ Severn Estaury in the UK  (??E to ??E and ??N to ??N)
 
 The model grid target resolution 500m; with 31 sigma vertical levels, with a baroptropic ocean. Featuring:
 
-* Wave coupling
-* Freshwater forcing
-* FES2014 tides
-* ERA5 wind and sea level pressure
-* Wetting and Drying
+* Wave coupling (in prog.)
+* Freshwater forcing (in prog.)
+* FES2014 tides (in prog.)
+* ERA5 wind and sea level pressure (in prog.)
+* Wetting and Drying (in prog.)
 
 ![Severn bathymetry UPDATE](https://github.com/NOC-MSM/SEAsia/wiki/FIGURES/ACCORD_SEAsia_bathy.png)
 
 ### Model Setup
 
-The following process is followed to build and get started with this configuration ...
+The following process is followed to build and get started with this configuration
 
-git clone 
+git clone https://github.com/JMMP-Group/SEVERN-SWOT.git
+
+...
+
 
 ### Experiment Summary
 
