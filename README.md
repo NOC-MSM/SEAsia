@@ -35,68 +35,7 @@ EXP_barotropicTide
 Only tidal forcing. constant T and S
 
 
-EXP_unforcedStrat
-=================
-No forcing. T(z),S(z) profiles. Clamped T(z),S(z) boundaries. Start from rest.
-
-
-EXP_biogeochem
-==============
-...
-
-EXP_fullforcing
-===============
 ...
 
 ### Repository structure
 
-The repository is structure as follows: **NEEDS TO BE UPDATED. CURRENTLY BEING CONVERTED FROM NEMO3.6**
-<pre>
-MYCONFIG
-|____ARCH
-| |____NEMO
-| | |___arch-XC_ARCHER.fcm
-| |___XIOS
-|   |____arch-XC_ARCHER.env
-|   |____arch-XC_ARCHER.fcm
-|   |____arch-XC_ARCHER.path
-|
-|____cpp_MYCONFIG.fcm
-|
-|____EXP00
-| |____1_namelist_cfg
-| |____1_namelist_ice_cfg
-| |____1_namelist_ice_ref
-| |____1_namelist_ref
-| |____context_nemo.xml
-| |____domain_def_nemo.xml
-| |____field_def_nemo-lim.xml
-| |____field_def_nemo-opa.xml
-| |____field_def_nemo-pisces.xml
-| |____file_def_nemo.xml
-| |____iodef.xml
-| |____namelist_cfg
-| |____namelist_ice_cfg
-| |____namelist_ice_ref
-| |____namelist_pisces_cfg
-| |____namelist_pisces_ref
-| |____namelist_ref
-| |____namelist_top_cfg
-| |____namelist_top_ref
-| |____runscript
-|
-|____MY_SRC
-| |____*.F90
-|
-|____SCRIPTS
-|
-|____INPUTS (a place where forcing files are put)
-|
-|____DOCS
-|
-|____START_FILES
-|
-|____TOOLS
-|____LICENSE
-|____README.md
-</pre>
