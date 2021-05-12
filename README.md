@@ -26,19 +26,19 @@ The model grid target resolution 500m; with 31 sigma vertical levels, with a bar
 
 The following process is followed to build and get started with this configuration
 
-git clone https://github.com/JMMP-Group/SEVERN-SWOT.git
+``git clone https://github.com/JMMP-Group/SEVERN-SWOT.git``
 
 Then follow descritptions in: https://github.com/JMMP-Group/SEVERN-SWOT/wiki
 
 
 ### Experiment Summary
 
-EXP_barotropicTide
-==================
+* ``EXP_barotropicTide``
 Only tidal forcing. constant T and S
 
+* ...
 
-...
 
 ### Repository structure
 
+* ...
