@@ -3,7 +3,7 @@
 :'
 
 *******************************
-make_coordinates_from_gebco.sh
+make_coordinates_from_parent.sh
 *******************************
 
 Make a netCDF coordinates file holds that holds the horizontal grid coordinate
@@ -115,7 +115,7 @@ coordinates. rho=rhot=7 with increase the resolution by a factor of 7.
 
 #::
 
-  cd$TDIR/NESTING/
+  cd $TDIR/NESTING/
 
   # Generate the new coordinates file with the namelist.input settings
   ./agrif_create_coordinates.exe
