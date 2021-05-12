@@ -10,7 +10,7 @@ This model configuration has been developed in order to ...
 
 ### Model Summary
 
-Severn Estaury in the UK  (??E to ??E and ??N to ??N)
+Severn Estaury in the UK  (-5E to -2E and 50.1N to 51.8N)
 
 The model grid target resolution 500m; with 31 sigma vertical levels, with a baroptropic ocean. Featuring:
 
