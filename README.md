@@ -28,7 +28,7 @@ The following process is followed to build and get started with this configurati
 
 git clone https://github.com/JMMP-Group/SEVERN-SWOT.git
 
-...
+Then follow descritptions in: https://github.com/JMMP-Group/SEVERN-SWOT/wiki
 
 
 ### Experiment Summary
