@@ -26,7 +26,8 @@ the provided coordinates and bathymetry netCDF files.
   # Make an adjustment to the source code for the hybrid coords
   #cp $GITCLONE/DOMAIN/domzgr_jelt_changes.f90 $TDIR/DOMAINcfg/src/domzgr.f90
 
-
+  # Edit job script
+  sed "s?XXX_TDIR_XXX?$TDIR?" job_create_template.slurm > job_create.slurm
   # Submit the domain creation as a job,
   sbatch job_create.slurm
 
