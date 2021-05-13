@@ -47,6 +47,6 @@
   # 1_coordinates_AMM15.nc
 
 
-  # Copy it to the $INPUTS directory::
+  # Copy it to the $DOMAIN directory where the domain configuration is built::
 
     cp 1_$coordinates_parent_file $DOMAIN/coordinates.nc
