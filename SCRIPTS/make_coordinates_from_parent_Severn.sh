@@ -49,4 +49,4 @@
 
   # Copy it to the $INPUTS directory::
 
-    cp 1_$coordinates_parent_file $INPUTS/coordinates.nc
+    cp 1_$coordinates_parent_file $DOMAIN/coordinates.nc
