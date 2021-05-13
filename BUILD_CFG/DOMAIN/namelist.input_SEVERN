@@ -1,23 +1,24 @@
 &input_output
-   iom_activated = true
+    iom_activated = true
 /
 &coarse_grid_files
-   parent_coordinate_file = 'coordinates_AMM15.nc'
+    parent_coordinate_file = 'coordinates_AMM15.nc'
 /
 &bathymetry
 /
 &nesting
-   imin = 694
-   imax = 807
-   jmin = 400
-   jmax = 490
-   rho  = 3
-   rhot = 3
-   bathy_update = false
+    imin = 694
+    imax = 807
+    jmin = 400
+    jmax = 490
+    rho  = 3
+    rhot = 3
+    bathy_update = false
 /
 &vertical_grid
 /
 &partial_cells
+    partial_steps      = .true.
 /
 &nemo_coarse_grid
 /
@@ -28,4 +29,6 @@
 &restart
 /
 &restart_trc
+/
+&restart_ice
 /
