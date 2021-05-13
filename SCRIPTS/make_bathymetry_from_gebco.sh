@@ -88,22 +88,22 @@
 #  Finally, load ``nco`` tools to tidy some grid scale issues
 #'
 #::
-
-  # load nco modules (this was done locally)
-  module load nco
-
-  # Remove weirdness with negative bathymetry and make minimum bathymetry
-  #equal to 10 m (resolve any possible wet-drying problems)
-  ncap2 -s 'where(Bathymetry < 0) Bathymetry=0' bathy_meter.nc tmp1.nc
-  ncap2 -s 'where(Bathymetry < 10 && Bathymetry > 0) Bathymetry=10' tmp1.nc -O bathy_meter.nc
-  rm tmp1.nc
-
-  # Copy it if you want for safe keeping
-  cp bathy_meter.nc bathy_meter_10m.nc
-
-  # Fix bathymetry to deal with instabilities (opening some straights that
-  #have only 2 grid points)
-  # E.g. ncap2 -s 'Bathymetry(0,0)=0' bathy_meter_10m.nc bathy_meter_10m.nc -O
+#
+#  # load nco modules (this was done locally)
+#  module load nco
+#
+#  # Remove weirdness with negative bathymetry and make minimum bathymetry
+#  #equal to 10 m (resolve any possible wet-drying problems)
+#  ncap2 -s 'where(Bathymetry < 0) Bathymetry=0' bathy_meter.nc tmp1.nc
+#  ncap2 -s 'where(Bathymetry < 10 && Bathymetry > 0) Bathymetry=10' tmp1.nc -O bathy_meter.nc
+#  rm tmp1.nc
+#
+#  # Copy it if you want for safe keeping
+#  cp bathy_meter.nc bathy_meter_10m.nc
+#
+#  # Fix bathymetry to deal with instabilities (opening some straights that
+#  #have only 2 grid points)
+#  # E.g. ncap2 -s 'Bathymetry(0,0)=0' bathy_meter_10m.nc bathy_meter_10m.nc -O
 
 
   cd $WORK
