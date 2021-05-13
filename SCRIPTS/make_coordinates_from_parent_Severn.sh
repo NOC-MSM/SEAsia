@@ -36,8 +36,9 @@
   # coordinates. rho=rhot=3 with increase the resolution by a factor of 3.
 
 
-
-
+  #load modules
+  module -s restore /work/n01/shared/acc/n01_modules/ucx_env
+  
   # Execute tool::
 
     ./agrif_create_coordinates.exe
