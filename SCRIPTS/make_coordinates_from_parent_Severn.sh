@@ -40,13 +40,13 @@
   module -s restore /work/n01/shared/acc/n01_modules/ucx_env
   
   # Execute tool::
-
-    ./agrif_create_coordinates.exe
+  cd $TDIR/NESTING/
+  ./agrif_create_coordinates.exe
 
   # This creates a coordinate file::
   # 1_coordinates_AMM15.nc
 
 
-  # Copy it to the $INPUTS directory::
+  # Copy it to the $DOMAIN directory where the domain configuration is built::
 
-    cp 1_$coordinates_parent_file $INPUTS/coordinates.nc
+    cp 1_$coordinates_parent_file $DOMAIN/coordinates.nc
