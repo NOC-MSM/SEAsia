@@ -27,54 +27,25 @@
 
     ln -s $DOWNLOADS/$coordinates_parent_file $TDIR/NESTING/.
 
-  Write a namelist file::
 
-    vi namelist.input
+  # Get the namelist file from the cloned repository
+  cp $DOMAIN/namelist.input_SEVERN $TDIR/NESTING/namelist.input
 
-    &input_output
-        iom_activated = true
-    /
-    &coarse_grid_files
-        parent_coordinate_file = 'coordinates_AMM15.nc'
-    /
-    &bathymetry
-    /
-    &nesting
-        imin = 694
-        imax = 807
-        jmin = 400
-        jmax = 490
-        rho  = 3
-        rhot = 3
-        bathy_update = false
-    /
-    &vertical_grid
-    /
-    &partial_cells
-    /
-    &nemo_coarse_grid
-    /
-    &forcing_files
-    /
-    &interp
-    /
-    &restart
-    /
-    &restart_trc
-    /
+  # The namelist.input file controls the create process. Edit the bounding
+  # coordinates (imax, ..., jmax) and scale factor (rho, rhot) to suit the child
+  # coordinates. rho=rhot=3 with increase the resolution by a factor of 3.
 
-  ---
 
-  Execute tool::
+
+
+  # Execute tool::
 
     ./agrif_create_coordinates.exe
 
-  This creates a coordinate file::
-
-   1_coordinates_AMM15.nc
-
+  # This creates a coordinate file::
+  # 1_coordinates_AMM15.nc
 
 
-  Copy it to the $INPUTS directory::
+  # Copy it to the $INPUTS directory::
 
-    cp 1_coordinates_AMM15.nc $INPUTS/coordinates.nc
+    cp 1_$coordinates_parent_file $INPUTS/coordinates.nc
