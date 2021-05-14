@@ -4,17 +4,17 @@
 #:'
 #
 #***********************
-#run_EXP_unforcedStrat.sh
+#run_EXP_unforced.sh
 #***********************
 #'
 
-# Run the experiment from rest with horizontally contant T,S initial condition
+# Run the experiment from rest with contant T,S initial condition
 # with no met forcing
 
 #::
 
-export CONFIG=NEMOhorizTS
-export EXP=$WDIR/RUN_DIRECTORIES/EXP_unforcedStrat
+export CONFIG=NEMOconstTS
+export EXP=$WDIR/RUN_DIRECTORIES/EXP_unforced
 
 # Choose an appropriate directory for your EXP installation
 if [ ! -d "$EXP" ]; then
@@ -34,7 +34,7 @@ ln -s $XIOS_DIR/bin/xios_server.exe $EXP/xios_server.exe
 # namelist_cfg
 # nambdy: freeze the boundary conditions. Set to initial state
 # ln_usr = true. User defined initial state and surface forcing. Here we use
-# a stratification profile that is horizontally contant, and no wind.
+# a contant density, and no wind.
 # These are compiled into the executable. (In
 #  ``usrdef_sbc.F90``  and ``usrdef_istate.F90``).
 
