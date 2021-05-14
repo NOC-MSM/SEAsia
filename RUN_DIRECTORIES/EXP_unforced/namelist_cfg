@@ -34,7 +34,7 @@
 &namrun        !   parameters of the run
 !-----------------------------------------------------------------------
    nn_no       =       0   !  Assimilation cycle index
-   cn_exp      =  "SEAsia_unforcedStrat"
+   cn_exp      =  "SEVERN_unforced"
    nn_it000    =  1 ! 16993 !  8641 ! 1   !  first time step
    nn_itend    =  50 !8640    ! 288 per 24hr   !  last  time step
    nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
@@ -73,7 +73,7 @@
    ln_linssh   = .false. ! .false.   !  =T  linear free surface  ==>>  model level are fixed in time
    rn_isfhmin  =    1.00   !  treshold [m] to discriminate grounding ice from floating ice
    !
-   rn_rdt      =  360.     !  time step for the dynamics and tracer
+   rn_rdt      =  60.     !  time step for the dynamics and tracer
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module      (T => fill namcrs)
@@ -85,7 +85,7 @@
 !-----------------------------------------------------------------------
    ln_read_cfg = .true.   !  (=T) read the domain configuration file
       !                    !  (=F) user defined configuration           (F => create/check namusr_def)
-      cn_domcfg = "/work/n01/n01/annkat/SEAsia_HadGEM_R12/RUN_DIRECTORY/EXP_HAD_BGC_PHYS/domain_cfg_HadGEM_R12_fix.nc" !"domain_cfg"  ! domain configuration filename
+      cn_domcfg = "domain_cfg" !"domain_cfg"  ! domain configuration filename
       !
       ln_closea    = .false.    !  T => keep closed seas (defined by closea_mask field) in the
       !                         !       domain and apply special treatment of freshwater fluxes.
@@ -276,8 +276,8 @@
     ln_bdy         = .true.   !  Use unstructured open boundaries
     nb_bdy         =  1       !  number of open boundary sets
     !
-    ln_coords_file = .true.                                 !  =T : read bdy coordinates from file
-    cn_coords_file = '/work/n01/n01/annkat/SEAsia_HadGEM_R12/BOUNDARY_FORCING/2061/coordinates.bdy.nc' !  bdy coordinates files
+    ln_coords_file = .false.                                 !  =T : read bdy coordinates from file
+    cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
     ln_mask_file   = .false.                !  =T : read mask from file
     cn_mask_file   = ''                      !  name of mask file (if ln_mask_file=.TRUE.)
     cn_dyn2d       =  'flather'    !
