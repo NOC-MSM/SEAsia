@@ -33,7 +33,10 @@ the provided coordinates and bathymetry netCDF files.
   cd $TDIR/DOMAINcfg
   sbatch job_create.slurm
 
-  # After create copy it and store it for durther use
-  cp $DOMAIN/domain_cfg.nc $DOMAIN/domain_cfg_SEVERN.nc
+  # Rebuild the files. Here there are 8 tiles (and rebuilding on a single thread) 
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 1 domain_cfg 8
+
+  # After create copy it and store it for further use
+  cp $TDIR/DOMAINcfg/domain_cfg.nc $DOMAIN/domain_cfg_SEVERN.nc
 
   cd $WORK
