@@ -13,11 +13,13 @@ the provided coordinates and bathymetry netCDF files.
 
   ## Obtain the appropriate namelist (modify it if necessary)
   # Hybrid z-sigma vertical coordinates
-  #cp $DOMAIN/hyb-z-s_DOMAINcfg_namelist_cfg $DOMAIN/namelist_cfg
+  #cp $DOMAIN/hyb-z-s_DOMAINcfg_namelist_cfg $TDIR/DOMAINcfg/namelist_cfg
   # Stretched-sigma vertical coordinates
-  #cp $DOMAIN/s-sig_DOMAINcfg_namelist_cfg $DOMAIN/namelist_cfg
+  cp $DOMAIN/s-sig_DOMAINcfg_namelist_cfg $TDIR/DOMAINcfg/namelist_cfg
   # z-partial-step vertical coordinates
-  #cp $DOMAIN/z-ps_DOMAINcfg_namelist_cfg $DOMAIN/namelist_cfg
+  #cp $DOMAIN/z-ps_DOMAINcfg_namelist_cfg $TDIR/DOMAINcfg/namelist_cfg
+
+  # Ensure that the namelist_cfg has the appropriate parameters and number of lat,lon,depth levels set
 
   # Ensure the coordinates and bathymetry files, previously generated, are in place.
   ln -s $DOMAIN/coordinates.nc $TDIR/DOMAINcfg/.
