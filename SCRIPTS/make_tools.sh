@@ -6,19 +6,18 @@
 #make_tools.sh
 #***********************
 #
----
-Try stuff:
-cd $NEMO
-for ext_name in tools
-  do
-  ext=`svn propget svn:externals | grep $ext_name | cut -c2-`
-  echo $ext
-  svn co http://forge.ipsl.jussieu.fr/nemo/svn/$ext
-done
+
+  cd $NEMO
+  for ext_name in tools
+    do
+    ext=`svn propget svn:externals | grep $ext_name | cut -c2-`
+    echo $ext
+    svn co http://forge.ipsl.jussieu.fr/nemo/svn/$ext
+  done
 
 
-
-
+  # Make an adjustment to the DOMAINcfg source code to accomodate more varied vertical coords
+  cp $DOMAIN/domzgr.f90.melange $TDIR/DOMAINcfg/src/domzgr.f90
 
   # Apply patches for the weight file code
   cd $NEMO/tools/WEIGHTS/src
