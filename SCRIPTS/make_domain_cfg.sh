@@ -25,8 +25,8 @@ the provided coordinates and bathymetry netCDF files.
   ln -s $DOMAIN/coordinates.nc $TDIR/DOMAINcfg/.
   ln -s $DOMAIN/bathy_meter.nc $TDIR/DOMAINcfg/.
 
-  # Make an adjustment to the source code for the hybrid coords
-  #cp $GITCLONE/DOMAIN/domzgr_jelt_changes.f90 $TDIR/DOMAINcfg/src/domzgr.f90
+  # Make an adjustment to the DOMAINcfg source code to accomodate more varied vertical coords
+  cp $DOMAIN/domzgr.f90.melanfge $TDIR/DOMAINcfg/src/domzgr.f90
 
   # Edit job script
   sed "s?XXX_TDIR_XXX?$TDIR?" $DOMAIN/job_create_template.slurm > $TDIR/DOMAINcfg/job_create.slurm
