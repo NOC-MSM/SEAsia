@@ -29,6 +29,9 @@ cp $NEMO/cfgs/SHARED/*.xml $EXP/.
 ln -s $NEMO/cfgs/$CONFIG/BLD/bin/nemo.exe $EXP/nemo.exe
 ln -s $XIOS_DIR/bin/xios_server.exe $EXP/xios_server.exe
 
+# Link in domain_cfg file
+ln -s $DOMAIN/domain_cfg_SEVERN.nc $EXP/domain_cfg.nc
+
 # Link in tidal bondary forcing
 #ln -s /work/n01/n01/annkat/SEAsia_HadGEM_R12/TIDES $EXP/.
 ln -s $WDIR/INPUTS/TIDES $EXP/.
@@ -44,6 +47,7 @@ ln -s $WDIR/INPUTS/OBC/coordinates.bdy.nc $EXP/.
 #  ``usrdef_sbc.F90``  and ``usrdef_istate.F90``).
 
 # Submit job
+cd $EXP
 sbatch submit.slurm
 
 ## Check on queue
