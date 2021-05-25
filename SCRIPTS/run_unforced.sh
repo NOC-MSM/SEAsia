@@ -34,7 +34,7 @@ ln -s $XIOS_DIR/bin/xios_server.exe $EXP/xios_server.exe
 ln -s $DOMAIN/domain_cfg_SEVERN.nc $EXP/domain_cfg.nc
 
 # Link in boundary files (just coordinates.bdy.nc)
-ln -s /work/n01/n01/jelt/SEVERN-SWOT/INPUTS/OBC $EXP/.
+ln -s /work/n01/n01/jelt/SEVERN-SWOT/INPUTS/OBC/coordinates.bdy.nc $EXP/.
 
 # namelist_cfg
 # nambdy: freeze the boundary conditions. Set to initial state
