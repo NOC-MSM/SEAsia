@@ -33,6 +33,9 @@ ln -s $XIOS_DIR/bin/xios_server.exe $EXP/xios_server.exe
 #ln -s /work/n01/n01/annkat/SEAsia_HadGEM_R12/TIDES $EXP/.
 ln -s $WDIR/INPUTS/TIDES $EXP/.
 
+# Link in boundary files (just coordinates.bdy.nc)
+ln -s $WDIR/INPUTS/OBC/coordinates.bdy.nc $EXP/.
+
 # namelist_cfg
 # nambdy: Except for tides, freeze the boundary conditions. Set to initial state
 # ln_usr = true. User defined initial state and surface forcing. Here we use
