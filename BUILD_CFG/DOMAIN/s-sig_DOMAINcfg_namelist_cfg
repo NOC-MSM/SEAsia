@@ -16,7 +16,7 @@
 &namcfg        !   parameters of the configuration
 !-----------------------------------------------------------------------
    !
-   ln_e3_dep   = .false.   ! =T : e3=dk[depth] in discret sens.
+   ln_e3_dep   = .true.   ! =T : e3=dk[depth] in discret sens.
    !                       !      ===>>> will become the only possibility in v4.0
    !                       ! =F : e3 analytical derivative of depth function
    !                       !      only there for backward compatibility test with v3.6
