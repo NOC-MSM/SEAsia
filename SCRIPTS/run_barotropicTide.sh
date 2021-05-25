@@ -30,7 +30,8 @@ ln -s $NEMO/cfgs/$CONFIG/BLD/bin/nemo.exe $EXP/nemo.exe
 ln -s $XIOS_DIR/bin/xios_server.exe $EXP/xios_server.exe
 
 # Link in tidal bondary forcing
-ln -s /work/n01/n01/annkat/SEAsia_HadGEM_R12/TIDES $EXP/.
+#ln -s /work/n01/n01/annkat/SEAsia_HadGEM_R12/TIDES $EXP/.
+ln -s $WDIR/INPUTS/TIDES $EXP/.
 
 # namelist_cfg
 # nambdy: Except for tides, freeze the boundary conditions. Set to initial state
