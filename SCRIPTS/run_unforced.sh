@@ -22,9 +22,8 @@ if [ ! -d "$EXP" ]; then
   mkdir $EXP/RESTART
 fi
 
-
-cp $NEMO/cfgs/SHARED/*namelist* $EXP/.
-cp $NEMO/cfgs/SHARED/*.xml $EXP/.
+rsync -av --ignore-existing $NEMO/cfgs/SHARED/*namelist* $EXP/. # only get the files not already in the repo.
+rsync -av --ignore-existing $NEMO/cfgs/SHARED/*.xml $EXP/. 
 
 # Copy in NEMO/XIOS executables
 ln -s $NEMO/cfgs/$CONFIG/BLD/bin/nemo.exe $EXP/nemo.exe
