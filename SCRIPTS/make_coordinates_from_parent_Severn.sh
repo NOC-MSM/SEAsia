@@ -27,54 +27,26 @@
 
     ln -s $DOWNLOADS/$coordinates_parent_file $TDIR/NESTING/.
 
-  Write a namelist file::
 
-    vi namelist.input
+  # Get the namelist file from the cloned repository
+  cp $DOMAIN/namelist.input_SEVERN $TDIR/NESTING/namelist.input
 
-    &input_output
-        iom_activated = true
-    /
-    &coarse_grid_files
-        parent_coordinate_file = 'coordinates_AMM15.nc'
-    /
-    &bathymetry
-    /
-    &nesting
-        imin = 694
-        imax = 807
-        jmin = 400
-        jmax = 490
-        rho  = 3
-        rhot = 3
-        bathy_update = false
-    /
-    &vertical_grid
-    /
-    &partial_cells
-    /
-    &nemo_coarse_grid
-    /
-    &forcing_files
-    /
-    &interp
-    /
-    &restart
-    /
-    &restart_trc
-    /
-
-  ---
-
-  Execute tool::
-
-    ./agrif_create_coordinates.exe
-
-  This creates a coordinate file::
-
-   1_coordinates_AMM15.nc
+  # The namelist.input file controls the create process. Edit the bounding
+  # coordinates (imax, ..., jmax) and scale factor (rho, rhot) to suit the child
+  # coordinates. rho=rhot=3 with increase the resolution by a factor of 3.
 
 
+  #load modules
+  module -s restore /work/n01/shared/acc/n01_modules/ucx_env
+  
+  # Execute tool::
+  cd $TDIR/NESTING/
+  ./agrif_create_coordinates.exe
 
-  Copy it to the $INPUTS directory::
+  # This creates a coordinate file::
+  # 1_coordinates_AMM15.nc
 
-    cp 1_coordinates_AMM15.nc $INPUTS/coordinates.nc
+
+  # Copy it to the $DOMAIN directory where the domain configuration is built::
+
+    cp 1_$coordinates_parent_file $DOMAIN/coordinates.nc

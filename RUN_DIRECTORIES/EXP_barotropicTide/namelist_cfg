@@ -34,9 +34,9 @@
 &namrun        !   parameters of the run
 !-----------------------------------------------------------------------
    nn_no       =       0   !  Assimilation cycle index
-   cn_exp      =  "SEAsia_barotropicTide"
-   nn_it000    =  1 ! 16993 !  8641 ! 1   !  first time step
-   nn_itend    =  14400        !  last  time step
+   cn_exp      =  "SEVERN_baroT"
+   nn_it000    =  1 !  8641 ! 1   !  first time step
+   nn_itend    =  60480 !    ! 4320 per 24hr   !  last  time step
    nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
@@ -53,11 +53,11 @@
    ln_iscpl    = .false.   !  cavity evolution forcing or coupling to ice sheet model
    nn_istate   =       0   !  output the initial state (1) or not (0)
    ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
-   nn_stock    =       0   !  used only if ln_rst_list = F: output restart freqeuncy (modulo referenced to 1)
+   nn_stock    =  4320   !  used only if ln_rst_list = F: output restart freqeuncy (modulo referenced to 1)
       !                          !    =  0 force to write restart files only at the end of the run
       !                          !    = -1 do not do any restart
-   nn_stocklist = 0,0,0,0,0,0,0,0,0,0 ! List of timesteps when a restart file is to be written
-   nn_write    =       0   !  used only if key_iomput is not defined: output frequency (modulo referenced to nn_it000)
+   nn_stocklist = 4320 ! 0,0,0,0,0,0,0,0,0,0 ! List of timesteps when a restart file is to be written
+   nn_write    =  0   !  used only if key_iomput is not defined: output frequency (modulo referenced to nn_it000)
       !                          !    =  0 force to write output files only at the end of the run
       !                          !    = -1 do not do any output file
    ln_mskland  = .false.   !  mask land points in NetCDF outputs
@@ -73,7 +73,7 @@
    ln_linssh   = .false. ! .false.   !  =T  linear free surface  ==>>  model level are fixed in time
    rn_isfhmin  =    1.00   !  treshold [m] to discriminate grounding ice from floating ice
    !
-   rn_rdt      =  360.     !  time step for the dynamics and tracer
+   rn_rdt      =  20.     !  time step for the dynamics and tracer
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module      (T => fill namcrs)
@@ -85,7 +85,7 @@
 !-----------------------------------------------------------------------
    ln_read_cfg = .true.   !  (=T) read the domain configuration file
       !                    !  (=F) user defined configuration           (F => create/check namusr_def)
-      cn_domcfg = "/work/n01/n01/annkat/SEAsia_HadGEM_R12/RUN_DIRECTORY/EXP_HAD_BGC_PHYS/domain_cfg_HadGEM_R12_fix.nc" !"domain_cfg"  ! domain configuration filename
+      cn_domcfg = "domain_cfg" !"domain_cfg"  ! domain configuration filename
       !
       ln_closea    = .false.    !  T => keep closed seas (defined by closea_mask field) in the
       !                         !       domain and apply special treatment of freshwater fluxes.
@@ -223,7 +223,7 @@
 &nam_tide      !   tide parameters                                      (default: OFF)
 !-----------------------------------------------------------------------
    ln_tide     = .true.      ! Activate tides
-   ln_tide_pot   = .true.                !  use tidal potential forcing
+   ln_tide_pot   = .false.                !  use tidal potential forcing
          ln_scal_load  = .false.               ! Use scalar approximation for
             rn_scal_load = 0.094               !     load potential
          ln_read_load  = .false.               ! Or read load potential from file
@@ -232,43 +232,43 @@
    ln_tide_ramp  = .false.               !  Use linear ramp for tides at startup
    rdttideramp   =    0.                 !  ramp duration in days
    dn_love_number = 0.69 !
-!   clname(1) ='N2'
-!   clname(2)='M2'
+   clname(1)='M2'
+   clname(2)='S2'
 !   clname(3)='K1'
-   clname(1) ='2N2'
-   clname(2)='EPS2'
-   clname(3)='J1'
-   clname(4)='K1'
-   clname(5)='K2'
-   clname(6)='L2'
-   clname(7)='LA2'
-   clname(8)='M2'
-   clname(9)='M3'
-   clname(10)='M4'
-   clname(11)='M6'
-   clname(12)='M8'
-   clname(13)='MF'
-   clname(14)='MKS2'
-   clname(15)='MM'
-   clname(16)='MN4'
-   clname(17)='MS4'
-   clname(18)='MSF'
-   clname(19)='MSQM'
-   clname(20)='MTM'
-   clname(21)='MU2'
-   clname(22)='N2'
-   clname(23)='N4'
-   clname(24)='NU2'
-   clname(25)='O1'
-   clname(26)='P1'
-   clname(27)='Q1'
-   clname(28)='R2'
-   clname(29)='S1'
-   clname(30)='S2'
-   clname(31)='S4'
-   clname(32)='SA'
-   clname(33)='SSA'
-   clname(34)='T2'
+!   clname(1) ='2N2'
+!   clname(2)='EPS2'
+!   clname(3)='J1'
+!   clname(4)='K1'
+!   clname(5)='K2'
+!   clname(6)='L2'
+!   clname(7)='LA2'
+!   clname(8)='M2'
+!   clname(9)='M3'
+!   clname(10)='M4'
+!   clname(11)='M6'
+!   clname(12)='M8'
+!   clname(13)='MF'
+!   clname(14)='MKS2'
+!   clname(15)='MM'
+!   clname(16)='MN4'
+!   clname(17)='MS4'
+!   clname(18)='MSF'
+!   clname(19)='MSQM'
+!   clname(20)='MTM'
+!   clname(21)='MU2'
+!   clname(22)='N2'
+!   clname(23)='N4'
+!   clname(24)='NU2'
+!   clname(25)='O1'
+!   clname(26)='P1'
+!   clname(27)='Q1'
+!   clname(28)='R2'
+!   clname(29)='S1'
+!   clname(30)='S2'
+!   clname(31)='S4'
+!   clname(32)='SA'
+!   clname(33)='SSA'
+!   clname(34)='T2'
 /
 !-----------------------------------------------------------------------
 &nambdy        !  unstructured open boundaries                          (default: OFF)
@@ -277,7 +277,7 @@
     nb_bdy         =  1       !  number of open boundary sets
     !
     ln_coords_file = .true.                                 !  =T : read bdy coordinates from file
-    cn_coords_file = '/work/n01/n01/annkat/SEAsia_HadGEM_R12/BOUNDARY_FORCING/2061/coordinates.bdy.nc' !  bdy coordinates files
+    cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
     ln_mask_file   = .false.                !  =T : read mask from file
     cn_mask_file   = ''                      !  name of mask file (if ln_mask_file=.TRUE.)
     cn_dyn2d       =  'flather'    !
@@ -325,7 +325,7 @@
    !                          !  automatically defined to T if the number of vertical levels in bdy dta /= jpk
    ln_full_vel = .true.       !  T if [uv]3d are "full" velocities and not only its baroclinic components
    !
-   cn_dir  =    '/work/n01/n01/annkat/SEAsia_R36_R/BOUNDARY_FORCING/2000/'
+   cn_dir  =    './OBC/'
    !___________!_________________________!___________________!___________!_____________!________!___________!__________________!__________!_______________!
    !           !  file name              ! frequency (hours) ! variable  ! time interp.!  clim  ! 'yearly'/ ! weights filename ! rotation ! land/sea mask !
    !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !                  ! pairing  !    filename   !
@@ -340,7 +340,7 @@
 !-----------------------------------------------------------------------
 &nambdy_tide   !  tidal forcing at open boundaries
 !-----------------------------------------------------------------------
-   filtide      = 'TIDES/SEAsia_HAD_bdytide_rotT_'      !  file name root of tidal forcing files
+   filtide      = 'TIDES/SEVERN_FES14_bdytide_'      !  file name root of tidal forcing files
 /
 !!======================================================================
 !!                ***  Top/Bottom boundary condition  ***             !!
@@ -483,8 +483,8 @@
    ln_dynldf_hor = .false.
 
    nn_ahm_ijk_t  = 0           !  =0   constant = 1/12 Uv*Lv^3 (blp case)
-   rn_Uv      = 0.04 !0.02    !  lateral viscous velocity [m/s]
-   rn_Lv      = 5.e+3      !  lateral viscous length   [m]
+   rn_Uv      = 0.01 !0.02    !  lateral viscous velocity [m/s]
+   rn_Lv      = 200      !  lateral viscous length   [m]
    rn_csmc    = 3.5 !2  !3.5        !  Smagorinsky constant of proportionality
      rn_minfac     = 1.0         !  multiplier of theorectical lower limit
      rn_maxfac     = 1.0         !  multiplier of theorectical upper limit

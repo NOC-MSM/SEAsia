@@ -28,4 +28,4 @@ export OMP_NUM_THREADS=1
 # Launch the parallel job
 #   Using 512 MPI processes and 128 MPI processes per node
 #   srun picks up the distribution from the sbatch options
-srun --distribution=block:block --hint=nomultithread --het-group=0 /work/n01/n01/jelt/NEMO-REGION/BUILD_EXE/TOOLS_r8395/TOOLS/DOMAINcfg/BLD/bin/make_domain_cfg.exe
+srun --distribution=block:block --hint=nomultithread --het-group=0 XXX_TDIR_XXX/DOMAINcfg/BLD/bin/make_domain_cfg.exe
