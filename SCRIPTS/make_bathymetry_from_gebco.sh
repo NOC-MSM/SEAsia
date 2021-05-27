@@ -53,41 +53,36 @@
   # If necessary, edit namelist to point to correct input file and variable names
   cd $DOMAIN
 
+  # Link in the new coordinates file
+  ln -s $TDIR/NESTING/1_coordinates_AMM15.nc coordinates.nc
+
   # Execute first SCRIP process::
   $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
 
-#:'
-#
 #  Output files::
 #
 #    remap_nemo_grid_gebco.nc
 #    remap_data_grid_gebco.nc
-#'
-#::
 
   #Execute second SCRIP process:
   $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
 
-#:'
-#
 #  Output files::
 #
 #    data_nemo_bilin_gebco.nc
-#'
-#::
+
 
   # Execute third SCRIP process:
   $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
 
-#:'
-#
 #  Output files::
 #
 #    bathy_meter.nc
 #
 #  Finally, load ``nco`` tools to tidy some grid scale issues
-#'
-#::
+
+#
+# Finally make minor modifications to the bathymetry file
 #
 #  # load nco modules (this was done locally)
 #  module load nco
@@ -104,6 +99,7 @@
 #  # Fix bathymetry to deal with instabilities (opening some straights that
 #  #have only 2 grid points)
 #  # E.g. ncap2 -s 'Bathymetry(0,0)=0' bathy_meter_10m.nc bathy_meter_10m.nc -O
+
 
 
   cd $WORK
