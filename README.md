@@ -14,9 +14,9 @@ Severn Estaury in the UK  (-5E to -2E and 50.1N to 51.8N)
 
 The model grid target resolution 500m; with 31 sigma vertical levels, with a baroptropic ocean. Featuring:
 
+* FES2014 tides
 * Wave coupling (in prog.)
 * Freshwater forcing (in prog.)
-* FES2014 tides (in prog.)
 * ERA5 wind and sea level pressure (in prog.)
 * Wetting and Drying (in prog.)
 
@@ -32,6 +32,9 @@ Then follow descritptions in: https://github.com/JMMP-Group/SEVERN-SWOT/wiki
 
 
 ### Experiment Summary
+
+* ``EXP_unforced``
+Constant T and S. No tides. No met.
 
 * ``EXP_barotropicTide``
 Only tidal forcing. constant T and S
