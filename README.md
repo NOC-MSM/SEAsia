@@ -1,6 +1,6 @@
-********
-# SEAsia
-********
+****************************
+# SEAsia regional NEMO model
+****************************
 
 This model configuration has been developed through the ACCORD (Addressing Challenges of Coastal Communities through Ocean Research for Developing Economies) Project, funded by [Natural Environment Research Council, under a National Capability Official Development Assistance](http://gotw.nerc.ac.uk/list_full.asp?pcode=NE%2FR000123%2F1)
 
@@ -12,21 +12,27 @@ This model configuration has been developed through the ACCORD (Addressing Chall
 
 A specific region of focus includes exploring South East Asia (75E to 135E and -20N to +25N)
 
-The model grid has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical levels.
+The model grid has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical levels. Featuring:
+
+* FES2014 tides
+* Boundary conditions from ... (in prog.)
+* Freshwater forcing (in prog.)
+* ERA5 wind and sea level pressure (in prog.)
 
 ![SE Asia bathymetry](https://github.com/NOC-MSM/SEAsia/wiki/FIGURES/ACCORD_SEAsia_bathy.png)
 
 ### Model Setup
 
-The following code was used in this configuration:
 
-svn co http://forge.ipsl.jussieu.fr/nemo/svn/NEMO/releases/r4.0/r4.0.6
+The following process is followed to build and get started with this configuration
 
-svn checkout -r 1964 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.5
+``git clone https://github.com/NOC-MSM/NEMO-RELOC.git``
 
-The initial conditions and boundary data can be downloaded from JASMIN:
+Then follow descritptions in: https://github.com/NOC-MSM/NEMO-RELOC/wiki
 
-http://  ...
+The example is based on NEMO v4.0.6 and XIOS v2.5:
+
+
 
 ### Experiment Summary
 
