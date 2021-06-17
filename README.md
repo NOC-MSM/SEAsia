@@ -1,47 +1,41 @@
-****************************
-# Severn regional NEMO model
-****************************
+********
+# SEAsia
+********
 
-This model configuration has been developed in order to ...
+This model configuration has been developed through the ACCORD (Addressing Challenges of Coastal Communities through Ocean Research for Developing Economies) Project, funded by [Natural Environment Research Council, under a National Capability Official Development Assistance](http://gotw.nerc.ac.uk/list_full.asp?pcode=NE%2FR000123%2F1)
 
 *************************************************
-## NEMO regional configuration of Severn Estuary
+## NEMO regional configuration of South East Asia
 *************************************************
 
 ### Model Summary
 
-Severn Estaury in the UK  (-5E to -2E and 50.1N to 51.8N)
+A specific region of focus includes exploring South East Asia (75E to 135E and -20N to +25N)
 
-The model grid target resolution 500m; with 31 sigma vertical levels, with a baroptropic ocean. Featuring:
+The model grid has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical levels.
 
-* FES2014 tides
-* Wave coupling (in prog.)
-* Freshwater forcing (in prog.)
-* ERA5 wind and sea level pressure (in prog.)
-* Wetting and Drying (in prog.)
-
-![Severn bathymetry](https://github.com/JMMP-Group/SEVERN-SWOT/wiki/FIGURES/severn.png)
+![SE Asia bathymetry](https://github.com/NOC-MSM/SEAsia/wiki/FIGURES/ACCORD_SEAsia_bathy.png)
 
 ### Model Setup
 
-The following process is followed to build and get started with this configuration
+The following code was used in this configuration:
 
-``git clone https://github.com/JMMP-Group/SEVERN-SWOT.git``
+svn co http://forge.ipsl.jussieu.fr/nemo/svn/NEMO/releases/r4.0/r4.0.6
 
-Then follow descritptions in: https://github.com/JMMP-Group/SEVERN-SWOT/wiki
+svn checkout -r 1964 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.5
 
+The initial conditions and boundary data can be downloaded from JASMIN:
+
+http://  ...
 
 ### Experiment Summary
 
-* ``EXP_unforced``
-Constant T and S. No tides. No met.
-
-* ``EXP_barotropicTide``
+EXP_barotropicTide
+==================
 Only tidal forcing. constant T and S
 
-* ...
 
+...
 
 ### Repository structure
 
-* ...
