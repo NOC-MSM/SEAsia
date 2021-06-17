@@ -36,12 +36,10 @@ The example is based on NEMO v4.0.6 and XIOS v2.5:
 
 ### Experiment Summary
 
-EXP_barotropicTide
-==================
+* ``EXP_barotropicTide``
 Only tidal forcing. Constant T and S
 
-EXP_unforced
-============
+* ``EXP_unforced``
 No forcing. Stratification varies only with depth. Start from rest.
 
 
@@ -49,3 +47,4 @@ No forcing. Stratification varies only with depth. Start from rest.
 
 ### Repository structure
 
+* ...
