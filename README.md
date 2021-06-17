@@ -32,7 +32,11 @@ http://  ...
 
 EXP_barotropicTide
 ==================
-Only tidal forcing. constant T and S
+Only tidal forcing. Constant T and S
+
+EXP_unforced
+============
+No forcing. Stratification varies only with depth. Start from rest.
 
 
 ...
