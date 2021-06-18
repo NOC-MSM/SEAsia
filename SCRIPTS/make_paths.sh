@@ -11,7 +11,7 @@
 # used to compile NEMO/OPA and XIOS
 
 # Assumed:
-# git clone https://github.com/NOC-MSM/NEMO-RELOC.git NEMO-REGION
+# git clone https://github.com/NOC-MSM/NEMO-RELOC.git NEMO-RELOC
 
 
 #::
@@ -21,7 +21,7 @@ export CONFIG=TESTCOMPILE
 export CONFIG=NEMOhorizTS
 export CONFIG=NEMOconstTS
 export WORK=/work/n01/n01/$USER
-export WDIR=$WORK/NEMO-REGION # Also the git clone directory
+export WDIR=$WORK/NEMO-RELOC # Also the git clone directory
 export NEMO_VER=4.0.6
 export NEMO=$WDIR/BUILD_EXE/NEMO/$NEMO_VER
 #export CDIR=$NEMO/cfgs
