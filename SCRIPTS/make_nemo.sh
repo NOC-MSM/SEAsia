@@ -99,5 +99,5 @@ cp $NEMO/cfgs/SHARED/*.xml $NEMO/cfgs/$CONFIG/EXPREF/.
 
 echo "Executable is $NEMO/cfgs/$CONFIG/BLD/bin/nemo.exe"
 
-
+cd $WDIR
   #::
