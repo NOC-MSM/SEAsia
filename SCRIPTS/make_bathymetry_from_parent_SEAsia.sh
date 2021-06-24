@@ -2,9 +2,9 @@
 
 #:'
 #
-#*******************************
-#make_bathymetry_from_parent.sh
-#*******************************
+#*************************************
+#make_bathymetry_from_parent_SEAsia.sh
+#*************************************
 #
 # In the following the bathmetry file is constructed from the gridded bathymetry
 # of the parent model. This dataset is available on the JASMIN compute service. E.g.
@@ -20,21 +20,25 @@
   cd $DOMAIN
 
   #load modules
-  module unload nco cray-netcdf cray-hdf5
-  module swap PrgEnv-cray PrgEnv-intel
-  module load cray-netcdf-hdf5parallel
-  module load cray-hdf5-parallel
+  module -s restore /work/n01/shared/acc/n01_modules/ucx_env
 
   # Obtain the bathymetry from the ORCA12 global model from JASMIN.
-  # Or on ARCHER you can take it from an existing directory
-  cp /work/n01/n01/annkat/EXTRA_TOOLS/BATH/eORCA12_bathymetry_v2.4.nc $DOMAIN
-
-  # Copy namelist for reshaping the parent data.
-  # If necessary, edit namelist to point to correct input file and variable names
-  cp $GITCLONE/DOMAIN/namelist_reshape_bilin_eORCA12 $DOMAIN
+  # Or on ARCHER you can take it from an existing directory E.g.
+  cp /work/n01/n01/annkat/EXTRA_TOOLS/BATH/eORCA12_bathymetry_v2.4.nc $DOMAIN/.
+  /gws/nopw/j04/nemo_vol6/acc/eORCA12-N512-ay652/domain/eORCA12_bathymetry_v2.4.nc 
+  #wget http://gws-access.jasmin.ac.uk/public/nemo/runs/ORCA0083-N06/domain/bathymetry_ORCA12_V3.3.nc -O $DOMAIN/bathymetry_ORCA12_V3.3.nc
 
   # Execute first SCRIP process::
-  $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
+  ## Generate the new coordinates file with the namelist.input settings using AGRIF tool
+  # Edit job script
+  sed "s?XXX_TDIR_XXX?$TDIR?" $DOMAIN/job_create_SCRIP_template.slurm > $DOMAIN/job_create_SCRIP.slurm
+
+  # Submit the coordinates creation as a job (uses namelist_reshape_bilin_ORCA12 for settings)
+  cd $DOMAIN
+  sbatch   job_create_SCRIP.slurm 
+
+# This batch script uses the SCRIP tool to perform a number of steps:
+# Firstly, $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_eORCA12
 
 #:'
 #
@@ -45,8 +49,8 @@
 #'
 #::
 
-  #Execute second SCRIP process:
-  $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_gebco
+  #Then, execute 2nd SCRIP process:
+  # $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_eORCA12
 
 #:'
 #
@@ -56,8 +60,8 @@
 #'
 #::
 
-  # Execute third SCRIP process:
-  $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_gebco
+  # Finally, execute third SCRIP process:
+  # $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_eORCA12
 
 #:'
 
