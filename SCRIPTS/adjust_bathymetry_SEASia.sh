@@ -1,7 +1,16 @@
-# ----
-# Finally, load ``nco`` tools to tidy some grid scale issues
-#'
+#!/bin/bash
+
+#:'
+#
+#*************************************
+#adjust_bathymetry_SEAsia.sh
+#*************************************
+#
+# In the following the bathmetry file is adjusted to set a minimum depth and remove any unexpected negative values.
+# This uses ``nco`` commands that are not available on ARCHER2, but are commonly available.
 #::
+
+  cd $DOMAIN
 
   # load nco modules. Modules do not currently exist on ARCHER2 so do elsewhere.
   module load nco
