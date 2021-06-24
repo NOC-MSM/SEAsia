@@ -22,14 +22,14 @@
   rm tmp1.nc
 
   # Copy it if you want for safe keeping
-  cp bathy_meter.nc bathy_meter_ORCA12.nc
+  cp bathy_meter.nc bathy_meter_SEAsia.nc
 
   # Fix bathymetry to deal with instabilities (opening some straights that
   # have only 2 grid points)
-  ncap2 -s 'Bathymetry(140,464)=200' bathy_meter_ORCA12.nc bathy_meter_ORCA12.nc -O
-  ncap2 -s 'Bathymetry(141,464)=200' bathy_meter_ORCA12.nc bathy_meter_ORCA12.nc -O
-  ncap2 -s 'Bathymetry(145,563)=400' bathy_meter_ORCA12.nc bathy_meter_ORCA12.nc -O
-  ncap2 -s 'Bathymetry(145,564)=400' bathy_meter_ORCA12.nc bathy_meter_ORCA12.nc -O
-  ncap2 -s 'Bathymetry(140,467)=80' bathy_meter_ORCA12.nc bathy_meter_ORCA12.nc -O
+  ncap2 -s 'Bathymetry(140,464)=200' bathy_meter_SEAsia.nc bathy_meter_SEAsia.nc -O
+  ncap2 -s 'Bathymetry(141,464)=200' bathy_meter_SEAsia.nc bathy_meter_SEAsia.nc -O
+  ncap2 -s 'Bathymetry(145,563)=400' bathy_meter_SEAsia.nc bathy_meter_SEAsia.nc -O
+  ncap2 -s 'Bathymetry(145,564)=400' bathy_meter_SEasia.nc bathy_meter_SEAsia.nc -O
+  ncap2 -s 'Bathymetry(140,467)=80'  bathy_meter_SEAsia.nc bathy_meter_SEAsia.nc -O
 
   cd $WDIR/SCRIPTS
