@@ -31,7 +31,7 @@
   # Execute first SCRIP process::
   ## Generate the new coordinates file with the namelist.input settings using AGRIF tool
   # Edit job script
-  sed "s?XXX_TDIR_XXX?$TDIR?" $DOMAIN/job_create_SCRIP_template.slurm > $DOMAIN/job_create_SCRIP.slurm
+  sed "s?XXX_TDIR_XXX?$TDIR?g" $DOMAIN/job_create_SCRIP_template.slurm > $DOMAIN/job_create_SCRIP.slurm
 
   # Submit the coordinates creation as a job (uses namelist_reshape_bilin_ORCA12 for settings)
   cd $DOMAIN
@@ -49,8 +49,8 @@
 #'
 #::
 
-  #Then, execute 2nd SCRIP process:
-  # $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_eORCA12
+# Then, execute 2nd SCRIP process:
+# $TDIR/WEIGHTS/scrip.exe namelist_reshape_bilin_eORCA12
 
 #:'
 #
@@ -60,8 +60,8 @@
 #'
 #::
 
-  # Finally, execute third SCRIP process:
-  # $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_eORCA12
+# Finally, execute third SCRIP process:
+# $TDIR/WEIGHTS/scripinterp.exe namelist_reshape_bilin_eORCA12
 
 #:'
 
@@ -73,10 +73,8 @@
 #'
 #::
 
-  # load nco modules
-  module unload cray-netcdf-hdf5parallel cray-hdf5-parallel
-  module load cray-netcdf cray-hdf5
-  module load nco/4.5.0
+  # load nco modules. Modules do not currently exist on ARCHER2 so do elsewhere.
+  module load nco
 
   # Remove weirdness with negative bathymetry and make minimum bathymetry
   #equal to 10 m (resolve any possible wet-drying problems)
