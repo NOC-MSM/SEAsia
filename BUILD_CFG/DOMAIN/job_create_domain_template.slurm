@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=nemo_unforced
+#SBATCH --job-name=nemo_dom
 #SBATCH --time=00:10:00
 #SBATCH --nodes=4
 #SBATCH --tasks-per-node=2
