@@ -28,9 +28,10 @@ export OMP_NUM_THREADS=1
 # Launch the parallel job
 #   Using 512 MPI processes and 128 MPI processes per node
 #   srun picks up the distribution from the sbatch options
-srun --distribution=block:block --hint=nomultithread --het-group=0 XXX_TDIR_XXX/WEIGHTS/scripgrid.exe namelist_reshape_bilin_eORCA12
+srun --distribution=block:block --hint=nomultithread --het-group=0 XXX_TDIR_XXX/WEIGHTS/scripgrid.exe namelist_reshape_bilin_ORCA12
 
-srun --distribution=block:block --hint=nomultithread --het-group=0 XXX_TDIR_XXX/WEIGHTS/scrip.exe namelist_reshape_bilin_eORCA12
+srun --distribution=block:block --hint=nomultithread --het-group=0 XXX_TDIR_XXX/WEIGHTS/scrip.exe namelist_reshape_bilin_ORCA12
 
-srun --distribution=block:block --hint=nomultithread --het-group=0 XXX_TDIR_XXX/WEIGHTS/scripinterp.exe namelist_reshape_bilin_eORCA12
+srun --distribution=block:block --hint=nomultithread --het-group=0 XXX_TDIR_XXX/WEIGHTS/scripinterp.exe namelist_reshape_bilin_ORCA12
+
 ~
