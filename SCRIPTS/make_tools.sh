@@ -43,4 +43,4 @@
   # Install PyNEMO
   #$SCRIPTS/install_pynemo.sh
 
-  cd $WORK
+  cd $WDIR/SCRIPTS
