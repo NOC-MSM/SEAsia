@@ -1,22 +1,17 @@
 #!/bin/bash
 
-#:'
-#
 #***********************
 #make_paths.sh
 #***********************
-#'
 
-# This script should be editted and sets all the directory paths that subsequently
-# used to compile NEMO/OPA and XIOS
-
+# This script should be editted.
+# It sets all the directory paths that are subsequently
+# used to compile NEMO/OPA and XIOS.
+# These paths are also required to run NEMO, XIOS and various tools
+#
 # Assumed:
 # git clone https://github.com/NOC-MSM/NEMO-RELOC.git NEMO-RELOC
 
-
-#::
-
-# Paths required to compile (and run) NEMO/OPA and XIOS
 
 # Set the configuration name that describes the NEMO executable
 export CONFIG=TESTCOMPILE
