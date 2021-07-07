@@ -35,7 +35,16 @@ the provided coordinates and bathymetry netCDF files.
   # Submit the domain creation as a job,
   cd $TDIR/DOMAINcfg
   sbatch job_create.slurm
-
+  
+  #wait for domain creation job to finish
+  for i in {0..7}; do #8 tiles
+  while [ ! -f domain_cfg_000$i.nc ] ;
+  do
+      echo  "wait for domain creation job to finish"
+      sleep 60
+  done
+  done
+  
   # Rebuild the files. Here there are 8 tiles (and rebuilding on a single thread) 
   $TDIR/REBUILD_NEMO/rebuild_nemo -t 1 domain_cfg 8
 
