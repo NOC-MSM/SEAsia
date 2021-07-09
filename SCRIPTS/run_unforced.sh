@@ -17,7 +17,7 @@ export CONFIG=NEMOconstTS
 export EXP=$WDIR/RUN_DIRECTORIES/EXP_unforced
 
 # Choose an appropriate directory for your EXP installation
-if [ ! -d "$EXP" ]; then
+if [ ! -d "$EXP/RESTART" ]; then
   #mkdir $EXP
   mkdir $EXP/RESTART
 fi
