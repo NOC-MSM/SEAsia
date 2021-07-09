@@ -53,8 +53,8 @@
   # If necessary, edit namelist to point to correct input file and variable names
   cd $DOMAIN
 
-  # Link in the new coordinates file
-  ln -s $TDIR/NESTING/1_coordinates_AMM15.nc coordinates.nc
+  # Link in the new coordinates file (required but already there)
+  # ln -s $TDIR/NESTING/1_coordinates_AMM15.nc coordinates.nc
 
   # Execute first SCRIP process::
   $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_gebco
