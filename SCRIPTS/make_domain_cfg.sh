@@ -50,5 +50,5 @@ the provided coordinates and bathymetry netCDF files.
 
   # After create copy it and store it for further use
   cp $TDIR/DOMAINcfg/domain_cfg.nc $DOMAIN/domain_cfg_SEVERN.nc
-
+  rm $TDIR/DOMAINcfg/domain_cfg_000*.nc #remove tiles
   cd $WORK
