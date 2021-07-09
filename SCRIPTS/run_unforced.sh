@@ -18,7 +18,7 @@ export EXP=$WDIR/RUN_DIRECTORIES/EXP_unforced
 
 # Choose an appropriate directory for your EXP installation
 if [ ! -d "$EXP" ]; then
-  mkdir $EXP
+  #mkdir $EXP
   mkdir $EXP/RESTART
 fi
 
