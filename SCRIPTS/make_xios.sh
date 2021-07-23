@@ -43,4 +43,4 @@ sed -i "s/FC_MODSEARCH => ''/FC_MODSEARCH => '-J'/g" tools/FCM/lib/Fcm/Config.pm
 echo "Executable is $XIOS_DIR/bin/xios_server.exe"
 
 #######################################
-cd $WDIR
+cd $WDIR/SCRIPTS

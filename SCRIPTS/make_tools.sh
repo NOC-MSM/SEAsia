@@ -36,8 +36,6 @@
   ./maketools -m X86_ARCHER2-Cray -n REBUILD_NEMO
   ./maketools -m X86_ARCHER2-Cray -n WEIGHTS
   ./maketools -m X86_ARCHER2-Cray -n DOMAINcfg
-  ./maketools -m X86_ARCHER2-Cray -n REBUILD_NEMO
-
 
   # Make SOSIE tool.
   #$SCRIPTS/install_sosie.sh
@@ -45,4 +43,4 @@
   # Install PyNEMO
   #$SCRIPTS/install_pynemo.sh
 
-  cd $WORK
+  cd $WDIR/SCRIPTS
