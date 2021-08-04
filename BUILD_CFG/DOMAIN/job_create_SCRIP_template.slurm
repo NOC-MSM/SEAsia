@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=nemo_unforced
+#SBATCH --job-name=nemo_SCRIP
 #SBATCH --time=00:10:00
 #SBATCH --nodes=4
 #SBATCH --tasks-per-node=2
@@ -28,4 +28,10 @@ export OMP_NUM_THREADS=1
 # Launch the parallel job
 #   Using 512 MPI processes and 128 MPI processes per node
 #   srun picks up the distribution from the sbatch options
-srun --distribution=block:block --hint=nomultithread --het-group=0 XXX_TDIR_XXX/DOMAINcfg/BLD/bin/make_domain_cfg.exe
+srun --distribution=block:block --hint=nomultithread --het-group=0 XXX_TDIR_XXX/WEIGHTS/scripgrid.exe namelist_reshape_bilin_ORCA12
+
+srun --distribution=block:block --hint=nomultithread --het-group=0 XXX_TDIR_XXX/WEIGHTS/scrip.exe namelist_reshape_bilin_ORCA12
+
+srun --distribution=block:block --hint=nomultithread --het-group=0 XXX_TDIR_XXX/WEIGHTS/scripinterp.exe namelist_reshape_bilin_ORCA12
+
+~

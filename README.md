@@ -1,46 +1,50 @@
-****************************
-# Severn regional NEMO model
-****************************
+******************
+# Relocatable NEMO
+******************
 
-This model configuration has been developed in order to ...
+An example configuration of SE Asia, demonstrating how to setup new regional domains in the NEMO framework.
+This model configuration has been developed through the ACCORD (Addressing Challenges of Coastal Communities through Ocean Research for Developing Economies) Project, funded by [Natural Environment Research Council, under a National Capability Official Development Assistance](http://gotw.nerc.ac.uk/list_full.asp?pcode=NE%2FR000123%2F1).
 
 *************************************************
-## NEMO regional configuration of Severn Estuary
+## NEMO regional configuration of South East Asia
 *************************************************
 
 ### Model Summary
 
-Severn Estaury in the UK  (-5E to -2E and 50.1N to 51.8N)
+A specific region of focus includes exploring South East Asia (75E to 135E and -20N to +25N)
 
-The model grid target resolution 500m; with 31 sigma vertical levels, with a baroptropic ocean. Featuring:
+The model grid has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical levels. Featuring:
 
 * FES2014 tides
-* Wave coupling (in prog.)
+* Boundary conditions from ... (in prog.)
 * Freshwater forcing (in prog.)
 * ERA5 wind and sea level pressure (in prog.)
-* Wetting and Drying (in prog.)
 
-![Severn bathymetry](https://github.com/JMMP-Group/SEVERN-SWOT/wiki/FIGURES/severn.png)
+![SE Asia bathymetry](https://github.com/NOC-MSM/SEAsia/wiki/FIGURES/ACCORD_SEAsia_bathy.png)
 
 ### Model Setup
 
+
 The following process is followed to build and get started with this configuration
 
-``git clone https://github.com/JMMP-Group/SEVERN-SWOT.git``
+``git clone https://github.com/NOC-MSM/NEMO-RELOC.git``
 
-Then follow descritptions in: https://github.com/JMMP-Group/SEVERN-SWOT/wiki
+Then follow descritptions in: https://github.com/NOC-MSM/NEMO-RELOC/wiki
+
+The example is based on NEMO v4.0.6 and XIOS v2.5:
+
 
 
 ### Experiment Summary
 
-* ``EXP_unforced``
-Constant T and S. No tides. No met.
-
 * ``EXP_barotropicTide``
-Only tidal forcing. constant T and S
+Only tidal forcing. Constant T and S
 
-* ...
+* ``EXP_unforced``
+No forcing. Stratification varies only with depth. Start from rest.
 
+
+...
 
 ### Repository structure
 

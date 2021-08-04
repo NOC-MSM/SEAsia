@@ -30,18 +30,19 @@
 !------------------------------------------------------------------------------
 !  grid information 
 !------------------------------------------------------------------------------
-  sn_src_hgr = '/projectsa/accord/SANH_jenjar/CMEMS_SANH/TEST_pynemo3/CMEMS_subdomain_coordinates.nc'   !  parent /grid/
-   sn_src_zgr = '/projectsa/accord/SANH_jenjar/CMEMS_SANH/TEST_pynemo3/inputs_src_zgr.ncml'   !  parent
+  sn_src_hgr = 'CMEMS_subdomain_coordinates.nc'   !  parent /grid/
+   sn_src_zgr = 'inputs_src_zgr.ncml'   !  parent
    sn_dst_hgr = '../DOMAIN/domain_cfg.nc'  ! child
    sn_dst_zgr = 'inputs_dst.ncml' ! rename output variables
-   sn_src_msk = '/projectsa/accord/SANH_jenjar/CMEMS_SANH/TEST_pynemo3/CMEMS_subdomain_mask.nc'       ! parent
+   sn_src_msk = 'CMEMS_subdomain_mask.nc'       ! parent
+   !sn_bathy   = 'inputs_dst_bath.ncml'        ! child
    sn_bathy   = '../DOMAIN/bathy_meter.nc'        ! child
 
 
 !------------------------------------------------------------------------------
 !  I/O 
 !------------------------------------------------------------------------------
-   sn_src_dir      = './NCML/CMEMS_2005.ncml' ! src_files/'
+   sn_src_dir      = './NCML/CMEMS_2018.ncml' ! src_files/'
    sn_dst_dir      = './OUTPUT'
    sn_ncml_out     = './output_NCML'
    sn_model_prefix = 'NEMO'
@@ -55,7 +56,7 @@
 !  CMEMS Data Source Configuration
 !------------------------------------------------------------------------------
    ln_download_cmems        = .false.
-   sn_cmems_dir             = '/projectsa/accord/SANH_jenjar/CMEMS_SANH/CMEMS_data' ! where to download CMEMS input files (static and variable)
+   sn_cmems_dir             = '/work/n01/n01/jelt/NEMO-RELOC/DOWNLOADS/CMEMS_data' ! where to download CMEMS input files (static and variable)
    ln_download_static       = .false.
    ln_subset_static         = .false.
    nn_num_retry             = 4 ! how many times to retry CMEMS download after non critical errors?
@@ -91,7 +92,7 @@
     ln_coords_file = .true.               !  =T : produce bdy coordinates files
     cn_coords_file = 'coordinates.bdy.nc' !  name of bdy coordinates files 
                                           !  (if ln_coords_file=.TRUE.)
-    ln_mask_file   = .true.              !  =T : read mask from file
+    ln_mask_file   = .false.              !  =T : read mask from file
     cn_mask_file   = '../DOMAIN/bdy_mask.nc'            !  name of mask file
                                           !  (if ln_mask_file=.TRUE.)
     ln_dyn2d       = .false.              !  boundary conditions for
@@ -138,7 +139,7 @@
 	sn_tide_grid   = '/work/jelt/tpxo7.2/grid_tpxo7.2.nc'
 	sn_tide_h      = '/work/jelt/tpxo7.2/h_tpxo7.2.nc'
 	sn_tide_u      = '/work/jelt/tpxo7.2/u_tpxo7.2.nc'
-	! location of FES data
+    ! location of FES data
 	sn_tide_fes      = './FES2014/'
 	
 !------------------------------------------------------------------------------

@@ -22,12 +22,12 @@
    !                       !      only there for backward compatibility test with v3.6
    !                       !
    cp_cfg      =  "orca"   !  name of the configuration
-   jp_cfg      =     220   !  resolution of the configuration
-   jpidta      =     342   !  1st lateral dimension ( >= jpi )
-   jpjdta      =     273   !  2nd    "         "    ( >= jpj )
+   jp_cfg      =      12   !  resolution of the configuration
+   jpidta      =     681   !  1st lateral dimension ( >= jpi )
+   jpjdta      =     551   !  2nd    "         "    ( >= jpj )
    jpkdta      =      31   !  number of levels      ( >= jpk )
-   jpiglo      =     342   !  1st dimension of global domain --> i =jpidta
-   jpjglo      =     273   !  2nd    -                  -    --> j  =jpjdta
+   jpiglo      =     681   !  1st dimension of global domain --> i =jpidta
+   jpjglo      =     551   !  2nd    -                  -    --> j  =jpjdta
    jpizoom     =       1   !  left bottom (i,j) indices of the zoom
    jpjzoom     =       1   !  in data domain indices
    jperio      =       0   !  lateral cond. type (between 0 and 6)

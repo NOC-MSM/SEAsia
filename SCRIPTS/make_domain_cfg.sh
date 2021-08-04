@@ -1,14 +1,14 @@
 #!/bin/bash
 
-:'
-
-*******************************
-make_domain_cfg.sh
-*******************************
-
-This script is generates s-sigma vertical coordinates with
-the provided coordinates and bathymetry netCDF files.
-'
+#:'
+#
+#*******************************
+#make_domain_cfg.sh
+#*******************************
+#
+# This script is generates s-sigma vertical coordinates with
+# the provided coordinates and bathymetry netCDF files.
+#'
 #::
 
   ## Obtain the appropriate namelist (modify it if necessary)
@@ -30,11 +30,12 @@ the provided coordinates and bathymetry netCDF files.
   #cp $DOMAIN/domzgr.f90.melange $TDIR/DOMAINcfg/src/domzgr.f90
 
   # Edit job script
-  sed "s?XXX_TDIR_XXX?$TDIR?" $DOMAIN/job_create_template.slurm > $TDIR/DOMAINcfg/job_create.slurm
+  sed "s?XXX_TDIR_XXX?$TDIR?g" $DOMAIN/job_create_domain_template.slurm > $TDIR/DOMAINcfg/job_create_domain.slurm
+  sed -i "s?XXX_DOMAIN_XXX?$DOMAIN?g" $TDIR/DOMAINcfg/job_create_domain.slurm
   
-  # Submit the domain creation as a job,
+  # Submit job script to build domain_cfg tiles
   cd $TDIR/DOMAINcfg
-  sbatch job_create.slurm
+  sbatch job_create_domain.slurm
   
   #wait for domain creation job to finish
   for i in {0..7}; do #8 tiles
@@ -49,6 +50,6 @@ the provided coordinates and bathymetry netCDF files.
   $TDIR/REBUILD_NEMO/rebuild_nemo -t 1 domain_cfg 8
 
   # After create copy it and store it for further use
-  cp $TDIR/DOMAINcfg/domain_cfg.nc $DOMAIN/domain_cfg_SEVERN.nc
+  cp $TDIR/DOMAINcfg/domain_cfg.nc $DOMAIN/domain_cfg_SEAsia.nc
   rm $TDIR/DOMAINcfg/domain_cfg_000*.nc #remove tiles
-  cd $WORK
+  cd $WDIR/SCRIPTS

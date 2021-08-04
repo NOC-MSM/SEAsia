@@ -18,6 +18,7 @@
 &vertical_grid
 /
 &partial_cells
+    partial_steps = .true.
 /
 &nemo_coarse_grid
 /
@@ -28,4 +29,6 @@
 &restart
 /
 &restart_trc
+/
+&restart_ice
 /
