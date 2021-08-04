@@ -33,11 +33,23 @@
   sed "s?XXX_TDIR_XXX?$TDIR?g" $DOMAIN/job_create_domain_template.slurm > $TDIR/DOMAINcfg/job_create_domain.slurm
   sed -i "s?XXX_DOMAIN_XXX?$DOMAIN?g" $TDIR/DOMAINcfg/job_create_domain.slurm
   
+  # Submit job script to build domain_cfg tiles
   cd $TDIR/DOMAINcfg
-  ## Submit the domain creation as a job,
-  ## Also rebuild the files. Here there are 8 tiles (and rebuilding on a single thread) 
-  #$TDIR/REBUILD_NEMO/rebuild_nemo -t 1 domain_cfg 8
-  ## And create copy it and store it for further use
-  #cp $TDIR/DOMAINcfg/domain_cfg.nc $DOMAIN/domain_cfg_SEAsia.nc
   sbatch job_create_domain.slurm
+  
+  #wait for domain creation job to finish
+  for i in {0..7}; do #8 tiles
+  while [ ! -f domain_cfg_000$i.nc ] ;
+  do
+      echo  "wait for domain creation job to finish"
+      sleep 60
+  done
+  done
+  
+  # Rebuild the files. Here there are 8 tiles (and rebuilding on a single thread) 
+  $TDIR/REBUILD_NEMO/rebuild_nemo -t 1 domain_cfg 8
+
+  # After create copy it and store it for further use
+  cp $TDIR/DOMAINcfg/domain_cfg.nc $DOMAIN/domain_cfg_SEAsia.nc
+  rm $TDIR/DOMAINcfg/domain_cfg_000*.nc #remove tiles
   cd $WDIR/SCRIPTS

@@ -37,6 +37,7 @@
   ./maketools -m X86_ARCHER2-Cray -n WEIGHTS
   ./maketools -m X86_ARCHER2-Cray -n DOMAINcfg
 
+
   # Make SOSIE tool.
   #$SCRIPTS/install_sosie.sh
 
