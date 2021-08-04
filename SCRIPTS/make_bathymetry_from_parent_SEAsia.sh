@@ -24,7 +24,9 @@
 
   # Obtain the bathymetry from the ORCA12 global model from JASMIN. The e(xtended)ORCA domain has a higher latitude reach. 
   # Or on ARCHER you can take it from an existing directory E.g. /gws/nopw/j04/nemo_vol6/acc/eORCA12-N512-ay652/domain/eORCA12_bathymetry_v2.4.nc 
-  wget http://gws-access.jasmin.ac.uk/public/nemo/runs/ORCA0083-N06/domain/bathymetry_ORCA12_V3.3.nc -O $DOMAIN/bathymetry_ORCA12_V3.3.nc
+  wget http://gws-access.jasmin.ac.uk/public/nemo/runs/ORCA0083-N06/domain/bathymetry_ORCA12_V3.3.nc -O $DOWNLOADS/bathymetry_ORCA12_V3.3.nc
+
+  ln -s $DOWNLOADS/bathymetry_ORCA12_V3.3.nc $DOMAIN/bathymetry_ORCA12_V3.3.nc
 
   # Execute first SCRIP process::
   ## Generate the new coordinates file with the namelist.input settings using AGRIF tool
