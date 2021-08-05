@@ -1,33 +1,33 @@
 #!/bin/bash
-#SBATCH --job-name=nemo_unforced
+#SBATCH --job-name=nemo_test
 #SBATCH --time=00:10:00
-#SBATCH --nodes=4
-#SBATCH --tasks-per-node=2
-#SBATCH --cpus-per-task=1
+#SBATCH --nodes=1
+#SBATCH --ntasks=3
 #SBATCH --account=n01-ACCORD
 #SBATCH --partition=standard
 #SBATCH --qos=standard
-
-#SBATCH hetjob
-
-#SBATCH --partition=standard
-#SBATCH --qos=standard
-
-#SBATCH --nodes=8
-#SBATCH --ntasks-per-node=120
+##BATCH --reservation=shortqos
+##BATCH --qos=short
+# Created by: mkslurm -S 1 -s 16 -m 1 -C  2 -c  2 -t 00:10:00 -a n01-ACCORD -j nemo_test
 
 # Setup the job environment (this module needs to be loaded before any other modules)
 module -s restore /work/n01/shared/acc/n01_modules/ucx_env
+#module load cpe/21.03
+#module load cray-hdf5-parallel
+#module load cray-netcdf-hdf5parallel
+#export LD_LIBRARY_PATH=$CRAY_LD_LIBRARY_PATH:$LD_LIBRARY_PATH
 
-# Set the number of threads to 1
-#   This prevents any threaded system libraries from automatically 
-#   using threading.
 export OMP_NUM_THREADS=1
-#export UCX_IB_REG_METHODS=direct
-
-# Launch the parallel job
-#   Using 512 MPI processes and 128 MPI processes per node
-#   srun picks up the distribution from the sbatch options
-srun --distribution=block:block --hint=nomultithread --het-group=0 ./xios_server.exe : \
-     --distribution=block:block --hint=nomultithread --het-group=1 ./nemo.exe
-
+#
+cat > myscript_wrapper2.sh << EOFB
+#!/bin/ksh
+#
+set -A map /work/n01/n01/jelt/SEVERN-SWOT/BUILD_EXE/XIOS/xios-2.5/bin/xios_server.exe /work/n01/n01/jelt/SEVERN-SWOT/BUILD_EXE/NEMO/4.0.6/cfgs/NEMOconstTS/BLD/bin/nemo.exe
+exec_map=( 0 1 1 )
+#
+exec \${map[\${exec_map[\$SLURM_PROCID]}]} 
+##
+EOFB
+chmod u+x ./myscript_wrapper2.sh
+#
+srun --mem-bind=local --cpu-bind=v,map_cpu:00,0x10,0x12, ./myscript_wrapper2.sh
