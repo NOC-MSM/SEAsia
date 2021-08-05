@@ -36,7 +36,7 @@
    nn_no       =       0   !  Assimilation cycle index
    cn_exp      =  "SEVERN_baroT"
    nn_it000    =  1 !  8641 ! 1   !  first time step
-   nn_itend    =  60480 !    ! 4320 per 24hr   !  last  time step
+   nn_itend    =  600 !    ! 4320 per 24hr   !  last  time step
    nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
@@ -53,10 +53,10 @@
    ln_iscpl    = .false.   !  cavity evolution forcing or coupling to ice sheet model
    nn_istate   =       0   !  output the initial state (1) or not (0)
    ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
-   nn_stock    =  4320   !  used only if ln_rst_list = F: output restart freqeuncy (modulo referenced to 1)
+   nn_stock    =  600   !  used only if ln_rst_list = F: output restart freqeuncy (modulo referenced to 1)
       !                          !    =  0 force to write restart files only at the end of the run
       !                          !    = -1 do not do any restart
-   nn_stocklist = 4320 ! 0,0,0,0,0,0,0,0,0,0 ! List of timesteps when a restart file is to be written
+   nn_stocklist = 600 ! 0,0,0,0,0,0,0,0,0,0 ! List of timesteps when a restart file is to be written
    nn_write    =  0   !  used only if key_iomput is not defined: output frequency (modulo referenced to nn_it000)
       !                          !    =  0 force to write output files only at the end of the run
       !                          !    = -1 do not do any output file
