@@ -50,6 +50,6 @@
   $TDIR/REBUILD_NEMO/rebuild_nemo -t 1 domain_cfg 8
 
   # After create copy it and store it for further use
-  cp $TDIR/DOMAINcfg/domain_cfg.nc $DOMAIN/domain_cfg_SEAsia.nc
+  cp $TDIR/DOMAINcfg/domain_cfg.nc $DOMAIN/domain_cfg_$REPO.nc
   rm $TDIR/DOMAINcfg/domain_cfg_000*.nc #remove tiles
   cd $WDIR/SCRIPTS

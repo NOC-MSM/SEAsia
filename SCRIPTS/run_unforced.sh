@@ -30,7 +30,7 @@ ln -s $NEMO/cfgs/$CONFIG/BLD/bin/nemo.exe $EXP/nemo.exe
 ln -s $XIOS_DIR/bin/xios_server.exe $EXP/xios_server.exe
 
 # Link in domain_cfg file
-ln -s $DOMAIN/domain_cfg_SEVERN.nc $EXP/domain_cfg.nc
+ln -s $DOMAIN/domain_cfg_$REPO.nc $EXP/domain_cfg.nc
 
 # Link in boundary files (just coordinates.bdy.nc)
 ln -s $WDIR/INPUTS/OBC/coordinates.bdy.nc $EXP/.
