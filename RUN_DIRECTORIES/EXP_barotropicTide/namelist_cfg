@@ -581,8 +581,8 @@
    ln_listonly =  .false.  !  do nothing else than listing the best domain decompositions (with land domains suppression)
    !                       !  if T: the largest number of cores tested is defined by max(mppsize, jpni*jpnj)
    ln_nnogather =  .true.  !  activate code to avoid mpi_allgather use at the northfold
-   jpni        = -1      !  jpni   number of processors following i (set automatically if < 1)
-   jpnj        = -1      !  jpnj   number of processors following j (set automatically if < 1)
+   jpni        = 2      !  jpni   number of processors following i (set automatically if < 1)
+   jpnj        = 1      !  jpnj   number of processors following j (set automatically if < 1)
 /
 !-----------------------------------------------------------------------
 &namctl        !   Control prints                                       (default: OFF)
