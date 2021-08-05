@@ -15,7 +15,7 @@
   # Hybrid z-sigma vertical coordinates
   #cp $DOMAIN/hyb-z-s_DOMAINcfg_namelist_cfg $TDIR/DOMAINcfg/namelist_cfg
   # Stretched-sigma vertical coordinates
-  cp $DOMAIN/s-sig_DOMAINcfg_namelist_cfg $TDIR/DOMAINcfg/namelist_cfg
+  cp $DOMAIN/"$REPO"_s-sig_DOMAINcfg_namelist_cfg $TDIR/DOMAINcfg/namelist_cfg
   # z-partial-step vertical coordinates
   #cp $DOMAIN/z-ps_DOMAINcfg_namelist_cfg $TDIR/DOMAINcfg/namelist_cfg
 
