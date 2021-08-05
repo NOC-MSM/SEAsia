@@ -37,5 +37,5 @@ srun --distribution=block:block --hint=nomultithread --het-group=0 XXX_TDIR_XXX/
 srun --distribution=block:block --hint=nomultithread --het-group=0  XXX_TDIR_XXX/REBUILD_NEMO/rebuild_nemo -t 1 domain_cfg 8
 
   # After create copy it and store it for further use
-srun --distribution=block:block --hint=nomultithread --het-group=0  cp XXX_TDIR_XXX/DOMAINcfg/domain_cfg.nc XXX_DOMAIN_XXX/domain_cfg_SEAsia.nc
+srun --distribution=block:block --hint=nomultithread --het-group=0  cp XXX_TDIR_XXX/DOMAINcfg/domain_cfg.nc XXX_DOMAIN_XXX/domain_cfg_XXX_REPO_XXX.nc
 

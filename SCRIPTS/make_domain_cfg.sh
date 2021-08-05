@@ -32,6 +32,7 @@
   # Edit job script
   sed "s?XXX_TDIR_XXX?$TDIR?g" $DOMAIN/job_create_domain_template.slurm > $TDIR/DOMAINcfg/job_create_domain.slurm
   sed -i "s?XXX_DOMAIN_XXX?$DOMAIN?g" $TDIR/DOMAINcfg/job_create_domain.slurm
+  sed -i "s?XXX_REPO_XXX?$REPO?g" $TDIR/DOMAINcfg/job_create_domain.slurm
   
   # Submit job script to build domain_cfg tiles
   cd $TDIR/DOMAINcfg
