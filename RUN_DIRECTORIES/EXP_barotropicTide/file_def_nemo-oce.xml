@@ -33,7 +33,7 @@
 
       <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 1h files -->
 	<file id="file1" name_suffix="_t" description="1h mean t-grid" enabled=".TRUE.">	      
-          <field field_ref="sst" name="sst" />
+          <field field_ref="ssh" name="ssh" />
         </file>
       </file_group>
 
