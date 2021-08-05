@@ -50,3 +50,5 @@
   # Copy it to the $DOMAIN directory where the domain configuration is built::
 
     cp 1_$coordinates_parent_file $DOMAIN/coordinates.nc
+
+    cd $WDIR/SCRIPTS
