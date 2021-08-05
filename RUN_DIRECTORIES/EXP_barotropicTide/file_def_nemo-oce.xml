@@ -43,13 +43,13 @@
 
       <file_group id="1d" output_freq="1d"  output_level="10" enabled=".TRUE."> <!-- 1d files -->
 	      <!--    <file id="file1" name_suffix="_t" description="daily mean t-grid" split_freq="1mo" split_freq_format="%y%mo%d" enabled=".TRUE."> -->
-	<file id="file1" name_suffix="_t" description="daily mean t-grid" enabled=".TRUE."> 
+	<file id="file2" name_suffix="_t" description="daily mean t-grid" enabled=".TRUE."> 
           <field field_ref="ssh" name="ssh" />
         </file>
-        <file id="file2" name_suffix="_u" description="daily mean u-grid" enabled=".TRUE.">
+        <file id="file3" name_suffix="_u" description="daily mean u-grid" enabled=".TRUE.">
 	  <field field_ref="ubar" name="ubar" />
         </file>
-        <file id="file3" name_suffix="_v" description="daily mean v-grid" enabled=".TRUE.">
+        <file id="file4" name_suffix="_v" description="daily mean v-grid" enabled=".TRUE.">
           <field field_ref="vbar" name="vbar" />
         </file>
       </file_group>
