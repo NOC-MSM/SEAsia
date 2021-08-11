@@ -15,7 +15,7 @@
   # Hybrid z-sigma vertical coordinates
   #cp $DOMAIN/hyb-z-s_DOMAINcfg_namelist_cfg $TDIR/DOMAINcfg/namelist_cfg
   # Stretched-sigma vertical coordinates
-  cp $DOMAIN/s-sig_DOMAINcfg_namelist_cfg $TDIR/DOMAINcfg/namelist_cfg
+  cp $DOMAIN/"$REPO"_s-sig_DOMAINcfg_namelist_cfg $TDIR/DOMAINcfg/namelist_cfg
   # z-partial-step vertical coordinates
   #cp $DOMAIN/z-ps_DOMAINcfg_namelist_cfg $TDIR/DOMAINcfg/namelist_cfg
 
@@ -32,6 +32,7 @@
   # Edit job script
   sed "s?XXX_TDIR_XXX?$TDIR?g" $DOMAIN/job_create_domain_template.slurm > $TDIR/DOMAINcfg/job_create_domain.slurm
   sed -i "s?XXX_DOMAIN_XXX?$DOMAIN?g" $TDIR/DOMAINcfg/job_create_domain.slurm
+  sed -i "s?XXX_REPO_XXX?$REPO?g" $TDIR/DOMAINcfg/job_create_domain.slurm
   
   # Submit job script to build domain_cfg tiles
   cd $TDIR/DOMAINcfg
@@ -50,6 +51,6 @@
   $TDIR/REBUILD_NEMO/rebuild_nemo -t 1 domain_cfg 8
 
   # After create copy it and store it for further use
-  cp $TDIR/DOMAINcfg/domain_cfg.nc $DOMAIN/domain_cfg_SEAsia.nc
+  cp $TDIR/DOMAINcfg/domain_cfg.nc $DOMAIN/domain_cfg_$REPO.nc
   rm $TDIR/DOMAINcfg/domain_cfg_000*.nc #remove tiles
   cd $WDIR/SCRIPTS

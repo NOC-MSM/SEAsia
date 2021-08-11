@@ -102,4 +102,4 @@
 
 
 
-  cd $WORK
+  cd $WDIR/SCRIPTS
