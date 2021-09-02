@@ -38,4 +38,4 @@ export DOMAIN=$WDIR/BUILD_CFG/DOMAIN # base directory for building domain config
 
 export DOWNLOADS=$WDIR/DOWNLOADS
 
-export SBC = $WDIR/BUILD_CFG/SURFACE_FORCING
+export SBC=$WDIR/BUILD_CFG/SURFACE_FORCING

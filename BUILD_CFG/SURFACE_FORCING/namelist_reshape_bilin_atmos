@@ -48,11 +48,11 @@
     num_maps      = 1
     grid1_file    = 'remap_data_grid_atmos.nc'
     grid2_file    = 'remap_nemo_grid_atmos.nc'
-    interp_file1  = 'data_nemo_bicubic_atmos.nc'
-    interp_file2  = 'nemo_data_bicubic_atmos.nc'
-    map1_name     = 'atmos to nemo bicubic Mapping'
-    map2_name     = 'nemo to atmos bicubic Mapping'
-    map_method    = 'bicubic'
+    interp_file1  = 'data_nemo_bilin_atmos.nc'
+    interp_file2  = 'nemo_data_bilin_atmos.nc'
+    map1_name     = 'atmos to nemo bilin Mapping'
+    map2_name     = 'nemo to atmos bilin Mapping'
+    map_method    = 'bilinear'
     normalize_opt = 'frac'
     output_opt    = 'scrip'
     restrict_type = 'latitude'
@@ -62,7 +62,7 @@
 /
 &interp_inputs
     input_file   = "nothing.nc"
-    interp_file  = "data_nemo_bicubic_atmos.nc"
+    interp_file  = "data_nemo_bilin_atmos.nc"
     input_name   = "nothing"
     input_start  = 1,1
     input_stride = 1,1
@@ -85,7 +85,7 @@
    into the form needed by the nemo on the fly interpolation code.
 /
 &shape_inputs
-    interp_file = 'data_nemo_bicubic_atmos.nc'
-    output_file = 'weights_era5_SEVERN_bicubic.nc'
+    interp_file = 'data_nemo_bilin_atmos.nc'
+    output_file = 'weights_era5_SEVERN_bilin.nc'
     ew_wrap     = -1
 /
