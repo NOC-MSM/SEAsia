@@ -36,7 +36,7 @@
    nn_no       =       0   !  Assimilation cycle index
    cn_exp      =  "SEVERN_Tid_met"
    nn_it000    =  1 !  8641 ! 1   !  first time step
-   nn_itend    =  600 !    ! 4320 per 24hr   !  last  time step
+   nn_itend    =  295 !600 !    ! 4320 per 24hr   !  last  time step
    nn_date0    =  20130101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
@@ -214,7 +214,7 @@
    sn_humi     = 'ERA5_SPH'                     ,         1         , 'SPH',        .true.    , .false. , 'yearly'  , 'weights_era5_SEVERN_bilin.nc'  , ''       , 'ERA5_LSM'
    sn_prec     = 'ERA5_MTPR'                    ,         1         , 'MTPR',       .true.    , .false. , 'yearly'  , 'weights_era5_SEVERN_bilin.nc'  , ''       , 'ERA5_LSM'
    sn_snow     = 'ERA5_MSR'                     ,         1         , 'MSR'    ,    .true.    , .false. , 'yearly'  , 'weights_era5_SEVERN_bilin.nc'  , ''       , 'ERA5_LSM'
-   sn_slp      = 'ERA5_MSL'                     ,         1         , 'MSL',        .true.    , .false. , 'yearly'  , 'weights_era5_SEVERN_bilin.nc'  , ''       , '' ! DUMMY variable. Fill with T
+   sn_slp      = 'ERA5_MSL'                     ,         1         , 'MSL',        .true.    , .false. , 'yearly'  , 'weights_era5_SEVERN_bilin.nc'  , ''       , 'ERA5_LSM' ! DUMMY variable. Fill with T
 !   sn_slp      = 'slp.15JUNE2009_fill'        ,         6         , 'SLP'     ,    .true.    , .true. , 'yearly'  , 'weights_core_orca2_bilinear_noc.nc'  , ''       , ''
 !   sn_tdif     = 'taudif_core'                 ,        24         , 'taudif'  ,   .true.    , .true. , 'yearly'  , 'weights_bilinear_atmos.nc'  , ''       , ''
    !                    !  bulk algorithm :
