@@ -12,18 +12,18 @@
      nemo_lat: name of latitude variable in the coordinates.nc
 /
 &grid_inputs
-    input_file = '/work/n01/n01/acc/DFS/DFS5.2/1960/drowned_precip_DFS5.2_y1960.nc'
-    nemo_file = 'coordinates.nc'
+    input_file    = './ERA5_MSL_y2013.nc'
+    nemo_file     = './coordinates.nc'
     datagrid_file = 'remap_data_grid_atmos.nc'
     nemogrid_file = 'remap_nemo_grid_atmos.nc'
-    method = 'regular'
-    input_lon = 'lon0'
-    input_lat = 'lat0'
-    nemo_lon = 'glamt'
-    nemo_lat = 'gphit'
-    nemo_mask = 'none'
-    nemo_mask_value =  0
-    input_mask = 'none'
+    method        = 'regular'
+    input_lon     = 'lon'
+    input_lat     = 'lat'
+    nemo_lon      = 'glamt'
+    nemo_lat      = 'gphit'
+    nemo_mask     = 'none'
+    nemo_mask_value  =  0
+    input_mask       = 'none'
     input_mask_value = 0
 /
 &comments
@@ -45,38 +45,38 @@
  - output_opt may be supplied and set to either 'scrip' or 'ncar-csm'
 /
 &remap_inputs
-    num_maps = 1
-    grid1_file = 'remap_data_grid_atmos.nc'
-    grid2_file = 'remap_nemo_grid_atmos.nc'
-    interp_file1 = 'data_nemo_bicubic_atmos.nc'
-    interp_file2 = 'nemo_data_bicubic_atmos.nc'
-    map1_name = 'atmos to nemo bicubic Mapping'
-    map2_name = 'nemo to atmos bicubic Mapping'
-    map_method = 'bicubic'
+    num_maps      = 1
+    grid1_file    = 'remap_data_grid_atmos.nc'
+    grid2_file    = 'remap_nemo_grid_atmos.nc'
+    interp_file1  = 'data_nemo_bicubic_atmos.nc'
+    interp_file2  = 'nemo_data_bicubic_atmos.nc'
+    map1_name     = 'atmos to nemo bicubic Mapping'
+    map2_name     = 'nemo to atmos bicubic Mapping'
+    map_method    = 'bicubic'
     normalize_opt = 'frac'
-    output_opt = 'scrip'
+    output_opt    = 'scrip'
     restrict_type = 'latitude'
     num_srch_bins = 90 
     luse_grid1_area = .false.
     luse_grid2_area = .false.
 /
 &interp_inputs
-    input_file = "nothing.nc"
-    interp_file = "data_nemo_bicubic_atmos.nc"
-    input_name = "nothing"
-    input_start = 1,1
+    input_file   = "nothing.nc"
+    interp_file  = "data_nemo_bicubic_atmos.nc"
+    input_name   = "nothing"
+    input_start  = 1,1
     input_stride = 1,1
-    input_stop = 0,0
+    input_stop   = 0,0
 /
 
 &interp_outputs
-    output_file = "nothing.nc"
-    output_mode = "create"
-    output_dims = 'x', 'y'
+    output_file    = "nothing.nc"
+    output_mode    = "create"
+    output_dims    = 'x', 'y'
     output_scaling = "topo|1.0"
-    output_name = 'topo'
-    output_lon = 'x'
-    output_lat = 'y'
+    output_name    = 'topo'
+    output_lon     = 'x'
+    output_lat     = 'y'
 /
 
 &comments
@@ -86,6 +86,6 @@
 /
 &shape_inputs
     interp_file = 'data_nemo_bicubic_atmos.nc'
-    output_file = 'weights_bicubic_atmos.nc'
+    output_file = 'weights_era5_SEVERN_bicubic.nc'
     ew_wrap     = -1
 /
