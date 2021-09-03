@@ -30,9 +30,9 @@ msk_src[land] =  1
 nlat = msk_src.shape[0] 
 nlon = msk_src.shape[1] 
 
-
-# FIX AN COASTAL POINT TO MAKE IT OCEAN.
-msk_src[20,19] = -1
+## Edit the LSM as required
+# E.g. FIX AN COASTAL POINT TO MAKE IT OCEAN.
+# msk_src[20,19] = -1
 
 ## NETCDF OUTPUT
 ncout = Dataset( outfile, 'w', format='NETCDF3_CLASSIC' )
