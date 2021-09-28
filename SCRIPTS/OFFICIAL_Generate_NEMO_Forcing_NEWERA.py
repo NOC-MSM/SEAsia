@@ -90,7 +90,7 @@ def Read_NetCDF_Concatenate( fname, KeyVar ) :
         ## save
         if iF == 0 : out = Var; tout = Time
         else       : out = np.concatenate( [out,Var], axis=0 ); tout = np.concatenate( [tout,Time], axis=0 )
-    print tout[0], tout[-1], tout.shape, out.shape, LON.shape
+    print( tout[0], tout[-1], tout.shape, out.shape, LON.shape )
     try    : return tout, LON, LAT, out, dum.units, dum.long_name
     except : return tout, LON, LAT, out, dum.units, dum.standard_name
 
@@ -106,7 +106,7 @@ def Read_NetCDF( fname, KeyVar ) :
     try :    Tref = netcdftime.utime( Time_Var.units, calendar = Time_Var.calendar )
     except : Tref = netcdftime.utime( Time_Var.units, calendar = "gregorian" )
     Time = Tref.num2date( Time_H )
-    print "====================++++"
+    print( "====================++++")
     ## Get Coordinates
     try :
        Lon = nc.variables[ 'longitude' ][:]
@@ -125,7 +125,7 @@ def Read_NetCDF( fname, KeyVar ) :
     ind = (np.isnan(Var))
     Var[ind] = -9999999
 
-    print Time[0], Time[-1], Var.shape, Time.shape, np.sum(ind)
+    print( Time[0], Time[-1], Var.shape, Time.shape, np.sum(ind))
     try    : return Time, LON, LAT, Var, dum.units, dum.long_name
     except : return Time, LON, LAT, Var, dum.units, dum.standard_name
 
@@ -135,7 +135,7 @@ def compute_scale_and_offset( Var, n ):
     'http://james.hiebert.name/blog/work/2015/04/18/NetCDF-Scale-Factors/'
     Vmin = np.nanmin( Var )
     Vmax = np.nanmax( Var )
-    print "scaleoffset", Vmin, Vmax
+    print( "scaleoffset", Vmin, Vmax)
     # stretch/compress data to the available packed range
     scale_factor = (Vmax - Vmin) / (2 ** n - 1)
     # translate the range to be symmetric about zero
@@ -199,7 +199,7 @@ def Extract( fin, fout, clean=True ) :
     if not os.path.exists( fout ) :
        command = "ncks -d latitude,{0},{1} -d longitude,{2},{3} {4} {5}".format( np.float(South), np.float(North),\
                                                                                  np.float(West), np.float(East), fin, fout )
-       print command
+       print( command )
        os.system( command )
       
 def datetime_range(start, end, delta):
@@ -219,7 +219,7 @@ if East < 0 : East = 360.+East
 ## Loop over each variable
 for dirVar, nameVar in var_path.iteritems() :
 
-    print "================== {0} - {1} ==================".format( dirVar, nameVar )
+    print( "================== {0} - {1} ==================".format( dirVar, nameVar ))
 
     ##---------- EXTRACT ALL DATA FOR DOMAIN ----------------
     for iY in range( Year_init, Year_end+1 ) :
@@ -231,34 +231,34 @@ for dirVar, nameVar in var_path.iteritems() :
 
     ##---------- LOAD FULLL TIME SERIES IN MEMORY -----------
     Time, Lon, Lat, dum, Units, Name = Read_NetCDF_Concatenate( "./{1}/{0}_*.nc".format( nameVar, path_EXTRACT ), nameVar )
-    print "Time" , Time
+    print("Time" , Time)
 
     dt  = Time[1] - Time[0]   ## assume to be constant in time
     dt2 = datetime.timedelta( seconds=dt.total_seconds() / 2. )
-    print "dt", dt, dt2
+    print( "dt", dt, dt2 )
 
     ##---------- SOME PREPROCESSING -------------------------
     ## Add time step for last hour - copy the last input
     dumA  = np.concatenate( [  dum,  dum[-1][np.newaxis,...] ], axis = 0 )
     TimeA = np.array( Time.tolist() + [Time[-1],]  )
 
-    print "Time" , Time
-    print "TimeA", TimeA
+    print( "Time" , Time )
+    print( "TimeA", TimeA )
     ## instantaneous field every hour. we center it in mid-time step (00:30) as it
     ## is what NEMO assumes according to documentation
     dumC  = ( dumA[0:-1] + dumA[1::] ) / 2.0   
     TimeC =  TimeA[0:-1] + dt2           ## shift half time step positively due to averaging
     suffix = ''
 
-    print "TimeC", TimeC
+    print( "TimeC", TimeC )
 
     ##---------- OUTPUT A FILE PER YEAR ---------------------
     for iY in range( Year_init, Year_end+1 ) :
 
-        print datetime.datetime( iY  ,1,1 ), datetime.datetime( iY+1,1,1 )
+        print( datetime.datetime( iY  ,1,1 ), datetime.datetime( iY+1,1,1 ) )
         indT = ( np.array(TimeC) >= datetime.datetime( iY  ,1,1,0,0,0 ) ) \
              * ( np.array(TimeC) <  datetime.datetime( iY+1,1,1,0,0,0 ) )
-        print "indT",np.sum(indT)
+        print( "indT",np.sum(indT))
  
         if nameVar in [ "d2m", "sp" ] :
                Fout = "./{2}/forSPH_ERA5_{0}_y{1}.nc".format( nameVar.upper(), iY, path_FORCING )
