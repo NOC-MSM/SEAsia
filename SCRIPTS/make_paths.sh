@@ -37,3 +37,5 @@ export TDIR=$NEMO/tools # base tools source and build directory
 export DOMAIN=$WDIR/BUILD_CFG/DOMAIN # base directory for building domain configuration file
 
 export DOWNLOADS=$WDIR/DOWNLOADS
+
+export SBC=$WDIR/BUILD_CFG/SURFACE_FORCING
