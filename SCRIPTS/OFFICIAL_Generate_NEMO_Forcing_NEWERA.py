@@ -35,14 +35,14 @@ The time variable from the netcdf is not used
 #====================== LOAD MODULES =========================
 
 import os, sys, glob
-import subprocess
+#import subprocess
 import numpy as np
 import datetime
 from   netCDF4 import Dataset, MFDataset
 import netcdftime
-import matplotlib.pyplot as plt
-from   matplotlib.mlab import griddata
-import scipy.spatial.qhull as qhull
+#import matplotlib.pyplot as plt
+#from   matplotlib.mlab import griddata
+#import scipy.spatial.qhull as qhull
 
 #====================== VARIABLE DEF =========================
 
@@ -212,12 +212,12 @@ def datetime_range(start, end, delta):
 
 ## load NCO
 os.system( "module load nco/gcc/4.4.2.ncwa" )
-os.system( "mkdir {0} {1}".format( path_EXTRACT, path_FORCING ) )
+os.system( "mkdir {1} {0}".format( path_EXTRACT, path_FORCING ) )
 if West < 0 : West = 360.+West
 if East < 0 : East = 360.+East
 
 ## Loop over each variable
-for dirVar, nameVar in var_path.iteritems() :
+for dirVar, nameVar in var_path.items() :
 
     print( "================== {0} - {1} ==================".format( dirVar, nameVar ))
 
@@ -225,12 +225,12 @@ for dirVar, nameVar in var_path.iteritems() :
     for iY in range( Year_init, Year_end+1 ) :
         ## Files
         finput  = "{0}/{1}/{2}_{1}.nc".format( path_ERA5, dirVar, iY )
-        foutput = "./{2}/{0}_{1}.nc".format( nameVar, iY, path_EXTRACT )
+        foutput = "{2}/{0}_{1}.nc".format( nameVar, iY, path_EXTRACT )
         ## Extract the subdomain
         Extract( finput, foutput, clean=clean ) 
 
     ##---------- LOAD FULLL TIME SERIES IN MEMORY -----------
-    Time, Lon, Lat, dum, Units, Name = Read_NetCDF_Concatenate( "./{1}/{0}_*.nc".format( nameVar, path_EXTRACT ), nameVar )
+    Time, Lon, Lat, dum, Units, Name = Read_NetCDF_Concatenate( "{1}/{0}_*.nc".format( nameVar, path_EXTRACT ), nameVar )
     print("Time" , Time)
 
     dt  = Time[1] - Time[0]   ## assume to be constant in time
@@ -261,8 +261,8 @@ for dirVar, nameVar in var_path.iteritems() :
         print( "indT",np.sum(indT))
  
         if nameVar in [ "d2m", "sp" ] :
-               Fout = "./{2}/forSPH_ERA5_{0}_y{1}.nc".format( nameVar.upper(), iY, path_FORCING )
-        else : Fout = "./{2}/ERA5_{0}_y{1}.nc".format( nameVar.upper(), iY, path_FORCING )
+               Fout = "{2}/forSPH_ERA5_{0}_y{1}.nc".format( nameVar.upper(), iY, path_FORCING )
+        else : Fout = "{2}/ERA5_{0}_y{1}.nc".format( nameVar.upper(), iY, path_FORCING )
         nc = Dataset( Fout, 'w', format='NETCDF4_CLASSIC')
         Create_Dimensions ( nc, 'nLon', Lon.shape[1], 'nLat' , Lat.shape[0] )
         Create_NetCDF_core( nc, ('time'), TimeC[indT][0], TimeC[indT], ('nLat', 'nLon'), Lon[::-1,:], Lat[::-1,:] )
@@ -276,8 +276,8 @@ for dirVar, nameVar in var_path.iteritems() :
 if sph_ON : 
 
    for iY in range( Year_init, Year_end+1 ) :
-       Time, Lon, Lat, d2m, dUnits, dName = Read_NetCDF( "./{1}/forSPH_ERA5_D2M_y{0}.nc".format( iY, path_FORCING ), 'D2M' )
-       Time, Lon, Lat, sp , dUnits, dName = Read_NetCDF( "./{1}/forSPH_ERA5_SP_y{0}.nc" .format( iY, path_FORCING ), 'SP'  )
+       Time, Lon, Lat, d2m, dUnits, dName = Read_NetCDF( "{1}/forSPH_ERA5_D2M_y{0}.nc".format( iY, path_FORCING ), 'D2M' )
+       Time, Lon, Lat, sp , dUnits, dName = Read_NetCDF( "{1}/forSPH_ERA5_SP_y{0}.nc" .format( iY, path_FORCING ), 'SP'  )
        esat = 611.21 * np.exp( 17.502 * (d2m-273.16) / (d2m-32.19) )
        dyrvap = 287.0597 / 461.5250
        dVar = dyrvap * esat / ( sp - (1-dyrvap) * esat)
@@ -286,7 +286,7 @@ if sph_ON :
        indT = ( Time >= datetime.datetime( iY  ,1,1 ) ) \
             * ( Time <  datetime.datetime( iY+1,1,1 ) )
 
-       Fout = "./{1}/ERA5_SPH_y{0}.nc".format( iY, path_FORCING )
+       Fout = "{1}/ERA5_SPH_y{0}.nc".format( iY, path_FORCING )
        nc = Dataset( Fout, 'w', format='NETCDF4_CLASSIC')
        Create_Dimensions ( nc, 'nLon', Lon.shape[1], 'nLat' , Lat.shape[0] )
        Create_NetCDF_core( nc, ('time'), Time[indT][0], Time[indT], ('nLat', 'nLon'), Lon[:,:], Lat[:,:] )
