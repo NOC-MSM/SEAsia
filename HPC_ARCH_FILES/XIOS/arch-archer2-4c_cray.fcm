@@ -1,0 +1,25 @@
+################################################################################
+###################                Projet XIOS               ###################
+################################################################################
+
+%CCOMPILER      CC
+%FCOMPILER      ftn
+%LINKER         ftn  
+
+%BASE_CFLAGS     
+%PROD_CFLAGS    -O2 -D BOOST_DISABLE_ASSERTS -std=c++98
+%DEV_CFLAGS     -g  -std=c++98
+%DEBUG_CFLAGS   -DBZ_DEBUG -g -traceback -fno-inline -std=c++98
+
+%BASE_FFLAGS    -D__NONE__ 
+%PROD_FFLAGS    -O2 -hflex_mp=intolerant -s integer32 -s real64 -lmpifort_cray
+%DEV_FFLAGS     -g 
+%DEBUG_FFLAGS   -g -traceback
+
+%BASE_INC       -D__NONE__
+%BASE_LD        -lstdc++
+
+%CPP            CC -EP
+%FPP            cpp -P
+%MAKE           gmake
+bld::tool::fc_modsearch -J
