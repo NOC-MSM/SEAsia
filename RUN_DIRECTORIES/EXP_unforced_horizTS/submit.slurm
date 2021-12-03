@@ -20,7 +20,7 @@
 module -s restore /work/n01/shared/acc/n01_modules/ucx_env
 
 # Set the number of threads to 1
-#   This prevents any threaded system libraries from automatically 
+#   This prevents any threaded system libraries from automatically
 #   using threading.
 export OMP_NUM_THREADS=1
 #export UCX_IB_REG_METHODS=direct
@@ -30,4 +30,3 @@ export OMP_NUM_THREADS=1
 #   srun picks up the distribution from the sbatch options
 srun --distribution=block:block --hint=nomultithread --het-group=0 ./xios_server.exe : \
      --distribution=block:block --hint=nomultithread --het-group=1 ./nemo.exe
-
