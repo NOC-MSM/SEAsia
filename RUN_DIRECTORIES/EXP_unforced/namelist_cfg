@@ -35,8 +35,8 @@
 !-----------------------------------------------------------------------
    nn_no       =       0   !  Assimilation cycle index
    cn_exp      =  "SEAsia_unforced"
-   nn_it000    =  1 ! 16993 !  8641 ! 1   !  first time step
-   nn_itend    =  50 !8640    ! 288 per 24hr   !  last  time step
+   nn_it000    =  1       !  first time step
+   nn_itend    =  7200    !  last  time step
    nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
@@ -273,7 +273,7 @@
 !-----------------------------------------------------------------------
 &nambdy        !  unstructured open boundaries                          (default: OFF)
 !-----------------------------------------------------------------------
-    ln_bdy         = .true.   !  Use unstructured open boundaries
+    ln_bdy         = .false.   !  Use unstructured open boundaries
     nb_bdy         =  1       !  number of open boundary sets
     !
     ln_coords_file = .true.                                 !  =T : read bdy coordinates from file
@@ -581,8 +581,8 @@
    ln_listonly =  .false.  !  do nothing else than listing the best domain decompositions (with land domains suppression)
    !                       !  if T: the largest number of cores tested is defined by max(mppsize, jpni*jpnj)
    ln_nnogather =  .true.  !  activate code to avoid mpi_allgather use at the northfold
-   jpni        = -1      !  jpni   number of processors following i (set automatically if < 1)
-   jpnj        = -1      !  jpnj   number of processors following j (set automatically if < 1)
+   jpni        = 31      !  jpni   number of processors following i (set automatically if < 1)
+   jpnj        = 35      !  jpnj   number of processors following j (set automatically if < 1)
 /
 !-----------------------------------------------------------------------
 &namctl        !   Control prints                                       (default: OFF)

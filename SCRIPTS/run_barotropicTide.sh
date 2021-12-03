@@ -16,8 +16,8 @@ export CONFIG=NEMOconstTS
 export EXP=$WDIR/RUN_DIRECTORIES/EXP_barotropicTide
 
 # Choose an appropriate directory for your EXP installation
-if [ ! -d "$EXP" ]; then
-  mkdir $EXP
+if [ ! -d "$EXP/RESTART" ]; then
+  #mkdir $EXP
   mkdir $EXP/RESTART
 fi
 
