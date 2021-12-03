@@ -8,7 +8,7 @@
 #***********************
 #'
 
-# Run the experiment from rest with stratified T(z),S(z) initial condition
+# Run the experiment from rest with constant T, S initial condition
 # with no met forcing
 
 #::
@@ -38,7 +38,7 @@ ln -s $DOMAIN/domain_cfg_SEAsia.nc $EXP/domain_cfg.nc
 # namelist_cfg
 # nambdy: freeze the boundary conditions. Set to initial state
 # ln_usr = true. User defined initial state and surface forcing. Here we use
-# a contant stratification, and no wind.
+# a contant density, and no wind.
 # These are compiled into the executable. (In
 #  ``usrdef_sbc.F90``  and ``usrdef_istate.F90``).
 
