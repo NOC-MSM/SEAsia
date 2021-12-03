@@ -4,7 +4,7 @@
 #:'
 #
 #***********************
-#run_EXP_unforced.sh
+#run_EXP_unforced_constTS.sh
 #***********************
 #'
 
@@ -14,7 +14,7 @@
 #::
 
 export CONFIG=NEMOconstTS
-export EXP=$WDIR/RUN_DIRECTORIES/EXP_unforced
+export EXP=$WDIR/RUN_DIRECTORIES/EXP_unforced_constTS
 
 # Choose an appropriate directory for your EXP installation
 if [ ! -d "$EXP" ]; then
@@ -23,7 +23,7 @@ if [ ! -d "$EXP" ]; then
 fi
 
 rsync -av --ignore-existing $NEMO/cfgs/SHARED/*namelist* $EXP/. # only get the files not already in the repo.
-rsync -av --ignore-existing $NEMO/cfgs/SHARED/*.xml $EXP/. 
+rsync -av --ignore-existing $NEMO/cfgs/SHARED/*.xml $EXP/.
 
 # Copy in NEMO/XIOS executables
 ln -s $NEMO/cfgs/$CONFIG/BLD/bin/nemo.exe $EXP/nemo.exe
