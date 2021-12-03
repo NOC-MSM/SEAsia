@@ -18,7 +18,8 @@
 
 cd $WDIR
 # Ensure the correct modules are loaded for ARHCER2
-module restore $WDIR/HPC_ARCH_FILES/envs/ucx_env_${HPC_TARG}_${COMPILER}.fcm
+module restore $WDIR/HPC_ARCH_FILES/envs/ucx_env_${HPC_TARG}_${COMPILER}
+echo module restore $WDIR/HPC_ARCH_FILES/envs/ucx_env_${HPC_TARG}_${COMPILER}
 
 #download xios
 svn checkout -r 1964 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.5 $XIOS_DIR

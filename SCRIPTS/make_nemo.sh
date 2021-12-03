@@ -19,7 +19,7 @@
 #'
 #::
 #load modules
-module restore $WDIR/HPC_ARCH_FILES/envs/ucx_env_${HPC_TARG}_${COMPILER}.fcm
+module restore $WDIR/HPC_ARCH_FILES/envs/ucx_env_${HPC_TARG}_${COMPILER}
 
 cd $WDIR
 # Checkout the code from the paris repository
