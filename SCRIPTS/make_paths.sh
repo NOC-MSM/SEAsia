@@ -37,3 +37,7 @@ export TDIR=$NEMO/tools # base tools source and build directory
 export DOMAIN=$WDIR/BUILD_CFG/DOMAIN # base directory for building domain configuration file
 
 export DOWNLOADS=$WDIR/DOWNLOADS
+
+# Set some HPC parameters to control compilation
+export HPC_TARG="archer2-4c"
+export COMPILER="cray"
