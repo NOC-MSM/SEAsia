@@ -31,8 +31,10 @@ case "${NEMO_VER}"
   in
   4.0.6)   echo "NEMO Verion 4.0.6 will be checked out"
            ;;
+  4.0.7)   echo "NEMO Verion 4.0.7 will be checked out"
+           ;;
   *)       echo "NEMO Version not recognised"
-           echo "Versions available at present: 4.0.6"
+           echo "Versions available at present: 4.0.6, 4.0.7"
            exit 1
 esac
 svn co http://forge.ipsl.jussieu.fr/nemo/svn/NEMO/releases/r4.0/r$NEMO_VER --depth empty $NEMO
