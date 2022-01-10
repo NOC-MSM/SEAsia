@@ -9,17 +9,20 @@
 #Checkout and compile the XIOS2.5 executable for I/O management
 #You need to obtain a NEMO account http://forge.ipsl.jussieu.fr/nemo/register
 #
-#Check the path in variable ``%XIOS_HOME`` in ``XC_ARCHER_INTEL_XIOS1`` and
-#``arch-X86_ARCHER2-Cray*`` are consistent with your settings
-#
 #'
 #::
 
 
 cd $WDIR
-# Ensure the correct modules are loaded for ARHCER2
-module -s restore $WDIR/HPC_ARCH_FILES/envs/ucx_env_${HPC_TARG}_${COMPILER}
-echo module -s restore $WDIR/HPC_ARCH_FILES/envs/ucx_env_${HPC_TARG}_${COMPILER}
+
+# Ensure the correct modules are loaded for ARCHER2
+# Load modules listed in /work/n01/shared/nemo/setup
+# Tested 10Jan22
+module swap craype-network-ofi craype-network-ucx
+module swap cray-mpich cray-mpich-ucx
+module load cray-hdf5-parallel/1.12.0.7
+module load cray-netcdf-hdf5parallel/4.7.4.7
+
 
 #download xios
 svn checkout -r 1964 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.5 $XIOS_DIR

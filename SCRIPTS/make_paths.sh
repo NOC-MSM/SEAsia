@@ -23,7 +23,7 @@ export WORK=/work/n01/n01/$USER
 export WDIR=$WORK/NEMO-RELOC # Optionally WDIR shares the same name as the repository.
 
 # Set the NEMO version
-export NEMO_VER=4.0.7
+export NEMO_VER=4.0.6
 
 # The following can then be automatically defined
 export NEMO=$WDIR/BUILD_EXE/NEMO/$NEMO_VER # base NEMO source and build path
@@ -39,5 +39,6 @@ export DOMAIN=$WDIR/BUILD_CFG/DOMAIN # base directory for building domain config
 export DOWNLOADS=$WDIR/DOWNLOADS
 
 # Set some HPC parameters to control compilation
-export HPC_TARG="archer2-4c"
+#export HPC_TARG="archer2-4c"
+export HPC_TARG="archer2"
 export COMPILER="cray"

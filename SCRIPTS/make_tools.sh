@@ -7,6 +7,15 @@
 #***********************
 #
 
+  # Ensure the correct modules are loaded for ARCHER2
+  # Load modules listed in /work/n01/shared/nemo/setup
+  # Tested 10Jan22
+  module swap craype-network-ofi craype-network-ucx
+  module swap cray-mpich cray-mpich-ucx
+  module load cray-hdf5-parallel/1.12.0.7
+  module load cray-netcdf-hdf5parallel/4.7.4.7
+
+
   cd $NEMO
   for ext_name in tools
     do
@@ -27,15 +36,13 @@
   patch -b < $WDIR/BUILD_EXE/patch_files/scripshape.patch
   patch -b < $WDIR/BUILD_EXE/patch_files/scripgrid.patch
 
-  #load modules
-  module -s restore /work/n01/shared/acc/n01_modules/ucx_env
 
   # compile tools
   cd $NEMO/tools
-  ./maketools -m X86_ARCHER2-Cray -n NESTING
-  ./maketools -m X86_ARCHER2-Cray -n REBUILD_NEMO
-  ./maketools -m X86_ARCHER2-Cray -n WEIGHTS
-  ./maketools -m X86_ARCHER2-Cray -n DOMAINcfg
+  ./maketools -m archer2_cray -n NESTING
+  ./maketools -m archer2_cray -n REBUILD_NEMO
+  ./maketools -m archer2_cray -n WEIGHTS
+  ./maketools -m archer2_cray -n DOMAINcfg
 
 
   # Make SOSIE tool.
