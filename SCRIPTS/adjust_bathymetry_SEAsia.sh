@@ -9,6 +9,7 @@
 # In the following the bathmetry file is adjusted to set a minimum depth and remove any unexpected negative values.
 # You can either use python (as shown here), or ``nco`` commands (commented out below) which are not available
 # on ARCHER2, but are commonly available.
+# Execute in a fresh shell as the python requirements might otherwise conflict with previously used, or yet to be used modules
 #::
 
   cd $DOMAIN

@@ -1,3 +1,9 @@
+# adjust_bathymetry_SEAsia.py
+#
+# In the following the bathmetry file is adjusted to set a minimum depth and remove any unexpected negative values.
+# Execute in a fresh shell as the python requirements might otherwise conflict with previously used, or yet to be used modules
+#
+
 import numpy as np
 import netCDF4
 
