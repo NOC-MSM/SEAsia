@@ -16,7 +16,7 @@
 # Set the configuration name that describes the NEMO executable
 export CONFIG=TESTCOMPILE
 export CONFIG=NEMOhorizTS # NEMO exec with hardwired horizontally uniform T,S
-export CONFIG=NEMOconstTS # NEMO exec with hardwired constant T,S
+#export CONFIG=NEMOconstTS # NEMO exec with hardwired constant T,S
 
 # Set the path structure for the WORKING DIRECTORY. WDIR is the base directory where everything happens 
 export WORK=/work/n01/n01/$USER

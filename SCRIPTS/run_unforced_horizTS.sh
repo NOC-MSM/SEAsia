@@ -13,7 +13,7 @@
 
 #::
 
-export CONFIG=NEMOconstTS
+export CONFIG=NEMOhorizTS
 export EXP=$WDIR/RUN_DIRECTORIES/EXP_unforced_horizTS
 
 # Choose an appropriate directory for your EXP installation
