@@ -39,3 +39,8 @@ export DOMAIN=$WDIR/BUILD_CFG/DOMAIN # base directory for building domain config
 export DOWNLOADS=$WDIR/DOWNLOADS
 
 export SBC=$WDIR/BUILD_CFG/SURFACE_FORCING
+
+# Set some HPC parameters to control compilation
+#export HPC_TARG="archer2-4c"
+export HPC_TARG="archer2"
+export COMPILER="cray"
