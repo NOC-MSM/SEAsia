@@ -34,9 +34,9 @@
 &namrun        !   parameters of the run
 !-----------------------------------------------------------------------
    nn_no       =       0   !  Assimilation cycle index
-   cn_exp      =  "SEVERN_unforced"
-   nn_it000    =  1 ! 16993 !  8641 ! 1   !  first time step
-   nn_itend    =  50 !8640    ! 288 per 24hr   !  last  time step
+   cn_exp      =  "SEAsia_unforced"
+   nn_it000    =  1       !  first time step
+   nn_itend    =  7200    !  last  time step
    nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
@@ -73,7 +73,7 @@
    ln_linssh   = .false. ! .false.   !  =T  linear free surface  ==>>  model level are fixed in time
    rn_isfhmin  =    1.00   !  treshold [m] to discriminate grounding ice from floating ice
    !
-   rn_rdt      =  20.     !  time step for the dynamics and tracer
+   rn_rdt      =  360.     !  time step for the dynamics and tracer
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module      (T => fill namcrs)
@@ -85,7 +85,7 @@
 !-----------------------------------------------------------------------
    ln_read_cfg = .true.   !  (=T) read the domain configuration file
       !                    !  (=F) user defined configuration           (F => create/check namusr_def)
-      cn_domcfg = "domain_cfg" !"domain_cfg"  ! domain configuration filename
+      cn_domcfg = "/work/n01/n01/annkat/SEAsia_HadGEM_R12/RUN_DIRECTORY/EXP_HAD_BGC_PHYS/domain_cfg_HadGEM_R12_fix.nc" !"domain_cfg"  ! domain configuration filename
       !
       ln_closea    = .false.    !  T => keep closed seas (defined by closea_mask field) in the
       !                         !       domain and apply special treatment of freshwater fluxes.
@@ -277,7 +277,7 @@
     nb_bdy         =  1       !  number of open boundary sets
     !
     ln_coords_file = .true.                                 !  =T : read bdy coordinates from file
-    cn_coords_file = 'coordinates.bdy.nc' !  bdy coordinates files
+    cn_coords_file = '/work/n01/n01/annkat/SEAsia_HadGEM_R12/BOUNDARY_FORCING/2061/coordinates.bdy.nc' !  bdy coordinates files
     ln_mask_file   = .false.                !  =T : read mask from file
     cn_mask_file   = ''                      !  name of mask file (if ln_mask_file=.TRUE.)
     cn_dyn2d       =  'flather'    !
@@ -325,7 +325,7 @@
    !                          !  automatically defined to T if the number of vertical levels in bdy dta /= jpk
    ln_full_vel = .true.       !  T if [uv]3d are "full" velocities and not only its baroclinic components
    !
-   cn_dir  =    './OBC/'
+   cn_dir  =    '/work/n01/n01/annkat/SEAsia_R36_R/BOUNDARY_FORCING/2000/'
    !___________!_________________________!___________________!___________!_____________!________!___________!__________________!__________!_______________!
    !           !  file name              ! frequency (hours) ! variable  ! time interp.!  clim  ! 'yearly'/ ! weights filename ! rotation ! land/sea mask !
    !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !                  ! pairing  !    filename   !
@@ -483,8 +483,8 @@
    ln_dynldf_hor = .false.
 
    nn_ahm_ijk_t  = 0           !  =0   constant = 1/12 Uv*Lv^3 (blp case)
-   rn_Uv      = 0.01 !0.02    !  lateral viscous velocity [m/s]
-   rn_Lv      = 200      !  lateral viscous length   [m]
+   rn_Uv      = 0.04 !0.02    !  lateral viscous velocity [m/s]
+   rn_Lv      = 5.e+3      !  lateral viscous length   [m]
    rn_csmc    = 3.5 !2  !3.5        !  Smagorinsky constant of proportionality
      rn_minfac     = 1.0         !  multiplier of theorectical lower limit
      rn_maxfac     = 1.0         !  multiplier of theorectical upper limit
@@ -581,8 +581,8 @@
    ln_listonly =  .false.  !  do nothing else than listing the best domain decompositions (with land domains suppression)
    !                       !  if T: the largest number of cores tested is defined by max(mppsize, jpni*jpnj)
    ln_nnogather =  .true.  !  activate code to avoid mpi_allgather use at the northfold
-   jpni        = 2      !  jpni   number of processors following i (set automatically if < 1)
-   jpnj        = 1      !  jpnj   number of processors following j (set automatically if < 1)
+   jpni        = 41       !  jpni   number of processors following i (set automatically if < 1)
+   jpnj        = 23       !  jpnj   number of processors following j (set automatically if < 1)
 /
 !-----------------------------------------------------------------------
 &namctl        !   Control prints                                       (default: OFF)
