@@ -18,10 +18,17 @@
 #
 #'
 #::
-#load modules
-module -s restore /work/n01/shared/acc/n01_modules/ucx_env
 
 cd $WDIR
+
+# Ensure the correct modules are loaded for ARCHER2
+# Load modules listed in /work/n01/shared/nemo/setup
+# Tested 10Jan22
+module swap craype-network-ofi craype-network-ucx
+module swap cray-mpich cray-mpich-ucx
+module load cray-hdf5-parallel/1.12.0.7
+module load cray-netcdf-hdf5parallel/4.7.4.7
+
 # Checkout the code from the paris repository
 #svn co http://forge.ipsl.jussieu.fr/nemo/svn/trunk/NEMOGCM@8395 trunk_NEMOGCM_r8395
 
@@ -31,8 +38,10 @@ case "${NEMO_VER}"
   in
   4.0.6)   echo "NEMO Verion 4.0.6 will be checked out"
            ;;
+  4.0.7)   echo "NEMO Verion 4.0.7 will be checked out"
+           ;;
   *)       echo "NEMO Version not recognised"
-           echo "Versions available at present: 4.0.6"
+           echo "Versions available at present: 4.0.6, 4.0.7"
            exit 1
 esac
 svn co http://forge.ipsl.jussieu.fr/nemo/svn/NEMO/releases/r4.0/r$NEMO_VER --depth empty $NEMO
@@ -58,18 +67,18 @@ mv tmp_file Config.pm
 
 # copy the appropriate architecture file into place
 mkdir $NEMO/arch
-cp $WDIR/HPC_ARCH_FILES/NEMO/arch-X86_ARCHER2-Cray.fcm $NEMO/arch/arch-X86_ARCHER2-Cray.fcm
+cp $WDIR/HPC_ARCH_FILES/NEMO/arch-${HPC_TARG}_${COMPILER}.fcm $NEMO/arch/arch-${HPC_TARG}_${COMPILER}.fcm
 
 # Edit ARCH file
 # Dirty fix to hard wire path otherwise user will have to set XIOS_DIR in every new shell session
-sed "s?XXX_XIOS_DIR_XXX?$XIOS_DIR?" $NEMO/arch/arch-X86_ARCHER2-Cray.fcm > tmp_arch
-mv tmp_arch $NEMO/arch/arch-X86_ARCHER2-Cray.fcm
+sed "s?XXX_XIOS_DIR_XXX?$XIOS_DIR?" $NEMO/arch/arch-${HPC_TARG}_${COMPILER}.fcm > tmp_arch
+mv tmp_arch $NEMO/arch/arch-${HPC_TARG}_${COMPILER}.fcm
 # Add which modules are required for NEMO build
 #echo $CONFIG 'OCE' >> $NEMO/cfgs/work_cfgs.txt
 
 # Build from a reference configuration. This only uses OCE module
 cd $NEMO
-./makenemo -n $CONFIG -r AMM12  -m X86_ARCHER2-Cray -j 16
+./makenemo -n $CONFIG -r AMM12  -m ${HPC_TARG}_${COMPILER} -j 16
 
 # Change the keys and copy MY_SRC to your configurations
 cp $NEMO/../cpp_file.fcm $NEMO/cfgs/$CONFIG/cpp_$CONFIG.fcm
@@ -94,8 +103,8 @@ cp $NEMO/cfgs/SHARED/*namelist* $NEMO/cfgs/$CONFIG/EXPREF/.
 cp $NEMO/cfgs/SHARED/*.xml $NEMO/cfgs/$CONFIG/EXPREF/.
 
 #make configuration with updates included
-./makenemo -r $CONFIG -m X86_ARCHER2-Cray -j 16 clean
-./makenemo -r $CONFIG -m X86_ARCHER2-Cray -j 16
+./makenemo -r $CONFIG -m ${HPC_TARG}_${COMPILER} -j 16 clean
+./makenemo -r $CONFIG -m ${HPC_TARG}_${COMPILER} -j 16
 
 echo "Executable is $NEMO/cfgs/$CONFIG/BLD/bin/nemo.exe"
 

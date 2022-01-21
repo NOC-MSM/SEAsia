@@ -21,8 +21,3 @@ HDF5_LIB="-lhdf5_hl -lhdf5 -lz -lcurl"
 OASIS_INCDIR=""
 OASIS_LIBDIR=""
 OASIS_LIB=""
-
-
-#only for MEMTRACK debuging : developper only
-#ADDR2LINE_LIBDIR="-L${WORKDIR}/ADDR2LINE_LIB"
-#ADDR2LINE_LIB="-laddr2line"

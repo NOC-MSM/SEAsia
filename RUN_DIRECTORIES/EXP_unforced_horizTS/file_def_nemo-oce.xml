@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+
+    <!-- 
+============================================================================================================
+=                                           output files definition                                        =
+=                                            Define your own files                                         =
+=                                         put the variables you want...                                    =
+============================================================================================================
+    -->
+    <file_definition type="one_file" name="@expname@_@freq@" sync_freq="1d" min_digits="4"> 
+    <!--<file_definition type="multiple_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="1d" min_digits="4">-->
+
+      <file_group id="1ts" output_freq="1ts"  output_level="10" enabled=".FALSE."/> <!-- 1 time step files -->
+      
+      <file_group id="3h" output_freq="3h"  output_level="10" enabled=".TRUE."/> <!-- 3h files -->
+      <file_group id="2h" output_freq="2h"  output_level="10" enabled=".TRUE."/> <!-- 2h files -->     
+<!--        <file id="file1" name_suffix="_2h" description="3d u and v output every 2 hours" enabled=".TRUE." >
+          <field field_ref="uoce_abs_max" name="uoce_abs_max" />
+          <field field_ref="voce_abs_max" name="voce_abs_max" />
+        </file>
+      </file_group>
+-->
+
+      <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 4h files -->
+<!--        <file id="file1" name_suffix="_u" description="3d u max output every 4h" enabled=".TRUE." >
+          <field field_ref="uoce_abs_max" name="uoce_abs_max" />
+        </file>
+        <file id="file2" name_suffix="_v" description="3d v max output every 4h" enabled=".TRUE." >
+          <field field_ref="voce_abs_max" name="voce_abs_max" />
+        </file> 
+-->
+      </file_group>
+
+      <file_group id="6h" output_freq="6h"  output_level="10" enabled=".TRUE."/> <!-- 6h files -->
+
+      <file_group id="4h" output_freq="4h" output_level="10" enabled=".TRUE."/>
+
+      <file_group id="1d" output_freq="1d"  output_level="10" enabled=".TRUE."> <!-- 1d files -->
+	      <!--    <file id="file1" name_suffix="_t" description="daily mean t-grid" split_freq="1mo" split_freq_format="%y%mo%d" enabled=".TRUE."> -->
+	<file id="file1" name_suffix="_t" description="daily mean t-grid" enabled=".TRUE.">	      
+          <field field_ref="toce" name="toce" />
+          <field field_ref="soce" name="soce" />
+          <field field_ref="ssh" name="ssh" />
+        </file>
+        <file id="file2" name_suffix="_u" description="daily mean u-grid" enabled=".TRUE.">
+          <field field_ref="uoce" name="uoce" />
+	  <field field_ref="ubar" name="ubar" />
+	  <field field_ref="utrd_hpg" name="utrd_hpg" />
+          <field field_ref="utrd_spg" name="utrd_spg" />
+        </file>
+        <file id="file3" name_suffix="_v" description="daily mean v-grid" enabled=".TRUE.">
+          <field field_ref="voce" name="voce" />
+          <field field_ref="vbar" name="vbar" />
+          <field field_ref="vtrd_hpg" name="vtrd_hpg" />
+          <field field_ref="vtrd_spg" name="vtrd_spg" />
+        </file>
+      </file_group>
+
+      <file_group id="25h_mean" output_freq="1d"  output_level="10" enabled=".TRUE."/> <!-- 3d files -->    
+
+      <file_group id="5d" output_freq="5d"  output_level="10" enabled=".TRUE."/>  <!-- 5d files -->   
+
+      <file_group id="1m" output_freq="1mo" output_level="10" enabled=".TRUE."/> <!-- real monthly files -->
+
+      <file_group id="2m" output_freq="2mo" output_level="10" enabled=".TRUE."/> <!-- real 2m files -->
+      <file_group id="3m" output_freq="3mo" output_level="10" enabled=".TRUE."/> <!-- real 3m files -->
+      <file_group id="4m" output_freq="4mo" output_level="10" enabled=".TRUE."/> <!-- real 4m files -->
+      <file_group id="6m" output_freq="6mo" output_level="10" enabled=".TRUE."/> <!-- real 6m files -->
+
+      <file_group id="1y"  output_freq="1y" output_level="10" enabled=".TRUE."/> <!-- real yearly files -->
+      <file_group id="2y"  output_freq="2y" output_level="10" enabled=".TRUE."/> <!-- real 2y files -->
+      <file_group id="5y"  output_freq="5y" output_level="10" enabled=".TRUE."/> <!-- real 5y files -->
+      <file_group id="10y" output_freq="10y" output_level="10" enabled=".TRUE."/> <!-- real 10y files -->
+
+
+   </file_definition>
+    
+
