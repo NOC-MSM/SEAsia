@@ -28,4 +28,3 @@ XXX_TDIR_XXX/DOMAINcfg/BLD/bin/make_domain_cfg.exe
 
 # After create copy it and store it for further use
 cp XXX_TDIR_XXX/DOMAINcfg/domain_cfg.nc XXX_DOMAIN_XXX/domain_cfg_XXX_REPO_XXX.nc
-
