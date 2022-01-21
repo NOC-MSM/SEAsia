@@ -12,7 +12,7 @@
 # Assumed:
 # git clone https://github.com/NOC-MSM/NEMO-RELOC.git NEMO-RELOC
 
-export REPO=NEMO-RELOC
+export REPO=SEAsia
 # Set the configuration name that describes the NEMO executable
 export CONFIG=TESTCOMPILE
 export CONFIG=NEMOhorizTS # NEMO exec with hardwired horizontally uniform T,S
