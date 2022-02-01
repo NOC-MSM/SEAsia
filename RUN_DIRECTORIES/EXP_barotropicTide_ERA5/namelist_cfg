@@ -36,10 +36,10 @@
    nn_no       =       0   !  Assimilation cycle index
    cn_exp      =  "SEVERN_Tid_met"
    nn_it000    =  1 !  8641 ! 1   !  first time step
-   nn_itend    =  295 !600 !    ! 4320 per 24hr   !  last  time step
+   nn_itend    =  4320 !600 !    ! 4320 per 24hr   !  last  time step
    nn_date0    =  20130101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
-   nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+   nn_leapy    =       0   !  Leap year calendar (1) or not (0)
    ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
       nn_euler    =    1      !  = 0 : start with forward time step if ln_rstart=T
       nn_rstctl   =    0      !  restart control ==> activated only if ln_rstart=T
@@ -179,7 +179,7 @@
    ln_ice_embd = .false.   !  =T embedded sea-ice (pressure + mass and salt exchanges)
       !                    !  =F levitating ice (no pressure, mass and salt exchanges)
                      ! Misc. options of sbc :
-   ln_traqsr   = .false.   !  Light penetration in the ocean            (T => fill namtra_qsr)
+   ln_traqsr   = .true.   !  Light penetration in the ocean            (T => fill namtra_qsr)
    ln_dm2dc    = .false.   !  daily mean to diurnal cycle on short wave
    ln_ssr      = .false.   !  Sea Surface Restoring on T and/or S       (T => fill namsbc_ssr)
    nn_fwb      = 0         !  FreshWater Budget: =0 unchecked
@@ -223,7 +223,7 @@
    ln_COARE_3p5= .false.   ! "COARE 3.5" algorithm   (Edson et al. 2013)
    ln_ECMWF    = .true.   ! "ECMWF"     algorithm   (IFS cycle 31)
    !
-   cn_dir      = '/work/n01/n01/jelt/SEVERN-SWOT/BUILD_CFG/SURFACE_FORCING/'      !  root directory for the location of the bulk files
+   cn_dir      = '/work/n01/n01/micdom/SEVERN-SWOT/BUILD_CFG/SURFACE_FORCING/'      !  root directory for the location of the bulk files
    ln_taudif   = .false.   !  HF tau contribution: use "mean of stress module - module of the mean stress" data
    rn_zqt      = 2.       !  Air temperature and humidity reference height (m)
    rn_zu       = 10.       !  Wind vector reference height (m)
@@ -233,6 +233,27 @@
                            !  in the calculation of the wind stress (0.=absolute winds or 1.=relative winds)
    ln_Cd_L12   = .false.   !  Modify the drag ice-atm and oce-atm depending on ice concentration
                            !  This parameterization is from Lupkes et al. (JGR 2012)
+/
+!-----------------------------------------------------------------------
+&namtra_qsr    !   penetrative solar radiation                          (ln_traqsr =T)
+!-----------------------------------------------------------------------
+   !                       !  type of penetration                        (default: NO selection)
+   ln_qsr_rgb  = .true.       !  RGB light penetration (Red-Green-Blue)
+   ln_qsr_2bd  = .false.      !  2BD light penetration (two bands)
+   ln_qsr_bio  = .false.      !  bio-model light penetration
+!   ln_qsr_kd490 = .false.
+   !                       !  RGB & 2BD choices:
+   rn_abs      =   0.58       !  RGB & 2BD: fraction absorbed in the very near surface
+   rn_si0      =   0.35       !  RGB & 2BD: shortess depth of extinction
+   nn_chldta   =      0       !  RGB : Chl data (=1) or cst value (=0)
+   rn_si1      =   23.0       !  2BD : longest depth of extinction
+
+   cn_dir      = './'      !  root directory for the chlorophyl data location
+   !___________!_________________________!___________________!___________!_____________!________!___________!__________________!__________!_______________!
+   !           !  file name              ! frequency (hours) ! variable  ! time interp.!  clim  ! 'yearly'/ ! weights filename ! rotation ! land/sea mask !
+   !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !                  ! pairing  !    filename   !
+   sn_chl      ='kd490'                  ,        -1         , 'kd_490'  ,   .true.    , .true. , 'yearly'  , ''               , ''       , ''
+!   sn_kd490    ='kd490'                  ,        -1         , 'kd_490'  ,   .true.    , .true. , 'yearly'  , ''               , ''       , ''
 /
 !!======================================================================
 !!               ***  Lateral boundary condition  ***                 !!

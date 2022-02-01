@@ -11,12 +11,12 @@
   <aggregation type="union" >
      <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
         <aggregation type="joinExisting" dimName="time" >
-           <scan location="/projectsa/accord/SANH_jenjar/CMEMS_SANH/CMEMS_data/2005/"  regExp=".*download.nc$" />
+           <scan location="/work/n01/n01/micdom/SEVERN-SWOT/DOWNLOADS/CMEMS_DATA/2005/"  regExp=".*download.nc$" />
         </aggregation>
      </netcdf>
      <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
         <aggregation type="joinExisting" dimName="time" >
-           <scan location="/projectsa/accord/SANH_jenjar/CMEMS_SANH/UV_components/2005/"  regExp=".*download_UV.nc$" />
+           <scan location="/work/n01/n01/micdom/SEVERN-SWOT/DOWNLOADS/UV_components/2005/"  regExp=".*download_UV.nc$" />
         </aggregation>
      </netcdf>
   </aggregation>

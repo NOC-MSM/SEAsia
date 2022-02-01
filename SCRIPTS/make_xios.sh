@@ -18,11 +18,16 @@
 
 cd $WDIR
 # Ensure the correct modules are loaded for ARHCER2
-module -s restore /work/n01/shared/acc/n01_modules/ucx_env
+#module -s restore /work/n01/shared/acc/n01_modules/ucx_env
+module swap craype-network-ofi craype-network-ucx
+module swap cray-mpich cray-mpich-ucx
+module load cray-hdf5-parallel/1.12.0.7
+module load cray-netcdf-hdf5parallel/4.7.4.7
 
 #download xios
-svn checkout -r 1964 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.5 $XIOS_DIR
+#svn checkout -r 1964 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.5 $XIOS_DIR
 cd $XIOS_DIR
+cp -r /work/n01/shared/nemo/xios-2.5/* .
 
 #copy the arch files to build location
 cp $WDIR/HPC_ARCH_FILES/XIOS/arch-X86_ARCHER2-Cray.* $XIOS_DIR/arch/.

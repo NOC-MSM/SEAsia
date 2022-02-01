@@ -11,10 +11,11 @@
     <!--<file_definition type="multiple_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="1d" min_digits="4">-->
 
       <file_group id="1ts" output_freq="1ts"  output_level="10" enabled=".TRUE."> <!-- 1 time step files -->
-  	<file id="file1" name_suffix="_t" description="1ts t-grid" enabled=".TRUE.">	      
+<!--  	<file id="file1" name_suffix="_t" description="1ts t-grid" enabled=".TRUE.">	      
           <field field_ref="ssh" name="ssh" />
           <field field_ref="sst" name="sst" />
         </file>
+-->  
         <file id="file2" name_suffix="_u" description="1ts u-grid" enabled=".TRUE.">
 	  <field field_ref="ubar" name="ubar" />
         </file>
@@ -33,8 +34,10 @@
 -->
 
       <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 1h files -->
-	<file id="file0" name_suffix="_t" description="1h mean t-grid" enabled=".TRUE.">	      
-          <field field_ref="ssh" name="ssh" />
+	<file id="file1" name_suffix="_t" description="1h mean t-grid" enabled=".TRUE.">	      
+        	<field field_ref="ssh" name="ssh" />
+                <field field_ref="sst" name="sst" />
+                <field field_ref="sss" name="sss" />
         </file>
       </file_group>
 

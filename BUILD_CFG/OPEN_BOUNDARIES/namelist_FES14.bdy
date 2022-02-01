@@ -30,11 +30,11 @@
 !------------------------------------------------------------------------------
 !  grid information 
 !------------------------------------------------------------------------------
-  sn_src_hgr = 'CMEMS_subdomain_coordinates.nc'   !  parent /grid/
+   sn_src_hgr = '/work/n01/n01/micdom/SEVERN-SWOT/DOWNLOADS/coordinates_AMM15.nc'   !  parent /grid/   
    sn_src_zgr = 'inputs_src_zgr.ncml'   !  parent
    sn_dst_hgr = '../DOMAIN/domain_cfg.nc'  ! child
    sn_dst_zgr = 'inputs_dst.ncml' ! rename output variables
-   sn_src_msk = 'CMEMS_subdomain_mask.nc'       ! parent
+   sn_src_msk = '/work/n01/n01/micdom/SEVERN-SWOT/DOWNLOADS/amm15_mask_forSBCinterpolation.nc'       ! parent
    !sn_bathy   = 'inputs_dst_bath.ncml'        ! child
    sn_bathy   = '../DOMAIN/bathy_meter.nc'        ! child
 
@@ -42,7 +42,7 @@
 !------------------------------------------------------------------------------
 !  I/O 
 !------------------------------------------------------------------------------
-   sn_src_dir      = './NCML/CMEMS_2018.ncml' ! src_files/'
+   sn_src_dir      = './NCML/CMEMS_2005.ncml' ! src_files/'
    sn_dst_dir      = './OUTPUT'
    sn_ncml_out     = './output_NCML'
    sn_model_prefix = 'NEMO'
@@ -110,13 +110,13 @@
     sn_tide_model  = 'fes'                !  Name of tidal model (fes|tpxo)
     clname(1)      = 'M2'                 !  constituent name
     clname(2)      = 'S2'
-    !clname(3)      = 'N2'
-    !clname(4)      = 'O1'
-    !clname(5)      = 'K1'
-    !clname(6)      = 'K2'
+    clname(3)      = 'N2'
+    clname(4)      = 'O1'
+    clname(5)      = 'K1'
+    clname(6)      = 'K2'
     !clname(7)      = 'L2'
     !clname(8)      = 'NU2'
-    !clname(9)      = 'M4'
+    !clname(7)      = 'M4'
     !clname(10)     = 'MS4'
     !clname(11)     = 'Q1'
     !clname(12)     = 'P1'
