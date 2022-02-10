@@ -1,0 +1,31 @@
+module use --append /work/y07/shared/archer2-modules/modulefiles-cse-pyvenvs
+module use --append /work/y07/shared/archer2-modules/modulefiles-cse-utils
+module use --append /work/y07/shared/archer2-modules/modulefiles-cse-libs
+module use --append /work/y07/shared/archer2-modules/modulefiles-cse-apps
+module use --append /opt/cray/pe/perftools/20.10.0/modulefiles
+module use --append /opt/cray/pe/perftools/20.09.0/modulefiles
+module use --append /opt/cray/pe/craype/2.7.0/modulefiles
+module use --append /usr/local/Modules/modulefiles
+module use --append /opt/cray/pe/cpe-prgenv/7.0.0
+module use --append /opt/cray/pe/modulefiles
+module use --append /opt/cray/pe/craype-targets/default/modulefiles
+module use --append /opt/modulefiles
+module use --append /opt/cray/modulefiles
+module use --append /work/y07/shared/archer2-modules/modulefiles-cse
+module load cpe-cray
+module load cce
+module load craype
+module load craype-x86-rome
+module load cray-dsmml
+module load perftools-base
+module load xpmem
+module load cray-libsci
+module load /work/y07/shared/archer2-modules/modulefiles-cse/epcc-setup-env
+module load cray-hdf5-parallel
+module load cray-netcdf-hdf5parallel
+module load gcc
+module load --notuasked cray-ucx
+module load craype-network-ucx
+module load cray-mpich-ucx/8.0.16
+module load libfabric
+

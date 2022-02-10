@@ -1,4 +1,4 @@
-# compiler options for Archer CRAY XC-30 (using crayftn compiler))
+# compiler options for Archer CRAY XC-30 (using crayftn compiler)
 #
 # NCDF_HOME   root directory containing lib and include subdirectories for netcdf4
 # HDF5_HOME   root directory containing lib and include subdirectories for HDF5
@@ -33,31 +33,25 @@
 %NCDF_HOME           $NETCDF_DIR
 %HDF5_HOME           $HDF5_DIR
 %XIOS_HOME           XXX_XIOS_DIR_XXX
-#OASIS_HOME
 
 %NCDF_INC            -I%NCDF_HOME/include -I%HDF5_HOME/include
 %NCDF_LIB            -L%HDF5_HOME/lib -L%NCDF_HOME/lib -lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lz
-%XIOS_INC            -I%XIOS_HOME/inc
+%XIOS_INC            -I%XIOS_HOME/inc 
 %XIOS_LIB            -L%XIOS_HOME/lib -lxios
-#OASIS_INC           -I%OASIS_HOME/build/lib/mct -I%OASIS_HOME/build/lib/psmile.MPI1
-#OASIS_LIB           -L%OASIS_HOME/lib -lpsmile.MPI1 -lmct -lmpeu -lscrip
 
-%CPP                 cpp
+%CPP	             cpp
 %FC                  ftn
-%FCFLAGS             -em -s integer32 -s real64 -O1 -hflex_mp=intolerant
-%FFLAGS              -em -s integer32 -s real64 -O1 -hflex_mp=intolerant
-#%FCFLAGS             -em -s integer32 -s real64 -O0 -e0 -eZ
-#%FFLAGS              -em -s integer32 -s real64 -O0 -e0 -eZ
+%FCFLAGS             -em -s integer32 -s real64 -g -O0 -hflex_mp=intolerant -N 1023
+%FFLAGS              -em -s integer32 -s real64 -g -O0 -hflex_mp=intolerant -N 1023
 %LD                  CC -Wl,"--allow-multiple-definition"
 %FPPFLAGS            -P -traditional
 %LDFLAGS             -lmpifort_cray
-%AR                  ar
+%AR                  ar 
 %ARFLAGS             -r
 %MK                  gmake
 %USER_INC            %XIOS_INC %NCDF_INC
 %USER_LIB            %XIOS_LIB %NCDF_LIB
-#USER_INC            %XIOS_INC %OASIS_INC %NCDF_INC
-#USER_LIB            %XIOS_LIB %OASIS_LIB %NCDF_LIB
 
 %CC                  cc
 %CFLAGS              -O0
+bld::tool::fc_modsearch -J

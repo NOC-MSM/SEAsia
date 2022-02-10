@@ -14,18 +14,17 @@
 # For more complex relocable domain, with for example resolution refinement, the AGRIF tools can be used.
 # (outlined below).
 
-  #load modules
-  module -s restore /work/n01/shared/acc/n01_modules/ucx_env
+  # Load modules
   module load nco
 
   # subdomain of ORCA global
   # you can download the ORCA R12 coordinates
-  wget http://gws-access.jasmin.ac.uk/public/nemo/runs/ORCA0083-N06/domain/coordinates.nc -O $DOMAIN/coordinates_ORCA_R12.nc
+  wget http://gws-access.jasmin.ac.uk/public/nemo/runs/ORCA0083-N06/domain/coordinates.nc -O $DOWNLOADS/coordinates_ORCA_R12.nc
 
   
   cd $DOMAIN
-  
-  ncks -d x,50,730 -d y,1250,1800 coordinates_ORCA_R12.nc -O cropped.nc 
+    
+  ncks -d x,50,730 -d y,1250,1800 $DOWNLOADS/coordinates_ORCA_R12.nc -O cropped.nc 
   ncwa -a time cropped.nc coordinates_ORCA_R12_cropped.nc
   ln -s coordinates_ORCA_R12_cropped.nc coordinates.nc
   rm cropped.nc
