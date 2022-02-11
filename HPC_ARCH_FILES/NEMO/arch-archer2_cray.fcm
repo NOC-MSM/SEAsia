@@ -41,8 +41,8 @@
 
 %CPP	             cpp
 %FC                  ftn
-%FCFLAGS             -em -s integer32 -s real64 -g -O0 -hflex_mp=intolerant -N 1023
-%FFLAGS              -em -s integer32 -s real64 -g -O0 -hflex_mp=intolerant -N 1023
+%FCFLAGS             -em -s integer32 -s real64 -O1 -hflex_mp=intolerant
+%FFLAGS              -em -s integer32 -s real64 -O1 -hflex_mp=intolerant
 %LD                  CC -Wl,"--allow-multiple-definition"
 %FPPFLAGS            -P -traditional
 %LDFLAGS             -lmpifort_cray
