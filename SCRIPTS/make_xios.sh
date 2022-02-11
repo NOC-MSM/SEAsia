@@ -25,8 +25,9 @@ module load cray-netcdf-hdf5parallel/4.7.4.7
 
 
 #download xios
-svn checkout -r 1964 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.5 $XIOS_DIR
+#svn checkout -r 1964 http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.5 $XIOS_DIR
 cd $XIOS_DIR
+cp -r /work/n01/shared/nemo/xios-2.5/* .
 
 #copy the arch files to build location
 cp $WDIR/HPC_ARCH_FILES/XIOS/arch-${HPC_TARG}_${COMPILER}.* $XIOS_DIR/arch/.
