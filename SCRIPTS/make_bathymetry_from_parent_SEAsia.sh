@@ -23,10 +23,6 @@
   # Ensure the correct modules are loaded for ARCHER2
   # Load modules listed in /work/n01/shared/nemo/setup
   # Tested 10Jan22
-  module swap craype-network-ofi craype-network-ucx
-  module swap cray-mpich cray-mpich-ucx
-  module load cray-hdf5-parallel/1.12.0.7
-  module load cray-netcdf-hdf5parallel/4.7.4.7
 
   # Obtain the bathymetry from the ORCA12 global model from JASMIN. The e(xtended)ORCA domain has a higher latitude reach. 
   # Or on ARCHER you can take it from an existing directory E.g. /gws/nopw/j04/nemo_vol6/acc/eORCA12-N512-ay652/domain/eORCA12_bathymetry_v2.4.nc 
