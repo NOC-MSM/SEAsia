@@ -36,8 +36,8 @@
    nn_no       =       0   !  Assimilation cycle index
    cn_exp      =  "SEVERN_Tid_met"
    nn_it000    =  1 !  8641 ! 1   !  first time step
-   nn_itend    =  4320 !600 !    ! 4320 per 24hr   !  last  time step
-   nn_date0    =  20130101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+   nn_itend    =  8640 !600 !    ! 4320 per 24hr   !  last  time step
+   nn_date0    =  20190801   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       0   !  Leap year calendar (1) or not (0)
    ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
@@ -288,6 +288,16 @@
    dn_love_number = 0.69 !
    clname(1)='M2'
    clname(2)='S2'
+   clname(3)= 'N2'
+   clname(4)= 'O1'
+   clname(5)= 'K1'
+    clname(6)= 'K2'
+!   clname(7)= 'L2'
+    clname(7)= 'NU2'
+    clname(8)= 'M4'
+    clname(9)= 'MS4'
+    clname(10)= 'Q1'
+!   clname(12)= 'P1'
 !   clname(3)='K1'
 !   clname(1) ='2N2'
 !   clname(2)='EPS2'

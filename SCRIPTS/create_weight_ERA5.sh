@@ -10,7 +10,11 @@ cd $SBC
 ln -s $DOMAIN/coordinates.nc $SBC/.
 
 #load modules
-module -s restore /work/n01/shared/acc/n01_modules/ucx_env
+module swap craype-network-ofi craype-network-ucx
+module swap cray-mpich cray-mpich-ucx
+module load cray-hdf5-parallel/1.12.0.7
+module load cray-netcdf-hdf5parallel/4.7.4.7
+
 
 #generate weights
 $TDIR/WEIGHTS/scripgrid.exe namelist_reshape_bilin_atmos
