@@ -3,17 +3,17 @@
 
 #:'
 #
-#***********************
-#run_EXP_barotropicTide.sh
-#***********************
+#******************************
+#run_EXP_Tide_ERA5.sh
+#******************************
 #'
 
-# Run the experiment with contant T,S initial condition with tides-only.
-
+# Run the experiment with contant T,S initial condition with tides.
+#  and full ERA5 forcing
 #::
 
 export CONFIG=NEMOconstTS
-export EXP=$WDIR/RUN_DIRECTORIES/EXP_barotropicTide
+export EXP=$WDIR/RUN_DIRECTORIES/EXP_Tide_ERA5
 
 # Choose an appropriate directory for your EXP installation
 if [ ! -d "$EXP/RESTART" ]; then
