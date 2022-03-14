@@ -1,1 +1,22 @@
-/work/n01/n01/micdom/PyNEMO/RunFiles/CMEMS_2019.ncml
+<?xml version="1.0" encoding="UTF-8"?>
+<netcdf title="aggregation example" xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+  <variable name="vozocrtx"  orgName="uo" />
+  <variable name="vomecrty" orgName="vo" />
+  <variable name="votemper" orgName="thetao" />
+  <variable name="vosaline" orgName="so" />
+  <variable name="sossheig" orgName="zos" />
+  <variable name="time_counter" orgName="time">
+  </variable>
+  <aggregation type="union" >
+     <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+        <aggregation type="joinExisting" dimName="time" >
+           <scan location="/work/n01/n01/micdom/CMEMS_AMM15/"  regExp=".*download.nc$" />
+        </aggregation>
+     </netcdf>
+     <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+        <aggregation type="joinExisting" dimName="time" >
+		<scan location="/work/n01/n01/micdom/CMEMS_AMM15/"  regExp=".*download_UV.nc$" />
+        </aggregation>
+     </netcdf>
+  </aggregation>
+</netcdf>
