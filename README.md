@@ -36,6 +36,9 @@ Then follow descritptions in: https://github.com/JMMP-Group/SEVERN-SWOT/wiki
 * ``EXP_unforced_constTS``
 Constant T and S. No tides. No met.
 
+* ``EXP_unforced_horizTS``
+Constant T, S stratification. No tides. No met.
+
 * ``EXP_barotropicTide``
 Only tidal forcing. constant T and S
 
