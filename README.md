@@ -33,14 +33,17 @@ Then follow descritptions in: https://github.com/JMMP-Group/SEVERN-SWOT/wiki
 
 ### Experiment Summary
 
-* ``EXP_unforced``
+* ``EXP_unforced_constTS``
 Constant T and S. No tides. No met.
 
 * ``EXP_barotropicTide``
 Only tidal forcing. constant T and S
 
-* ...
+* ``EXP_Tide_ERA5``
+Tidal forcing. ERA5 forcing (sea-level pressure, 10m winds, fluxes etc.), constant T,S.
 
+* ``EXP_Tide_ERA5_BDY``
+Tidal forcing. ERA5 forcing (sea-level pressure, 10m winds, fluxes etc.), 3D boundary conditions and initial conditions.
 
 ### Repository structure
 
