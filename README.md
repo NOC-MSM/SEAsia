@@ -27,9 +27,9 @@ The model grid has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-st
 
 The following process is followed to build and get started with this configuration
 
-``git clone https://github.com/NOC-MSM/NEMO-RELOC.git``
+``git clone https://github.com/NOC-MSM/SEAsia.git``
 
-Then follow descritptions in: https://github.com/NOC-MSM/NEMO-RELOC/wiki
+Then follow descritptions in: https://github.com/NOC-MSM/SEAsia/wiki
 
 The example is based on NEMO v4.0.6 and XIOS v2.5:
 
