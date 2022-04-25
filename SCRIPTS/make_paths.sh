@@ -10,7 +10,7 @@
 # These paths are also required to run NEMO, XIOS and various tools
 #
 # Assumed:
-# git clone https://github.com/NOC-MSM/NEMO-RELOC.git $REPO
+# git clone https://github.com/NOC-MSM/$REPO.git
 
 export REPO=SEAsia
 # Set the configuration name that describes the NEMO executable
