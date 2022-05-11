@@ -81,13 +81,13 @@
     clname(6)      = 'K2'
     clname(7)      = 'L2'
     clname(8)      = 'NU2'
-    clname(7)      = 'M4'
+    clname(9)      = 'M4'
     clname(10)     = 'MS4'
     clname(11)     = 'Q1'
     clname(12)     = 'P1'
-    !clname(13)     = 'S1'
-    !clname(14)     = '2N2'
-    !clname(15)     = 'MU2'
+    clname(13)     = 'S1'
+    clname(14)     = '2N2'
+    clname(15)     = 'MU2'
     ln_trans       = .true.                !  interpolate transport rather than velocities
 !------------------------------------------------------------------------------
 !  Time information
