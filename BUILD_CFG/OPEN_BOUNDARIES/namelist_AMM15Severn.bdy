@@ -41,11 +41,11 @@
 !------------------------------------------------------------------------------
 !  I/O 
 !------------------------------------------------------------------------------
-   sn_src_dir      = './CMEMS_2019.ncml' ! NOT NEEDED FOR TIDES USE A DUMMY FILE 
+   sn_src_dir      = './CMEMS.ncml' ! NOT NEEDED FOR TIDES USE A DUMMY FILE 
    sn_dst_dir      = './OUTPUT'
    sn_ncml_out     = './output_NCML'
 
-   sn_fn      = 'SEVERN_FES14'             ! prefix for output files
+   sn_fn      = 'SEVERN'             ! prefix for output files
    nn_fv      = -1e20                 !  set fill value for output files
    nn_src_time_adj = 0                ! src time adjustment
    sn_dst_metainfo = 'CMEMS example'
@@ -71,7 +71,7 @@
 !------------------------------------------------------------------------------
 !  unstructured open boundaries tidal parameters                        
 !------------------------------------------------------------------------------
-    ln_tide        = .true.              !  =T : produce bdy tidal conditions
+    ln_tide        = .false.              !  =T : produce bdy tidal conditions
     sn_tide_model  = 'FES2014'            !  Name of tidal model (FES2014|TPXO7p2)      
     clname(1)      = 'M2'                 !  constituent name
     clname(2)      = 'S2'
@@ -81,21 +81,21 @@
     clname(6)      = 'K2'
     clname(7)      = 'L2'
     clname(8)      = 'NU2'
-    clname(7)      = 'M4'
+    clname(9)      = 'M4'
     clname(10)     = 'MS4'
     clname(11)     = 'Q1'
     clname(12)     = 'P1'
-    !clname(13)     = 'S1'
-    !clname(14)     = '2N2'
-    !clname(15)     = 'MU2'
+    clname(13)     = 'S1'
+    clname(14)     = '2N2'
+    clname(15)     = 'MU2'
     ln_trans       = .true.                !  interpolate transport rather than velocities
 !------------------------------------------------------------------------------
 !  Time information
 !------------------------------------------------------------------------------
-    nn_year_000     = 2019        !  year start
-    nn_year_end     = 2019        !  year end
-    nn_month_000    = 08          !  month start (default = 1 is years>1)
-    nn_month_end    = 08       !  month end (default = 12 is years>1)
+    nn_year_000     = 2021       !  year start
+    nn_year_end     = 2021        !  year end
+    nn_month_000    = 11          !  month start (default = 1 is years>1)
+    nn_month_end    = 11      !  month end (default = 12 is years>1)
     sn_dst_calendar = 'gregorian' !  output calendar format
     nn_base_year    = 1970        !  base year for time counter
     ! TPXO file locations

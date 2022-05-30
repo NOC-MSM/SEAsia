@@ -36,10 +36,10 @@
    nn_no       =       0   !  Assimilation cycle index
    cn_exp      =  "SEVERN_baroT"
    nn_it000    =  1 !  8641 ! 1   !  first time step
-   nn_itend    =  8640 !    ! 4320 per 24hr   !  last  time step
-   nn_date0    =  20000101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+   nn_itend    =  777600 !    ! 4320 per 24hr   !  last  time step
+   nn_date0    =  20210601   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
-   nn_leapy    =       1   !  Leap year calendar (1) or not (0)
+   nn_leapy    =       0   !  Leap year calendar (1) or not (0)
    ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
       nn_euler    =    1      !  = 0 : start with forward time step if ln_rstart=T
       nn_rstctl   =    0      !  restart control ==> activated only if ln_rstart=T
@@ -232,18 +232,21 @@
    ln_tide_ramp  = .false.               !  Use linear ramp for tides at startup
    rdttideramp   =    0.                 !  ramp duration in days
    dn_love_number = 0.69 !
-   clname(1)='M2'
-   clname(2)='S2'
-   clname(3)= 'N2'
-   clname(4)= 'O1'
-   clname(5)= 'K1'
-   clname(6)= 'K2'
-!   clname(7)= 'L2'
-   clname(7)= 'NU2'
-   clname(8)= 'M4'
-   clname(9)= 'MS4'
-   clname(10)= 'Q1'
-!   clname(12)= 'P1'
+    clname(1)      = 'M2'                 !  constituent name
+    clname(2)      = 'S2'
+    clname(3)      = 'N2'
+    clname(4)      = 'O1'
+    clname(5)      = 'K1'
+    clname(6)      = 'K2'
+    clname(7)      = 'L2'
+    clname(8)      = 'NU2'
+    clname(9)      = 'M4'
+    clname(10)     = 'MS4'
+    clname(11)     = 'Q1'
+    clname(12)     = 'P1'
+    clname(13)     = 'S1'
+    clname(14)     = '2N2'
+    clname(15)     = 'MU2'
 /
 !-----------------------------------------------------------------------
 &nambdy        !  unstructured open boundaries                          (default: OFF)
@@ -556,8 +559,8 @@
    ln_listonly =  .false.  !  do nothing else than listing the best domain decompositions (with land domains suppression)
    !                       !  if T: the largest number of cores tested is defined by max(mppsize, jpni*jpnj)
    ln_nnogather =  .true.  !  activate code to avoid mpi_allgather use at the northfold
-   jpni        = 2      !  jpni   number of processors following i (set automatically if < 1)
-   jpnj        = 1      !  jpnj   number of processors following j (set automatically if < 1)
+   jpni        = -1      !  jpni   number of processors following i (set automatically if < 1)
+   jpnj        = -1      !  jpnj   number of processors following j (set automatically if < 1)
 /
 !-----------------------------------------------------------------------
 &namctl        !   Control prints                                       (default: OFF)

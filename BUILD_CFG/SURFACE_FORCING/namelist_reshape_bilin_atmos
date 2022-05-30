@@ -12,7 +12,7 @@
      nemo_lat: name of latitude variable in the coordinates.nc
 /
 &grid_inputs
-    input_file    = './ERA5_MSL.nc'
+    input_file    = './ERA5_MSL_y2000.nc'
     nemo_file     = './coordinates.nc'
     datagrid_file = 'remap_data_grid_atmos.nc'
     nemogrid_file = 'remap_nemo_grid_atmos.nc'

@@ -36,8 +36,8 @@
    nn_no       =       0   !  Assimilation cycle index
    cn_exp      =  "SEVERN_Tid_met"
    nn_it000    =  1 !  8641 ! 1   !  first time step
-   nn_itend    =  8640 !600 !    ! 4320 per 24hr   !  last  time step
-   nn_date0    =  20190801   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
+   nn_itend    =  129600 !600 !    ! 4320 per 24hr   !  last  time step
+   nn_date0    =  20211101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       0   !  Leap year calendar (1) or not (0)
    ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
@@ -286,53 +286,21 @@
    ln_tide_ramp  = .false.               !  Use linear ramp for tides at startup
    rdttideramp   =    0.                 !  ramp duration in days
    dn_love_number = 0.69 !
-   clname(1)='M2'
-   clname(2)='S2'
-   clname(3)= 'N2'
-   clname(4)= 'O1'
-   clname(5)= 'K1'
-    clname(6)= 'K2'
-!   clname(7)= 'L2'
-    clname(7)= 'NU2'
-    clname(8)= 'M4'
-    clname(9)= 'MS4'
-    clname(10)= 'Q1'
-!   clname(12)= 'P1'
-!   clname(3)='K1'
-!   clname(1) ='2N2'
-!   clname(2)='EPS2'
-!   clname(3)='J1'
-!   clname(4)='K1'
-!   clname(5)='K2'
-!   clname(6)='L2'
-!   clname(7)='LA2'
-!   clname(8)='M2'
-!   clname(9)='M3'
-!   clname(10)='M4'
-!   clname(11)='M6'
-!   clname(12)='M8'
-!   clname(13)='MF'
-!   clname(14)='MKS2'
-!   clname(15)='MM'
-!   clname(16)='MN4'
-!   clname(17)='MS4'
-!   clname(18)='MSF'
-!   clname(19)='MSQM'
-!   clname(20)='MTM'
-!   clname(21)='MU2'
-!   clname(22)='N2'
-!   clname(23)='N4'
-!   clname(24)='NU2'
-!   clname(25)='O1'
-!   clname(26)='P1'
-!   clname(27)='Q1'
-!   clname(28)='R2'
-!   clname(29)='S1'
-!   clname(30)='S2'
-!   clname(31)='S4'
-!   clname(32)='SA'
-!   clname(33)='SSA'
-!   clname(34)='T2'
+    clname(1)      = 'M2'                 !  constituent name
+    clname(2)      = 'S2'
+    clname(3)      = 'N2'
+    clname(4)      = 'O1'
+    clname(5)      = 'K1'
+    clname(6)      = 'K2'
+    clname(7)      = 'L2'
+    clname(8)      = 'NU2'
+    clname(9)      = 'M4'
+    clname(10)     = 'MS4'
+    clname(11)     = 'Q1'
+    clname(12)     = 'P1'
+    clname(13)     = 'S1'
+    clname(14)     = '2N2'
+    clname(15)     = 'MU2'
 /
 !-----------------------------------------------------------------------
 &nambdy        !  unstructured open boundaries                          (default: OFF)
@@ -645,8 +613,8 @@
    ln_listonly =  .false.  !  do nothing else than listing the best domain decompositions (with land domains suppression)
    !                       !  if T: the largest number of cores tested is defined by max(mppsize, jpni*jpnj)
    ln_nnogather =  .true.  !  activate code to avoid mpi_allgather use at the northfold
-   jpni        = 2      !  jpni   number of processors following i (set automatically if < 1)
-   jpnj        = 1      !  jpnj   number of processors following j (set automatically if < 1)
+   jpni        = -1      !  jpni   number of processors following i (set automatically if < 1)
+   jpnj        = -1      !  jpnj   number of processors following j (set automatically if < 1)
 /
 !-----------------------------------------------------------------------
 &namctl        !   Control prints                                       (default: OFF)
