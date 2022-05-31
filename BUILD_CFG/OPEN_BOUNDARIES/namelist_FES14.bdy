@@ -41,7 +41,7 @@
 !------------------------------------------------------------------------------
 !  I/O 
 !------------------------------------------------------------------------------
-   sn_src_dir      = './CMEMS_2019.ncml' ! NOT NEEDED FOR TIDES USE A DUMMY FILE 
+   sn_src_dir      = './CMEMS.ncml' ! NOT NEEDED FOR TIDES USE A DUMMY FILE 
    sn_dst_dir      = './OUTPUT'
    sn_ncml_out     = './output_NCML'
 
