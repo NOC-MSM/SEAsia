@@ -20,7 +20,7 @@ The model grid target resolution 500m; with 31 sigma vertical levels, with a bar
 * ERA5 wind and sea level pressure (in prog.)
 * Wetting and Drying (in prog.)
 
-![Severn bathymetry](https://github.com/JMMP-Group/SEVERN-SWOT/wiki/FIGURES/severn.png)
+![Severn bathymetry](https://github.com/JMMP-Group/SEVERN-SWOT/wiki/FIGURES/SEVERN-SWOT_bathy.png)
 
 ### Model Setup
 
