@@ -69,16 +69,16 @@ if ~isfile(filename)
     ncwrite(filename,'nav_lon',lon_h);
     nccreate(filename,'nav_lev', 'Dimensions',{'z',z})
     ncwrite(filename,'nav_lev',lev);
-    nccreate(filename,'time_counter', 'Dimensions',{'t',Inf},'Datatype','double')
+    nccreate(filename,'time_counter', 'Dimensions',{'time_counter',Inf},'Datatype','double')
     ncwrite(filename,'time_counter',time);
-    nccreate(filename,'ntime', 'Dimensions',{'t',Inf},'Datatype','double')
+    nccreate(filename,'ntime', 'Dimensions',{'time_counter',Inf},'Datatype','double')
     ncwrite(filename,'ntime',ntime);
-    nccreate(filename,'e3t_b', 'Dimensions',{'x',x,'y',y,'z',z,'t',Inf},'Datatype','double')
+    nccreate(filename,'e3t_b', 'Dimensions',{'x',x,'y',y,'z',z,'time_counter',Inf},'Datatype','double')
     ncwrite(filename,'e3t_b',e3t);
-    nccreate(filename,'e3t_n', 'Dimensions',{'x',x,'y',y,'z',z,'t',Inf},'Datatype','double')
+    nccreate(filename,'e3t_n', 'Dimensions',{'x',x,'y',y,'z',z,'time_counter',Inf},'Datatype','double')
     ncwrite(filename,'e3t_n',e3t);
 end
-nccreate(filename,field_3D, 'Dimensions',{'x',x,'y',y,'z',z,'t',Inf},'Datatype','double')
+nccreate(filename,field_3D, 'Dimensions',{'x',x,'y',y,'z',z,'time_counter',Inf},'Datatype','double')
 ncwrite(filename,field_3D,Temp_out);
 
 end
