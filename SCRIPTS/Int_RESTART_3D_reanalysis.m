@@ -54,7 +54,17 @@ Temp_in=ncread(file,[name_read]);
         end
     end
     
-    Temp_out(isnan(Temp_out))=0;
+   %flood again !not necessary but just in case
+   %comment the lines below if you want to NOT flood again
+   if strcmp(field_3D,'tn') || strcmp(field_3D,'sn')
+        for kv=1:size(Temp_out,3)
+            Temp_out(:,:,kv)=inpaint_nans(Temp_out(:,:,kv),2);
+        end
+    end
+
+    %if you want to mask your flooded field with the nemo mask uncomment the
+    %lines below else your fields will look / be saved flooded
+    %Temp_out(isnan(Temp_out))=0;
 
 %% set up  and write the netcdfi RESTART file
 x=size(lon_h,1);y=size(lon_h,2);z=size(Temp_out,3);
