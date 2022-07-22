@@ -13,7 +13,10 @@ Temp_out=griddata(double(lon_c),double(lat_c),double(mask_c(:,:,1).*Temp_in),dou
 %flood it to deal with any problems with mismatched mask/land between your
 %model and the data
 Temp_out=inpaint_nans(Temp_out,2);
-Temp_out=Temp_out.*mask_h(:,:,1);Temp_out(isnan(Temp_out))=0;
+
+%if you want to mask your flooded field with the nemo mask uncomment the
+%line below else they will look/saved flooded
+%Temp_out=Temp_out.*mask_h(:,:,1);Temp_out(isnan(Temp_out))=0;
 
 %% read extra / set up the file to write / write the file
 x=size(lon_h,1);y=size(lon_h,2);z=length(lev);
