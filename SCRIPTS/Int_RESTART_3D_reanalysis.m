@@ -22,6 +22,18 @@ end
 Temp_in=ncread(file,[name_read]);
 [lat_c lon_c]=meshgrid(lat_c1,lon_c1);
 
+% ATTENTION!!: sometimes the whole last level may be nan and in this case the inpaing_nans will 
+%fill it with zeros, so just extrapolate the value there from the previous level (depth) and make sure
+%there are not zeros contaminating 
+% This is particularly problematic if your domain bathymetry is deeper than
+% the reanalysis produc (which is very common issue)
+for kk=1:size(mask_c,3)
+    if all(isnan(mask_c(:,:,kk)))
+        Temp_in(:,:,kk)=Temp_in(:,:,kk-1);
+        mask_c(:,:,kk)=mask_c(:,:,kk-1);
+    end
+end    
+
     % 1. interpolate horizontaly
     Temp2=double(squeeze(Temp_in.*mask_c));
     for kk=1:size(Temp2,3)
