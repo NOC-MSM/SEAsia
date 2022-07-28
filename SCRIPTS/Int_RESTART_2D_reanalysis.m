@@ -16,7 +16,8 @@ Temp_out=inpaint_nans(Temp_out,2);
 
 %if you want do not want to mask your flooded field with the nemo mask comment the
 %line below (the fields will look/saved flooded)
-Temp_out=Temp_out.*mask_h(:,:,1);Temp_out(isnan(Temp_out))=0;
+Temp_out=Temp_out.*mask_h(:,:,1);
+Temp_out(isnan(Temp_out))=0;
 
 %% read extra / set up the file to write / write the file
 x=size(lon_h,1);y=size(lon_h,2);z=length(lev);
