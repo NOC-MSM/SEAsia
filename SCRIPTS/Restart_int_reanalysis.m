@@ -5,7 +5,7 @@ clear;clc;close all
 % Anna Katavouta, NOC, Liverpool 09/2021
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %addpath '/vkamino/scratch/accord/SEAsia_R36/RESTART_SEAsiaR36/Inpaint_nans'
-addpath '/Volumes/Elements/SEAsia_R36/RESTART_INT/Inpaint_nans'
+addpath '/Inpaint_nans'
 % the code requires the inpaint_nan functions that are available for matlab
 % (need to be downloaded: https://uk.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans
 %% read coordinates and mask of your regional model
