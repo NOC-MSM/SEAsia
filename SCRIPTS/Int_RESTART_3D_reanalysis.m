@@ -72,7 +72,7 @@ Temp_in=ncread(file,[name_read]);
 
     %if you want do not waht to mask your flooded field with the nemo mask comment the
     %line below (your fields will look / be saved flooded)
-    %Temp_out=mask_h.*Temp_out;
+    Temp_out=mask_h.*Temp_out;
     
     Temp_out(isnan(Temp_out))=0;
 
