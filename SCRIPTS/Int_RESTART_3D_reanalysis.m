@@ -22,22 +22,18 @@ end
 Temp_in=ncread(file,[name_read]);
 [lat_c lon_c]=meshgrid(lat_c1,lon_c1);
 
-% ATTENTION!!: sometimes the whole last level may be nan and in this case the inpaing_nans will 
-%fill it with zeros, so just extrapolate the value there from the previous level (depth) and make sure
-%there are not zeros contaminating 
-% This is particularly problematic if your domain bathymetry is deeper than
-% the reanalysis produc (which is very common issue)
-for kk=1:size(mask_c,3)
-    if all(isnan(mask_c(:,:,kk)))
-        Temp_in(:,:,kk)=Temp_in(:,:,kk-1);
-        mask_c(:,:,kk)=mask_c(:,:,kk-1);
-    end
-end    
-
     % 1. interpolate horizontaly
     Temp2=double(squeeze(Temp_in.*mask_c));
     for kk=1:size(Temp2,3)
         Temp_in_21(:,:,kk)=griddata(double(lon_c),double(lat_c),double(Temp2(:,:,kk)),double(lon_h),double(lat_h),'linear');
+        % ATTENTION!!: sometimes the whole last level may be nan and in this case the inpaing_nans will 
+        %fill it with zeros, so just extrapolate the value there from the previous level (depth) and make sure
+        %there are not zeros contaminating 
+        % This is particularly problematic if your domain bathymetry is deeper than
+        % the reanalysis product (which is very common issue)
+        if all(isnan(Temp_in_21(:,:,kk)))
+           Temp_in_21(:,:,kk)=Temp_in_21(:,:,kk-1);
+        end   
         %flood only for T and S not for velocities
         if strcmp(field_3D,'tn') || strcmp(field_3D,'sn')
            Temp_in_2(:,:,kk)=inpaint_nans(Temp_in_21(:,:,kk),2);
@@ -45,7 +41,7 @@ end
            Temp_in_2(:,:,kk)=Temp_in_21(:,:,kk);
         end
     end
-    
+  
     %2. interpolate vertically 
     for k1=1:size(Temp_in_2,1)
         for k2=1:size(Temp_in_2,2)
