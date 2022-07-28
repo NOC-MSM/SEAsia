@@ -61,15 +61,18 @@ Temp_in=ncread(file,[name_read]);
             Temp_out(k1,k2,:)=TT1;
         end
     end
-    
-   %flood again !not necessary but just in case
-   %uncomment the lines below if you want to flood again
-   %if strcmp(field_3D,'tn') || strcmp(field_3D,'sn')
-   %     for kv=1:size(Temp_out,3)
-   %         Temp_out(:,:,kv)=inpaint_nans(Temp_out(:,:,kv),2);
-   %     end
-   % end
-
+   
+    %flood again !not necessary but just in case
+    %uncomment the lines below if you want to flood again
+    if strcmp(field_3D,'tn') || strcmp(field_3D,'sn')
+        for kv=1:size(Temp_out,3)
+            if all(isnan(Temp_out(:,:,kv)))
+               Temp_out(:,:,kv)=Temp_out(:,:,kv-1);
+            end   
+            Temp_out(:,:,kv)=inpaint_nans(Temp_out(:,:,kv),2);
+        end
+    end
+   
     %if you want do not waht to mask your flooded field with the nemo mask comment the
     %line below (your fields will look / be saved flooded)
     Temp_out=mask_h.*Temp_out;
