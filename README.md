@@ -16,9 +16,9 @@ A specific region of focus includes exploring South East Asia (75E to 135E and -
 The model grid has 1/12&deg; lat-lon resolution and 75 hybrid sigma-z-partial-step vertical levels. Featuring:
 
 * FES2014 tides
-* Boundary conditions from ... (in prog.)
-* Freshwater forcing (in prog.)
-* ERA5 wind and sea level pressure (in prog.)
+* Boundary conditions
+* Freshwater forcing 
+* ERA5 wind and sea level pressure
 
 ![SE Asia bathymetry](https://github.com/NOC-MSM/SEAsia/wiki/FIGURES/ACCORD_SEAsia_bathy.png)
 
@@ -32,20 +32,3 @@ The following process is followed to build and get started with this configurati
 Then follow descritptions in: https://github.com/NOC-MSM/SEAsia/wiki
 
 The example is based on NEMO v4.0.6 and XIOS v2.5:
-
-
-
-### Experiment Summary
-
-* ``EXP_barotropicTide``
-Only tidal forcing. Constant T and S
-
-* ``EXP_unforced``
-No forcing. Stratification varies only with depth. Start from rest.
-
-
-...
-
-### Repository structure
-
-* ...
