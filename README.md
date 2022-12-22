@@ -28,7 +28,7 @@ The following process is followed to build and get started with this configurati
 
 ``git clone https://github.com/JMMP-Group/SEVERN-SWOT.git``
 
-Then follow descritptions in: https://github.com/JMMP-Group/SEVERN-SWOT/wiki
+Then follow descriptions in: https://github.com/JMMP-Group/SEVERN-SWOT/wiki
 
 
 ### Experiment Summary
@@ -54,5 +54,5 @@ Constant initial T and S. Tidal forcing. ERA5 forcing (sea-level pressure, 10m w
 
 * ``EXP_Tide_ERA5_River_IC_BDY_WAD``
 Tidal forcing. ERA5 forcing (sea-level pressure, 10m winds, fluxes etc.), 3D boundary conditions and initial conditions.
-Freshriver forcing. With Wetting And Drying.
+River forcing. With Wetting And Drying.
 
