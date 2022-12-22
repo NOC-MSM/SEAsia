@@ -1,6 +1,6 @@
-*****************************************************
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7473198.svg)]([https://zenodo.org/record/7473198](https://zenodo.org/record/7473198))
+
 ## NEMO regional configuration of the Severn Estuary
-*****************************************************
 
 
 This model configuration has been developed in order to test the NEMO model in a tidal coastal area at 500 m resolution 
