@@ -1,6 +1,6 @@
-******************
-# Relocatable NEMO
-******************
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6483231.svg)](https://zenodo.org/record/6483231)
+
+## Relocatable NEMO
 
 An example configuration of SE Asia, demonstrating how to setup new regional domains in the NEMO framework.
 This model configuration has been developed through the ACCORD (Addressing Challenges of Coastal Communities through Ocean Research for Developing Economies) Project, funded by [Natural Environment Research Council, under a National Capability Official Development Assistance](http://gotw.nerc.ac.uk/list_full.asp?pcode=NE%2FR000123%2F1).
