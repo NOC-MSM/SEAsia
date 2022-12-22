@@ -3,13 +3,13 @@
 *****************************************************
 
 
-This model configuration has been developed in order to test the NEMO model in a tidal coastal area at 500 m resolution. 
+This model configuration has been developed in order to test the NEMO model in a tidal coastal area at 500 m resolution 
 (in preparation for the UK wide NEMO 500 m model development).
 
 
 ### Model Summary
 
-Severn Estaury in the UK  (-5E to -2E and 50.1N to 51.8N)
+Severn Estuary in the UK  (-5E to -2E and 50.1N to 51.8N)
 
 The model grid target resolution 500m; with 31 sigma vertical levels.
 Featuring:
