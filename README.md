@@ -28,4 +28,8 @@ The following process is followed to build and get started with this configurati
 
 Then follow descritptions in: https://github.com/NOC-MSM/SEAsia/wiki
 
-The example is based on NEMO v4.0.6 and XIOS v2.5:
+The example is based on NEMO v4.0.6 and XIOS v2.5
+
+### Domain file
+
+The domain configuration file can be [downloaded](https://gws-access.jasmin.ac.uk/public/jmmp/SEAsia_R12/)
